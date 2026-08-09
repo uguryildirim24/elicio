@@ -31,6 +31,7 @@ class HarnessOutcome:
     decision: PolicyDecision
     result: ActionResult | None
     action_event: GestureEvent | None = None
+    audit_error: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -165,17 +166,61 @@ class Harness:
         *,
         confirmed: bool,
     ) -> HarnessOutcome:
-        result = self._router.execute(command, action_event)
-        return self._finish(
-            audit_event,
-            PolicyDecision(
-                DecisionStatus.APPROVED,
-                "policy approved the action",
-                command,
-                confirmed=confirmed,
-            ),
-            result,
+        audit_id = uuid4().hex
+        decision = PolicyDecision(
+            DecisionStatus.APPROVED,
+            "policy approved the action",
+            command,
+            confirmed=confirmed,
+        )
+        intent = self._entry(
+            audit_id=audit_id,
+            record_type="intent",
+            event=audit_event,
             action_event=action_event,
+            decision=decision,
+            result={"status": "pending"},
+        )
+        try:
+            self._audit_log.record(intent)
+        except Exception as exc:
+            error = self._audit_error("intent", exc)
+            blocked_result = ActionResult(
+                success=False,
+                adapter=command.adapter,
+                details={"audit_id": audit_id},
+                error=f"{error}; action blocked",
+            )
+            return HarnessOutcome(
+                audit_id=audit_id,
+                event=audit_event,
+                decision=decision,
+                result=blocked_result,
+                action_event=action_event,
+                audit_error=error,
+            )
+
+        result = self._router.execute(command, action_event)
+        result_entry = self._entry(
+            audit_id=audit_id,
+            record_type="result",
+            event=audit_event,
+            action_event=action_event,
+            decision=decision,
+            result=result.to_dict(),
+        )
+        audit_error = None
+        try:
+            self._audit_log.record(result_entry)
+        except Exception as exc:
+            audit_error = self._audit_error("result", exc)
+        return HarnessOutcome(
+            audit_id=audit_id,
+            event=audit_event,
+            decision=decision,
+            result=result,
+            action_event=action_event,
+            audit_error=audit_error,
         )
 
     def _finish(
@@ -187,20 +232,49 @@ class Harness:
         action_event: GestureEvent | None = None,
     ) -> HarnessOutcome:
         audit_id = uuid4().hex
-        entry = {
-            "schema_version": 1,
-            "audit_id": audit_id,
-            "recorded_at": datetime.now(timezone.utc).isoformat(),
-            "event": event.to_dict(),
-            "action_event": action_event.to_dict() if action_event else None,
-            "decision": decision.to_dict(),
-            "result": result.to_dict() if result else {"status": "not_run"},
-        }
-        self._audit_log.record(entry)
+        entry = self._entry(
+            audit_id=audit_id,
+            record_type="decision",
+            event=event,
+            action_event=action_event,
+            decision=decision,
+            result=result.to_dict() if result else {"status": "not_run"},
+        )
+        audit_error = None
+        try:
+            self._audit_log.record(entry)
+        except Exception as exc:
+            audit_error = self._audit_error("decision", exc)
         return HarnessOutcome(
             audit_id=audit_id,
             event=event,
             decision=decision,
             result=result,
             action_event=action_event,
+            audit_error=audit_error,
         )
+
+    @staticmethod
+    def _audit_error(record_type: str, exc: Exception) -> str:
+        return f"{record_type} audit write failed: {type(exc).__name__}: {exc}"
+
+    @staticmethod
+    def _entry(
+        *,
+        audit_id: str,
+        record_type: str,
+        event: GestureEvent,
+        action_event: GestureEvent | None,
+        decision: PolicyDecision,
+        result: Mapping[str, object],
+    ) -> dict[str, object]:
+        return {
+            "schema_version": 2,
+            "record_type": record_type,
+            "audit_id": audit_id,
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "event": event.to_dict(),
+            "action_event": action_event.to_dict() if action_event else None,
+            "decision": decision.to_dict(),
+            "result": dict(result),
+        }

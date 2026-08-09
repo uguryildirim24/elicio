@@ -31,6 +31,19 @@ class RecordingAdapter:
         )
 
 
+class FailingAuditLog:
+    def __init__(self, fail_on_call: int) -> None:
+        self.fail_on_call = fail_on_call
+        self.calls = 0
+        self.entries: list[dict[str, object]] = []
+
+    def record(self, entry) -> None:
+        self.calls += 1
+        if self.calls == self.fail_on_call:
+            raise OSError(f"audit failure on call {self.calls}")
+        self.entries.append(dict(entry))
+
+
 def recording_harness() -> tuple[Harness, RecordingAdapter, MemoryAuditLog]:
     adapter = RecordingAdapter()
     audit = MemoryAuditLog()
@@ -128,6 +141,7 @@ class HarnessPolicyTests(unittest.TestCase):
         self.assertEqual(outcome.decision.status, DecisionStatus.IGNORED)
         self.assertEqual(adapter.calls, [])
         self.assertEqual(len(audit.entries), 1)
+        self.assertEqual(audit.entries[0]["record_type"], "decision")
         self.assertEqual(audit.entries[0]["event"]["symbol"], "rest")
         self.assertEqual(audit.entries[0]["result"], {"status": "not_run"})
 
@@ -158,15 +172,25 @@ class LocalActionAuditTests(unittest.TestCase):
             )
 
             lines = audit_path.read_text(encoding="utf-8").splitlines()
-            self.assertEqual(len(lines), 1)
-            entry = json.loads(lines[0])
-            self.assertEqual(entry["event"]["symbol"], "wrist_down")
-            self.assertEqual(entry["decision"]["status"], "approved")
-            self.assertEqual(entry["result"]["status"], "completed")
-            self.assertTrue(entry["result"]["success"])
-            self.assertEqual(entry["result"]["adapter"], "local_marker")
+            self.assertEqual(len(lines), 2)
+            entries = [json.loads(line) for line in lines]
             self.assertEqual(
-                entry["result"]["details"]["path"],
+                [entry["record_type"] for entry in entries],
+                ["intent", "result"],
+            )
+            self.assertEqual(
+                {entry["audit_id"] for entry in entries},
+                {outcome.audit_id},
+            )
+            self.assertTrue(all(entry["schema_version"] == 2 for entry in entries))
+            self.assertEqual(entries[0]["event"]["symbol"], "wrist_down")
+            self.assertEqual(entries[0]["decision"]["status"], "approved")
+            self.assertEqual(entries[0]["result"], {"status": "pending"})
+            self.assertEqual(entries[1]["result"]["status"], "completed")
+            self.assertTrue(entries[1]["result"]["success"])
+            self.assertEqual(entries[1]["result"]["adapter"], "local_marker")
+            self.assertEqual(
+                entries[1]["result"]["details"]["path"],
                 str(marker_path.resolve()),
             )
 
@@ -178,8 +202,48 @@ class LocalActionAuditTests(unittest.TestCase):
 
         self.assertEqual(outcome.decision.status, DecisionStatus.APPROVED)
         self.assertFalse(outcome.result.success)
-        self.assertEqual(audit.entries[0]["result"]["status"], "failed")
-        self.assertIn("not registered", audit.entries[0]["result"]["error"])
+        self.assertEqual(len(audit.entries), 2)
+        result_entry = audit.entries[1]
+        self.assertEqual(result_entry["record_type"], "result")
+        self.assertEqual(result_entry["result"]["status"], "failed")
+        self.assertIn("not registered", result_entry["result"]["error"])
+
+
+class AuditFailureTests(unittest.TestCase):
+    def test_intent_audit_failure_blocks_adapter(self) -> None:
+        adapter = RecordingAdapter()
+        audit = FailingAuditLog(fail_on_call=1)
+        harness = Harness(
+            AdapterRouter({"console": adapter, "local_marker": adapter}),
+            audit,
+        )
+
+        outcome = harness.feed(GestureEvent("wrist_down", 0.92, 25.0))
+
+        self.assertEqual(adapter.calls, [])
+        self.assertEqual(audit.calls, 1)
+        self.assertEqual(outcome.decision.status, DecisionStatus.APPROVED)
+        self.assertIsNotNone(outcome.result)
+        self.assertFalse(outcome.result.success)
+        self.assertIn("action blocked", outcome.result.error)
+        self.assertIn("intent audit write failed", outcome.audit_error)
+
+    def test_result_audit_failure_keeps_completed_action_result(self) -> None:
+        adapter = RecordingAdapter()
+        audit = FailingAuditLog(fail_on_call=2)
+        harness = Harness(
+            AdapterRouter({"console": adapter, "local_marker": adapter}),
+            audit,
+        )
+
+        outcome = harness.feed(GestureEvent("wrist_down", 0.92, 25.0))
+
+        self.assertEqual(len(adapter.calls), 1)
+        self.assertIsNotNone(outcome.result)
+        self.assertTrue(outcome.result.success)
+        self.assertIn("result audit write failed", outcome.audit_error)
+        self.assertEqual(len(audit.entries), 1)
+        self.assertEqual(audit.entries[0]["record_type"], "intent")
 
 
 if __name__ == "__main__":

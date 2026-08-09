@@ -14,9 +14,10 @@ The stable decoder event is:
 
 The first software-only vertical slice is now runnable. One simulated
 wrist_down event passes the event validator and confidence policy, then an
-explicit local-marker adapter atomically writes a harmless JSON file. The
-harness appends the event, policy decision, and adapter result to a JSONL audit
-log.
+explicit local-marker adapter atomically writes a harmless JSON file. For an
+approved action, the harness writes an `intent` audit record before calling the
+adapter and a linked `result` record after it. Both records use schema version
+2 and the same audit ID. Other decisions use one `decision` record.
 
 Run the verified demonstration from the repository root:
 
@@ -29,6 +30,13 @@ A successful run prints a JSON summary with verified set to true. It writes:
 
 The event cannot select a file path or run a shell command. The adapter receives
 a fixed path when the harness is built.
+
+The audit is fail closed for approved actions. If the intent record cannot be
+written, the adapter is not called and the outcome reports that the action was
+blocked. If the result record cannot be written after the adapter runs, the
+outcome keeps the adapter result and reports the audit error instead of hiding
+the completed action. The demo checks the two records for its own audit ID, so
+old records in an appended `.elicio-demo/audit.jsonl` do not count.
 
 ## Safety behavior
 
