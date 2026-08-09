@@ -1,0 +1,7 @@
+.DS_Store
+.elicio-demo/
+.venv/
+__pycache__/
+*.egg-info/
+*.py[cod]
+.pytest_cache/
