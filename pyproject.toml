@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "elicio"
+version = "0.1.0"
+description = "A safety boundary between personal gesture events and local AI tools."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy>=2.0",
+]
+
+[project.optional-dependencies]
+research = [
+  "scikit-learn>=1.5",
+  "torch>=2.4",
+  "wfdb>=4.1",
+]
+
+[project.scripts]
+elicio = "elicio.cli:main"
+elicio-emg = "elicio.pipeline.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"elicio.pipeline" = ["README.md"]
