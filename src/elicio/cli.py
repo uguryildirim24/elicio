@@ -36,17 +36,37 @@ def run_demo(state_dir: Path) -> int:
         )
     ]
     outcome = outcomes[-1]
+    run_audit_records = []
+    if audit_path.is_file():
+        for line in audit_path.read_text(encoding="utf-8").splitlines():
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(entry, dict) and entry.get("audit_id") == outcome.audit_id:
+                run_audit_records.append(entry)
+    audit_record_types = [entry.get("record_type") for entry in run_audit_records]
+    audit_verified = (
+        len(run_audit_records) == 2
+        and set(audit_record_types) == {"intent", "result"}
+        and all(entry.get("schema_version") == 2 for entry in run_audit_records)
+    )
     succeeded = (
         outcome.decision.status == DecisionStatus.APPROVED
         and outcome.result is not None
         and outcome.result.success
         and marker_path.is_file()
+        and outcome.audit_error is None
+        and audit_verified
     )
     summary = {
         "verified": succeeded,
         "event": outcome.event.to_dict(),
         "decision": outcome.decision.to_dict(),
         "result": outcome.result.to_dict() if outcome.result else None,
+        "audit_error": outcome.audit_error,
+        "audit_id": outcome.audit_id,
+        "audit_record_types": audit_record_types,
         "marker": str(marker_path.resolve()),
         "audit_log": str(audit_path.resolve()),
     }
