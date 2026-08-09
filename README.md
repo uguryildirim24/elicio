@@ -38,6 +38,23 @@ outcome keeps the adapter result and reports the audit error instead of hiding
 the completed action. The demo checks the two records for its own audit ID, so
 old records in an appended `.elicio-demo/audit.jsonl` do not count.
 
+## Replayable signal demo
+
+Run the deterministic one-channel signal fixture through replay, contraction
+detection, the harness, and the fixed local marker adapter:
+
+    PYTHONPATH=src .venv/bin/python -m elicio.cli replay-demo --state-dir .elicio-replay-demo
+
+The fixture contains seeded rest-level noise, one elevated burst, and more
+rest. A successful JSON summary has `verified` set to true only when exactly
+one `wrist_down` event is emitted, the expected replay marker exists, and this
+run's linked intent/result audit pair is complete. The JSONL audit file remains
+append-only; earlier runs do not count toward the current pair.
+
+This is a synthetic software replay. It is not a personal recording, does not
+validate a sensor or hardware path, and does not establish biological
+end-to-end operation.
+
 ## Safety behavior
 
 Confidence floors rise with command risk: 0.60 for harmless actions, 0.75 for
