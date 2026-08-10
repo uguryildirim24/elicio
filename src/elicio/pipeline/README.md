@@ -86,8 +86,8 @@ script.
 
 The `prepare` command above is wired to the public GRABMyo dataset
 only. To run this SAME pipeline on your own sensor recordings later,
-follow these steps. You will not touch `train.py`, `six_best_rest.py`,
-`features.py`, or `splits.py` at all.
+follow these steps. You will not touch `train_and_eval.py`,
+`six_best_rest.py`, `features.py`, or `splits.py` at all.
 
 1. Read the "STANDARD FORM" section at the top of `load.py`. It
    defines the `Recording` object: a signal array, a label array, a

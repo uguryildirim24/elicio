@@ -67,6 +67,8 @@ from typing import Iterable, List, Optional
 
 import numpy as np
 
+from .config import STEP_MS, WINDOW_MS
+
 # Zero-amplitude threshold used for the zero-crossing and slope-sign-change
 # features, in the same signal units as the loaded recordings (millivolts
 # for GRABMyo). Differences smaller than this threshold are treated as
@@ -128,8 +130,8 @@ def _contiguous_label_segments(labels: np.ndarray):
 
 def window_recording(
     recording,
-    window_ms: float = 200.0,
-    step_ms: float = 50.0,
+    window_ms: float = WINDOW_MS,
+    step_ms: float = STEP_MS,
 ) -> WindowSet:
     """Cut one ``Recording`` into overlapping windows, aligned to onsets.
 
@@ -180,8 +182,8 @@ def window_recording(
 
 def window_recordings(
     recordings: Iterable,
-    window_ms: float = 200.0,
-    step_ms: float = 50.0,
+    window_ms: float = WINDOW_MS,
+    step_ms: float = STEP_MS,
 ) -> WindowSet:
     """Cut many ``Recording`` objects and concatenate the resulting windows.
 
