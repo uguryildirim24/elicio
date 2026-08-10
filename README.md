@@ -1,110 +1,127 @@
 # Elicio
 
-Elicio is a personal biological-input layer for an AI work environment.
+Elicio is a meeting point between a person and a language model in the physical
+world.
 
-The intended flow is:
+A deliberate muscle contraction becomes an explicit event. A safety harness
+decides what that event is allowed to do. Only then does a model act.
 
-    body sensor -> personal decoder -> gesture event -> safety harness -> AI tools
+```text
+body sensor -> personal decoder -> gesture event -> safety harness -> AI tools
+```
 
-The stable decoder event is:
+The harness is the product. Codex, Claude, and other models are replaceable
+reasoning engines behind it. The stable interface between the body and everything
+downstream is one small tuple:
 
-    (symbol, confidence, timestamp)
+```text
+(symbol, confidence, timestamp)
+```
 
-## Verified engineering slice
+For the idea, the origin, the research evidence, and the open design questions,
+read [`docs/VISION.md`](docs/VISION.md).
 
-The first software-only vertical slice is now runnable. One simulated
-wrist_down event passes the event validator and confidence policy, then an
-explicit local-marker adapter atomically writes a harmless JSON file. For an
-approved action, the harness writes an `intent` audit record before calling the
-adapter and a linked `result` record after it. Both records use schema version
-2 and the same audit ID. Other decisions use one `decision` record.
+## Status
 
-Run the verified demonstration from the repository root:
+The software boundary is real and runs today. Everything upstream of the event is
+still synthetic.
 
-    PYTHONPATH=src python3 -m elicio.cli demo --state-dir .elicio-demo
+| Part | State |
+| --- | --- |
+| Safety harness, policy, audit | Real, tested |
+| Local marker action | Real, atomic file write |
+| Other actions in the alphabet | Console simulations |
+| Signal replay and contraction detection | Real, deterministic fixtures |
+| Sensor hardware | Not purchased |
+| Personal recording | Does not exist |
 
-A successful run prints a JSON summary with verified set to true. It writes:
+No real sensor signal has been recorded, decoded, and used to complete a harness
+action. Elicio is not an end-to-end biological-input product and should not be
+described as one.
 
-    .elicio-demo/actions/demo-marker.json
-    .elicio-demo/audit.jsonl
+## Run it
 
-The event cannot select a file path or run a shell command. The adapter receives
-a fixed path when the harness is built.
+```bash
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -e .
+```
 
-The audit is fail closed for approved actions. If the intent record cannot be
-written, the adapter is not called and the outcome reports that the action was
-blocked. If the result record cannot be written after the adapter runs, the
-outcome keeps the adapter result and reports the audit error instead of hiding
-the completed action. The demo checks the two records for its own audit ID, so
-old records in an appended `.elicio-demo/audit.jsonl` do not count.
+One simulated event through policy into a real local file:
 
-## Replayable signal demo
+```bash
+.venv/bin/elicio demo --state-dir .elicio-demo
+```
 
-Run the deterministic one-channel signal fixture through replay, contraction
-detection, the harness, and the fixed local marker adapter:
+The deterministic signal fixture through replay, detection, policy, and action:
 
-    PYTHONPATH=src .venv/bin/python -m elicio.cli replay-demo --state-dir .elicio-replay-demo
+```bash
+.venv/bin/elicio replay-demo --state-dir .elicio-replay-demo
+```
 
-The fixture contains seeded rest-level noise, one elevated burst, and more
-rest. A successful JSON summary has `verified` set to true only when exactly
-one `wrist_down` event is emitted, the expected replay marker exists, and this
-run's linked intent/result audit pair is complete. The JSONL audit file remains
-append-only; earlier runs do not count toward the current pair.
+Both print a JSON summary. A run succeeded only when it exits 0 and reports
+`"verified": true`. Each writes a marker under `actions/` and appends to
+`audit.jsonl` in the state directory.
 
-This is a synthetic software replay. It is not a personal recording, does not
-validate a sensor or hardware path, and does not establish biological
-end-to-end operation.
+The replay fixture is seeded synthetic data built with the standard library. It is
+not a personal recording and does not validate any hardware path.
 
 ## Safety behavior
 
-Confidence floors rise with command risk: 0.60 for harmless actions, 0.75 for
-reversible edits, and 0.85 for dangerous actions. A dangerous action never runs
-from one event. It requires a separate jaw_clench event with at least 0.85
-confidence within three seconds. Rest, unknown symbols, low-confidence events,
-late confirmations, and out-of-order confirmations do not run actions. Every
-decision is audited.
+Confidence floors rise with consequence: 0.60 for harmless actions, 0.75 for
+reversible edits, 0.85 for dangerous ones.
 
-Only the local marker action is real. The other migrated milestone-0 actions
-remain explicit console simulations.
+A dangerous action never runs from one event. It requires a separate `jaw_clench`
+event at 0.85 or higher within three seconds, sourced from a different muscle group
+so one twitch cannot produce both. Rest, unknown symbols, low-confidence events,
+late confirmations, and out-of-order confirmations do not run actions.
 
-## Research pipeline
+An event selects a command. It never selects a file path or a shell string; the
+adapter's target is fixed when the harness is built.
 
-The final Claude Science emg_pipeline package now lives under
-src/elicio/pipeline. Imports were made package-relative, shared settings come
-from config.py, and both training entry points now use the session-leakage
-guard in splits.py.
-
-Install the base package in an isolated environment:
-
-    python3.11 -m venv .venv
-    .venv/bin/python -m pip install -e .
-
-The research commands also need the optional scientific packages:
-
-    .venv/bin/python -m pip install -e '.[research]'
-    .venv/bin/elicio-emg prepare --subjects 1 2 3 --out-dir results
-    .venv/bin/elicio-emg train --data-dir results --subjects 1 2 3
-    .venv/bin/elicio-emg evaluate --data-dir results --subjects 1 2 3
-
-Training and evaluation remain research workloads. They were not rerun locally
-for this engineering slice.
+Auditing is fail closed. The intent record is written before the adapter runs, and
+if that write fails the action is blocked. If the result record fails after the
+action ran, the outcome reports the real result alongside the audit error rather
+than hiding either.
 
 ## Tests
 
-Run the contract and safety suite with:
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+```
 
-    .venv/bin/python -m unittest discover -s tests -v
+26 tests covering the event contract, every confidence floor, dangerous-action
+confirmation and timeout behavior, rest handling, audit failure modes, the real
+local marker effect, deterministic replay and detection, and cross-session leakage
+rejection. Stdlib `unittest`; no pytest. The suite needs only the base install.
 
-The suite covers event validation, each confidence floor, rest handling,
-dangerous-action confirmation and timeout behavior, JSONL audit records, the
-real local marker effect, and cross-session leakage rejection.
+## Research pipeline
 
-## Current limits
+`src/elicio/pipeline/` is the migrated sEMG decoding pipeline from the Claude
+Science project. It prepares public GRABMyo recordings, trains gesture decoders,
+and scores them across sessions.
 
-Claude Science completed the first research phase, but Elicio is not an
-end-to-end biological-input product. No hardware has been purchased. No
-personal sensor recording exists. A real sensor signal has not been decoded or
-used to complete a harness action.
+```bash
+.venv/bin/python -m pip install -e '.[research]'
+.venv/bin/elicio-emg prepare --subjects 1 2 3 --out-dir results
+.venv/bin/elicio-emg train --data-dir results --subjects 1 2 3
+.venv/bin/elicio-emg evaluate --data-dir results --subjects 1 2 3
+```
 
-See docs/CLAUDE_SCIENCE_HANDOFF.md for the research handoff and
-docs/RESEARCH_PROVENANCE.md for the exact migrated artifacts.
+Every reported number must be cross-session: train on one recording day, test on
+another. Within-session accuracy on this data reads 98 to 99 percent and is
+meaningless. `splits.py` is the only split API on purpose.
+
+Training and evaluation are research workloads and were not rerun for the
+engineering slice.
+
+## Repository map
+
+| Path | Contents |
+| --- | --- |
+| `src/elicio/harness/` | Event contract, risk policy, adapters, audit sinks |
+| `src/elicio/signal/` | Replay fixtures and contraction detector |
+| `src/elicio/pipeline/` | GRABMyo research pipeline |
+| `docs/VISION.md` | Idea, origin, evidence, open questions |
+| `docs/CLAUDE_SCIENCE_HANDOFF.md` | Scope, safety, and authority rules |
+| `docs/RESEARCH_PROVENANCE.md` | Migration ledger and checksums |
+| `AGENTS.md` | Engineering conventions for code assistants |
