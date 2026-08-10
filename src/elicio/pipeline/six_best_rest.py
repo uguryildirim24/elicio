@@ -7,8 +7,8 @@ of the same idea used in the 2-subject baseline (which had picked the
 subset using test-session F1, a shortcut noted as a limitation there).
 
 For each subject:
-  1. Split session-1 (train) windows 80/20, in time order within each
-     gesture's recording, to avoid picking a subset that only looks
+  1. Split session-1 (train) windows 80/20 with a seeded shuffle over
+     all training rows, to avoid picking a subset that only looks
      good on the exact rows used to build the model.
   2. Fit a Gradient-Boosted-Trees model on the 80% slice, score
      per-class F1 on the 20% slice.

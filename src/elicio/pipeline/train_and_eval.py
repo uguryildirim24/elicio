@@ -35,6 +35,7 @@ import torch.nn as nn
 from sklearn.metrics import accuracy_score, f1_score
 
 from .config import (
+    CHANNEL_SET_SIZES,
     DEFAULT_DATA_DIR,
     DEFAULT_EPOCHS,
     DEFAULT_TRAIN_RESULTS_CSV,
@@ -54,7 +55,8 @@ def channel_configs(features, labels, feature_names, channel_names, train_idx):
     """Return {config_name: (chosen_channel_names, feature_col_idx)}."""
     configs = {}
     configs["forearm_16"] = (list(channel_names), list(range(len(feature_names))))
-    for n_ch, key in [(8, "best_8"), (3, "best_3")]:
+    for n_ch in CHANNEL_SET_SIZES:
+        key = f"best_{n_ch}"
         chosen, cols = select_channels_by_fscore(
             features[train_idx], labels[train_idx], feature_names, channel_names,
             n_channels=n_ch, largest=True,
@@ -63,7 +65,7 @@ def channel_configs(features, labels, feature_names, channel_names, train_idx):
     return configs
 
 
-def train_torch_model(model, X_train, y_train, epochs=15, batch_size=256, lr=1e-3):
+def train_torch_model(model, X_train, y_train, epochs=DEFAULT_EPOCHS, batch_size=256, lr=1e-3):
     device = torch.device("cpu")
     model.to(device)
     opt = torch.optim.Adam(model.parameters(), lr=lr)
