@@ -148,9 +148,16 @@ against a personal recording, and it needs an explicit call first.
 
 Nothing has been purchased.
 
-sEMG was chosen over EEG for the first usable layer, because EEG's 2 to 4 classes
-and multi-second decisions cannot carry an input alphabet. EEG is deferred, not
-rejected, and may later serve as a slow auxiliary state channel.
+sEMG was chosen over EEG for the first usable layer. The recorded rationale is
+signal amplitude: the project's own record puts sEMG at 0.1 to 10 mV against EEG
+at 10 to 100 uV, and concludes that sEMG supports 8 to 15 classes at 50 to 200 ms
+per decision while EEG supports 2 to 4 classes at 1 to 4 s. Treat that as the
+decision record, not as settled physics: the quoted ranges overlap at their edges,
+and EEG class count and latency depend heavily on paradigm. What the decision rests
+on is that 2 to 4 classes at multi-second latency cannot carry an input alphabet.
+EEG is deferred, not rejected, and may later serve as a slow auxiliary state
+channel. The event contract makes that swap cheap: the harness never learns what
+produced a `(symbol, confidence, timestamp)`.
 
 Research favored an 8-channel dry-sEMG armband. The owner pushed back on cost
 directly:
@@ -171,6 +178,54 @@ its marketing.
 Still unresolved: optimal channel count, wrist versus proximal forearm placement,
 recalibration versus retraining, and facial versus forearm comfort for the
 confirmation gesture.
+
+### Band survey, verified 2026-08-10
+
+Constraint set: 500 USD or less delivered, ships to the US, documented raw
+time-series, 500 Hz or better, works offline. **No device fully clears all of it.**
+
+|Device|Price|Raw access|Rate|Verdict|
+|---|---|---|---|---|
+|Mudra Link|$249, free US ship 5-8 days|Documented (`on_snc_ready`, 3 ch x 18 samples) but **license-gated**, "may incur an additional fee"|**Unpublished**|Conditional. Finished band, dry stainless electrodes|
+|NPG Lite "Beast"|$240 + $8|Open firmware, no gatekeeper|**500 Hz** (`SAMP_RATE 500.0`)|Conditional. 6 ch, but a board not a band; US shipping unverified|
+|MindRove Armband|$679|Yes|500 Hz|Over budget|
+|OpenBCI Ganglion / Cyton|$625 / $1,249|Yes|**200 / 250 Hz** radio cap|Fails rate and budget|
+|Used Thalmic Myo|unverifiable (eBay 403)|Community pyomyo|**200 Hz**|Fails rate; SDK archived 2021|
+|OYMotion gForce Ultra|no public price|Unclear|Unpublished|Quote-only, China|
+|Meta Neural Band|$799 bundle only|Deliberately restricted|n/a|Fails raw access|
+
+Two open questions decide it. To Wearable Devices: what is the raw SNC per-channel
+sample rate, and what does the RawData license cost an individual? To Crowd Supply:
+real ship date and warehouse country for NPG Lite.
+
+Returns are not free. Mudra gives 30 days from delivery with under 10 days of use,
+but the buyer pays return shipping to their US facility, and all original packaging
+must come back in new or like-new condition.
+
+### Electrodes
+
+The 3DC Armband (Sensors 2019, open repo) uses **ENIG-finished PCB pads, 50 mm2
+contact area** - dry, no gel. ENIG is gold over **nickel**, and nickel is a common
+contact allergen restricted by EU Directive 94/27/EC for prolonged skin contact, so
+it is not an obvious choice for a wearable.
+
+3D-printed conductive filament is a validated alternative. Wolterink et al. (Sensors
+2020, 20:4292) printed an 8-electrode carbon-black TPU forearm band with no
+post-processing and classified hand positions at 83-87 percent; Alokaily et al.
+(Micromachines 2026, 17:504) measured SNR comparable to pre-gelled Ag/AgCl across 18
+participants. Sizing matters more than for metal: Wolterink found 16 mm diameter
+worked while 5 mm often failed, so the 3DC's 50 mm2 geometry should not be copied
+onto printed material.
+
+Dry costs impedance. Printed TPU measured 7.8 kOhm at 20 Hz against Ag/AgCl's 650
+Ohm, on saline cloth, with dry skin expected higher; dry contacts generally run
+100-400 kOhm on donning, falling to 40-80 kOhm after about 20 minutes. That demands
+a high-input-impedance front end and a warm-up period before recording.
+
+Rebuilding the 3DC itself is a redesign, not a rebuild: the custom ASIC has no
+orderable part, the MSP430F5328IZQE is Last Time Buy, the ICM-20948 is EOL, the
+nRF24 series is NRND, and the board's PMU supplies only 1.2 V and 1.9 V while every
+candidate commercial AFE needs 2.7 V or more.
 
 ## Where the project actually stands
 
