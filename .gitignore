@@ -5,3 +5,5 @@ __pycache__/
 *.egg-info/
 *.py[cod]
 .pytest_cache/
+.claude/state/
+.elicio-replay-demo/
