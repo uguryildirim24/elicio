@@ -179,7 +179,7 @@ Still unresolved: optimal channel count, wrist versus proximal forearm placement
 recalibration versus retraining, and facial versus forearm comfort for the
 confirmation gesture.
 
-### Band survey, verified 2026-08-10
+### Band survey, verified 2026-08-12
 
 Constraint set: 500 USD or less delivered, ships to the US, documented raw
 time-series, 500 Hz or better, works offline. **No device fully clears all of it.**
