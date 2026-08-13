@@ -99,13 +99,14 @@ replay is the project's first real biological signal completing a real
 action.
 
 **Stage B - behind-ear pod.** The same circuit miniaturized onto an
-outsourced PCB in a printed behind-ear shell with printed carbon-TPU
-electrode contacts and a small battery plus BLE microcontroller. Exit
+outsourced PCB in a shaped behind-ear shell with dry electrode contacts
+and a small battery plus BLE microcontroller. See "Fabrication without a
+3D printer" below for how the shell and contacts get made. Exit
 criteria: re-donned on three separate days with the detector threshold
 unchanged, false-positive rate measured during eating, talking, and walking.
 
-**Stage C - sealed canal tip.** A printed canal tip sealing a MEMS pressure
-sensor (barometry, per the EarSwitch method) plus a piezo contact mic.
+**Stage C - sealed canal tip.** A moulded or printed canal tip sealing a
+MEMS pressure sensor (barometry, per the EarSwitch method) plus a piezo contact mic.
 Answers the owner's tensor-tympani question objectively and adds click
 symbols. This stage is a pressure measurement, not a biopotential one, and
 may prove easier than Stage A.
@@ -206,6 +207,40 @@ Budget discipline for the covert channels, using the existing floors:
 - Measured false-positive rates during eating, talking, walking, and
   yawning are recorded per stage before any mapping is promoted.
 
+## Fabrication without a 3D printer
+
+Recorded 2026-08-13: the owner does not own a 3D printer. This changes
+nothing before Stage B, and Stage A is entirely unaffected because it is
+breadboard, modules, and gelled electrodes with no fabricated part in it.
+
+Stage B needs two things made: a shell that holds the pod behind the ear,
+and skin contacts. Three routes, none of which require owning a printer:
+
+1. **Outsource the printing.** Palmiga Innovation manufactures the
+   PI-ETPU 95-250 carbon-black filament this design cites and offers
+   custom printing in its own materials
+   (<https://rubber3dprinting.com/>, <https://palmiga.com/3d-printing/>).
+   This is consistent with the plan already outsourcing the PCB. General
+   print bureaus and library makerspaces are not a substitute here: they
+   run rigid PLA and resin, not conductive flexible TPU.
+2. **Skip the printed electrode entirely.** Requirement 5 already permits
+   stainless steel contacts. Off-the-shelf stainless or gold-plated dry
+   electrode discs remove the conductive-filament problem, at the cost of
+   giving up the conformal fit that carbon-TPU buys on curved skin.
+3. **Shape the shell by hand.** Moldable polycaprolactone thermoplastic
+   softens in hot water, is shaped by hand, sets rigid, and remelts if the
+   fit is wrong. For a one-off prototype whose geometry is unknown until
+   it is worn, hand-shaping iterates faster than printing does.
+
+Stage C is the case where not printing is an advantage. Custom canal tips
+are conventionally made from silicone ear impressions, not printed, and
+DIY impression kits are sold for exactly this. A moulded tip seals the
+canal better than a printed one, and the seal is the whole measurement in
+a barometric channel.
+
+No printer purchase is warranted yet. Revisit only if Stage B proves the
+channel and contact geometry turns into a real iteration bottleneck.
+
 ## Open questions
 
 1. ~~Does the owner's voluntary auricular control include each ear
@@ -218,5 +253,6 @@ Budget discipline for the covert channels, using the existing floors:
    this with the pressure sensor if self-testing stays inconclusive.
 3. Exact microcontroller and ADC for Stage B (the bench stage is
    deliberately module-based and forgiving).
-4. Printed-electrode contact geometry behind the ear, where skin curvature
-   is tighter than the forearm geometries in the cited papers.
+4. Dry-electrode contact geometry behind the ear, where skin curvature
+   is tighter than the forearm geometries in the cited papers. Constrained
+   by the fabrication route chosen below.
