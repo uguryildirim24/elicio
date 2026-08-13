@@ -7,3 +7,4 @@ __pycache__/
 .pytest_cache/
 .claude/state/
 .elicio-replay-demo/
+.elicio-recording-replay/

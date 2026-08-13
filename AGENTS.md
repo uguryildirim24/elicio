@@ -20,6 +20,12 @@ before changing the engineering slice.
 - `src/elicio/cli.py` provides `demo` and `replay-demo` through `argparse`.
 - `demo` creates a scripted `GestureEvent`; `replay-demo` generates a seeded synthetic recording,
   replays it through `ContractionDetector`, and emits a `wrist_down` event.
+- `capture`, `scope`, and `replay-recording` bridge a live one-ASCII-sample-per-line stream into
+  the same path: capture saves deterministic recording JSON (raw samples are the permanent source
+  record), scope renders a live envelope meter for biofeedback, and replay-recording runs a saved
+  capture through detection, policy, audit, and the marker action. `ContractionDetector` accepts a
+  `symbol` argument (default `wrist_down`) so capture sessions can label a muscle site without
+  policy changes. See `docs/EARPIECE_DESIGN.md` for the hardware direction these serve.
 - Both paths call `Harness.feed`, which validates the command and confidence floor, records an
   audit intent, executes an injected adapter, then records the result.
 - `LocalMarkerAdapter` writes a fixed payload atomically. Events cannot choose a path or shell
@@ -143,6 +149,8 @@ engineering work.
 - `src/elicio/harness/adapters.py`: adapter protocol, router, console simulation, and atomic marker.
 - `src/elicio/harness/audit.py`: append-only JSONL and in-memory audit sinks.
 - `src/elicio/signal/detector.py` and `src/elicio/signal/replay.py`: detection and deterministic fixtures.
+- `src/elicio/signal/capture.py`: stream parsing, recording save/load, and the biofeedback meter.
+- `docs/EARPIECE_DESIGN.md`: earpiece hardware design record, staged build plan, and safety rules.
 - `src/elicio/pipeline/config.py`: shared research defaults.
 - `src/elicio/pipeline/splits.py`: session-leakage guard.
 - `src/elicio/pipeline/README.md`: pipeline workflow and data shapes.
@@ -170,9 +178,10 @@ The suite uses stdlib `unittest`, not pytest. There are no `conftest.py`, `pytes
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-The five test modules cover event validation/serialization, confidence floors, dangerous-action
+The six test modules cover event validation/serialization, confidence floors, dangerous-action
 confirmation and timeout behavior, rest handling, audit failure modes, atomic marker output,
-deterministic signal replay/detection, feature windowing, and cross-session leakage rejection.
+deterministic signal replay/detection, stream capture and recording round-trips, feature
+windowing, and cross-session leakage rejection.
 The suite needs only the base NumPy dependency; it has no optional-dependency skip logic.
 
 Use `tempfile.TemporaryDirectory()` for filesystem tests. Keep tests deterministic with explicit

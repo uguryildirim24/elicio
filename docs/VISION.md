@@ -227,6 +227,27 @@ orderable part, the MSP430F5328IZQE is Last Time Buy, the ICM-20948 is EOL, the
 nRF24 series is NRND, and the board's PMU supplies only 1.2 V and 1.9 V while every
 candidate commercial AFE needs 2.7 V or more.
 
+### Direction update, 2026-08-13
+
+The owner named the binding requirement that the band survey missed:
+subtlety. Input must be invisible to an observer, in act and in hardware.
+Overt forearm gestures fail that requirement regardless of accuracy, which
+retires the armband as the product form; the forearm remains the loud debug
+site for bringing up self-built electronics.
+
+The adopted direction is a single self-built earpiece combining auricular
+muscle EMG (primary command), masseter clench pickup (confirmation, a
+different muscle group per the harness rule), a sealed-canal pressure sensor
+for tensor tympani rumble (EarSwitch, J NeuroEng Rehabil 2024: 43.2% of
+people report voluntary rumbling, detected at 95% accuracy by in-ear
+barometry; EarRumble, CHI 2021), and optionally ear-EEG later as the slow
+state channel (commercially proven by NextSense Smartbuds, February 2026).
+On 2026-08-13 the owner verified voluntary control of their auricular
+muscles; voluntary rumble is unverified. Hardware is to be self-built:
+printed wearable and electrodes, outsourced PCBs, purchased ICs. The full
+design record, staged plan, and first bench circuit are in
+[`EARPIECE_DESIGN.md`](EARPIECE_DESIGN.md).
+
 ## Where the project actually stands
 
 The software boundary is real and runs today. One simulated gesture event passes

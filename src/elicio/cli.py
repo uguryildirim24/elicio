@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+from datetime import datetime, timezone
 import json
 from pathlib import Path
+import sys
 import time
 
 from .harness.adapters import AdapterRouter, ConsoleAdapter, LocalMarkerAdapter
@@ -12,8 +15,16 @@ from .harness.audit import JsonlAuditLog
 from .harness.harness import Harness
 from .harness.policy import DEFAULT_COMMANDS, DecisionStatus
 from .harness.simulated import REAL_ACTION_DEMO, events_from_script
+from .signal.capture import (
+    TrailingEnvelope,
+    collect_samples,
+    load_recording,
+    render_meter,
+    save_recording,
+    stream_samples,
+)
 from .signal.detector import ContractionDetector
-from .signal.replay import ReplaySource, build_synthetic_recording
+from .signal.replay import DEFAULT_SAMPLE_RATE_HZ, Recording, ReplaySource, build_synthetic_recording
 
 
 def run_demo(state_dir: Path) -> int:
@@ -205,6 +216,187 @@ def run_replay_demo(state_dir: Path) -> int:
     return 0 if succeeded else 1
 
 
+@contextlib.contextmanager
+def _open_input(source: str):
+    """Yield an iterable of lines from a file path or ``-`` for stdin."""
+
+    if source == "-":
+        yield sys.stdin
+        return
+    with open(source, "r", encoding="utf-8", errors="replace") as handle:
+        yield handle
+
+
+def run_capture(args) -> int:
+    """Capture a live sample stream into one replayable recording file."""
+
+    max_samples = args.samples
+    if args.seconds is not None:
+        by_seconds = int(round(args.seconds * args.sample_rate))
+        max_samples = by_seconds if max_samples is None else min(max_samples, by_seconds)
+
+    with _open_input(args.input) as lines:
+        samples = collect_samples(
+            lines,
+            offset=args.offset,
+            gain=args.gain,
+            max_samples=max_samples,
+        )
+
+    if not samples:
+        print(json.dumps({"verified": False, "error": "no samples captured"}, indent=2))
+        return 1
+
+    recording = Recording(tuple(samples), sample_rate_hz=args.sample_rate)
+    meta = {
+        "captured_at": datetime.now(timezone.utc).isoformat(),
+        "source": args.input,
+        "site": args.site,
+        "note": args.note,
+        "offset": args.offset,
+        "gain": args.gain,
+    }
+    out_path = save_recording(recording, args.out, meta=meta)
+    summary = {
+        "verified": True,
+        "recording": str(out_path.resolve()),
+        "samples": len(samples),
+        "sample_rate_hz": recording.sample_rate_hz,
+        "duration_seconds": recording.duration_seconds,
+    }
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    return 0
+
+
+def run_scope(args) -> int:
+    """Live terminal envelope meter with detection events, for biofeedback."""
+
+    detector = ContractionDetector(
+        symbol=args.symbol,
+        sample_rate_hz=args.sample_rate,
+        onset_threshold=args.threshold,
+    )
+    envelope = TrailingEnvelope(window=detector.envelope_window)
+    event_count = 0
+    with _open_input(args.input) as lines:
+        try:
+            for timestamp, sample in stream_samples(
+                lines,
+                sample_rate_hz=args.sample_rate,
+                offset=args.offset,
+                gain=args.gain,
+            ):
+                level = envelope.update(sample)
+                event = detector.process_sample(timestamp, sample)
+                meter = render_meter(
+                    level, args.threshold, width=args.width, peak=args.peak
+                )
+                print("\r" + meter, end="", flush=True)
+                if event is not None:
+                    event_count += 1
+                    print(
+                        f"\nevent {event_count}: {event.symbol} "
+                        f"confidence={event.confidence:.2f} t={event.timestamp:.3f}s",
+                        flush=True,
+                    )
+        except KeyboardInterrupt:
+            pass
+    print(f"\nstream ended; {event_count} event(s) detected")
+    return 0
+
+
+def run_recording_replay(recording_path: Path, state_dir: Path) -> int:
+    """Replay one captured recording through detection, policy, and action."""
+
+    state_dir = Path(state_dir)
+    marker_path = state_dir / "actions" / "recording-marker.json"
+    audit_path = state_dir / "audit.jsonl"
+    recording = load_recording(recording_path)
+    events = ContractionDetector(
+        sample_rate_hz=recording.sample_rate_hz
+    ).detect(ReplaySource(recording))
+    harness = Harness(
+        AdapterRouter({"local_marker": LocalMarkerAdapter(marker_path)}),
+        JsonlAuditLog(audit_path),
+    )
+    outcomes = [harness.feed(event) for event in events]
+
+    approved = [
+        outcome
+        for outcome in outcomes
+        if outcome.decision.status == DecisionStatus.APPROVED
+        and outcome.result is not None
+        and outcome.result.success
+    ]
+    audit_entries = _read_audit_entries(audit_path)
+    audit_pairs_intact = all(
+        sorted(
+            entry.get("record_type")
+            for entry in audit_entries
+            if entry.get("audit_id") == outcome.audit_id
+        )
+        == ["intent", "result"]
+        for outcome in approved
+    )
+    last_event = approved[-1].action_event if approved else None
+    marker_verified = _verify_replay_marker(marker_path, last_event)
+    succeeded = (
+        len(events) >= 1
+        and len(approved) >= 1
+        and all(outcome.audit_error is None for outcome in outcomes)
+        and audit_pairs_intact
+        and marker_verified
+    )
+    summary = {
+        "verified": succeeded,
+        "recording": str(Path(recording_path).resolve()),
+        "samples": len(recording.samples),
+        "duration_seconds": recording.duration_seconds,
+        "events_emitted": len(events),
+        "approved_action_count": len(approved),
+        "decisions": [
+            {
+                "symbol": outcome.event.symbol,
+                "status": outcome.decision.status.value,
+                "reason": outcome.decision.reason,
+            }
+            for outcome in outcomes
+        ],
+        "audit_pairs_intact": audit_pairs_intact,
+        "marker_verified": marker_verified,
+        "marker": str(marker_path.resolve()),
+        "audit_log": str(audit_path.resolve()),
+    }
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    return 0 if succeeded else 1
+
+
+def _add_stream_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--input",
+        required=True,
+        help="stream source: a file path, a configured serial device, or - for stdin",
+    )
+    parser.add_argument(
+        "--sample-rate",
+        type=float,
+        default=DEFAULT_SAMPLE_RATE_HZ,
+        help="declared samples per second of the stream",
+    )
+    parser.add_argument(
+        "--offset",
+        type=float,
+        default=0.0,
+        help="raw value subtracted from every sample, e.g. an ADC mid-rail bias",
+    )
+    parser.add_argument(
+        "--gain",
+        type=float,
+        default=1.0,
+        help="multiplier applied after the offset, to land signals near 0..1",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="elicio")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -228,6 +420,83 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path(".elicio-replay-demo"),
         help="directory for the replay marker and JSONL audit log",
     )
+    capture = subparsers.add_parser(
+        "capture",
+        help="save a live one-channel sample stream as a replayable recording",
+    )
+    _add_stream_arguments(capture)
+    capture.add_argument(
+        "--out",
+        type=Path,
+        required=True,
+        help="path of the recording JSON file to write",
+    )
+    capture.add_argument(
+        "--samples",
+        type=int,
+        default=None,
+        help="stop after this many samples",
+    )
+    capture.add_argument(
+        "--seconds",
+        type=float,
+        default=None,
+        help="stop after this many seconds of samples at the declared rate",
+    )
+    capture.add_argument(
+        "--site",
+        default="",
+        help="electrode or sensor site, recorded in the file's meta block",
+    )
+    capture.add_argument(
+        "--note",
+        default="",
+        help="free-form provenance note, recorded in the file's meta block",
+    )
+    scope = subparsers.add_parser(
+        "scope",
+        help="live terminal envelope meter with detection events, for biofeedback",
+    )
+    _add_stream_arguments(scope)
+    scope.add_argument(
+        "--threshold",
+        type=float,
+        default=0.20,
+        help="detector onset threshold shown as the meter's marker",
+    )
+    scope.add_argument(
+        "--symbol",
+        default="wrist_down",
+        help="gesture symbol emitted for detected contractions",
+    )
+    scope.add_argument(
+        "--width",
+        type=int,
+        default=40,
+        help="meter width in characters",
+    )
+    scope.add_argument(
+        "--peak",
+        type=float,
+        default=1.0,
+        help="envelope value that fills the whole meter",
+    )
+    replay_recording = subparsers.add_parser(
+        "replay-recording",
+        help="replay a captured recording through detection, policy, and action",
+    )
+    replay_recording.add_argument(
+        "--recording",
+        type=Path,
+        required=True,
+        help="recording JSON file produced by the capture command",
+    )
+    replay_recording.add_argument(
+        "--state-dir",
+        type=Path,
+        default=Path(".elicio-recording-replay"),
+        help="directory for the marker and JSONL audit log",
+    )
     return parser
 
 
@@ -237,6 +506,12 @@ def main(argv: list[str] | None = None) -> int:
         return run_demo(args.state_dir)
     if args.command == "replay-demo":
         return run_replay_demo(args.state_dir)
+    if args.command == "capture":
+        return run_capture(args)
+    if args.command == "scope":
+        return run_scope(args)
+    if args.command == "replay-recording":
+        return run_recording_replay(args.recording, args.state_dir)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

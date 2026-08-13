@@ -65,6 +65,29 @@ Both print a JSON summary. A run succeeded only when it exits 0 and reports
 The replay fixture is seeded synthetic data built with the standard library. It is
 not a personal recording and does not validate any hardware path.
 
+## Capture tools for the hardware path
+
+The adopted hardware direction is a self-built earpiece reading the auricular
+muscles; see [`docs/EARPIECE_DESIGN.md`](docs/EARPIECE_DESIGN.md). Three
+commands bridge a live one-channel stream (a file, stdin, or a configured
+serial device printing one ASCII sample per line) into the existing signal
+path:
+
+```bash
+.venv/bin/elicio scope --input /dev/ttyUSB0 --sample-rate 860 --offset 2048 --gain 0.001
+.venv/bin/elicio capture --input /dev/ttyUSB0 --sample-rate 860 --offset 2048 --gain 0.001 \
+    --seconds 10 --out session.json --site auricular_posterior
+.venv/bin/elicio replay-recording --recording session.json --state-dir .elicio-recording-replay
+```
+
+`scope` is a live envelope meter with detection events, used as the
+biofeedback trainer for the auricular channel. `capture` saves raw samples
+plus provenance as the permanent source record. `replay-recording` runs a
+captured file through detection, policy, audit, and the real marker action
+with the same verified exit discipline as the demos. Captured files are
+deterministic replay fixtures; no hardware exists yet, so today these
+commands have only been exercised against synthetic streams.
+
 ## Safety behavior
 
 Confidence floors rise with consequence: 0.60 for harmless actions, 0.75 for
@@ -89,10 +112,11 @@ than hiding either.
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-26 tests covering the event contract, every confidence floor, dangerous-action
+42 tests covering the event contract, every confidence floor, dangerous-action
 confirmation and timeout behavior, rest handling, audit failure modes, the real
-local marker effect, deterministic replay and detection, and cross-session leakage
-rejection. Stdlib `unittest`; no pytest. The suite needs only the base install.
+local marker effect, deterministic replay and detection, stream capture and
+recording round-trips, and cross-session leakage rejection. Stdlib `unittest`;
+no pytest. The suite needs only the base install.
 
 ## Research pipeline
 
@@ -119,9 +143,10 @@ engineering slice.
 | Path | Contents |
 | --- | --- |
 | `src/elicio/harness/` | Event contract, risk policy, adapters, audit sinks |
-| `src/elicio/signal/` | Replay fixtures and contraction detector |
+| `src/elicio/signal/` | Replay fixtures, live capture, and contraction detector |
 | `src/elicio/pipeline/` | GRABMyo research pipeline |
 | `docs/VISION.md` | Idea, origin, evidence, open questions |
+| `docs/EARPIECE_DESIGN.md` | Earpiece hardware design record and staged plan |
 | `docs/CLAUDE_SCIENCE_HANDOFF.md` | Scope, safety, and authority rules |
 | `docs/RESEARCH_PROVENANCE.md` | Migration ledger and checksums |
 | `AGENTS.md` | Engineering conventions for code assistants |
