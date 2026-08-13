@@ -17,11 +17,17 @@ class ContractionDetector:
     samples. An event is emitted once a crossing remains above the threshold
     for the configured minimum duration. A refractory interval suppresses
     immediate re-triggers until the active contraction has ended.
+
+    ``symbol`` names the gesture the emitted events carry. The default
+    stays ``wrist_down`` so the existing fixtures and command table keep
+    working; a capture session training a different muscle site passes
+    its own symbol.
     """
 
     def __init__(
         self,
         *,
+        symbol: str = "wrist_down",
         sample_rate_hz: float = 100.0,
         envelope_window: int = 8,
         onset_threshold: float = 0.20,
@@ -29,6 +35,10 @@ class ContractionDetector:
         refractory_period: float = 0.50,
         confidence_scale: float = 1.0,
     ) -> None:
+        if not isinstance(symbol, str) or not symbol.strip():
+            raise ValueError("symbol must be a non-empty string")
+        if symbol != symbol.strip():
+            raise ValueError("symbol must not have leading or trailing whitespace")
         sample_rate_hz = float(sample_rate_hz)
         onset_threshold = float(onset_threshold)
         min_contraction_duration = float(min_contraction_duration)
@@ -54,6 +64,7 @@ class ContractionDetector:
         if not math.isfinite(confidence_scale) or confidence_scale <= 0.0:
             raise ValueError("confidence_scale must be a positive finite number")
 
+        self.symbol = symbol
         self.sample_rate_hz = sample_rate_hz
         self.envelope_window = envelope_window
         self.onset_threshold = onset_threshold
@@ -116,7 +127,7 @@ class ContractionDetector:
         self._active = True
         self._refractory_until = timestamp + self.refractory_period
         confidence = min(1.0, max(0.0, envelope / self.confidence_scale))
-        return GestureEvent("wrist_down", confidence, self._above_since)
+        return GestureEvent(self.symbol, confidence, self._above_since)
 
     def detect(
         self, samples: Iterable[tuple[float, float]]
