@@ -32,12 +32,21 @@ four-devices-in-four-places stack:
 | Ear-EEG | Slow state channel, much later | Electrode ring in canal/concha | In canal |
 
 **Primary channel: auricular EMG.** On 2026-08-13 the owner verified
-voluntary control of the auricular muscles. Voluntary tensor tympani control
+voluntary control of the auricular muscles, and on the same day confirmed
+independent left-ear and right-ear control plus graded control (twitch,
+sustained hold, and levels between). That is at least six covert symbols
+(left, right, both, each as twitch or hold) before any pattern coding —
+the size of the current harness alphabet. Voluntary tensor tympani control
 is unverified for the owner; the sealed-tip pressure sensor will answer it
 objectively later, so it is a candidate, not a dependency. The auricular
 muscles are functionally near-silent in daily life, which gives the primary
 command channel a low background false-positive rate; known cross-talk
 sources (yawning, wide smiles) must appear in the false-positive test plan.
+
+Stage A remains single-channel on purpose. Left-versus-right needs a second
+channel and makes a bilateral Stage B (a pod per ear) the likely follow-on;
+one channel already distinguishes twitch, hold, and double-twitch by
+duration and pattern.
 
 Command and confirmation remain different muscle groups (auricular versus
 masseter), satisfying the harness's independence rule inside one device.
@@ -199,9 +208,12 @@ Budget discipline for the covert channels, using the existing floors:
 
 ## Open questions
 
-1. Does the owner's voluntary auricular control include each ear
-   independently, or sustained holds versus twitches? Each distinction that
-   proves controllable adds a symbol.
+1. ~~Does the owner's voluntary auricular control include each ear
+   independently, or sustained holds versus twitches?~~ Answered
+   2026-08-13: both ears independently and together, twitch through
+   sustained hold with graded levels between. The symbol space is rich;
+   what remains is measuring how reliably the decoder separates the
+   distinctions the owner can produce.
 2. Can the owner produce a tensor tympani rumble at all? Stage C answers
    this with the pressure sensor if self-testing stays inconclusive.
 3. Exact microcontroller and ADC for Stage B (the bench stage is
