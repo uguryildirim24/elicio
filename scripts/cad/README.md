@@ -56,6 +56,31 @@ The manifest `notes` record each of these per body:
 
 The lid emboss uses the Arial font OCCT finds on this Mac. Another machine's font set can change the lid's bytes; regenerate hashes there before comparing.
 
+## Coupon-to-parameter mapping (plan §10 open item 2)
+
+Coupon file: `docs/fab/cad/v1/coupon.*`. Built by `build_coupon` in `bte_fit_shell.py`. Axes: x and y across the top face from its centre; the rib stands on the top face. Measured sizes feed these parameters (interface §12 V2-2):
+
+| Coupon feature | Position (x, y) | Designed | Feeds |
+|---|---|---|---|
+| Hole | (−3, −3) | Ø1.7 through | Smallest round hole the process opens; lower bracket for CONTACT_HOLE |
+| Hole | (0, −3) | Ø2.9 through | CONTACT_HOLE directly: an M2.5 shank (2.5) must pass |
+| Hole | (3, −3) | Ø3.4 through | Upper bracket: CONTACT_HOLE moves toward it if Ø2.9 prints under 2.5 |
+| Slot | (0, 2), 6 long | 0.9 wide through | TONGUE_SLOT height (0.9) and the 0.4 tongue clearance |
+| Slot | (0, 4), 6 long | 0.4 wide through | Whether a 0.4 gap prints open: CLEAR_FIT and the 0.4 rigid-pair nominals (plan §3.6) |
+| Rib | along x at y −0.5 | 0.4 thick × 3 tall × 12 long | E4; the thin-feature floor under E1 (tongue 0.5) and E3 (nubs 0.8) |
+
+WP8 updates the parameters when the coupon is measured. Do not edit `manifest.json` by hand.
+
+## Placement drawing (WP6)
+
+```bash
+.venv/bin/python -m pip install -e '.[cad]'
+.venv/bin/python scripts/cad/placement.py --out docs/fab/cad/v1/placement.svg
+.venv/bin/python -m unittest tests.test_placement -v
+```
+
+The drawing is 2D in the body-frame `(u, s)` plane. It does not change the gauge solids. matplotlib must be in the `cad` extra. Regeneration is byte-identical on one machine; hashes can move with the matplotlib build, as with the CAD lid font.
+
 ## Run the checks
 
 ```bash

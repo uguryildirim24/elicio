@@ -201,7 +201,8 @@ class CadRegenTests(unittest.TestCase):
         self.assertEqual(manifest["parts"], list(CAD.ORDER_PARTS))
         self.assertEqual(sum(manifest["quantities"].values()), 6)
         committed = {p.name for p in MANIFEST.parent.iterdir()}
-        self.assertEqual(committed, expected | {"manifest.json"})
+        extra = {"placement.svg", "placement.png"}
+        self.assertEqual(committed - extra, expected | {"manifest.json"})
         for name, meta in manifest["files"].items():
             with self.subTest(committed=name):
                 self.assertEqual(
