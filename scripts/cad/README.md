@@ -37,6 +37,25 @@ Full order-1 set from the measurements:
 .venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/rolf.toml --out docs/fab/cad/v1/
 ```
 
+One variant only (plan §3.1 form) writes that body, the lid and the coupon, with a manifest listing just those. Give it an empty `--out`; the script refuses a folder whose manifest lists other parts, so `docs/fab/cad/v1/` never mixes two parameter sets:
+
+```bash
+.venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/rolf.toml --variant thin --preload 1.5 --out /tmp/elicio-thin/
+```
+
+`--variant` takes full or thin, `--preload` 1.5 or 2.5. Anything else fails before export.
+
+## What the build does not do as plan §3.5 writes it
+
+The manifest `notes` record each of these per body:
+
+- Hook joint fillet (§3.5 step 9): 2.0 does not build. The tube edge sits 1.25 mm from the medial face at M4 = 6.0; the script applies the largest step that builds (1.5 on full p15, 1.75 on thin p15 and full p25).
+- Hook stub: the −5° embedded start is cut back to the cavity wall (about 4.6 mm³ removed), so the cavity and battery pocket stay clear.
+- Lip root fillet (§3.5 step 7): 0.2, not 0.5. Above the 0.2 lip-to-top-face gap the fillet overlaps the body's top edge when seated.
+- LID_EDGE 0.8 runs round the plate rim except the top edge at the lip end, which stays sharp so the lip keeps its full joint.
+
+The lid emboss uses the Arial font OCCT finds on this Mac. Another machine's font set can change the lid's bytes; regenerate hashes there before comparing.
+
 ## Run the checks
 
 ```bash

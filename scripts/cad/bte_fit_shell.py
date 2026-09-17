@@ -1696,8 +1696,8 @@ def write_manifest(
         ],
         "notes": notes,
         "files": files,
-        "quantities": QUANTITIES,
-        "parts": list(ORDER_PARTS),
+        "quantities": {part: QUANTITIES.get(part, 1) for part in built_parts(files)},
+        "parts": built_parts(files),
         "variant_preload_built": {
             name: {
                 "VARIANT": params_by_part[name]["VARIANT"],
@@ -1712,6 +1712,12 @@ def write_manifest(
     return dest
 
 
+def built_parts(files: Mapping[str, Any]) -> list[str]:
+    names = sorted({name.rsplit(".", 1)[0] for name in files})
+    order = [part for part in ORDER_PARTS if part in names]
+    return order + [part for part in names if part not in ORDER_PARTS]
+
+
 def _jsonable(value: Any) -> bool:
     return isinstance(value, (str, int, float, bool, list, dict, type(None)))
 
@@ -1724,8 +1730,19 @@ def build_and_export(
     parts: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     _require_cad()
-    out_dir.mkdir(parents=True, exist_ok=True)
     wanted = parts or ORDER_PARTS
+    existing = out_dir / "manifest.json"
+    if existing.is_file():
+        # A subset build would rewrite the manifest and leave the other
+        # parts' files from an older parameter set beside it.
+        listed = json.loads(existing.read_text(encoding="utf-8")).get("files", {})
+        stale = sorted({n.rsplit(".", 1)[0] for n in listed} - set(wanted))
+        if stale:
+            raise CheckFail(
+                f"--out {out_dir}: would leave stale parts {', '.join(stale)}; "
+                "build the full set or use an empty --out"
+            )
+    out_dir.mkdir(parents=True, exist_ok=True)
     files: dict[str, dict[str, Any]] = {}
     params_by_part: dict[str, dict[str, Any]] = {}
     all_checks: list[Check] = []
