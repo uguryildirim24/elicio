@@ -744,7 +744,9 @@ def emboss_label(params: Mapping[str, Any], defaults_used: list[str]) -> str:
     variant = str(params["VARIANT"]).upper()
     tag = preload_tag(params["HOOK_PRELOAD"]).upper()
     ref = " REF" if any(key in defaults_used for key in REFERENCE_M_KEYS) else ""
-    return f"ELICIO V1 {side} {variant} {tag}{ref}".strip()
+    # V1 is the order 1 gauge; a Stage B lid must not read as one.
+    version = "V1" if params.get("MOCK_CONTACTS", True) else "V2"
+    return f"ELICIO {version} {side} {variant} {tag}{ref}".strip()
 
 
 def git_rev_parse(repo: Path) -> str:

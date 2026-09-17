@@ -581,6 +581,11 @@ class CadStageBBuildTests(unittest.TestCase):
         # Q21 is recorded, not raised.
         CAD.run_stage_b_solid_checks(self.body, self.lid, self.path, self.params, self.notes["stage_b_cuts"])
 
+    def test_stage_b_lid_is_not_embossed_as_the_order1_gauge(self) -> None:
+        self.assertEqual(self.notes["emboss"], "ELICIO V2 R FULL P15 REF")
+        self.assertEqual(self.notes["emboss_h"], 0.4)
+        self.assertEqual(self.notes["emboss_s"], 10.0)
+
     def test_keepout_signal_fails_when_nylon_is_inside(self) -> None:
         params = dict(self.params, CONTACT_1_S=19.0)
         row = self.rows(params)["KEEPOUT_SIGNAL_air"]
