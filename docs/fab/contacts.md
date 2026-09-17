@@ -35,13 +35,13 @@ The three skin-contact electrodes require ISO 7380 M2.5 button-head screws in Gr
 | **Price** | $33.99 USD (Pack of 50, $0.68/ea) — FLAGGED OVER $20 LINE | 3.57 € each (~$3.85 USD) | $17.50 USD (Pack of 10, $1.75/ea) |
 | **Pack Size** | Pack of 50 | 1 piece (bulk tiers available) | Pack of 10 |
 | **Thread Size** | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch |
-| **Length under head ($L$)** | 4.0 mm nominal | 5.0 mm nominal (requires 1.0 mm trimming) | 4.0 mm nominal |
+| **Length under head (L)** | 4.0 mm nominal | 5.0 mm nominal (requires 1.0 mm trimming) | 4.0 mm nominal |
 | **Head Style / Standard** | ISO 7380 Button Head | ISO 7380 Button Head (BHC) | ISO 7380 Button Head profile |
-| **Head Diameter ($d_k$)** | UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis |
-| **Head Crown Height ($k$)**| UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis |
+| **Head Diameter (dk)** | UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis |
+| **Head Crown Height (k)**| UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis |
 | **Drive Style** | Hex Socket, 1.5 mm Allen key | Hex Socket, 1.5 mm Allen key (clé 1.5 / 2) | Hex Socket, 1.5 mm Allen key |
 
-Review r3 note (2026-09-17): Product page URLs and prices for RJXHOBBY and Sortafast were verified on 2026-09-17. The Sortafast 10-pack SKU `SF-BH2504-10` is verified at $17.50 USD, under the plan §7 order 2 screw line of $20.00. The RJXHOBBY pack ($33.99 USD for 50 pieces) is flagged as exceeding the $20 line per plan §9. Detailed drawing comparisons for $d_k$, $k$, and socket sizes against the plan's 4.7 mm × 1.35 mm reservation are documented in Section 8.3 (open question Q7).
+WP5b note (round 3, 2026-09-17): Product page URLs and prices for RJXHOBBY and Sortafast were verified on 2026-09-17. The Sortafast 10-pack SKU `SF-BH2504-10` is verified at $17.50 USD, under the plan §7 order 2 screw line of $20.00. The RJXHOBBY pack ($33.99 USD for 50 pieces) is flagged as exceeding the plan §7 order 2 screw line of $20. Detailed drawing comparisons for dk, k, and socket sizes against the plan's 4.7 mm × 1.35 mm reservation are documented in Section 8.3 (open question Q7).
 
 ---
 
@@ -72,9 +72,9 @@ The internal retaining nut secures the screw and ring lug against the internal f
 | **Pack Size** | Pack of 100 | Pack of 10 | Pack of 50 | 1 piece |
 | **Standard** | DIN 439 B / ISO 4035 | DIN 439 B / ISO 4035 | DIN 439 B / ISO 4035 | DIN 934 (full nut standard) |
 | **Thread Size** | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch |
-| **Nut Height ($m$)** | 1.60 mm | 1.60 mm | 1.60 mm | 2.00 mm |
-| **Width Flats ($s$)** | 5.0 mm | 5.0 mm | 5.0 mm | 5.0 mm |
-| **Corners ($e$) min**| 5.45 mm | 5.45 mm | 5.45 mm | 5.77 mm |
+| **Nut Height (m)** | 1.60 mm | 1.60 mm | 1.60 mm | 2.00 mm |
+| **Width Flats (s)** | 5.0 mm | 5.0 mm | 5.0 mm | 5.0 mm |
+| **Corners (e) min**| 5.45 mm | 5.45 mm | 5.45 mm | 5.77 mm |
 | **Inside Plan §4 Text?** | **YES** ("plated steel") | NO (copper-zinc alloy) | NO (stainless steel) | NO (titanium full nut) |
 | **Nickel-Free?** | **YES** (zinc trivalent blue) | **YES** (unplated brass) | NO (8–10 % Ni) | **YES** (pure titanium) |
 
@@ -133,7 +133,7 @@ A dielectric disc covers the internal nut and screw tip to isolate the contact f
 | **Product Page URL** | [adafruit.com](https://www.adafruit.com/product/3057) | [digikey.com](https://www.digikey.com) (front page; price UNVERIFIED) |
 | **Date Read** | 2026-09-16 | 2026-09-16 |
 | **Price** | $4.95 USD | $38.50 USD (pack of 1,000 discs) — UNVERIFIED, no product page |
-| **Pack Size** | 1 roll ($10\text{ mm} \times 33\text{ m}$) | Roll of 1,000 pre-cut dots |
+| **Pack Size** | 1 roll (10 mm × 33 m) | Roll of 1,000 pre-cut dots |
 | **Substrate** | Polyimide film, 1.0 mil (0.025 mm) | Polyimide film, 1.0 mil (0.025 mm) |
 | **Adhesive** | Silicone adhesive, 1.5 mil (0.038 mm) | Silicone adhesive, 1.5 mil (0.038 mm) |
 | **Total Thickness** | 2.5 mil (0.064 mm) per layer | 2.5 mil (0.064 mm) per disc |
@@ -164,7 +164,7 @@ A Dimethylglyoxime (DMG) test screens incoming metal parts for free leaching nic
 | **Price** | $17.99 USD (within §7 Order 2 allowance of $25.00) |
 | **Pack Size** | 1/2 oz (15 mL) dropper bottle (provides ~100–150 tests) |
 | **Active Reagent** | 1.0% Dimethylglyoxime (DMG) in ammoniacal solution (10.0% Ammonium Hydroxide) |
-| **Detection Limit** | Detects free leaching nickel ions at concentrations $\ge 10\text{ ppm}$ |
+| **Detection Limit** | Detects free leaching nickel ions at concentrations ≥ 10 ppm |
 
 ---
 
@@ -174,11 +174,11 @@ Plan §3.3 (`CONTACT_STACK`) and plan §9 row WP5 mandate that the total interna
 
 ### 2.1 Geometric Boundary Conditions
 
-*   **Medial Wall Thickness:** $t_{\text{wall}} = 1.50\text{ mm}$ (from exterior $y = 0.00$ to interior floor $y = 1.50\text{ mm}$).
-*   **PCB Underside Datum:** $y_{\text{PCB}} = 4.30\text{ mm}$ (supported on four internal corner pads).
-*   **Available Vertical Height Above Floor:** $4.30\text{ mm} - 1.50\text{ mm} = 2.80\text{ mm}$.
-*   **Target Stack Ceiling:** $y_{\text{stack\_top}} \le 4.13\text{ mm}$ (stack height above floor $\le 2.63\text{ mm}$).
-*   **Nominal Air Clearance to Board Underside:** $4.30\text{ mm} - 4.13\text{ mm} = 0.17\text{ mm}$.
+*   **Medial Wall Thickness:** t_wall = 1.50 mm (from exterior y = 0.00 to interior floor y = 1.50 mm).
+*   **PCB Underside Datum:** y_PCB = 4.30 mm (supported on four internal corner pads).
+*   **Available Vertical Height Above Floor:** 4.30 mm - 1.50 mm = 2.80 mm.
+*   **Target Stack Ceiling:** y_stack_top ≤ 4.13 mm (stack height above floor ≤ 2.63 mm).
+*   **Nominal Air Clearance to Board Underside:** 4.30 mm - 4.13 mm = 0.17 mm.
 
 ```
   y = 4.30 mm --------------------------------------- [ PCB Underside Datum ]
@@ -204,26 +204,26 @@ Plan §3.3 (`CONTACT_STACK`) and plan §9 row WP5 mandate that the total interna
 
 The table below calculates the total stack height above the cavity floor for each candidate hardware configuration:
 
-$$\text{Clamped Thickness Under Nut} = t_{\text{wall}} + t_{\text{lug}}$$
+Clamped thickness under nut = t_wall + t_lug
 
-$$\text{Tip Protrusion Above Nut} = \max\left(0.00,\, L_{\text{screw}} - (t_{\text{wall}} + t_{\text{lug}} + m_{\text{nut}})\right)$$
+Tip protrusion above nut = max(0.00, L_screw − (t_wall + t_lug + m_nut))
 
-$$\text{Internal Stack Height Above Floor} = t_{\text{lug}} + m_{\text{nut}} + \text{Tip Protrusion} + t_{\text{Kapton}}$$
+Internal stack height above floor = t_lug + m_nut + tip protrusion + t_Kapton
 
 | Parameter | SKU Set 1: Primary (RJX Gr2 + McMaster Nut) | SKU Set 2: Specialist (Titane Gr5 + Accu Nut) | SKU Set 3: All-Titanium Full Nut (DIN 934) | SKU Set 4: Non-Compliant (Untrimmed 6mm Screw) |
 | :--- | :--- | :--- | :--- | :--- |
 | **Nut material** | plated steel (plan §4; SKU UNVERIFIED) or stainless (outside plan text) | stainless A2 (outside plan text) | titanium (SKU UNVERIFIED) | any |
-| **Screw Length ($L$)** | 4.00 mm | 4.00 mm | 4.00 mm | 6.00 mm |
-| **Medial Wall ($t_{\text{wall}}$)** | 1.50 mm | 1.50 mm | 1.50 mm | 1.50 mm |
-| **Ring Lug ($t_{\text{lug}}$)** | 0.46 mm (TE 31428) | 0.46 mm (TE 31428) | 0.46 mm (TE 31428) | 0.46 mm (TE 31428) |
-| **Retaining Nut ($m_{\text{nut}}$)** | 1.60 mm (DIN 439) | 1.60 mm (DIN 439) | 2.00 mm (DIN 934) | 1.60 mm (DIN 439) |
+| **Screw Length (L)** | 4.00 mm | 4.00 mm | 4.00 mm | 6.00 mm |
+| **Medial Wall (t_wall)** | 1.50 mm | 1.50 mm | 1.50 mm | 1.50 mm |
+| **Ring Lug (t_lug)** | 0.46 mm (TE 31428) | 0.46 mm (TE 31428) | 0.46 mm (TE 31428) | 0.46 mm (TE 31428) |
+| **Retaining Nut (m_nut)** | 1.60 mm (DIN 439) | 1.60 mm (DIN 439) | 2.00 mm (DIN 934) | 1.60 mm (DIN 439) |
 | **Total Fastened Grip** | 3.56 mm | 3.56 mm | 3.96 mm | 3.56 mm |
 | **Screw Tip Above Nut** | 0.44 mm | 0.44 mm | 0.04 mm | 2.44 mm |
 | **Metal Stack Above Floor** | 2.50 mm | 2.50 mm | 2.50 mm | 4.50 mm |
-| **Kapton Disc ($t_{\text{Kapton}}$)**| 0.13 mm (2 layers) | 0.13 mm (2 layers) | 0.13 mm (2 layers) | 0.13 mm (2 layers) |
+| **Kapton Disc (t_Kapton)**| 0.13 mm (2 layers) | 0.13 mm (2 layers) | 0.13 mm (2 layers) | 0.13 mm (2 layers) |
 | **Total Stack Above Floor** | **2.63 mm** | **2.63 mm** | **2.63 mm** | **4.63 mm** |
-| **Top of Stack ($y$)** | **4.13 mm** | **4.13 mm** | **4.13 mm** | **6.13 mm** |
-| **Acceptance ($\le 2.63\text{ mm}$)**| **PASS** | **PASS** | **PASS** | **FAIL** (+2.00 mm clash) |
+| **Top of Stack (y)** | **4.13 mm** | **4.13 mm** | **4.13 mm** | **6.13 mm** |
+| **Acceptance (≤ 2.63 mm)**| **PASS** | **PASS** | **PASS** | **FAIL** (+2.00 mm clash) |
 | **Nut top at wall 1.80 mm (MJF +0.3)** | y 3.86, under the tip at 4.00 | y 3.86 | y 4.26, above the tip | – |
 | **Stack top at wall 1.80 mm** | **4.13** (tip governs) | **4.13** | **4.39: above the board at 4.30, FAIL** | – |
 
@@ -231,9 +231,9 @@ Why the lug thickness does not move the total: the screw head seats on the media
 
 ### 2.3 Thread Engagement Verification
 
-For M2.5 threads (pitch $P = 0.45\text{ mm}$):
-*   With a DIN 439 thin nut ($m = 1.60\text{ mm}$), nominal engaged thread length is $1.60\text{ mm}$, providing $1.60 / 0.45 = 3.55$ full threads. This achieves $1.60 / 2.5 = 0.64\times$ nominal bolt diameter. Because mechanical load is limited to preloading the hook against soft tissue (~0.3 N per contact), shear stress in the threads is negligible (< 0.1 MPa vs. 400+ MPa yield strength).
-*   With a DIN 934 full nut ($m = 2.00\text{ mm}$), nominal engaged thread length is $2.00\text{ mm}$ ($4.44$ threads, $0.80\times$ diameter).
+For M2.5 threads (pitch P = 0.45 mm):
+*   With a DIN 439 thin nut (m = 1.60 mm), nominal engaged thread length is 1.60 mm, providing 1.60 / 0.45 = 3.55 full threads. This achieves 1.60 / 2.5 = 0.64× nominal bolt diameter. Because mechanical load is limited to preloading the hook against soft tissue (~0.3 N per contact), shear stress in the threads is negligible (< 0.1 MPa vs. 400+ MPa yield strength).
+*   With a DIN 934 full nut (m = 2.00 mm), nominal engaged thread length is 2.00 mm (4.44 threads, 0.80× diameter).
 *   If an M2.5 × 6 mm screw is purchased due to stock shortages, the shank must be ground or filed down by exactly 2.0 mm to nominal 4.0 mm before installation.
 
 ---
@@ -277,7 +277,7 @@ To establish that skin-contact hardware meets the biocompatibility standard, the
 
 If procurement relies on hobby or retail specialists where an EN 10204 3.1 certificate is unavailable:
 1.  **Receipt Lot Testing:** Inspect 100% of received screws under the DMG spot-test protocol (§4). A single positive reaction rejects the entire delivery lot.
-2.  **Laboratory XRF Confirmation (Optional Fallback):** If non-destructive confirmation is required prior to human wear, one sacrificial screw from the lot is submitted for handheld X-ray Fluorescence (XRF) spectroscopy to verify that titanium is the base metal ($> 89\%$) and nickel is absent ($< 0.01\%$).
+2.  **Laboratory XRF Confirmation (Optional Fallback):** If non-destructive confirmation is required prior to human wear, one sacrificial screw from the lot is submitted for handheld X-ray Fluorescence (XRF) spectroscopy to verify that titanium is the base metal (> 89%) and nickel is absent (< 0.01%).
 
 ### 3.4 Plain Material Statement: 316 Stainless Steel Is Not a Fallback
 
@@ -292,12 +292,12 @@ If procurement relies on hobby or retail specialists where an EN 10204 3.1 certi
 
 ## 4. Dimethylglyoxime (DMG) Spot-Test Protocol
 
-The DMG chemical spot test serves as an empirical fail-closed reject screen. It detects free, leachable nickel ions ($\text{Ni}^{2+}$) at concentrations $\ge 10\text{ ppm}$.
+The DMG chemical spot test serves as an empirical fail-closed reject screen. It detects free, leachable nickel ions (Ni²⁺) at concentrations ≥ 10 ppm.
 
 ### 4.1 Reagent and Kit Specification
 
 *   **Test Kit:** Delasco Spot Test For Nickel (Product ID: `SPOT-TEST`).
-*   **Active Chemistry:** 1.0% Dimethylglyoxime ($\text{C}_4\text{H}_8\text{N}_2\text{O}_2$) dissolved in an ammoniacal solution containing 10.0% Ammonium Hydroxide ($\text{NH}_4\text{OH}$).
+*   **Active Chemistry:** 1.0% Dimethylglyoxime (C₄H₈N₂O₂) dissolved in an ammoniacal solution containing 10.0% Ammonium Hydroxide (NH₄OH).
 *   **Consumables Required:** Medical-grade white cotton swabs / cotton-tipped applicators; 70% isopropanol wipes; powder-free nitrile gloves; clean white ceramic or glass test dish.
 
 ### 4.2 Step-by-Step Test Procedure
@@ -309,7 +309,7 @@ The DMG chemical spot test serves as an empirical fail-closed reject screen. It 
     *   In a well-ventilated area, dispense 2 to 3 drops of the Delasco Spot Test solution onto the tip of a clean white cotton applicator.
     *   Ensure the applicator tip is thoroughly moistened but not dripping.
 3.  **Mechanical Friction Application:**
-    *   Press the moistened cotton tip firmly against the convex button-head dome ($d_k = 4.7\text{ mm}$) of the screw.
+    *   Press the moistened cotton tip firmly against the convex button-head dome (dk = 4.7 mm) of the screw.
     *   Vigorously rub the swab across the entire convex crown, perimeter rim, and hex drive socket in a firm circular motion for **30 to 60 seconds**.
 4.  **Inspection and Color Development:**
     *   Inspect the cotton swab immediately under bright, diffuse white light against a clean white background.
@@ -336,7 +336,7 @@ The DMG chemical spot test serves as an empirical fail-closed reject screen. It 
 *   **Negative Reaction (PASS):** The cotton swab remains completely white (or shows faint grey mechanical dirt). This is a screen pass only; it does not prove the absence of leachable nickel (§4.4; plan §4 "a reject screen only"). The screw is accepted for assembly.
 *   **Positive Reaction (FAIL / REJECT THE LOT):** Any distinct pink, strawberry-red, or reddish-purple coloration on the cotton tip indicates the formation of the bis(dimethylglyoximato)nickel(II) complex:
 
-$$\text{Ni}^{2+} + 2\,\text{C}_4\text{H}_8\text{N}_2\text{O}_2 + 2\,\text{NH}_4\text{OH} \longrightarrow \text{Ni}(\text{C}_4\text{H}_7\text{N}_2\text{O}_2)_2\downarrow (\text{pink ppt}) + 2\,\text{NH}_4^+ + 2\,\text{H}_2\text{O}$$
+Ni²⁺ + 2 C₄H₈N₂O₂ + 2 NH₄OH → Ni(C₄H₇N₂O₂)₂ ↓ (pink precipitate) + 2 NH₄⁺ + 2 H₂O
 
 *   **Action on Positive Result:** **REJECT THE LOT.** If any single screw from a batch produces a pink reaction, the entire delivery lot is quarantined and rejected. No component from that lot may be used.
 *   **Testing Cadence:** 100% of screw domes are tested upon initial receipt. In addition, assembled contacts undergo a confirmatory repeat swab after two weeks of storage per plan §4.
@@ -363,7 +363,7 @@ Per [Thyssen et al. (2010)](https://pubmed.ncbi.nlm.nih.gov/20536475/), the DMG 
 
 ### 5.2 Assembly of Signal Contacts 1 and 2 (Anterior and Posterior PAM)
 
-Each signal contact is located on the body medial wall: Contact 1 at $(u=5.9,\, s=22.0)$, Contact 2 at $(u=10.4,\, s=33.1)$.
+Each signal contact is located on the body medial wall: Contact 1 at (u=5.9, s=22.0), Contact 2 at (u=10.4, s=33.1).
 
 ```
    [ OUTSIDE SHELL ]          [ 1.5 mm MEDIAL WALL ]           [ INSIDE CAVITY ]
@@ -391,7 +391,7 @@ Each signal contact is located on the body medial wall: Contact 1 at $(u=5.9,\, 
     *   Insert the screw shank from the **outside** of the shell through the Ø2.9 mm clearance hole in the medial wall. The convex dome seats flush against the outer nylon face.
 3.  **Lug Placement:**
     *   Over the protruding M2.5 thread on the cavity floor, slip the ring tongue of the crimped TE 31428 lug.
-    *   **Orientation:** Align the flat lug tab to lie flat against the cavity floor, pointing along the reserved routing corridor toward its dedicated medial PCB pad (conforming to `KEEPOUT_SIGNAL`: envelope $3\text{ mm wide} \times 7\text{ mm long} \times 1.5\text{ mm tall}$).
+    *   **Orientation:** Align the flat lug tab to lie flat against the cavity floor, pointing along the reserved routing corridor toward its dedicated medial PCB pad (conforming to `KEEPOUT_SIGNAL`: envelope 3 mm wide × 7 mm long × 1.5 mm tall).
 4.  **Nut Fastening:**
     *   Thread an M2.5 DIN 439 thin hex nut onto the screw shank.
     *   Engage a 1.5 mm hex driver into the screw head from outside, and engage a 5.0 mm thin wrench on the internal nut.
@@ -400,13 +400,13 @@ Each signal contact is located on the body medial wall: Contact 1 at $(u=5.9,\, 
 5.  **Dielectric Insulation:**
     *   Inspect the top of the fastened stack: verify that the screw tip stands 0.40–0.44 mm proud of the nut.
     *   Apply a double layer of Kapton tape (or two Ø6.35 mm pre-cut dots, total thickness 0.13 mm) centered over the top face of the nut and protruding tip. Press firmly around the edges to conform to the nut facets.
-    *   Verify total height above the cavity floor with a depth micrometer or caliper: must be $\le 2.63\text{ mm}$.
+    *   Verify total height above the cavity floor with a depth micrometer or caliper: must be ≤ 2.63 mm.
 
 ---
 
 ### 5.3 Assembly of Reference Contact 3 (Tail Pocket)
 
-The reference contact is located in the narrow tail section at $(u=8.5,\, s=43.0)$.
+The reference contact is located in the narrow tail section at (u=8.5, s=43.0).
 
 ```
                       [ REFERENCE TAIL POCKET ]
@@ -427,10 +427,10 @@ The reference contact is located in the narrow tail section at $(u=8.5,\, s=43.0
      +-----------+            +-----------------+
 ```
 
-1.  **Pocket Geometry:** The tail contains a dedicated cylindrical pocket (Ø7.5 mm, extending from $y = 8.0\text{ mm}$ down to floor $y = 1.5\text{ mm}$). An end wall of 1.05 mm separates this pocket from the main board cavity.
+1.  **Pocket Geometry:** The tail contains a dedicated cylindrical pocket (Ø7.5 mm, extending from y = 8.0 mm down to floor y = 1.5 mm). An end wall of 1.05 mm separates this pocket from the main board cavity.
 2.  **Lug Tab Preparation:**
     *   Take a TE Connectivity 31428 ring lug. Using smooth flat-nose pliers, bend the terminal crimp barrel **90° upright relative to the flat ring ring plane**.
-    *   The upright tab envelope occupies $3\text{ mm wide} \times 1.5\text{ mm thick} \times 6.0\text{ mm tall}$, fitting entirely inside the Ø7.5 mm pocket volume (`KEEPOUT_REF`).
+    *   The plan reserves an upright envelope of 3 wide × 1.5 thick × 6.0 tall inside the Ø7.5 pocket (`KEEPOUT_REF`). TE 31428 does not match it: its barrel is 1.96 thick, and bent at the ring edge (2.58 from the axis) the tab rises about 0.46 + 6.27 = 6.73 above the floor, to y ≈ 8.2 against the lid at 8.0. A barrel standing outward at the ring edge spans 2.58 to 4.54 from the axis, past the pocket wall at 3.75. Check it on the gauge before order 2 (plan §10: the upright reference tab and wire transition checked as installed geometry, §5, S1).
     *   Crimp and solder a 25 mm length of 28 AWG silicone wire into the upright barrel (fold the stripped end, as in §5.2 step 1).
 3.  **Fastening:**
     *   Insert an M2.5 × 4 mm titanium screw from the exterior medial face through the Ø2.9 mm hole into the pocket.
@@ -438,10 +438,10 @@ The reference contact is located in the narrow tail section at $(u=8.5,\, s=43.0
     *   Thread the M2.5 DIN 439 thin nut and tighten by feel as in §5.2 step 4.
     *   Apply a Kapton dielectric disc over the top of the nut and the screw tip.
 4.  **Wire Routing through Wire Channel:**
-    *   Feed the insulated 28 AWG wire from the reference pocket through `WIRE_CHANNEL` ($u = 7.7–9.3\text{ mm}$, $y = 2.5–4.1\text{ mm}$, $s = 38.2–40.5\text{ mm}$) through the 1.05 mm end wall into the main cavity.
+    *   Feed the insulated 28 AWG wire from the reference pocket through `WIRE_CHANNEL` (u = 7.7–9.3 mm, y = 2.5–4.1 mm, s = 38.2–40.5 mm) through the 1.05 mm end wall into the main cavity.
     *   **Safety Rule:** Only the fully insulated wire passes through the channel. No bare metal terminal or screw extends into or through the channel.
-    *   Inside the main cavity, route the wire along the floor ($y = 2.5–4.1\text{ mm}$) under the PCB toward the reference solder pad at $(u=4.0,\, s=29.0\text{ mm})$.
-    *   Secure the wire to the floor at $s = 37.0\text{ mm}$ using one wrap of Kapton tape. Maintain wire bend radius $\ge 3.0\text{ mm}$ at all turns.
+    *   Inside the main cavity, route the wire along the floor (y = 2.5–4.1 mm) under the PCB toward the reference solder pad at (u=4.0, s=29.0 mm).
+    *   Secure the wire to the floor at s = 37.0 mm using one wrap of Kapton tape. Maintain wire bend radius ≥ 3.0 mm at all turns.
 
 ### 5.4 Before any wear (plan §6)
 
@@ -457,15 +457,15 @@ Every metallic component located within or passing through the shell boundary is
 
 | Item No. | Component Description | Quantity | Alloy / Base Material | Plating / Surface Finish | Normal Location | Can Touch Skin in Any Failure? | Analysis & Containment Failure Modes |
 | :---: | :--- | :---: | :--- | :--- | :--- | :---: | :--- |
-| **1** | Contact Screws (Contacts 1, 2, 3) | 3 | Titanium Grade 2 (ASTM F67) or Grade 5 (ASTM F136) | None (bare, unplated, natural passivated $\text{TiO}_2$) | Shank through 1.5 mm wall; dome on exterior skin | **YES (By Design)** | Intended skin interface. Material is biocompatible titanium; 100% DMG screen verifies absence of leachable nickel. If wall fractures, material remains biocompatible titanium. |
-| **2** | Internal Retaining Thin Nuts | 3 | Plated carbon steel per plan §4 (zinc, not nickel; SKU UNVERIFIED); 18-8 stainless only if Rolf accepts it; or titanium DIN 934 | Zinc plating, or none | Threaded onto screws inside cavity/pocket | **NO** | Enclosed inside sealed cavity under PA12 lid; covered by Kapton disc. In the event of lid detachment, nut remains recessed 1.5 mm within the interior pocket. Only total catastrophic crushing of the 1.5 mm nylon shell could liberate the nut. |
+| **1** | Contact Screws (Contacts 1, 2, 3) | 3 | Titanium Grade 2 (ASTM F67) or Grade 5 (ASTM F136) | None (bare, unplated, natural passivated TiO₂) | Shank through 1.5 mm wall; dome on exterior skin | **YES (By Design)** | Intended skin interface. Material is biocompatible titanium; 100% DMG screen verifies absence of leachable nickel. If wall fractures, material remains biocompatible titanium. |
+| **2** | Internal Retaining Thin Nuts | 3 | Plated carbon steel per plan §4 (zinc, not nickel; Bossard BN 146, §8.2); brass or titanium only if Rolf accepts it (Q6) | Zinc plating, or none | Threaded onto screws inside cavity/pocket | **NO** | Enclosed inside sealed cavity under PA12 lid; covered by Kapton disc. In the event of lid detachment, nut remains recessed 1.5 mm within the interior pocket. Only total catastrophic crushing of the 1.5 mm nylon shell could liberate the nut. |
 | **3** | Ring Tongue Terminals | 3 | High-Conductivity ETP Copper | 100% Pure Matte Tin per ASTM B545 (Zero nickel underplate) | Clamped between inner wall and nut | **NO** | Enclosed inside sealed cavity; covered by Kapton and snap lid. Tin-plated copper is non-sensitizing even if exposed, but physical exposure is impossible without shell wall destruction. |
 | **4** | Lead Wires (Signal & Reference) | 3 | High-Purity Copper Strands | 100% Pure Tin | Inside cavity and reference channel | **NO** | Jacketed in medical-grade silicone/PTFE insulation along full length. Only insulated jacket passes through `WIRE_CHANNEL`. |
-| **5** | Solder Joints (Lead to Board) | 3 | Lead-Free SAC305 (96.5% Sn, 3.0% Ag, 0.5% Cu) | None | Medial PCB pads | **NO** | Enclosed at $y = 4.3\text{ mm}$, isolated by 1.5 mm nylon wall and snap lid. Solder alloy is nickel-free and lead-free. |
+| **5** | Solder Joints (Lead to Board) | 3 | Lead-Free SAC305 (96.5% Sn, 3.0% Ag, 0.5% Cu) | None | Medial PCB pads | **NO** | Enclosed at y = 4.3 mm, isolated by 1.5 mm nylon wall and snap lid. Solder alloy is nickel-free and lead-free. |
 | **6** | PCB Copper Traces & Pads | 1 board | Copper foil | Electroless Nickel Immersion Gold (ENIG) or OSP | PCB top and bottom faces | **NO** | Enclosed in cavity. ENIG contains an electroless nickel barrier under 0.05 µm gold; however, the entire medial PCB surface is coated in liquid photoimageable (LPI) solder mask except for the 3 lead pads. Board is isolated from skin by 1.5 mm PA12 wall. |
-| **7** | Li-Ion Battery Cell & Tabs | 1 cell | Aluminum (positive tab), Nickel-plated copper (negative tab) | Aluminum pouch laminate | Battery pocket ($s = 1.5–17.5\text{ mm}$) | **NO** | Fully sealed inside pouch. Pouch is wrapped in Kapton; battery pocket is isolated from the board zone by an internal transverse nylon rib ($s = 17.5–18.3\text{ mm}$) and enclosed under the snap lid. |
+| **7** | Li-Ion Battery Cell & Tabs | 1 cell | Aluminum (positive tab), Nickel-plated copper (negative tab) | Aluminum pouch laminate | Battery pocket (s = 1.5–17.5 mm) | **NO** | Fully sealed inside pouch. Pouch is wrapped in Kapton; battery pocket is isolated from the board zone by an internal transverse nylon rib (s = 17.5–18.3 mm) and enclosed under the snap lid. |
 | **8** | Front-End Protection Components | 6 parts | Silicon dies, copper leadframes | Pure Tin (leadframe finish) | Medial PCB surface | **NO** | SOT-23 diode clamps and 0402 resistors are soldered to board; enclosed in cavity. |
-| **9** | Temporary Debug Exit Port Plug | 1 | PA12 or Silicone Elastomer | None (non-metallic) | Ø2.0 mm side wall exit at $s = 36\text{ mm}$ | **NO** | The debug cable exit is plugged during wear. No metal conductor extends through the wall during active sessions. |
+| **9** | Temporary Debug Exit Port Plug | 1 | PA12 or Silicone Elastomer | None (non-metallic) | Ø2.0 mm side wall exit at s = 36 mm | **NO** | The debug cable exit is plugged during wear. No metal conductor extends through the wall during active sessions. |
 | **10** | Radio module (Raytac MDBT50Q-1MV2) shield can and pads | 1 | UNVERIFIED (WP6 names the part; shield cans are commonly nickel-silver or tin-plated steel) | UNVERIFIED | Lateral side of the board, under the lid | **NO** | Inside the closed cavity; faces the lid, not the medial wall. |
 | **11** | ICs: ADS1292, charger, LDO | 3 | Copper leadframes / solder balls | UNVERIFIED (WP6) | Board, medial side and either side | **NO** | Inside the closed cavity. |
 | **12** | 0402 passives (about 25) | ~25 | Nickel barrier under tin on the terminations (typical for chip parts; UNVERIFIED per SKU) | Tin | Board | **NO** | Inside the closed cavity. |
@@ -507,47 +507,47 @@ The primary ring terminal is TE Connectivity Part `31428` (Budget Series Uninsul
 *   **Date Read:** 2026-09-17
 *   **Base Material:** Copper per ASTM B-152.
 *   **Plating:** 100% Matte Pure Tin per ASTM B-545, minimum thickness 0.000100 in (0.00254 mm); zero nickel underplate (**Nickel-Free**).
-*   **Stock Thickness:** $0.018 \pm 0.002\text{ in}$ ($0.457 \pm 0.051\text{ mm}$, nominal 0.46 mm). This satisfies the plan §3.3 reservation ($\le 0.50\text{ mm}$).
-*   **Stud Hole Diameter:** $0.119 \pm 0.003\text{ in}$ ($3.023 \pm 0.076\text{ mm}$), sized for #4 and M2.5 threaded shanks.
-*   **Ring Outer Diameter / Tongue Width:** $0.203 \pm 0.008\text{ in}$ ($5.156 \pm 0.203\text{ mm}$, maximum 5.36 mm). The outer radius from the stud hole center is nominal 2.58 mm (maximum 2.68 mm). This clears the Ø7.1 mm keep-out cylinder (radius 3.55 mm).
-*   **Distance from Ring Center to Barrel End:** $0.348\text{ in}$ nominal ($8.839\text{ mm} \approx 8.85\text{ mm}$ nominal / maximum).
-*   **Distance from Outer Ring Edge to Barrel End:** $8.85\text{ mm} - 2.58\text{ mm} = 6.27\text{ mm}$.
-*   **Overall Length:** $0.450\text{ in}$ maximum ($11.43\text{ mm}$ maximum; catalog lists 11.51 mm nominal).
-*   **Crimp Barrel Outer Diameter / Width:** $0.077\text{ in}$ maximum ($1.956\text{ mm} \approx 1.96\text{ mm}$ maximum). This fits within the 3.0 mm tab width envelope (`interface.md` §3.1).
-*   **Crimp Barrel Inner Diameter:** $0.035\text{ in}$ minimum ($0.889\text{ mm}$ minimum).
-*   **Wire Range:** 26–22 AWG ($0.10–0.41\text{ mm}^2$).
+*   **Stock Thickness:** 0.018 ± 0.002 in (0.457 ± 0.051 mm, nominal 0.46 mm). This satisfies the plan §3.3 reservation (≤ 0.50 mm).
+*   **Stud Hole Diameter:** 0.119 ± 0.003 in (3.023 ± 0.076 mm), sized for #4 and M2.5 threaded shanks.
+*   **Ring Outer Diameter / Tongue Width:** 0.203 ± 0.008 in (5.156 ± 0.203 mm, maximum 5.36 mm). The outer radius from the stud hole center is nominal 2.58 mm (maximum 2.68 mm). This clears the Ø7.1 mm keep-out cylinder (radius 3.55 mm).
+*   **Distance from Ring Center to Barrel End:** 0.348 in (8.84 mm). The drawing value is read as nominal; its tolerance is not recorded here. `placement.py` uses 8.85.
+*   **Distance from Outer Ring Edge to Barrel End:** 8.85 mm - 2.58 mm = 6.27 mm.
+*   **Overall Length:** 0.450 in maximum (11.43 mm maximum; catalog lists 11.51 mm nominal).
+*   **Crimp Barrel Outer Diameter / Width:** 0.077 in maximum (1.956 mm ≈ 1.96 mm maximum). This fits within the 3.0 mm tab width envelope (`interface.md` §3.1).
+*   **Crimp Barrel Inner Diameter:** 0.035 in minimum (0.889 mm minimum).
+*   **Wire Range:** 26–22 AWG (0.10–0.41 mm²).
 
-#### 8.1.2 Alternative Ring Lugs (#4 / M2.5, 22–28 AWG, Thickness $\le 0.5\text{ mm}$)
+#### 8.1.2 Alternative Ring Lugs (#4 / M2.5, 22–28 AWG, Thickness ≤ 0.5 mm)
 
-Two off-the-shelf alternative ring terminals with #4 or M2.5 stud holes, wire range accommodating fine wire, and thickness $\le 0.5\text{ mm}$ were inspected:
+Two other #4 / M2.5 ring terminals were read. Neither meets the heading's filter: Panduit is 0.51 mm thick (over 0.5), and Nichifu R0.3-3 is rated 24–20 AWG, not 28. Both are longer than TE 31428, so they only confirm that a crimp lug does not end under its pad:
 
 1.  **Panduit P22-4R-C (Pan-Term Loose Piece Ring Terminal):**
     *   **Drawing Source:** Panduit Customer Drawing 102215 ("RING TONGUE, NON-INSULATED").
     *   **Drawing URL:** [panduit.com Drawing 102215](https://www.panduit.com/content/dam/panduit/en/products/media/5/15/215/2215/102215.pdf)
     *   **Date Read:** 2026-09-17
     *   **Base Material & Plating:** High-conductivity electrolytic copper, tin-plated (nickel-free).
-    *   **Stock Thickness:** $0.020\text{ in}$ ($0.508\text{ mm} \approx 0.51\text{ mm}$).
-    *   **Stud Hole Diameter:** $0.119\text{ in}$ ($3.02\text{ mm}$, #4 stud).
-    *   **Ring Outer Diameter / Width:** $0.205\text{ in}$ ($5.20\text{ mm}$, radius 2.60 mm).
-    *   **Distance from Ring Center to Barrel End:** $0.418\text{ in}$ ($10.61\text{ mm}$).
-    *   **Distance from Outer Ring Edge to Barrel End:** $10.61\text{ mm} - 2.60\text{ mm} = 8.01\text{ mm}$.
-    *   **Overall Length:** $0.520\text{ in}$ ($13.21\text{ mm}$).
-    *   **Barrel Outer Diameter / Width:** $0.080\text{ in}$ ($2.03\text{ mm}$).
-    *   **Wire Range:** 26–22 AWG ($0.14–0.50\text{ mm}^2$).
+    *   **Stock Thickness:** 0.020 in (0.508 mm ≈ 0.51 mm).
+    *   **Stud Hole Diameter:** 0.119 in (3.02 mm, #4 stud).
+    *   **Ring Outer Diameter / Width:** 0.205 in (5.20 mm, radius 2.60 mm).
+    *   **Distance from Ring Center to Barrel End:** 0.418 in (10.61 mm).
+    *   **Distance from Outer Ring Edge to Barrel End:** 10.61 mm - 2.60 mm = 8.01 mm.
+    *   **Overall Length:** 0.520 in (13.21 mm).
+    *   **Barrel Outer Diameter / Width:** 0.080 in (2.03 mm).
+    *   **Wire Range:** 26–22 AWG (0.14–0.50 mm²).
 
 2.  **Nichifu R0.3-3 (Non-Insulated Ring Terminal):**
     *   **Drawing Source:** Nichifu Terminals Catalog 2023, page 6 (R-type terminals).
     *   **Catalog / Drawing URL:** [nichifu.co.jp Catalog](https://www.nichifu.co.jp/en/pdf/catalog/NICHIFU_TERMINALS_CATALOG_2023.pdf)
     *   **Date Read:** 2026-09-17
     *   **Base Material & Plating:** Oxygen-free copper (C1020), electro-tin plated (nickel-free).
-    *   **Stock Thickness:** $0.50\text{ mm}$ ($0.020\text{ in}$).
-    *   **Stud Hole Diameter:** $3.20\text{ mm}$ (fits M2.5 / #4 stud).
-    *   **Ring Outer Diameter / Width:** $5.20\text{ mm}$ (radius 2.60 mm).
-    *   **Distance from Ring Center to Barrel End:** $9.40\text{ mm}$.
-    *   **Distance from Outer Ring Edge to Barrel End:** $9.40\text{ mm} - 2.60\text{ mm} = 6.80\text{ mm}$.
-    *   **Overall Length:** $12.00\text{ mm}$.
-    *   **Barrel Outer Diameter / Width:** $2.20\text{ mm}$.
-    *   **Wire Range:** 24–20 AWG ($0.20–0.50\text{ mm}^2$).
+    *   **Stock Thickness:** 0.50 mm (0.020 in).
+    *   **Stud Hole Diameter:** 3.20 mm (fits M2.5 / #4 stud).
+    *   **Ring Outer Diameter / Width:** 5.20 mm (radius 2.60 mm).
+    *   **Distance from Ring Center to Barrel End:** 9.40 mm.
+    *   **Distance from Outer Ring Edge to Barrel End:** 9.40 mm - 2.60 mm = 6.80 mm.
+    *   **Overall Length:** 12.00 mm.
+    *   **Barrel Outer Diameter / Width:** 2.20 mm.
+    *   **Wire Range:** 24–20 AWG (0.20–0.50 mm²).
 
 #### 8.1.3 Comparison and Pad Distance Analysis
 
@@ -565,11 +565,11 @@ The terminal dimensions compare as follows:
 
 **Plain Statement on Tab Clearance:**
 *   **No off-the-shelf crimp ring terminal lets the tab end under its own pad.**
-*   TE 31428 has the shortest distance from ring center to barrel end (8.85 mm) available in standard crimp hardware.
+*   TE 31428 is the shortest of the three drawings read (8.85 mm from ring center to barrel end). No wider survey was done.
 *   If the lug tab is directed straight toward its respective pad:
     *   At **SIG1**, the crimp barrel extends 8.85 mm from the contact center, overshooting the 4.60 mm pad center by **4.25 mm** (running past the pad and encroaching into neighboring circuit area).
     *   At **SIG2**, the crimp barrel extends 8.85 mm from the contact center, overshooting the 5.80 mm pad center by **3.05 mm** (running through the lateral side wall if directed outward per `open-questions.md` Q13).
-*   **Consequence for WP6:** WP6 cannot assume a flat tab terminating under the pad at 4.6 mm or 5.8 mm. WP6 must accommodate the exact 8.85 mm center-to-barrel-end dimension (6.27 mm from ring edge), angle the lug orientation away from walls and neighboring traces, or use an upright/bent tab orientation (as specified for Reference Contact 3 in §5.3) with jumper wire routed to the pad.
+*   **Consequence for WP6:** WP6 cannot assume a flat tab terminating under the pad at 4.6 mm or 5.8 mm. WP6 must accommodate the exact 8.85 mm center-to-barrel-end dimension (6.27 mm from ring edge), angle the lug orientation away from walls and neighboring traces, A signal tab cannot stand upright: 0.46 + 6.27 = 6.73 mm against 2.63 mm of air above the floor under the board (`placement.py` `upright_signal_clear_mm`). WP6b lays the signal tabs flat (`docs/fab/packing-options.md`).
 
 ---
 
@@ -581,7 +581,7 @@ The plan text allows plated steel and tinned copper, but does not allow stainles
 The table below catalogs all candidate nuts for M2.5 (DIN 439 / ISO 4035 thin nuts and DIN 934 full nut zero-margin fallback).
 **No recommendation is made; Rolf picks the option per open question Q6.**
 
-| Candidate Option | Supplier & SKU | Vendor Page URL & Date Read | Material & Certificate Availability | Height $m$ | Across Flats $s$ | Across Corners $e$ min | Drawing Reference | Price | Inside Plan §4 Text? | Nickel-Free? |
+| Candidate Option | Supplier & SKU | Vendor Page URL & Date Read | Material & Certificate Availability | Height m | Across Flats s | Across Corners e min | Drawing Reference | Price | Inside Plan §4 Text? | Nickel-Free? |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- | :---: | :---: |
 | **Plated Carbon Steel DIN 439 Thin Nut** | Bossard / TME<br>Order No. `1090798`<br>(BN 146) | [tme.eu Product Page](https://www.tme.eu/en/details/b2.5_bn146/hex-nuts/bossard/1090798/)<br>Read: 2026-09-17 | Carbon steel class 04/05, zinc plated (trivalent blue passivated). RoHS compliant; manufacturer compliance declaration available. | **1.60 mm** | **5.0 mm** | **5.45 mm** | DIN 439 B / ISO 4035 | $0.063 USD / ea<br>($6.30 / 100pk) | **YES**<br>("plated steel") | **YES**<br>(zinc blue passivation, zero nickel) |
 | **Plain Brass DIN 439 Thin Nut** | Bossard / TME<br>Order No. `1159550`<br>(BN 147) | [tme.eu Product Page](https://www.tme.eu/en/details/b2.5_bn147/hex-nuts/bossard/1159550/)<br>Read: 2026-09-17 | Brass (CuZn), plain unplated. RoHS compliant; manufacturer compliance declaration available. | **1.60 mm** | **5.0 mm** | **5.45 mm** | DIN 439 B / ISO 4035 | $0.16 USD / ea<br>($1.60 / 10pk) | **NO**<br>(copper-zinc alloy, not steel or tinned copper) | **YES**<br>(bare brass, zero nickel) |
@@ -592,24 +592,24 @@ The table below catalogs all candidate nuts for M2.5 (DIN 439 / ISO 4035 thin nu
 #### Mechanical Stack Implications of Candidates
 
 *   **1.60 mm Thin Nuts (Plated Steel, Plain Brass, Tinned Brass, Titanium DIN 439):**
-    *   Stack height: $0.46\text{ mm (lug)} + 1.60\text{ mm (nut)} + 0.44\text{ mm (exposed thread)} + 0.13\text{ mm (Kapton)} = 2.63\text{ mm}$.
-    *   Top of nut sits at $y = 3.56\text{ mm}$ nominal.
-    *   Top of Kapton sits at $y = 4.13\text{ mm}$ nominal (0.17 mm below medial PCB at $y = 4.30\text{ mm}$).
-    *   Stack margin: **+0.44 mm** under the screw tip at nominal. At maximum wall thickness tolerance $+0.3\text{ mm}$ (MJF tolerance $\pm 0.3\text{ mm}$, plan §3.6), the Kapton disc reaches $y = 3.99\text{ mm}$, preserving **0.31 mm clearance** to the medial board face.
+    *   Stack height: 0.46 mm (lug) + 1.60 mm (nut) + 0.44 mm (exposed thread) + 0.13 mm (Kapton) = 2.63 mm.
+    *   Top of nut sits at y = 3.56 mm nominal.
+    *   Top of Kapton sits at y = 4.13 mm nominal (0.17 mm below medial PCB at y = 4.30 mm).
+    *   Stack margin: **+0.44 mm** under the screw tip at nominal. At wall +0.3 mm (MJF ± 0.3, plan §3.6) the floor rises to 1.80 and the nut top to 3.86, but the screw tip stays at y = 4.00 (the head seats on the outside), so the Kapton disc on the tip stays at y = 4.13, **0.17 mm clearance** to the medial board face.
 *   **2.00 mm Full Nut (Titanium DIN 934 Fallback):**
-    *   Stack height: $0.46\text{ mm (lug)} + 2.00\text{ mm (nut)} + 0.04\text{ mm (exposed thread)} + 0.13\text{ mm (Kapton)} = 2.63\text{ mm}$.
-    *   Top of nut sits at $y = 3.96\text{ mm}$ nominal.
-    *   Top of Kapton sits at $y = 4.09\text{ mm}$ nominal (0.21 mm below PCB at $y = 4.30\text{ mm}$).
-    *   **Zero-Margin Warning:** The top face of the nut sits only 0.04 mm below the screw tip. At maximum wall thickness tolerance $+0.3\text{ mm}$ (wall 1.80 mm), the nut top shifts to $y = 4.26\text{ mm}$, and the Kapton disc (+0.13 mm) reaches $y = 4.39\text{ mm}$. This results in a **+0.09 mm interference collision with the medial board face at $y = 4.30\text{ mm}$**. Therefore, DIN 934 full nuts have zero tolerance margin and fail the worst-case stack check.
+    *   Stack height: 0.46 mm (lug) + 2.00 mm (nut) + 0.04 mm (exposed thread) + 0.13 mm (Kapton) = 2.63 mm.
+    *   Top of nut sits at y = 3.96 mm nominal.
+    *   Top of Kapton sits at y = 4.13 mm nominal, on the screw tip at 4.00 (0.17 mm below PCB at y = 4.30 mm).
+    *   **Zero-Margin Warning:** The top face of the nut sits only 0.04 mm below the screw tip. At maximum wall thickness tolerance +0.3 mm (wall 1.80 mm), the nut top shifts to y = 4.26 mm, and the Kapton disc (+0.13 mm) reaches y = 4.39 mm. This results in a **+0.09 mm interference collision with the medial board face at y = 4.30 mm**. Therefore, DIN 934 full nuts have zero tolerance margin and fail the worst-case stack check.
 
 ---
 
 ### 8.3 Dome Drawing and Plan Differences (Open Question Q7)
 
 The plan CAD model reserves a button-head dome profile of:
-*   Head diameter: $d_k = 4.70\text{ mm}$
-*   Head height (crown): $k = 1.35\text{ mm}$
-*   Hex socket size: $s = 1.50\text{ mm}$
+*   Head diameter: dk = 4.70 mm
+*   Head height (crown): k = 1.35 mm
+*   Hex socket size: s = 1.50 mm
 
 #### 8.3.1 Drawing Specifications for ISO 7380 M2.5 Fasteners
 
@@ -618,27 +618,27 @@ M2.5 is not an official ISO first-choice thread size in the original ISO 7380-1 
 1.  **Westfield Fasteners Drawing (ISO 7380-1 M2.5 Socket Button Screws):**
     *   **Drawing URL:** [westfieldfasteners.co.uk Drawing M2.5 ISO 7380-1](https://www.westfieldfasteners.co.uk/Images/Drawings/M2.5-ISO-7380-1-Button-Head-Socket-Screws.png)
     *   **Date Read:** 2026-09-17
-    *   **Head Diameter ($d_k$):** $4.50\text{ mm}$ maximum (range 4.20–4.50 mm).
-    *   **Head Crown Height ($k$):** $1.50\text{ mm}$ maximum (range 1.30–1.50 mm).
-    *   **Hex Socket Width ($s$):** $1.50\text{ mm}$ (range 1.52–1.56 mm across flats).
-    *   **Hex Socket Depth ($t$):** $0.80\text{ mm}$ minimum.
+    *   **Head Diameter (dk):** 4.50 mm maximum (range 4.20–4.50 mm).
+    *   **Head Crown Height (k):** 1.50 mm maximum (range 1.30–1.50 mm).
+    *   **Hex Socket Width (s):** 1.50 mm (range 1.52–1.56 mm across flats).
+    *   **Hex Socket Depth (t):** 0.80 mm minimum.
 
 2.  **Accu Group Technical Specification (ISO 7380-1 Button Head Screws):**
     *   **Drawing URL:** [accu.co.uk ISO 7380-1 Specification](https://accu.co.uk/iso-7380-1-button-head-screws)
     *   **Date Read:** 2026-09-17
-    *   **Head Diameter ($d_k$):** $4.70\text{ mm}$ maximum (range 4.40–4.70 mm).
-    *   **Head Crown Height ($k$):** $1.50\text{ mm}$ maximum (range 1.36–1.50 mm).
-    *   **Hex Socket Width ($s$):** $1.50\text{ mm}$.
-    *   **Hex Socket Depth ($t$):** $0.80\text{ mm}$ minimum.
+    *   **Head Diameter (dk):** 4.70 mm maximum (range 4.40–4.70 mm).
+    *   **Head Crown Height (k):** 1.50 mm maximum (range 1.36–1.50 mm).
+    *   **Hex Socket Width (s):** 1.50 mm.
+    *   **Hex Socket Depth (t):** 0.80 mm minimum.
 
 3.  **Retail Titanium Fasteners Comparison:**
     *   **Sortafast `SF-BH2504-10`:** Grade 5 Titanium (Ti-6Al-4V). Product URL: [sortafast.com](https://sortafast.com/products/sortafast-titanium-screws-button-head-10pk-m2-5), read 2026-09-17. Store listing conforms to ISO 7380 profile. Engineering drawing on store listing: UNVERIFIED. Hex drive: 1.5 mm.
-    *   **RJXHOBBY `RJX3995-M2.5X4mm`:** Grade 2 Titanium (TA2 / CP-Ti). Product URL: [rjxhobby.com](https://www.rjxhobby.com/Accessories/screw-washer-ball-linkage/screw/titanium-screws/rjx-50pcs-m2-5-4-20mm-ta2-button-head-titanium-screws), read 2026-09-17. Store page text lists $d_k = 4.40–4.70\text{ mm}$, $k = 1.20–1.36\text{ mm}$, hex socket 1.5 mm. Engineering drawing on store listing: UNVERIFIED. Price: $33.99 USD / 50pk (FLAGGED OVER $20 LINE per plan §9).
+    *   **RJXHOBBY `RJX3995-M2.5X4mm`:** Grade 2 Titanium (TA2 / CP-Ti). Product URL: [rjxhobby.com](https://www.rjxhobby.com/Accessories/screw-washer-ball-linkage/screw/titanium-screws/rjx-50pcs-m2-5-4-20mm-ta2-button-head-titanium-screws), read 2026-09-17. Store page text lists dk = 4.40–4.70 mm, k = 1.20–1.36 mm, hex socket 1.5 mm. Engineering drawing on store listing: UNVERIFIED. Price: $33.99 USD / 50pk (FLAGGED OVER the plan §7 $20 screw line).
     *   **Titane Services `vis-titane-ISO7380-G5-M2.5`:** Grade 5 Titanium (TA6V). Product URL: [titane-services.eu](https://www.titane-services.eu/vis-titane-ISO7380-G5-M2.5), read 2026-09-17. Nominal length is 5.0 mm (requires 1.0 mm hand-trimming to 4.0 mm). Engineering drawing on store listing: UNVERIFIED. Hex drive: 1.5 mm.
 
 #### 8.3.2 Quantitative Differences from Plan CAD
 
-| Specification Source | Head Diameter $d_k$ | Difference from Plan $d_k$ (4.70 mm) | Head Height $k$ | Difference from Plan $k$ (1.35 mm) | Hex Socket $s$ | Difference from Plan $s$ (1.50 mm) |
+| Specification Source | Head Diameter dk | Difference from Plan dk (4.70 mm) | Head Height k | Difference from Plan k (1.35 mm) | Hex Socket s | Difference from Plan s (1.50 mm) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Plan CAD Reservation** | **4.70 mm** | 0.00 mm | **1.35 mm** | 0.00 mm | **1.50 mm** | 0.00 mm |
 | **Westfield Drawing** | 4.50 mm max | **−0.20 mm** (to −0.50 mm) | 1.50 mm max | **+0.15 mm** | 1.50 mm | 0.00 mm |
@@ -650,18 +650,18 @@ M2.5 is not an official ISO first-choice thread size in the original ISO 7380-1 
 Per `docs/fab/interface.md` §2.2 Note D1, dimensional differences between retail fasteners and the CAD reservation have the following engineering impacts:
 
 1.  **Skin Contact Surface Area:**
-    *   Plan CAD diameter $d_k = 4.70\text{ mm}$ provides a contact area of $A = \pi \times (2.35\text{ mm})^2 = 17.35\text{ mm}^2$.
-    *   If $d_k = 4.50\text{ mm}$ (Westfield standard max), area is $A = \pi \times (2.25\text{ mm})^2 = 15.90\text{ mm}^2$ (**8.3% decrease** in contact area).
-    *   If $d_k = 4.40\text{ mm}$ (lower tolerance limit), area is $A = \pi \times (2.20\text{ mm})^2 = 15.21\text{ mm}^2$ (**12.3% decrease** in contact area).
-    *   *Bioimpedance effect:* An 8% to 12% reduction in contact area causes a proportional slight increase in electrode-skin contact impedance, which is within the dynamic range of the ADS1292 front end.
+    *   Plan CAD diameter dk = 4.70 mm provides a contact area of A = π × (2.35 mm)² = 17.35 mm².
+    *   If dk = 4.50 mm (Westfield standard max), area is A = π × (2.25 mm)² = 15.90 mm² (**8.3% decrease** in contact area).
+    *   If dk = 4.40 mm (lower tolerance limit), area is A = π × (2.20 mm)² = 15.21 mm² (**12.3% decrease** in contact area).
+    *   *Bioimpedance effect:* A smaller dome raises electrode-skin impedance. By how much, and whether it matters for the ADS1292 input, is UNVERIFIED; no source was read for it. Stage A and the dry recordings measure it.
 2.  **External Dome Protrusion:**
-    *   If $k = 1.50\text{ mm}$ instead of $1.35\text{ mm}$, the dome crown extends an extra **$+0.15\text{ mm}$** outward from the shell medial surface ($y = 0$).
-    *   *Wear effect:* A $+0.15\text{ mm}$ taller dome increases skin indentation pressure against the mastoid skin, aiding dry electrode contact retention during movement.
+    *   If k = 1.50 mm instead of 1.35 mm, the dome crown extends an extra **+0.15 mm** outward from the shell medial surface (y = 0).
+    *   *Wear effect:* A +0.15 mm taller dome presses 0.15 mm further into the skin at the same hook preload. Whether that helps contact during movement is UNVERIFIED.
 3.  **Internal Stack Height Invariance:**
-    *   The button head seats against the exterior medial surface. The internal thread engagement into the cavity through the 1.5 mm PA12 wall is determined strictly by the under-head shank length $L = 4.0\text{ mm}$, which leaves $L - 1.5\text{ mm} = 2.5\text{ mm}$ thread inside.
-    *   *Result:* Head crown height $k$ **does not alter the internal cavity stack**. Lug position, nut position, thread protrusion past the nut, and Kapton clearance to the PCB remain identical.
+    *   The button head seats against the exterior medial surface. The internal thread engagement into the cavity through the 1.5 mm PA12 wall is determined strictly by the under-head shank length L = 4.0 mm, which leaves L - 1.5 mm = 2.5 mm thread inside.
+    *   *Result:* Head crown height k **does not alter the internal cavity stack**. Lug position, nut position, thread protrusion past the nut, and Kapton clearance to the PCB remain identical.
 4.  **Order 1 Gauge Model:**
-    *   Per interface revision item V2-1 (`interface.md`), the 3D-printed fit gauge keeps $d_k = 4.70\text{ mm}$ and $k = 1.35\text{ mm}$ until a purchased screw lot is received and measured for S1 gate entry.
+    *   Per interface revision item V2-1 (`interface.md`), the 3D-printed fit gauge keeps dk = 4.70 mm and k = 1.35 mm until a purchased screw lot is received and measured for S1 gate entry.
 
 ---
 
@@ -671,15 +671,15 @@ Every component required for the Order 2 Contacts Kit is summarized below with i
 
 #### 8.4.1 Component Sourcing and Cost Table
 
-| Component | Selected Part / SKU | Vendor / Distributor | Verified Product Page URL | Date Read | Unit Price | Pack Price | Line Item Limit Check (Plan §9 < $20) |
+| Component | Selected Part / SKU | Vendor / Distributor | Verified Product Page URL | Date Read | Unit Price | Pack Price | Plan §7 order 2 line |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
 | **Contact Screws** | Sortafast `SF-BH2504-10`<br>(M2.5 × 4 mm Grade 5) | Sortafast Industries | [sortafast.com Product Page](https://sortafast.com/products/sortafast-titanium-screws-button-head-10pk-m2-5) | 2026-09-17 | $1.75 USD | $17.50 USD<br>(Pack of 10) | **PASS** (< $20.00) |
 | *Alternative Screws* | RJXHOBBY `RJX3995-M2.5X4mm`<br>(M2.5 × 4 mm Grade 2) | RJXHOBBY | [rjxhobby.com Product Page](https://www.rjxhobby.com/Accessories/screw-washer-ball-linkage/screw/titanium-screws/rjx-50pcs-m2-5-4-20mm-ta2-button-head-titanium-screws) | 2026-09-17 | $0.68 USD | $33.99 USD<br>(Pack of 50) | **FLAGGED OVER $20 LINE** ($33.99 > $20.00) |
 | **Retaining Thin Nuts** | Bossard BN 146<br>Order No. `1090798`<br>(DIN 439 M2.5 Plated Steel) | TME | [tme.eu Product Page](https://www.tme.eu/en/details/b2.5_bn146/hex-nuts/bossard/1090798/) | 2026-09-17 | $0.063 USD | $6.30 USD<br>(Pack of 100) | **PASS** (< $20.00) |
 | *Alternative Nuts (Brass)* | Bossard BN 147<br>Order No. `1159550`<br>(DIN 439 M2.5 Plain Brass) | TME | [tme.eu Product Page](https://www.tme.eu/en/details/b2.5_bn147/hex-nuts/bossard/1159550/) | 2026-09-17 | $0.16 USD | $1.60 USD<br>(Pack of 10) | **PASS** (< $20.00) |
-| *Fallback Nuts (Ti)* | Titanium Webshop<br>SKU `663701003`<br>(DIN 934 M2.5 Grade 2) | Titanium Webshop (S & D) | [titanium-webshop.eu Product Page](https://www.titanium-webshop.eu/en/titanium-nuts/titanium-hex-nut-din-934-grade-2-m2-5.html) | 2026-09-17 | 0.87 € (~$0.95 USD) | 2.61 € (~$2.85 USD)<br>(3 units) | **PASS** (< $20.00) |
+| *Fallback Nuts (Ti)* | Titanium Webshop<br>SKU `663701003`<br>(DIN 934 M2.5 Grade 2) | Titanium Webshop (S & D) | [titanium-webshop.eu Product Page](https://www.titanium-webshop.eu/en/titanium-nuts/titanium-hex-nut-din-934-grade-2-m2-5.html) | 2026-09-17 | 0.87 € (~$0.95 USD) | 5.22 € (~$5.70 USD)<br>(6 units: 3 per body, 2 bodies) | **PASS** (< $20.00) |
 | **Ring Lugs** | TE Connectivity `31428`<br>(DigiKey `292150` / `A100688-ND`) | DigiKey | [digikey.com Product Page](https://www.digikey.com/en/products/detail/te-connectivity-amp-connectors/31428/292150) | 2026-09-16 | $0.208 USD | $2.08 USD<br>(10 units) | **PASS** (< $20.00) |
-| **Dielectric Tape** | Adafruit `3057`<br>($10\text{ mm} \times 33\text{ m}$ Kapton) | Adafruit Industries | [adafruit.com Product Page](https://www.adafruit.com/product/3057) | 2026-09-16 | $4.95 USD | $4.95 USD<br>(1 roll) | **PASS** (< $20.00) |
+| **Dielectric Tape** | Adafruit `3057`<br>(10 mm × 33 m Kapton) | Adafruit Industries | [adafruit.com Product Page](https://www.adafruit.com/product/3057) | 2026-09-16 | $4.95 USD | $4.95 USD<br>(1 roll) | **PASS** (< $20.00) |
 | **Chemical Screen Kit** | Delasco `SPOT-TEST`<br>(DMG Nickel Spot Test, 15 mL) | Delasco Dermatological | [delasco.com Product Page](https://www.delasco.com/spot-test-for-nickel/) | 2026-09-16 | $17.99 USD | $17.99 USD<br>(1 kit) | **PASS** (< $20.00) |
 
 #### 8.4.2 Kit Total Estimate (Cheapest Nickel-Free Combinations)
@@ -702,12 +702,18 @@ The complete bill of materials for Order 2 (Contacts Kit) evaluated across the v
     *   **Total Sourcing Cost: $44.12 USD (estimate)**
 3.  **Fallback Kit (Titanium DIN 934 Full Nuts):**
     *   Sortafast Grade 5 Screws: $17.50 USD
-    *   Titanium Webshop Grade 2 DIN 934 Full Nuts (3 units): $2.85 USD
+    *   Titanium Webshop Grade 2 DIN 934 Full Nuts (6 units, 3 per body for 2 bodies): $5.70 USD
     *   TE Connectivity 31428 Lugs: $2.08 USD
     *   Adafruit 3057 Kapton Tape: $4.95 USD
     *   Delasco SPOT-TEST DMG Kit: $17.99 USD
-    *   **Total Sourcing Cost: $45.37 USD (estimate)**
+    *   **Total Sourcing Cost: $48.22 USD (estimate)**
 
 **Budget Conformance:**
-All three candidate kit totals ($44.12 to $48.82 USD) comply with the plan §7 Order 2 contacts budget allowance of **$60.00 USD** ($20.00 screws + $5.00 nuts + $10.00 lugs + $25.00 screening kit). Every individual item in the selected kit combinations is under the $20.00 line-item threshold specified in plan §9.
+Plan §7 order 2 has no single contacts line. It has three: titanium screws, one pack, $20; M2.5 thin nuts, ring lugs, Kapton and 28 AWG silicone wire together, $20; DMG kit, $25. Shipping ($15) and tax ($5) are separate lines. Against those:
+
+*   Screws: Sortafast $17.50, under $20. RJXHOBBY $33.99 is over.
+*   Nuts, lugs, Kapton: $13.33 (BN 146), $8.63 (BN 147) or $12.73 (titanium DIN 934), plus the 28 AWG silicone wire, which is not priced here. The wire must fit in what is left of the $20.
+*   DMG kit: Delasco $17.99, under $25.
+
+The totals above leave out the wire, shipping and tax.
 
