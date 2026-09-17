@@ -9,7 +9,7 @@
 | C. Wider | **Yes**: all named parts, 25 of 25 0402s, no conflicts | BODY_WIDTH 17 → 20; board 19 × 12.5 → 19 × 15.5 | 3 mm of width in the crease |
 | E. Two-sided | **No**: no VQFN site (arrays and 8 0402s go lateral) | none | a two-sided build, and it still does not fit |
 
-The short Q13 tab (ends under its pad) is **not buildable with a crimp lug** (WP5b, contacts.md §8.1): the shortest lug read, TE 31428, reaches 8.85 mm from the contact centre. It is not a row.
+The short Q13 tab (ends under its pad) is **not a row**: it is not buildable with a crimp lug (WP5b). The shortest lug read, TE 31428 (contacts.md §8.1), reaches 8.85 mm from the contact centre.
 
 ## Recommendation
 
