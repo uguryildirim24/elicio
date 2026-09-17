@@ -75,21 +75,77 @@ class PlacementMathTests(unittest.TestCase):
         a0, a1 = P.tab_span("SIG1")
         self.assertAlmostEqual(a0, P.KEEPOUT_R, places=2)
         self.assertAlmostEqual(a1, P.LUG_A1, places=2)
-        self.assertAlmostEqual(P.TAB_DEG["SIG1"], 355.0)
-        self.assertAlmostEqual(P.TAB_DEG["SIG2"], 170.0)
+        self.assertAlmostEqual(P.LEAD_BEND_R, 3.0)
+        self.assertAlmostEqual(P.LEAD_EXIT, 3.65)
 
-    def test_tab_direction_search_finds_committed_angles(self) -> None:
-        sig1 = P.legal_tab_degrees("SIG1")
-        sig2 = P.legal_tab_degrees("SIG2")
-        self.assertIn(355.0, sig1)
-        self.assertIn(170.0, sig2)
-        self.assertIn(0.0, sig1)
-        self.assertIn(180.0, sig2)
-        found_a = P.search_tab_degrees("A")
-        found_c = P.search_tab_degrees("C")
-        self.assertEqual(found_a, P.TAB_DEG_BY_OPTION["A"])
-        self.assertEqual(found_c, P.TAB_DEG_BY_OPTION["C"])
+    def test_tab_direction_search_finds_committed_layouts(self) -> None:
+        # WP6b's angles aimed each barrel end at a side wall: no lead exit.
+        sig1 = P.legal_tab_degrees("SIG1", movable_pads=True)
+        sig2 = P.legal_tab_degrees("SIG2", movable_pads=True)
+        self.assertNotIn(355.0, sig1)
+        self.assertNotIn(0.0, sig1)
+        self.assertNotIn(170.0, sig2)
+        self.assertNotIn(180.0, sig2)
+        self.assertTrue(any("lead-exit" in r for r in P.tab_reasons("SIG1", 355.0, movable_pads=True)))
+        for option in ("A", "C"):
+            with self.subTest(option=option):
+                self.assertEqual(P.search_tab_degrees(option), P.TAB_DEG_BY_OPTION[option])
+                self.assertEqual(P.SEARCH_PADS[option], P.PADS_BY_OPTION[option])
+                self.assertEqual(P.SEARCH_WIRE[option], P.REF_ROUTE_BY_OPTION[option])
         self.assertLess(P.upright_signal_clear_mm(), 0.0)
+
+    def test_checker_catches_wp6b_wall_aimed_barrels(self) -> None:
+        lay = P.get_layout("A")
+        saved = (dict(lay.tab_deg), lay.ref_wire, dict(lay.lead_pads))
+        try:
+            P.bind_layout(
+                "A",
+                tab_deg={"SIG1": 355.0, "SIG2": 170.0},
+                ref_wire=P.REF_WIRE_HIGH_U,
+                lead_pads=dict(P.LEAD_PADS),
+            )
+            text = " ".join(P.layout_conflicts("A"))
+            self.assertIn("SIG1 lead cannot leave the barrel", text)
+            self.assertIn("SIG2 lead cannot leave the barrel", text)
+            self.assertIn("corner pad", text)
+            self.assertIn("0402 courtyards have no site", text)
+        finally:
+            P.bind_layout("A", tab_deg=saved[0], ref_wire=saved[1], lead_pads=saved[2])
+
+    def test_leads_exit_and_turn_within_the_bend_radius(self) -> None:
+        for option in P.OPTION_NAMES:
+            for pad in ("SIG1", "SIG2"):
+                with self.subTest(option=option, pad=pad):
+                    self.assertGreaterEqual(P.lead_exit_gap(pad, option)[0], 0.0)
+                    self.assertGreaterEqual(P.lead_path_gap(pad, option), 0.0)
+                    pads = P.get_layout(option).lead_pads
+                    self.assertTrue(P.lead_run_turn_ok(pad, pads[pad], option))
+            with self.subTest(option=option, wire="ref"):
+                self.assertGreaterEqual(P.wire_floor_gap(option), 0.0)
+                self.assertEqual(P.crossings_under_parts(option), [])
+
+    def test_0402_sites_stay_on_the_board_in_both_orientations(self) -> None:
+        for option in P.OPTION_NAMES:
+            lay = P.get_layout(option)
+            for x, y, w, h, _face in P.place_0402s(option=option):
+                with self.subTest(option=option, site=(x, y)):
+                    self.assertIn((w, h), (P.R0402_CY, P.R0402_CY[::-1]))
+                    self.assertLessEqual(x + w, lay.board_u[1] - P.RIM + 1e-9)
+                    self.assertLessEqual(y + h, lay.board_s[1] - P.RIM + 1e-9)
+
+    def test_option_b_moves_the_tail_and_channel(self) -> None:
+        self.assertEqual(P.channel_s("A"), P.CHANNEL_S)
+        self.assertAlmostEqual(P.channel_s("B")[0], P.CHANNEL_S[0] + P.OPTION_B_DS)
+        self.assertAlmostEqual(P.wrap_s("B"), P.WRAP_S + P.OPTION_B_DS)
+        self.assertAlmostEqual(P.get_layout("B").ref_wire[0][1], 40.5 + P.OPTION_B_DS)
+
+    def test_lateral_face_ignores_medial_keepouts(self) -> None:
+        u, s, _uu, lateral = P.board_free_mask(option="E", punch_module=True)
+        i = int((P.CONTACT_1[0] - u[0]) / P.RASTER_PITCH)
+        j = int((P.CONTACT_1[1] - 1.0 - s[0]) / P.RASTER_PITCH)
+        self.assertTrue(lateral[j, i])
+        _u, _s, _uu, medial = P.board_free_mask(option="E")
+        self.assertFalse(medial[j, i])
 
     def test_upright_signal_tab_does_not_fit(self) -> None:
         self.assertLess(P.upright_signal_clear_mm(), 0.0)
@@ -101,7 +157,7 @@ class PlacementMathTests(unittest.TestCase):
         self.assertAlmostEqual(b.board_mm2, 237.5, places=1)
         self.assertAlmostEqual(b.free_literal_mm2, 69.36, places=1)
         self.assertAlmostEqual(b.free_tabs_to_pad_mm2, 82.97, places=1)
-        self.assertAlmostEqual(b.free_mm2, 83.23, places=1)
+        self.assertAlmostEqual(b.free_mm2, 72.18, places=1)
         self.assertGreater(b.free_without_tabs_mm2, b.free_mm2)
         self.assertNotAlmostEqual(b.free_mm2, b.free_tabs_to_pad_mm2, places=1)
         self.assertFalse(b.tqfp_fits)
@@ -148,17 +204,16 @@ class PlacementMathTests(unittest.TestCase):
     def test_conflict_checker_runs_for_every_option(self) -> None:
         seen = {option: P.layout_conflicts(option) for option in P.OPTION_NAMES}
         self.assertEqual(list(seen), list(P.OPTION_NAMES))
-        for option, conflicts in seen.items():
+        self.assertEqual(seen["C"], [])
+        for option in ("A", "B", "E"):
             with self.subTest(option=option):
-                self.assertEqual(conflicts, [])
+                self.assertIn("ADS1292_RSM: no legal site", seen[option])
 
-    def test_option_a_places_named_pack_on_real_lug(self) -> None:
+    def test_option_a_does_not_close_on_real_lug(self) -> None:
         parts = P.placed_parts("A")
-        self.assertEqual(sorted(parts), sorted(P.PART_TARGETS))
-        for pad in P.LEAD_PADS:
-            self.assertLessEqual(P.clamp_distance(pad, "A"), P.CLAMP_MAX_MM)
-        self.assertEqual(P.layout_conflicts("A"), [])
+        self.assertNotIn("ADS1292_RSM", parts)
         self.assertEqual(len(P.place_0402s(option="A")), 10)
+        self.assertLess(P.budget("A").spare_named_mm2, 0.0)
 
     def test_option_c_places_named_pack_and_all_0402s(self) -> None:
         parts = P.placed_parts("C")
@@ -166,6 +221,7 @@ class PlacementMathTests(unittest.TestCase):
         for pad in P.LEAD_PADS:
             self.assertLessEqual(P.clamp_distance(pad, "C"), P.CLAMP_MAX_MM)
         self.assertEqual(len(P.place_0402s(option="C")), P.N_0402)
+        self.assertEqual(P.layout_conflicts("C"), [])
 
     def test_option_b_lengthens_arc_and_moves_m1_gate(self) -> None:
         a = P.budget("A")
