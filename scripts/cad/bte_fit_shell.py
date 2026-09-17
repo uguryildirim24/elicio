@@ -11,7 +11,9 @@ Manifest schema (WP3 may extend this file; keep these keys):
 ``schema`` (int)
     This writer uses 1.
 ``commit`` (str)
-    ``git rev-parse HEAD`` at export, or ``unknown``.
+    Last git commit that changed a hashed solid under ``docs/fab/cad/v1``
+    (``*.step``, ``*.stl``, ``*.3mf``). It is not ``HEAD``. Artwork under
+    ``views`` does not move this field. ``unknown`` if git is missing.
 ``parameters`` (object)
     The full parameter set after derivation and clamp.
 ``defaults_used`` (list of str)
@@ -44,7 +46,11 @@ Manifest schema (WP3 may extend this file; keep these keys):
     Each check name, pass/fail, and the numbers used. The export stops on
     the first failure, so a written manifest lists passes only.
 ``files`` (object)
-    Relative file name → ``{sha256, bytes}``.
+    Relative file name → ``{sha256, bytes}`` for the fifteen solids.
+``views`` (object, optional)
+    ``render_medial.png``, ``render_lateral.png``, ``drawing.pdf`` each
+    ``{sha256, bytes}``. Written by ``render.py``. Solids export keeps
+    this map if it is already present.
 ``quantities`` (object)
     Order-1 counts: three bodies ×1, lid ×2, coupon ×1.
 ``hash_rule``
@@ -107,6 +113,7 @@ except ImportError:  # pragma: no cover - exercised by skip in tests
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[1]
 DEFAULT_PARAMS_PATH = SCRIPT_DIR / "params" / "default.toml"
+FONT_PATH = SCRIPT_DIR / "fonts" / "LiberationSans-Regular.ttf"
 STEP_TIMESTAMP = "2026-09-16T00:00:00Z"
 MESH_CHORD = 0.02
 MESH_ANGLE_RAD = math.radians(5.0)
@@ -499,7 +506,7 @@ def emboss_label(params: Mapping[str, Any], defaults_used: list[str]) -> str:
     return f"ELICIO V1 {side} {variant} {tag}{ref}".strip()
 
 
-def git_commit(repo: Path) -> str:
+def git_rev_parse(repo: Path) -> str:
     try:
         return (
             subprocess.check_output(
@@ -511,6 +518,40 @@ def git_commit(repo: Path) -> str:
         )
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
+
+
+def git_commit_solids(repo: Path) -> str:
+    """Last commit that changed a hashed solid, not HEAD of the repository.
+
+    Paths are the committed STEP/STL/3MF files under docs/fab/cad/v1. A
+    later commit that only adds renders, docs, or tests does not move this
+    field, so a solids regen test stays stable.
+    """
+    v1 = repo / "docs" / "fab" / "cad" / "v1"
+    paths = sorted(
+        str(path)
+        for path in v1.iterdir()
+        if path.is_file() and path.suffix.lower() in {".step", ".stl", ".3mf"}
+    )
+    if not paths:
+        return git_rev_parse(repo)
+    try:
+        return (
+            subprocess.check_output(
+                ["git", "log", "-1", "--format=%H", "--", *paths],
+                cwd=repo,
+                stderr=subprocess.DEVNULL,
+                text=True,
+            ).strip()
+            or git_rev_parse(repo)
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def git_commit(repo: Path) -> str:
+    """Manifest ``commit``: solids last-change, not the current HEAD."""
+    return git_commit_solids(repo)
 
 
 def sha256_file(path: Path) -> str:
@@ -1354,16 +1395,21 @@ def build_body_and_lid(
 
     label = emboss_label(params, list(params.get("_defaults_used", [])))
     try:
+        if not FONT_PATH.is_file():
+            raise CheckFail(f"emboss font missing: {FONT_PATH}")
         mid = _vec(path, width / 2.0, 28.0, lid_y)
         plane = Plane(
             origin=Vector(mid.X, lid_y, mid.Z),
             x_dir=Vector(0, 0, -1),
             y_dir=Vector(1, 0, 0),
         )
-        text = plane * Text(label, font_size=1.4, font="Arial")
+        text = plane * Text(label, font_size=1.4, font_path=str(FONT_PATH))
         letters = extrude(text, amount=EMBOSS)
         lid = lid.fuse(letters)
         notes["emboss"] = label
+        notes["emboss_font"] = FONT_PATH.name
+    except CheckFail:
+        raise
     except Exception as exc:
         raise CheckFail(f"EMBOSS={label!r}: text did not build ({exc})") from exc
 
@@ -1718,6 +1764,11 @@ def write_manifest(
         },
     }
     dest = out_dir / "manifest.json"
+    if dest.is_file():
+        previous = json.loads(dest.read_text(encoding="utf-8"))
+        for key in ("views", "views_hash_rule", "views_commit"):
+            if key in previous:
+                payload[key] = previous[key]
     dest.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return dest
 
