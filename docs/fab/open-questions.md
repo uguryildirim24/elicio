@@ -59,6 +59,18 @@ blocks the merge; all sit before WP8 proper (order 2).
 | Q26 | WP7a's contact coordinates need the placement search re-run before WP8: pads, tab angles and the reference route were searched for the plan §3.3 sites, and the shell now refuses other sites | Sequencing: WP8 proper is WP7a sites → WP6's `search_tab_degrees` on those sites (interface v3) → the shell build. Recorded in HANDOFF.md | coordinator | decided |
 | Q27 | A thin Stage B body (LID_Y 6.0) cannot hold the cell: the cell plus foam tops out at 7.2 on the 1.5 floor | Order 2 builds full bodies only. If Rolf picks thin after plan §3.7 item 8, a thinner cell or a longer pocket (Q18's fallback) comes first | **Rolf**, with plan §3.7 item 8 and Q18 | open |
 
+## Round 5 (Rolf's answer sheet, 2026-09-17)
+
+| # | Question | Reading the build follows | Closes it | Status |
+|---|---|---|---|---|
+| Q28 | Rolf's answers of 2026-09-17: right ear first; renders approved; packing C; nut metal "you decide"; fold-and-solder accepted; frozen protocol accepted; requirement 5 to titanium; body thin (answered before any wear); tail mark "on bone" (answered before any wear); the tail pocket may grow (KEEPOUT_REF is free to change); E1 dropped | Recorded as his decisions. Nut: brass DIN 439 M2.5 (Bossard BN 147 class), nickel-free and stocked, the coordinator's pick under his "you decide". Thin is a requirement of plan v2. "On bone" is a preference given before any fit check and stays unverified until one exists. Requirement 5 is edited to titanium in the next docs package | Q6, Q12 (requirement 5 half), Q17 provisional, Q19, Q20, Q21, Q23, Q25, plan §10 item 3 | decided |
+| Q29 | "I literally don't have the financial means to order several versions": the plan's sequence (order 1 gauge, then order 2 shell) is off; every physical thing is ordered once | Plan v2: one print order (the final shell), one board order, one hardware order. Fit comes from his measurements plus a 1:1 paper template cut from the drawing and held to the ear, not from a printed gauge. Plan §1, §3.7 and §9 S0 to S1 are superseded when plan v2 is signed off; until then nothing is ordered | plan v2 (`docs/fab/plan-v2.md`, turns under `tasks/plan-v2/turns/`) | open, drives plan v2 |
+| Q30 | "I need want this to look prettier": the gauge is a functional block | Plan v2 sets the look: continuous curvature, hidden lid seam, nothing visible outside but the three domes, a finish chosen from what JLC offers with a skin statement (plan §10 item 7 stands). What "pretty" means to him is asked on the answer sheet (look, colour, a reference) | Rolf on the sheet; plan v2 | open |
+| Q31 | "No we design it properly custom order it": the Stage A breadboard bench (plan §9 rows 7a and S1, `docs/STAGE_A_PARTS.md`) is replaced by a custom board ordered assembled | Plan v2: a board designed in the repo (KiCad, scripted, ERC and DRC run headless) and assembled once by JLCPCB; that board with gel electrodes is the bench that gives the contact sites (WP7a part 2 runs on it) before the shell prints. Bare module (Raytac MDBT50Q) versus a Seeed XIAO nRF52840 carrier is a plan v2 decision on first-spin risk. Firmware becomes a phase of its own | WP10 research; plan v2 | open |
+| Q32 | The thin body cannot close with the 501015 cell (Q27) and Rolf picked thin | A thinner cell, 3.2 mm or less with its protection circuit, is a plan v2 requirement; WP10 finds the candidates. If none is stocked, plan v2 says so and the thin body carries a longer, lower pocket | WP10; plan v2 | open |
+| Q33 | Budget: no number given | Plan v2 designs to the minimum order set and quotes an estimated total per order with pages; a ceiling is asked on the sheet | Rolf on the sheet | open, **Rolf** |
+| Q34 | M1 and the other measurements are blank on the sheet | Nothing prints before M1. Plan v2 keeps the chord gate and the measurement table; the paper template checks them | Rolf on the sheet | open, **Rolf** |
+
 ## For Rolf
 
 Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
@@ -74,3 +86,6 @@ Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
 - Q23 accept fold-and-solder for the 28 AWG lead in the 26 to 22 AWG barrel.
 - Q17 after wearing the gauge: is the reference mark on bone.
 - Q19 accept the frozen protocol numbers, or edit them before Stage A data.
+- Q33 a budget ceiling for board, shell and small parts together.
+- Q34 M1 and the other measurements; nothing prints before M1.
+- Q30 what "prettier" means: look, colour, a reference photo or link.
