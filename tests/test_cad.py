@@ -481,6 +481,23 @@ class CadStageBTests(unittest.TestCase):
         self.assertFalse(overrides["CLOSURE_PASSED"])
         self.assertEqual(overrides["TAB_HEIGHT"], 2.0)
 
+    def test_order1_overlay_refuses_stage_b_keys(self) -> None:
+        for item in ("CONTACT_1_U=7.0", "PACKING=B", "CLOSURE_PASSED=true", "CABLE_EXIT_S=35"):
+            with self.subTest(item=item):
+                with self.assertRaises(CAD.CheckFail) as ctx:
+                    CAD.cli(["--set", item, "--checks-only"])
+                self.assertIn("MOCK_CONTACTS = false", str(ctx.exception))
+                self.assertIn(item.split("=")[0], str(ctx.exception))
+
+    def test_stage_b_contacts_off_the_placement_sites_fail(self) -> None:
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.cli(
+                ["--set", "MOCK_CONTACTS=false", "--set", "CONTACT_1_S=22.5", "--checks-only"]
+            )
+        message = str(ctx.exception)
+        self.assertIn("PLACEMENT_contacts", message)
+        self.assertIn("drift=0.5", message)
+
     def test_stage_b_refuses_v1_out(self) -> None:
         params = self._stage_b()
         with self.assertRaises(CAD.CheckFail) as ctx:
