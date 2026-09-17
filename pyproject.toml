@@ -18,6 +18,10 @@ research = [
   "torch>=2.4",
   "wfdb>=4.1",
 ]
+cad = [
+  "build123d>=0.7",
+  "trimesh>=4",
+]
 
 [project.scripts]
 elicio = "elicio.cli:main"
