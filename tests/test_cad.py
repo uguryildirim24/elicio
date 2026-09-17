@@ -253,6 +253,13 @@ class CadRegenTests(unittest.TestCase):
             self.assertTrue(all(check["passed"] for check in regenerated["checks"]))
             self.assertEqual(regenerated["commit"], manifest["commit"])
             self.assertNotIn("views", regenerated)
+            # Everything else the writer records must match the committed file,
+            # so a generator change (a new note, a changed check) cannot leave
+            # a stale manifest behind.
+            committed_rest = {
+                k: v for k, v in manifest.items() if not k.startswith("views")
+            }
+            self.assertEqual(regenerated, committed_rest)
 
 
 class ManifestSchemaTests(unittest.TestCase):
@@ -294,6 +301,9 @@ class CadRenderTests(unittest.TestCase):
             for name in ("body_full_p15.stl", "body_thin_p15.stl", "lid.stl", "manifest.json"):
                 shutil.copy2(v1 / name, again / name)
             self.assertEqual(render.main(["--out", str(again)]), 0)
+            committed_views = json.loads(MANIFEST.read_text(encoding="utf-8"))["views"]
+            rendered_views = json.loads((again / "manifest.json").read_text("utf-8"))["views"]
+            self.assertEqual(rendered_views, committed_views)
             for name in ARTWORK:
                 with self.subTest(second=name):
                     self.assertEqual(

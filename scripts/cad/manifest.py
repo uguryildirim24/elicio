@@ -63,6 +63,10 @@ views_commit (str)
     Same 40-hex commit as ``commit`` (solids last-change). Artwork regen
     does not move ``commit``. ``unknown`` is allowed only if git is missing.
 
+``placement.svg`` (WP6's board placement drawing) sits beside these files
+but is not a view of the solids and is not in ``views``;
+``tests/test_placement.py`` checks that it regenerates byte-identical.
+
 The validator fails loudly (SystemExit 2) on the first problem. It does
 not repair the file.
 
