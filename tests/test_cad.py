@@ -194,13 +194,41 @@ class CadOverlayTests(unittest.TestCase):
 class CadRegenTests(unittest.TestCase):
     def test_reference_regen_matches_committed_hashes(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        expected = {
+            f"{part}.{ext}" for part in CAD.ORDER_PARTS for ext in ("step", "stl", "3mf")
+        }
+        self.assertEqual(set(manifest["files"]), expected)
+        self.assertEqual(manifest["parts"], list(CAD.ORDER_PARTS))
+        self.assertEqual(sum(manifest["quantities"].values()), 6)
+        committed = {p.name for p in MANIFEST.parent.iterdir()}
+        self.assertEqual(committed, expected | {"manifest.json"})
+        for name, meta in manifest["files"].items():
+            with self.subTest(committed=name):
+                self.assertEqual(
+                    CAD.sha256_file(MANIFEST.parent / name), meta["sha256"], name
+                )
         with tempfile.TemporaryDirectory() as temp_dir:
             CAD.build_and_export(Path(temp_dir))
-            for name, meta in manifest["files"].items():
-                with self.subTest(name=name):
+            written = {p.name for p in Path(temp_dir).iterdir()}
+            self.assertEqual(written, expected | {"manifest.json"})
+            regenerated = json.loads((Path(temp_dir) / "manifest.json").read_text("utf-8"))
+            for name in sorted(expected):
+                with self.subTest(regenerated=name):
                     path = Path(temp_dir) / name
-                    self.assertTrue(path.is_file(), name)
-                    self.assertEqual(CAD.sha256_file(path), meta["sha256"], name)
+                    self.assertEqual(CAD.sha256_file(path), manifest["files"][name]["sha256"])
+                    self.assertEqual(
+                        regenerated["files"][name]["sha256"], manifest["files"][name]["sha256"]
+                    )
+            self.assertTrue(all(check["passed"] for check in regenerated["checks"]))
+
+    def test_subset_build_refuses_to_leave_stale_parts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            (Path(temp_dir) / "manifest.json").write_text(
+                json.dumps({"files": {"body_thin_p15.stl": {}}}), encoding="utf-8"
+            )
+            with self.assertRaises(CAD.CheckFail) as ctx:
+                CAD.build_and_export(Path(temp_dir), parts=("coupon",))
+            self.assertIn("body_thin_p15", str(ctx.exception))
 
     def test_m1_below_gate_does_not_write_files(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
