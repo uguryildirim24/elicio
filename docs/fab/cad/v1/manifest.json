@@ -37,7 +37,7 @@
       "passed": true
     },
     {
-      "detail": "hook inner radius must be \u2264 M8 + 1",
+      "detail": "hook inner radius HOOK_RADIUS \u2212 HOOK_DIA/2 must be < M8 + 1",
       "name": "HOOK_RADIUS",
       "numbers": {
         "HOOK_RADIUS": 13.5,
@@ -208,7 +208,7 @@
       "passed": true
     },
     {
-      "detail": "hook inner radius must be \u2264 M8 + 1",
+      "detail": "hook inner radius HOOK_RADIUS \u2212 HOOK_DIA/2 must be < M8 + 1",
       "name": "HOOK_RADIUS",
       "numbers": {
         "HOOK_RADIUS": 13.5,
@@ -379,7 +379,7 @@
       "passed": true
     },
     {
-      "detail": "hook inner radius must be \u2264 M8 + 1",
+      "detail": "hook inner radius HOOK_RADIUS \u2212 HOOK_DIA/2 must be < M8 + 1",
       "name": "HOOK_RADIUS",
       "numbers": {
         "HOOK_RADIUS": 13.5,
@@ -519,7 +519,7 @@
     "m1": 52.0,
     "total_chord": 47.900523407445874
   },
-  "commit": "6b125d7754985f6af419662e7f43ff622052274d",
+  "commit": "1fd8463726fd02224a78acad3cac9ff12b6e22af",
   "crease_bow": {
     "clamped": 3.0,
     "computed_from_m1_m2": 11.001411613371118,
@@ -533,7 +533,6 @@
     "FILLET_MEDIAL",
     "HOOK_ANGLE",
     "HOOK_DIA",
-    "HOOK_RADIUS",
     "HOOK_ROOT_X",
     "LID_EDGE",
     "LID_THICK",

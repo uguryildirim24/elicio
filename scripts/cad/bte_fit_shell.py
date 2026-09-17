@@ -159,6 +159,7 @@ HOOK_EMBED_DEG = -5.0
 GLASSES_FLAT_DEPTH = 0.8
 GLASSES_FLAT_ANGLES = (30.0, 120.0)
 JOINT_FILLET = 2.0
+HOOK_CLEARANCE = 0.75
 LIP_ROOT_FILLET = 0.5
 EMBOSS = 0.8
 COUPON_XY = 12.0
@@ -179,6 +180,12 @@ QUANTITIES = {
 }
 
 REFERENCE_M_KEYS = ("M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
+# Keys an overlay may change. Everything else in default.toml is fixed for
+# this release: the feature constants above assume those values, and plan
+# §3.3 says anything outside the matrix fails before export.
+OVERRIDABLE_KEYS = frozenset(
+    {"SIDE", "VARIANT", "HOOK_PRELOAD", "CREASE_BOW", "HOOK_RADIUS", *REFERENCE_M_KEYS}
+)
 
 
 class CheckFail(Exception):
@@ -369,22 +376,48 @@ def load_params_file(path: Path) -> dict[str, Any]:
     return parsed
 
 
+def canonical_key(key: Any) -> str:
+    return str(key).strip().upper()
+
+
+def validate_overrides(base: Mapping[str, Any], override: Mapping[str, Any]) -> None:
+    """Unknown keys and keys fixed for this release fail before export."""
+    known = {canonical_key(k) for k in base} | OVERRIDABLE_KEYS
+    for key, value in override.items():
+        canon = canonical_key(key)
+        if canon not in known:
+            raise CheckFail(f"{key}={value}: unknown parameter")
+        if canon in OVERRIDABLE_KEYS:
+            continue
+        if canon == "MOCK_CONTACTS":
+            if bool(value) is not True:
+                raise CheckFail(
+                    f"MOCK_CONTACTS={value}: Stage B keep-out and wire-envelope "
+                    "containment checks (plan §3.3) are not implemented; WP8"
+                )
+            continue
+        default = base[canon]
+        same = (
+            abs(float(value) - float(default)) < 1e-9
+            if isinstance(default, (int, float)) and not isinstance(default, bool)
+            else value == default
+        )
+        if not same:
+            raise CheckFail(
+                f"{canon}={value}: fixed at {default} in this release "
+                "(plan §3.3 matrix; feature constants assume it)"
+            )
+
+
 def merge_params(
     base: dict[str, Any],
     override: Mapping[str, Any],
     used_defaults: list[str],
 ) -> dict[str, Any]:
+    validate_overrides(base, override)
     merged = dict(base)
     for key, value in override.items():
-        key_u = str(key).upper() if str(key).isalpha() or "_" in str(key) else str(key)
-        # Preserve canonical upper names from the plan.
-        canon = str(key)
-        if canon.lower() == canon and canon.replace("_", "").isalpha():
-            canon = canon.upper()
-        else:
-            canon = str(key)
-            if all(part.isalpha() for part in canon.split("_")):
-                canon = canon.upper()
+        canon = canonical_key(key)
         merged[canon] = value
         if canon in used_defaults:
             used_defaults.remove(canon)
@@ -425,14 +458,13 @@ def derived_params(raw: dict[str, Any], *, crease_bow_from_m: bool) -> dict[str,
     p["TOTAL_CHORD"] = path.chord
     p["PATH_RADIUS"] = path.radius
     p["THETA_DEG"] = math.degrees(math.atan(p["HOOK_PRELOAD"] / path.chord))
-    if "HOOK_RADIUS" not in p or crease_bow_from_m:
-        # Measured M8 moves the hook; the table default 13.5 stays for REF.
-        if crease_bow_from_m:
-            p["HOOK_RADIUS"] = p["M8"] + p["HOOK_DIA"] / 2.0 + 1.0
-        else:
-            p["HOOK_RADIUS"] = float(p.get("HOOK_RADIUS", 13.5))
-    else:
+    if "HOOK_RADIUS" in p:
         p["HOOK_RADIUS"] = float(p["HOOK_RADIUS"])
+    else:
+        # Plan §3.3 writes M8 + HOOK_DIA/2 + 1.0 but quotes 13.5 at M8 = 11,
+        # centres the arc at (−9.5, 3, 0) and checks inner < M8 + 1. Only
+        # a 0.75 clearance satisfies all three; the review logs it for Rolf.
+        p["HOOK_RADIUS"] = p["M8"] + p["HOOK_DIA"] / 2.0 + HOOK_CLEARANCE
     p["MOCK_CONTACTS"] = bool(p.get("MOCK_CONTACTS", True))
     u2, s2 = contact_2_us()
     p["CONTACT_2_U"] = u2
@@ -642,8 +674,8 @@ def run_pre_cad_checks(params: Mapping[str, Any]) -> list[Check]:
     limit = float(params["M8"]) + 1.0
     record(
         "HOOK_RADIUS",
-        inner <= limit + 1e-9,
-        "hook inner radius must be ≤ M8 + 1",
+        inner < limit - 1e-9,
+        "hook inner radius HOOK_RADIUS − HOOK_DIA/2 must be < M8 + 1",
         HOOK_RADIUS=float(params["HOOK_RADIUS"]),
         inner=inner,
         M8=float(params["M8"]),
@@ -1604,7 +1636,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--from-measurements",
         action="store_true",
-        help="Compute CREASE_BOW from M1/M2 and HOOK_RADIUS from M8",
+        help="Compute CREASE_BOW from M1/M2 (both must be set; automatic for an overlay file)",
     )
     parser.add_argument(
         "--checks-only",
@@ -1630,22 +1662,28 @@ def resolve_params_path(path: Path | None) -> Path | None:
     raise CheckFail(f"params={path}: file not found")
 
 
-def cli(argv: list[str] | None = None) -> int:
-    args = parse_args(argv)
+def resolve_overrides(args: argparse.Namespace) -> tuple[dict[str, Any], bool]:
+    """Collect the overlay and decide whether CREASE_BOW comes from M1/M2.
+
+    ``default.toml`` passed with ``--params`` is the reference build, not an
+    overlay: its keys stay defaults and the build stays REF. A measurement
+    overlay computes CREASE_BOW only when it sets both M1 and M2 and does not
+    set CREASE_BOW (plan §3.3: "from arc–chord when both measured").
+    """
     overrides: dict[str, Any] = {}
     params_path = resolve_params_path(args.params)
-    if params_path is not None:
-        overrides.update(load_params_file(params_path))
-        if params_path.resolve() != DEFAULT_PARAMS_PATH.resolve():
-            # A dedicated measurements file computes bow from M1/M2 unless
-            # CREASE_BOW is set in that file.
-            if "CREASE_BOW" not in {k.upper() for k in overrides}:
-                args.from_measurements = True
+    is_overlay_file = (
+        params_path is not None and params_path.resolve() != DEFAULT_PARAMS_PATH.resolve()
+    )
+    if is_overlay_file:
+        overrides.update(
+            {canonical_key(k): v for k, v in load_params_file(params_path).items()}
+        )
     for item in args.sets:
         if "=" not in item:
             raise CheckFail(f"--set {item}: expected KEY=VALUE")
         key, value = item.split("=", 1)
-        overrides[key.strip()] = _parse_value(value)
+        overrides[canonical_key(key)] = _parse_value(value)
     if args.side:
         overrides["SIDE"] = args.side
     if args.variant:
@@ -1653,8 +1691,21 @@ def cli(argv: list[str] | None = None) -> int:
     if args.preload is not None:
         overrides["HOOK_PRELOAD"] = args.preload
     assert_override_matrix(overrides)
+    validate_overrides(default_params(), overrides)
 
-    crease_from_m = bool(args.from_measurements)
+    both_measured = "M1" in overrides and "M2" in overrides
+    if args.from_measurements:
+        if not both_measured:
+            raise CheckFail("--from-measurements: M1 and M2 must both be set")
+        if "CREASE_BOW" in overrides:
+            raise CheckFail("--from-measurements: remove CREASE_BOW from the overlay")
+        return overrides, True
+    return overrides, is_overlay_file and both_measured and "CREASE_BOW" not in overrides
+
+
+def cli(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    overrides, crease_from_m = resolve_overrides(args)
     if args.variant is not None or args.preload is not None:
         variant = str(overrides.get("VARIANT", "full")).lower()
         preload = float(overrides.get("HOOK_PRELOAD", 1.5))
