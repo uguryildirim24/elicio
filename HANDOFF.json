@@ -1,0 +1,240 @@
+{
+ "generated": "2026-09-17T00:31:17-04:00",
+ "herdr_version": "0.9.0",
+ "session": "default",
+ "workspace": {
+  "id": "w1B",
+  "label": "elicio",
+  "tabs": 6
+ },
+ "coordinator": {
+  "pane_id": "w1B:p1",
+  "tab_id": "w1B:t1",
+  "pane_label": null,
+  "agent_name": "elicio",
+  "kind": "claude",
+  "status": "working",
+  "session_id": "61ba63c7-8fd8-497e-b665-c65cc34e72f6",
+  "transcript": "/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl",
+  "cwd": "/Users/rolfie/projects/elicio"
+ },
+ "workers": [
+  {
+   "start_args": [
+    "--model",
+    "cursor-grok-4.6-xhigh",
+    "--force"
+   ],
+   "name": "w1",
+   "kind": "cursor",
+   "status": "working",
+   "pane_id": "w1B:pA",
+   "tab_id": "w1B:tA",
+   "tab_label": "w1",
+   "pane_label": null,
+   "cwd": "/Users/rolfie/projects/elicio/.worktrees/w1",
+   "session_id": "791832d5-f944-40f4-80ec-82deb5c4efca",
+   "tokens": {
+    "done": "1",
+    "lane": "WP1",
+    "parent": "w1B:p1"
+   },
+   "title": "Lane W1 Instructions"
+  },
+  {
+   "start_args": [
+    "--model",
+    "cursor-grok-4.6-xhigh",
+    "--force"
+   ],
+   "name": "w2",
+   "kind": "cursor",
+   "status": "working",
+   "pane_id": "w1B:pB",
+   "tab_id": "w1B:tB",
+   "tab_label": "w2",
+   "pane_label": null,
+   "cwd": "/Users/rolfie/projects/elicio/.worktrees/w2",
+   "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
+   "tokens": {
+    "done": "1",
+    "lane": "WP2",
+    "parent": "w1B:p1"
+   },
+   "title": "Lane W2 Instructions"
+  },
+  {
+   "start_args": [
+    "--model",
+    "cursor-grok-4.6-xhigh",
+    "--force"
+   ],
+   "name": "w4",
+   "kind": "cursor",
+   "status": "done",
+   "pane_id": "w1B:pC",
+   "tab_id": "w1B:tC",
+   "tab_label": "w4",
+   "pane_label": null,
+   "cwd": "/Users/rolfie/projects/elicio/.worktrees/w4",
+   "session_id": "3f977624-113c-48fa-b55e-666aa970b9a3",
+   "tokens": {
+    "done": "1",
+    "lane": "WP4",
+    "parent": "w1B:p1"
+   },
+   "title": "Lane W4 Instructions"
+  },
+  {
+   "start_args": [
+    "--dangerously-skip-permissions",
+    "--add-dir",
+    "/Users/rolfie/projects/elicio",
+    "--effort",
+    "high",
+    "--model",
+    "gemini-3.8-flash-high"
+   ],
+   "name": "w5",
+   "kind": "agy",
+   "status": "working",
+   "pane_id": "w1B:pD",
+   "tab_id": "w1B:tD",
+   "tab_label": "w5",
+   "pane_label": null,
+   "cwd": "/Users/rolfie/projects/elicio/.worktrees/w5",
+   "session_id": "18235bfb-f5b8-4365-9383-d66c69251f4b",
+   "tokens": {
+    "done": "1",
+    "lane": "WP5",
+    "parent": "w1B:p1"
+   },
+   "title": null
+  },
+  {
+   "start_args": [
+    "--model",
+    "cursor-grok-4.6-xhigh",
+    "--force"
+   ],
+   "name": "w9",
+   "kind": "cursor",
+   "status": "done",
+   "pane_id": "w1B:pE",
+   "tab_id": "w1B:tE",
+   "tab_label": "w9",
+   "pane_label": null,
+   "cwd": "/Users/rolfie/projects/elicio/.worktrees/w9",
+   "session_id": "ea20ccc0-04da-408f-a016-57766846ee99",
+   "tokens": {
+    "done": "1",
+    "lane": "WP9",
+    "parent": "w1B:p1"
+   },
+   "title": "Lane W9 Instructions"
+  }
+ ],
+ "unlinked_agents": [],
+ "other_workspaces": [
+  {
+   "workspace_id": "w16",
+   "label": "flyonenomics",
+   "status": "working"
+  },
+  {
+   "workspace_id": "w1D",
+   "label": "ablirated",
+   "status": "done"
+  }
+ ],
+ "git": {
+  "repo": "/Users/rolfie/projects/elicio",
+  "integration_branch": "main",
+  "integration_log": [
+   "1450581 Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+   "9838573 Round 1: record the reviewer's twelve decisions as open questions",
+   "121ccb3 review(r1): verdict MERGE-AFTER-DECISION, gates, defects and decisions",
+   "6caa0ed review(WP2): say in the manifest where the bow came from",
+   "42e51d5 review(WP9): drop an added reason from row 9 and reopen question 3",
+   "6e92eee review(WP1): align the ISO 4032 note and dome note with \u00a72.3 and \u00a712"
+  ],
+  "remote": "0 ahead, 0 behind origin/main",
+  "worktrees": [
+   {
+    "path": "/Users/rolfie/projects/elicio",
+    "branch": "main",
+    "head": "1450581",
+    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "dirty": 0
+   },
+   {
+    "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
+    "branch": "lane/w1",
+    "head": "1450581",
+    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "dirty": 0
+   },
+   {
+    "path": "/Users/rolfie/projects/elicio/.worktrees/w2",
+    "branch": "lane/w2",
+    "head": "1450581",
+    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "dirty": 0
+   },
+   {
+    "path": "/Users/rolfie/projects/elicio/.worktrees/w4",
+    "branch": "lane/w4",
+    "head": "1450581",
+    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "dirty": 0
+   },
+   {
+    "path": "/Users/rolfie/projects/elicio/.worktrees/w5",
+    "branch": "lane/w5",
+    "head": "1450581",
+    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "dirty": 0
+   },
+   {
+    "path": "/Users/rolfie/projects/elicio/.worktrees/w9",
+    "branch": "lane/w9",
+    "head": "1450581",
+    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "dirty": 0
+   }
+  ],
+  "branches": [
+   "lane/w1",
+   "lane/w2",
+   "lane/w4",
+   "lane/w5",
+   "lane/w9",
+   "main",
+   "review/r1",
+   "claude/project-overview-8qnnbq"
+  ]
+ },
+ "files": {
+  "briefs": [
+   "tasks/WP7a-protocol.md",
+   "tasks/WP6-packing.md",
+   "tasks/WP3-renders.md",
+   "tasks/phase1-common.md",
+   "tasks/review-r1.md",
+   "tasks/review-code-template.md",
+   "tasks/WP9-record.md",
+   "tasks/WP5-contacts.md",
+   "tasks/WP4-sheets.md",
+   "tasks/WP2-gauge.md",
+   "tasks/WP1-interface.md",
+   "tasks/L4-pod.md"
+  ],
+  "verdicts": [
+   "tasks/reviews/code-r1.md"
+  ],
+  "reports": [],
+  "handoff": []
+ },
+ "repo": "/Users/rolfie/projects/elicio",
+ "sidecar": "/Users/rolfie/projects/elicio/HANDOFF.json"
+}
