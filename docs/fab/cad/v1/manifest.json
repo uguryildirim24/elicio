@@ -1833,6 +1833,7 @@
   "notes": {
     "body_full_p15": {
       "emboss": "ELICIO V1 R FULL P15 REF",
+      "emboss_font": "LiberationSans-Regular.ttf",
       "fillets": [
         "\u00a73.5 step 2 tip round 4.0 applied",
         "FILLET_MEDIAL 1.5 applied",
@@ -1844,6 +1845,7 @@
     },
     "body_full_p25": {
       "emboss": "ELICIO V1 R FULL P25 REF",
+      "emboss_font": "LiberationSans-Regular.ttf",
       "fillets": [
         "\u00a73.5 step 2 tip round 4.0 applied",
         "FILLET_MEDIAL 1.5 applied",
@@ -1855,6 +1857,7 @@
     },
     "body_thin_p15": {
       "emboss": "ELICIO V1 R THIN P15 REF",
+      "emboss_font": "LiberationSans-Regular.ttf",
       "fillets": [
         "\u00a73.5 step 2 tip round 4.0 applied",
         "FILLET_MEDIAL 1.5 applied",
@@ -1956,16 +1959,16 @@
   },
   "views": {
     "drawing.pdf": {
-      "bytes": 3729907,
-      "sha256": "d22cc9743c9821ff66922d89bd1f829649be1107c8ca46270a116eb024c0deae"
+      "bytes": 72810,
+      "sha256": "aac59658b9b140b5f227d782fb25d34f53e9c1ec36a9db2f80929504f63ddabf"
     },
     "render_lateral.png": {
-      "bytes": 107933,
-      "sha256": "f881fd0189b4f31ef42d3ab9dd08ff094b5ad73727d455ea93d86ee14f2c3b9e"
+      "bytes": 108704,
+      "sha256": "f291b51b71373c646a8179d562ec8dc881aec7453514ef326204eb6b60442a52"
     },
     "render_medial.png": {
-      "bytes": 253346,
-      "sha256": "7f1f3f05fb7986db9a699e2286a34f46f3eb76d5dbad731821b44b87a66c8c10"
+      "bytes": 201912,
+      "sha256": "18f88d46e4f0eea05dfa76e3c779f91fdb32eded78ea4953751a3fcb18bf39a4"
     }
   },
   "views_commit": "66b5564151991f4fd5f6a6457f798839d349b1d9",
