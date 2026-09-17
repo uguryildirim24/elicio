@@ -107,14 +107,25 @@ on a removed key.
   residual hazard named), made the nut a 3.0 mm brass standoff with
   per-site arrays of spring-loaded pins, fixed charger TS/termination,
   undervoltage, the frame contract, the first-load kit and a
-  whole-project ledger ($350–560 envelope). TURN plan-v2 06 sent ~21:30;
-  Pro writes `tasks/plan-v2/turns/06-pro.md` (expected) and pushes
-  `DONE plan-v2-06`, including the stop-rule assessment. A Pro turn can take an hour; it shows idle
-  or working meanwhile; never re-prompt before the DONE. When it lands:
-  commit its file (Pro cannot commit), write turn 03 (`03-fable.md`
-  expected) answering every finding and revising `plan-v2.md`, prompt
-  Pro with turn 04, until the disagreements turn cosmetic (Rolf's rule),
-  then mark plan-v2 signed off and record its decisions as open questions.
+  whole-project ledger. Turn 06 (`tasks/plan-v2/turns/06-pro.md`,
+  `108a591`): NOT SIGNED OFF, findings 23–25 (R7's bound and off-state
+  claims; no stocked spring pin at 2.0–2.5 height and no grid workspace;
+  the duty reserve and the $350–560 envelope) plus replacement sentences
+  for the rest. Turn 07 (`tasks/plan-v2/turns/07-fable.md` at `dba5552`,
+  the plan rewrite itself at `2fbad34` because the first commit missed
+  it) accepts all three: R7 carries Pro's limits verbatim, interface I is
+  now the board pulled onto the three brass standoff tops by its own
+  screws with 8 × 8 gold pads and bosses 0.5 lower (no springs, an
+  unqualified candidate until G7; C14 = a stocked 3.0/3.5 brass standoff),
+  the ledger claims no all-in figure. TURN plan-v2 08 sent ~19:35; Pro
+  saw the plan unchanged at `dba5552` and said it would review the
+  proposals separately; turn 09 points it at `2fbad34` if it asks. Pro
+  writes `tasks/plan-v2/turns/08-pro.md` (expected) and pushes
+  `DONE plan-v2-08` with the stop-rule assessment. A Pro turn can take an
+  hour; it shows idle or working meanwhile; never re-prompt before the
+  DONE. When it lands: commit its file (Pro cannot commit); if cosmetic,
+  fix the sentences, mark plan-v2 signed off and record its decisions as
+  open questions Q37+; else write turn 09 and prompt turn 10.
 - **w1** (cursor `cursor-grok-4.6-xhigh`, `lane/w1`): WP11 packing v2
   (`tasks/WP11-packing-v2.md`), prompted 2026-09-17 ~18:45, plus a
   coordinator follow-up at ~20:10 that runs as a second turn after its
@@ -122,7 +133,7 @@ on a removed key.
   nut tops with a ±2 mm workspace, lids 6.0–9.0, harness and medial-face
   receptacle envelopes). A second note (~21:30) redefines interface I per turn 05 (standoff
   3.0, pin arrays, region per site, switch, recessed medial opening).
-  Expect THREE `DONE WP11` pushes; open no review before the third. Writes `docs/fab/packing-v2.md` (expected). Its
+  A third note (~19:36, 2026-09-17) replaced the pin arrays with the board-on-standoffs interface of plan-v2 turn 07 (§3, §5.3: standoffs 3.0 and 3.5, cell under the board, pad-based adjustment region). Expect FOUR `DONE WP11` pushes; open no review before the fourth. Writes `docs/fab/packing-v2.md` (expected). Its
   table feeds turn 05 of the dialogue and D-1 (thin) for Rolf.
 - **w5** (agy, `lane/w5`): idle with WP10 unmerged at `832ef28`. It is
   reviewed together with WP11 by the round 5 reviewer (a fresh review
@@ -153,8 +164,10 @@ carries claims C1–C10 and decisions D-1–D-8 for the dialogue. Outside those:
 
 ## Next
 
-- Idle until `DONE plan-v2-06` (commit Pro's file; if cosmetic, fix the
-  sentences and sign off; else write turn 07) or the third `DONE WP11`.
+- Idle until `DONE plan-v2-08` (commit Pro's file; if cosmetic, fix the
+  sentences and sign off; else write turn 09) or the fourth `DONE WP11`
+  (three coordinator notes are queued behind w1's first turn; open no
+  review before the last one).
 
 ## Traps
 

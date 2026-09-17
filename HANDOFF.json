@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T19:32:54-04:00",
+ "generated": "2026-09-17T19:42:52-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -26,7 +26,7 @@
    ],
    "name": "w1",
    "kind": "cursor",
-   "status": "idle",
+   "status": "working",
    "pane_id": "w1B:pA",
    "tab_id": "w1B:tA",
    "tab_label": "w1",
@@ -140,7 +140,7 @@
   {
    "workspace_id": "w16",
    "label": "flyonenomics",
-   "status": "working"
+   "status": "done"
   },
   {
    "workspace_id": "w1D",
@@ -152,20 +152,20 @@
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "2fbad34 plan-v2 turn 07 draft: the plan rewrite that dba5552 was meant to carry",
+   "dba5552 plan-v2 turn 07: R7 with Pro's limits; interface I without springs (board on standoff tops); ledger without an all-in claim",
+   "108a591 plan-v2 turn 06 (pro)",
+   "151f9c6 HANDOFF.json: after Rolf's herdr restart, pro tab recreated, lanes re-linked",
    "d8adfe4 HANDOFF: plan v2 at turn 06; WP11 second note queued",
-   "11c4dcc plan-v2 turn 05: R7 rewritten without an isolation claim; standoff landing and pin arrays; charger, undervoltage, protocol v2, first-load kit, ledger",
-   "32cebc6 plan-v2 turn 04 (pro)",
-   "fb723a9 HANDOFF: plan v2 at turn 04, WP11 follow-up queued",
-   "6552942 plan-v2 turn 03: answer all fifteen findings; gates, medial port, spring contacts, 2 kSPS",
-   "a714bf7 plan-v2 turn 02 (pro): fifteen findings, not signed off"
+   "11c4dcc plan-v2 turn 05: R7 rewritten without an isolation claim; standoff landing and pin arrays; charger, undervoltage, protocol v2, first-load kit, ledger"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "d8adfe4",
-    "subject": "HANDOFF: plan v2 at turn 06; WP11 second note queued",
+    "head": "2fbad34",
+    "subject": "plan-v2 turn 07 draft: the plan rewrite that dba5552 was meant to carry",
     "dirty": 1
    },
    {
