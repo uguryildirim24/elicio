@@ -1,8 +1,9 @@
-# Elicio fabrication plan v2 — draft, turn 05 (2026-09-17)
+# Elicio fabrication plan v2 — draft, turn 07 (2026-09-17)
 
 Status: DRAFT in spec dialogue (`tasks/plan-v2/turns/`). Turn 02 (Pro)
-returned findings 1–15, turn 04 findings 16–22 with dispositions of 1–15;
-turn 05 answers all of them and this draft folds them in. When signed off
+returned findings 1–15, turn 04 findings 16–22, turn 06 findings 23–25
+with conditions on the rest; turn 07 answers them and this draft folds
+them in, several of Pro's replacement sentences verbatim. When signed off
 it supersedes the named sections of `docs/fab/plan.md` (`0c5d0eb`); every
 other v1 section stands. Until sign-off nothing is ordered, quoted or
 uploaded. Inputs: plan v1; `docs/fab/open-questions.md` Q1–Q36; rounds 1
@@ -32,9 +33,11 @@ Rolf is the client.
    the 1.5 mm medial wall (v1 §4). Inside, each screw threads into a
    brass female hex standoff (M2.5, 5 mm across flats, 3.0 mm long) that
    sits captive in a printed hex pocket; the standoff is the nut and the
-   landing. The board meets each standoff with an array of spring-loaded
-   pins (interface I, §5.3); flex tabs are the fallback (interface II).
-   No wires, no lugs, no solder by Rolf. D-3.
+   landing. The board is pulled down onto the three standoff tops by its
+   own mounting screws and meets each top with a large gold pad
+   (interface I, §5.3, an unqualified candidate until G7 passes); flex
+   tabs are the fallback (interface II). No springs, no wires, no lugs,
+   no solder by Rolf. D-3.
 4. Cell: Data Power DTP301120 protected pack (40 mAh; 3.2 × 11.5 × 22
    maximum with protection; maximum continuous charge 40 mA; charge
    0–45 °C; over-discharge protection at 2.4 V, all from its sheet). The
@@ -42,10 +45,11 @@ Rolf is the client.
    board at a 20 mA setpoint with termination and timers active (§5.5).
 5. Radio: a module with the RF inside it: A Raytac MDBT50Q-1MV2 or B
    Ebyte E73-2G4M08S1C. The XIAO is out (turn 02 findings 1 and 2).
-6. Charging and the electrode boundary: R7 as rewritten below. There is
-   no galvanic isolation between the electrodes and the USB port in any
-   single-battery wearable; v2 says so and bounds the hazard instead of
-   claiming an interlock. D-5.
+6. Charging and the electrode boundary: R7 as rewritten below. This
+   proposed circuit has no galvanic isolation between USB-connected
+   circuitry and its electrode paths; v2 says so, states what the 220 kΩ
+   does and does not bound, and asks Rolf to accept a procedural rule.
+   D-5.
 7. Acquisition contract: ADS1292 at 2000 SPS, gain 12, internal 2.42 V
    reference, one differential channel, bias on the reference contact,
    220 kΩ on every contact path; protocol v2 table before dry data. D-6.
@@ -82,24 +86,36 @@ Rolf is the client.
   gates are non-skipped, versioned checks in a release job that installs
   pinned tools and fails closed; the residual first-assembly risks are
   written (§10) and accepted by Rolf before he pays.
-- R7 Electrode boundary and charging, proposed change to v1's rule, for
-  Rolf's acceptance: (i) all acquisition, worn or on the bench, runs on
-  the battery with no cable connected to the board; (ii) the USB-C
-  opening sits in the medial face so that a plug and the head cannot
-  occupy the same space; this is an ergonomic exclusion that makes worn
-  charging impractical, not a proven impossibility; (iii) every
-  electrode path, including the bias path, carries its own ≥ 220 kΩ
-  before any exposed conductor, which bounds device-sourced current to
-  ≤ 23 µA at 5 V; (iv) charging only from a battery power bank or a
-  listed Class II 5 V adapter, stated on Rolf's sheet, with the device
-  lying medial side up on a desk; (v) when VBUS is present a hardware
-  gate (a P-channel switch on the front end's supply driven by VBUS, not
-  firmware) removes the front end's power, and firmware refuses to
-  stream; (vi) the gel bench runs from the battery with the board's port
-  plugged by its cap and no cable on the desk stand, as a written
-  procedure. The residual hazard is a certified adapter's touch current
-  through a small skin area if every rule above is broken at once; §10
-  lists it for Rolf.
+- R7 Electrode boundary and charging, a proposed change to v1's rule for
+  Rolf's acceptance. This proposed circuit has no galvanic isolation
+  between USB-connected circuitry and its electrode paths. All
+  skin-connected use, including the gel bench, is battery-only with
+  external power, data and debug connections disconnected. The 220 kΩ
+  protection on every electrode path, including the bias path, provides a
+  per-path bound only for the specified intact circuit and maximum
+  applied voltage; 23 µA is the 5 V calculation for one intact path, not
+  a total patient-current, adapter-leakage or single-fault safety claim.
+  G2 records the other return paths (electrode to electrode, electrode
+  to earth-referenced source, receptacle shell, a failed resistor) and
+  the foreseeable connection errors. The USB-C opening in the medial face
+  is an ergonomic exclusion that makes worn charging impractical, not a
+  proven impossibility. Charging only from a battery power bank that is
+  not itself plugged in, or a listed Class II 5 V adapter, with the
+  device lying medial side up on a desk, per Rolf's sheet. The VBUS
+  hardware gate on the front end's supply is a separately verified
+  functional inhibit, not isolation; WP12 proves it in the complete
+  circuit, including digital I/O, all AFE supplies and possible
+  back-power paths, or removes the claimed power-removal credit; no
+  powered-off pin may be driven outside its allowed conditions. Residual
+  USB- or earth-referenced exposure can arise without simultaneous
+  failure of every rule and remains the reason to prohibit skin
+  connection while charging or debugging. Gel-bench procedure: remove
+  all three skin leads before attaching USB, the debug probe or any test
+  equipment, and unplug those before attaching electrodes; every
+  gel-header path is protected by its own 220 kΩ, checked on the board,
+  not assumed from a drawing; the folded-card stand serves S2 (a printed
+  stand cannot, it is not ordered yet). Every leakage or fault check in
+  this plan is an off-body test.
 - R8 The whole-project delivered budget (three orders, programming,
   every shipment, import collection, Massachusetts use tax) stays under
   Rolf's ceiling (Q33), shown before the first payment with a reserved
@@ -113,11 +129,15 @@ BODY_WIDTH − 3.0. Contact stack inside the wall: the screw projects 2.5
 beyond the wall; the standoff is 3.0 long, so the screw tip sits 0.5
 below the standoff's top face, which is a flat brass face 5 mm across
 flats with a Ø2.5 threaded hole; the landing height is 3.0 above the
-floor. Interface I pins: spring-loaded SMD pins with ≥ 1.0 mm travel and
-a positive stop, working height about 2.0–2.5 (G7 names the part), in an
-array per site (§5.3), so the board underside sits about 5.0–5.5 above
-the floor over the contact zone. Nothing taller than 1.0 sits on the
-board's top over the contact zone; the module and the cell sit elsewhere.
+floor (3.0 or 3.5, WP11 runs both; the standoff SKU is C14). Interface I
+has no springs: the board's underside pad rests on the standoff top, so
+the board underside is at the standoff height across the whole board
+(rigid), and the cell can lie under the board wherever no standoff or
+boss stands (3.2 + 0.3 foam needs a 3.5 standoff). The module sits on the
+board's top; nothing taller than the module anywhere. Turn 06 verified
+that no stocked spring-loaded SMD pin at a 2.0–2.5 working height exists
+(Mill-Max 0900 works at 3.80, 0919 at 8.13), which is why the pins are
+gone.
 Modules: Raytac 10.5 × 15.5, reserve 2.3; E73 13 × 18 × 2.0 (antenna
 keep-out is gate G3c). Cell: 22.0 × 11.5 × 3.2 plus its connector and
 100 ± 3 mm leads reserved as a routed volume; foam 0.3. Board: rigid
@@ -129,10 +149,11 @@ Turn 01's sums excluded the stacks they tried, not every layout. WP11
 lays out A and B with interfaces I and II, series and stacked, at lid
 heights 6.0, 6.5, 7.0, 8.0, 8.5 and 9.0 and widths 18 to 20, with the
 complete envelopes above, and measures on the built solid. Only a
-passing layout supports a thickness. Expectation, not result: interface I
-over the contact zone reaches about 5.5 + 1.0 = 6.5 before the lid, so
-thin will need the contact zone under a lower lid region or will fail;
-the table says which.
+passing layout supports a thickness. Expectation, not result: with the
+board on 3.0–3.5 standoffs, a 1.0 board and a 2.0–2.3 module, the stack
+over the module is 6.0–6.8 before clearance, so thin (4.5) is expected to
+fail and full (6.5) is marginal; the table says which, with verified
+envelopes only.
 
 ## 4. Architecture: gates first, then objectives
 
@@ -149,17 +170,24 @@ Gates, each pass/fail with evidence, none waived:
   (TS is never floated; the pack has no thermistor, so TS gets the fixed
   network its datasheet defines and the charging temperature window
   0–45 °C is enforced by Rolf's sheet, recorded as such); the
-  termination current (≥ 1 mA on this charger versus the sheet's 0.4 mA
-  end-of-charge) recorded with the capacity it forgoes; the LED's meaning
-  stated from the circuit (VBUS present and, if the variant has it, the
-  charge-status pin). G1b: one exact pack revision with its drawing,
+  termination profile recorded with its acceptance for the exact pack
+  (this charger's floor is 1 mA against the sheet's 0.4 mA end-of-charge);
+  any change in delivered capacity or runtime is unknown until
+  characterised, no numerical capacity-loss claim is inferred from the
+  termination current alone; the temperature limit is an operating
+  restriction, not automatic cell-temperature protection; the exact
+  ordering code (4.20 V variant) and the ISET, PRETERM and TS networks
+  named; the LED's meaning stated from the circuit's actual pins. G1b: one exact pack revision with its drawing,
   connector part number, pin numbering, polarity, lead length and a
   shipping route to Massachusetts; SparkFun's page says JST-SH and the
   linked drawing says JST-PHR, so no footprint is frozen until one
   document settles it.
-- G2 Electrode boundary: R7 (i)–(vi) shown on a connection and state
-  diagram (powered, off, reset, fault, VBUS present, bench), all three
-  paths, the hardware supply gate, and the off-body checks of §5.5.
+- G2 Electrode boundary: R7 shown on a connection and state diagram
+  (powered, off, reset, an uncooperative MCU, fault, VBUS present, bench),
+  all three paths and the other return paths R7 names, the switched
+  rails with switch orientation and body diode, VBUS detection, default
+  gate state, SPI and control-pin states, pull-ups, protection paths,
+  rail discharge and start-up, and the off-body checks of §5.5.
 - G3 Assembler acceptance: every part in the assembler's library with
   stock on the order day or a consignment plan counted as a Rolf
   shipment; tier, sides, X-ray and any handling panel accepted; G3c the
@@ -167,18 +195,29 @@ Gates, each pass/fail with evidence, none waived:
   ISO 7380 head geometry and material record, and a nut/standoff page.
 - G4 First load: an accepted factory SWD programming-and-verification job
   at a stated price (quote-only, Rolf-authorized), or the exact kit of
-  §8 with its pin map, target power and voltage compatibility written
-  in `docs/fab/assemble.md` and rehearsed on paper; plus the
-  board-specific bootloader image, flash layout and recovery procedure
-  from WP13.
-- G5 Geometry: closes on the built solid; the per-site adjustment region
-  of §5.3 proven by construction and stated as a number.
+  §8 with the numbered net map in `docs/fab/assemble.md`, ground-first
+  connection, and both directions of the probe/target I/O limits
+  verified at the actual powered target voltage (if the selected rails do
+  not meet the limits, the programming voltage arrangement changes or a
+  qualified interface is added; compatibility is never inferred from
+  nominal voltages); plus the board-specific merged bootloader image,
+  application and linker layout, USB identity and the update and
+  recovery tests from WP13.
+- G5 Geometry: closes on the built solid with verified part envelopes
+  (no provisional boxes); the per-site adjustment region of §5.3 computed
+  from the actual pad and landing geometry with tolerances and stated as
+  a number per site; no region is granted by argument.
 - G6 Acquisition contract of §6 with the protocol v2 table.
-- G7 Contact joint drawing: standoff, pocket, pin part with free, working
-  and minimum heights, force and travel, array geometry, board height
-  datum chain with tolerances, positive overtravel stop, support load on
-  the board screws, insulation envelope, and the off-body continuity and
-  motion test (§5.3).
+- G7 Contact joint drawing: standoff SKU with thread depth, finish and
+  landing face; hex pocket; pad geometry and plating; the datum chain
+  from the printed floor through the standoff to the board and the
+  bosses with tolerances; the boss-to-standoff height offset that
+  guarantees the board lands on the standoffs first; the board's
+  deflection and the resulting contact force per site from its stiffness
+  and the screw preload; the pull-out margin of the board screws in PA12;
+  insulation envelope around each contact net; and the off-body
+  continuity and motion-noise test of §5.3. Interface I is an unqualified
+  candidate until this passes.
 - G8 Whole-project delivered budget under Rolf's ceiling (R8).
 
 Among survivors, objectives in order, proposed for Rolf's approval:
@@ -199,32 +238,31 @@ printed bosses, fastened with ISO 7380 M2.5 screws and the same hex key
 into printed pilot holes; the boss and pilot design is WP14's, the
 pull-out margin is G7's, the check is S4's.
 
-5.3 Contact interface I (default). Per site, the board's underside
-carries an array of spring-loaded SMD pins on one net, for example 3 × 3
-at 2.0 mm pitch, each pin with ≥ 1.0 mm travel and a positive stop. The
-standoff's top is a Ø5 (across flats) flat brass face at 3.0 above the
-floor with the titanium tip 0.5 below it in the Ø2.5 hole; a pin landing
-over the hole reaches the tip within its travel, a pin landing on brass
-compresses less, and pins landing beside the standoff hang free above
-the floor. Because a Ø4 disc always contains a point of a 2.0 mm grid,
-at least one pin lands fully on every standoff anywhere inside the
-array's extent, so a site may move within ± (array half-extent minus
-pin radius), about ± 1.5 mm for a 3 × 3 at 2.0, without a new board; the
-number is G5's, stated per site. A site outside it is a stop. Path:
-skin → titanium dome → screw thread → brass standoff → gold pin → board;
-the pins' nickel underplate is internal (§5.7). The joint drawing (G7)
-gives the hex pocket, the standoff, the pin part number, the datum chain
-from the printed floor to the board (floor tolerance ± 0.3 per JLC's
-page, boss height, board thickness), the working-height window that
-keeps every landed pin between its minimum and free heights, the
-reaction load (about 1 N per landed pin) carried by the board screws,
-the tightening rule ("turn until the head seats; stop"), and the
-off-body test: continuity per site under finger pressure on the shell
-and a 30 s motion test on the bench with the trace inspected for steps.
-Interface II (fallback if G7 fails for I): a flex with FR4 stiffeners and
-three ring pads clamped under the standoffs, with the same drawing
-content plus bend radius, strain relief and the assembler's flex
-acceptance and fixture price.
+5.3 Contact interface I (default candidate). No springs. Each brass
+standoff (female M2.5, 5 mm across flats, 3.0 or 3.5 long, C14) stands
+captive in its hex pocket on the floor with the titanium screw threaded
+into it from outside, tip 0.5 below the top. The board carries on its
+underside one large gold pad per site (ENIG or hard gold, about 8 × 8,
+its net kept clear of all other copper), and is fastened to two or more
+printed bosses by ISO 7380 M2.5 screws; the bosses are designed lower
+than the standoff tops by a stated offset larger than the printed
+tolerance (± 0.3 per JLC's page) so the board always lands on the three
+standoffs first and the screws pull it down, the board's bending over
+the offset supplying the contact force (a few newtons per site from FR4
+stiffness, computed in G7). Contact: the standoff's top annulus against
+the pad. Adjustment region per site: the pad half-size minus the
+standoff's circumradius (2.9 for 5 mm across flats) minus positional
+tolerances, computed by G5; about ± 1 mm for an 8 × 8 pad, stated per
+site, never assumed. A site outside it is a stop. Path: skin → titanium
+dome → screw thread → standoff → gold pad → board. Landing states G7
+must show acceptable: pad fully on the annulus, pad edge over the hole
+(the recessed tip is never touched), standoff at the pad's edge.
+Off-body test: continuity per site under finger pressure on the shell,
+and a 30 s motion test on the bench with the trace inspected for steps
+at the µV scale. Interface II (fallback if G7 fails for I): a flex with
+FR4 stiffeners and three ring pads clamped under the standoffs, with the
+same drawing content plus bend radius, strain relief and the assembler's
+flex acceptance and fixture price.
 
 5.4 Charging port. USB-C 16-pin receptacle with 5.1 kΩ CC pull-downs,
 its mating axis normal to the medial face near the hook end, opening
@@ -245,11 +283,17 @@ and computes the battery threshold at which AVDD leaves 2.7 V under the
 worst-case load, dropout and radio transients), internal 2.42 V
 reference, gain 12, 2000 SPS, SIG1/SIG2 to one channel through 220 kΩ
 each, the reference contact to the RLD output through its own 220 kΩ,
-lead-off detection off when worn. Undervoltage: the firmware inhibits
-acquisition and marks samples invalid above that threshold with
-hysteresis, and shuts the front end down before the LDO drops out; the
-pack's 2.4 V protection is cell protection only. Supply gate: a P-channel
-switch removes the front end's supply when VBUS is present (R7 v). BQ25100
+lead-off detection off when worn. Undervoltage: inhibit acquisition when
+the monitored voltage falls to V_STOP, chosen with sensing error,
+response latency, regulator and load transients and the pack's normal
+discharge endpoint so the AFE remains valid until shutdown; resume only
+above V_START > V_STOP after the specified rail and reference settling
+checks; report invalid samples and the stop/restart reason; the
+10-second battery telemetry cadence is not the protective monitoring
+cadence; the pack's 2.4 V protection is cell protection only. Supply
+gate: a P-channel switch removes the front end's supply when VBUS is
+present, proven per R7 and G2 in the complete circuit or the credit is
+withdrawn. BQ25100
 family charger: ordering code, ISET (about 6.8 kΩ for 20 mA), PRETERM,
 TS network, timers and the parallel system load fixed by WP12 (G1).
 Off-body acceptance tests, all before any skin contact: rail voltages
@@ -279,15 +323,19 @@ Firmware: nRF Connect SDK (Zephyr) application linked for the Adafruit
 nRF52 bootloader's layout (bootloader plus SoftDevice S140 as the factory
 image; application at the layout's start address; USB identity and flash
 map frozen by WP13 with the bootloader build for this board). ADS1292
-over SPI at 2000 SPS. Transport: BLE Nordic UART Service; frames carry a
-version byte, a 16-bit acquisition sample counter, the ADS1292 status
-word, and N 24-bit signed samples, little-endian, N chosen from the
-negotiated MTU with fragmentation handled by the receiver by the frame
-header, never by assuming one notification per frame; acquisition loss
-(counter gaps) and transport loss (frame sequence gaps) are reported
-separately. Nominal scale 2.42 V / (12 × (2^23 − 1)) ≈ 24.0 nV per code,
-differential full scale about ± 201.7 mV; the receiver reads gain and
-reference from the frame header. Battery voltage every 10 s; LED state
+over SPI at 2000 SPS. Transport: BLE Nordic UART Service. Before S0, WP13 freezes a
+byte-level versioned format containing session/epoch identification,
+frame sequence, an acquisition index tied to conversions rather than
+only to successful reads, sample count and payload length,
+gain/reference/rate metadata, defined ADS status handling, and fragment
+identification and reassembly rules; it specifies counter wrap (a 16-bit
+index at 2000 SPS wraps every 32.768 s), reconnect and reset,
+partial-frame rejection and separate acquisition-overrun versus
+transport-loss reporting; receiver fixtures cover all of those cases. N
+may adapt to the negotiated payload, with its meaning transmitted or
+fixed by the version. Nominal scale 2.42 V / (12 × (2^23 − 1)) ≈ 24.0 nV
+per code, differential full scale about ± 201.7 mV, nominal only.
+Battery voltage every 10 s; LED state
 from the circuit's actual signals; VBUS present → front end off (hardware)
 and streaming refused (firmware). Recovery: a tactile switch on the board
 under the lid; double-press enters the bootloader (the bootloader's own
@@ -301,10 +349,13 @@ named, window named) in input-referred µV; the INA128 output-shift
 criterion restated as ± 50 mV input-referred (± 0.5 V at gain 10) on the
 DC-preserving path before the high-pass; input and common-mode headroom
 separately; dropout kept as the original rule (rail or a flat trace
-> 100 ms, i.e. > 200 samples at 2000 SPS) measured on the acquisition
-stream, with transport loss reported beside it, not instead of it. Each
-line says "same criterion" or "revised: why"; no dry data is judged
-against an unmapped line. The bench montage procedure (§2 of that file)
+> 100 ms, defined as more than 200 sample intervals at 2000 SPS) measured
+on the acquisition stream, with transport loss reported beside it, not
+instead of it; start-up exclusions named. Each line says "same
+criterion" or "revised: why", and applying an old amplitude criterion to
+this transfer function is an explicit per-line decision, never an
+assertion that unit scaling makes the chains identical; no dry data is
+judged against an unmapped line. The bench montage procedure (§2 of that file)
 is re-targeted to the board on its stand with the §5.6 leads.
 
 ## 7. Look (WP14)
@@ -337,14 +388,19 @@ at 100 %, check its 50 mm bar, cut, hold behind the ear, report; approve
 renders; approve the objectives order (§4), R7 as rewritten, and the
 residual-risk list (§10); pay the checkouts against their gates.
 
-First load, only if G4 falls to him (once, before assembly, measured
-time recorded by WP15's rehearsal): Tag-Connect TC2030-IDC-NL cable
-($33.95 listed) pressed on the board's footprint, its 6-pin IDC end wired
-by the WP15 pin map to a Raspberry Pi Debug Probe ($12 listed) with the
-probe's supplied 0.1" jumper leads (SWDIO, SWCLK, GND; the target powered
-from its own cell, whose 3.0 V rail is within the probe's 3.3 V I/O
-tolerance per WP12's check); one command from `docs/fab/assemble.md`
-writes the bootloader image; the drive appears over USB as the check.
+First load, only if G4 falls to him (once, before assembly; completion
+time measured at WP15's rehearsal, not promised): Tag-Connect
+TC2030-IDC-NL cable ($33.95 listed; its contacts 1–6 map one-for-one to
+the IDC 1–6 per its Rev. B drawing) on the board's footprint in the
+keyed orientation, the Raspberry Pi Debug Probe ($12 listed; 3.3 V
+nominal I/O) on its supplied male 0.1" breakout, ground connected first.
+Proposed net map, to be made true by the released schematic and
+verified under G4: IDC 1 target-voltage sense (no probe lead, never a
+power feed); 2 SWDIO to the probe's yellow SD; 3 GND to black; 4 SWCLK
+to orange SC; 5 GND; 6 nRESET, shared with the recovery switch. The
+target runs from its own cell, off-body, electrodes disconnected; one
+command from `docs/fab/assemble.md` writes the merged bootloader image;
+the drive appearing over USB is the check.
 
 Final assembly, eight steps, one 1.5 mm hex key:
 
@@ -353,11 +409,15 @@ Final assembly, eight steps, one 1.5 mm hex key:
 2. Push the three titanium screws through the dome holes from outside.
 3. Drop a brass standoff into each hex pocket inside; turn each screw
    with the hex key until the head seats. Stop.
-4. Set the board on its bosses, pin arrays over the standoffs.
+4. Set the board on the three standoff tops, pads down, holes over the
+   bosses.
 5. Turn the board screws with the hex key until they seat.
-6. Do the off-body polarity check from the sheet (the connector's marked
-   pin against the pack's red lead), then plug the cell in; keying is
-   not polarity verification.
+6. Mate only the G1b-qualified pack and connector revision. Before
+   plugging it in, verify electrical polarity at the identified connector
+   contacts with the sheet's off-body method (a multimeter on the
+   connector's contacts, or the supplier's documented test); neither
+   keying nor insulation colour proves polarity (the legacy drawing even
+   labels black as positive). The meter is in R2b and order 3.
 7. Close the lid per WP14's closure.
 8. Lay the device medial side up on the desk, plug USB-C from a power
    bank or a listed adapter, read the LED as the sheet defines it.
@@ -379,15 +439,24 @@ Not quotes. Destination Massachusetts, USA, assumed until Rolf confirms.
 | 3 Small parts | 10 titanium screws (Sortafast $17.50), brass M2.5 standoffs (UNVERIFIED), cell (SparkFun $7.39), 1.5 mm hex key, USB-C cable, pre-cut foam pads, three silicone port plugs, three snap-electrode leads with pin sockets, gel electrodes, a nickel test kit or Rolf's written waiver | US sellers, several parcels | screws and cell page-priced; the rest allowances | $80–130 |
 | Conditional | first-load kit: TC2030-IDC-NL $33.95 + Debug Probe $12.00 listed, plus jumpers, shipping | US sellers | listed prices, not a complete kit price | $50–70 |
 
-Ledger before the first payment (R8): allowances $290–460; import
-collection on China-origin orders 1 and 2 (JLC's FAQ states a 12.5 %
-element and its own 10 % collection; the statutory September rate is
-unverified, so the ledger carries the higher of the two until a checkout
-page shows the real number); Massachusetts use tax 6.25 % on the taxable
-base where the seller does not collect it (about $18–29 on the allowances
-alone); shipping per parcel. Planning envelope, all in: about $350–560.
-Named cuts if R8 fails: grey instead of dyed, no spare lid, two boards
-instead of five, no programming kit if the factory programs.
+Ledger before the first payment (R8): the selected population and
+assembly services, every shipment, applicable Massachusetts sales or use
+tax (6.25 % where the seller does not collect it) and the complete import
+collection for each China-origin order, taken from a configured DDP
+checkout or from a documented classification-based reserve; a percentage
+for one trade-remedy component is not the total import reserve (CBP's
+2026-07-24 guidance adds 12.5 % under 9903.05.31 for China-origin goods
+and JLC's FAQ lists Section 301 at 25 % and its own advance collection;
+none of that is a product-level total). Each line is marked quoted,
+catalogue-priced or allowance, with included freight, duty and tax
+identified so nothing is counted twice. The conditional programming kit
+and a multimeter are in when needed. The shell's complete delivered
+maximum is reserved before the board is paid; if an adequate supported
+reserve cannot be established, G8 is not passed. Base allowances sum to
+$290–460, plus $50–70 for the kit if needed; no all-in figure is claimed
+until this ledger reproduces one. Named cuts if R8 fails: grey instead
+of dyed, no spare lid, two boards instead of five, no programming kit if
+the factory programs.
 
 ## 10. Release states v2 and residual risk
 
@@ -402,8 +471,10 @@ instead of five, no programming kit if the factory programs.
 | S6 routine use | all criteria pass |
 
 Residual risks accepted before S1, in writing: no galvanic isolation
-between electrodes and the port (R7 bounds it by procedure, geometry,
-220 kΩ and the hardware supply gate); analog noise and antenna behaviour
+between USB-connected circuitry and the electrode paths, with R7's
+procedural rule and its stated limits (the 220 kΩ per-path bound is not
+a total or single-fault bound; the supply gate is an inhibit, not
+isolation; exposure can arise from one broken rule); analog noise and antenna behaviour
 on the head are first measured at S2 and S5; comfort and skin pressure
 are first felt at S4; a lost port plug exposes a recessed receptacle
 shell; a failed S5 leaves a bench device and no further spend without
@@ -413,7 +484,7 @@ Rolf's decision.
 
 | WP | Owns | Output | Acceptance |
 |---|---|---|---|
-| 11 Packing v2 | `placement.py`, Stage B of `bte_fit_shell.py`, `docs/fab/packing-v2.md` | A and B, interfaces I and II, series and stacked, lids 6.0–9.0, widths 18–20, complete envelopes incl. standoffs, pin arrays, harness, medial opening and plug volume, bench header, switch; the per-site adjustment region | measured on the built solid; the table says which close and why the rest fail |
+| 11 Packing v2 | `placement.py`, Stage B of `bte_fit_shell.py`, `docs/fab/packing-v2.md` | A and B, interfaces I and II, series and stacked, lids 6.0–9.0, widths 18–20, verified envelopes only (standoffs 3.0 and 3.5, board on them, cell under the board, harness, medial opening and plug volume, bench header, switch); the per-site adjustment region from the pad geometry | measured on the built solid; the table says which close and why the rest fail |
 | 12 Board | `hardware/board/`, `docs/fab/board.md` | KiCad project, ERC/DRC, BOM with assembler codes, STEP, joint drawing, G2 diagram, charger and undervoltage calculations | traced values; release job passes; reviewed against reference designs |
 | 13 Firmware | `firmware/`, protocol v2 table in `montage.md` | bootloader build and layout, streaming firmware with the §6 frame, receiver | builds in CI; bench-tested at S2 |
 | 14 Shell v2 | `scripts/cad/`, `docs/fab/cad/v2/` | body, lid, closure and hook drawings, port wall, bosses, pockets, renders, manifest | §7 checks; Stage B checks on the built solid; identical regeneration |
@@ -425,23 +496,27 @@ Rolf's decision.
 C1 process-and-finish skin evidence or Rolf's acceptance (R3); C5 E73
 stock, price and antenna keep-out; C6 assembler programming acceptance
 and price (quote-only); C7 only for interface II; C9 screw conformity and
-a standoff page; C10 non-R ADS1292 stock on the order day; C11 a
-spring-loaded SMD pin with ≥ 1.0 mm travel, positive stop, gold contact,
-stocked (Harwin S7121-42R is verified to exist at 1.5 working height but
-has only 0.5 of travel, so it is a candidate only if G7's datum chain
-fits inside that); C12 the harness drawing; C13 the September statutory
-duty rate for China-origin PCBA and prints delivered to Massachusetts.
+a standoff page; C10 non-R ADS1292 stock on the order day; C11 closed
+by turn 06 (no stocked spring-loaded SMD pin at a 2.0–2.5 working
+height; the pins are gone); C12 the harness drawing; C13 the complete
+import collection for China-origin PCBA and prints delivered to
+Massachusetts (CBP CSMS 69326983 is primary evidence for a 12.5 %
+component, not a product total); C14 a stocked brass female M2.5 hex
+standoff, 5 mm across flats, 3.0 and 3.5 long, with its finish and a
+landing-face drawing.
 
 ## 13. Decisions for the dialogue, then Rolf
 
 - D-1 Thickness: from WP11's table; thin live.
 - D-2 Gates G1–G8, then objectives height, Rolf's burden, cost.
-- D-3 Interface I: standoff landing plus pin arrays, adjustment region
-  stated per site; II as fallback.
+- D-3 Interface I: board pulled onto standoff tops by its own screws,
+  gold pads, adjustment region computed per site; an unqualified
+  candidate until G7; II as fallback.
 - D-4 Cell DTP301120 with a BQ25100-class charger at 20 mA, termination
   and timers active, TS fixed network, temperature window by procedure.
-- D-5 R7 as rewritten: no isolation claim; procedure, medial-face
-  exclusion, 220 kΩ, hardware supply gate; residual risk named.
+- D-5 R7 as rewritten with Pro's limits: a procedural rule for Rolf's
+  informed acceptance; per-path bound only; inhibit, not isolation;
+  medial-face exclusion; gel-bench disconnect procedure.
 - D-6 Streaming firmware with the §6 frame contract; Adafruit-style
   bootloader plus SoftDevice as factory image; protocol v2 table.
 - D-7 Board and parts, bench, then shell; sites only inside the stated
