@@ -55,25 +55,43 @@ class PlacementMathTests(unittest.TestCase):
     def test_q13_tab_ends_at_far_pad_edge(self) -> None:
         for pad in ("SIG1", "SIG2"):
             with self.subTest(pad=pad):
-                a0, a1 = P.tab_span(pad, length=None)
+                a0, a1 = P.tab_span(pad, mode="q13")
                 c = P.PAD_CONTACT[pad]
                 assert c is not None
                 pu, ps = P.LEAD_PADS[pad]
                 d = math.hypot(pu - c[0], ps - c[1])
                 self.assertAlmostEqual(a0, P.KEEPOUT_R)
                 self.assertAlmostEqual(a1, d + P.PAD_SIZE / 2.0)
-                self.assertLess(a1 - a0, P.TAB_LEN)
-        a0, a1 = P.tab_span("SIG1", length=P.TAB_LEN)
-        self.assertAlmostEqual(a1 - a0, P.TAB_LEN)
+                self.assertLess(a1, P.LUG_A1)
+        a0, a1 = P.tab_span("SIG1", mode="literal")
+        self.assertAlmostEqual(a1 - a0, P.LITERAL_TAB_LEN)
+
+    def test_real_lug_is_te_31428(self) -> None:
+        self.assertAlmostEqual(P.TAB_W, 1.96, places=2)
+        self.assertAlmostEqual(P.TAB_LEN, 6.27, places=2)
+        self.assertAlmostEqual(P.RING_R, 2.58, places=2)
+        a0, a1 = P.tab_span("SIG1")
+        self.assertAlmostEqual(a0, P.RING_R, places=2)
+        self.assertAlmostEqual(a1, P.LUG_A1, places=2)
+        self.assertEqual(P.TAB_DEG["SIG1"], 0.0)
+        self.assertEqual(P.TAB_DEG["SIG2"], 180.0)
+        _c, eu, es = P._tab_axes("SIG1")
+        self.assertAlmostEqual(eu, 1.0, places=6)
+        self.assertAlmostEqual(es, 0.0, places=6)
+
+    def test_upright_signal_tab_does_not_fit(self) -> None:
+        self.assertLess(P.upright_signal_clear_mm(), 0.0)
+        self.assertAlmostEqual(P.KEEPOUT_TOP_Y - P.SKIN_Y, 2.63, places=2)
+        self.assertAlmostEqual(P.LUG_THICK + P.TAB_LEN, 6.73, places=2)
 
     def test_lug_tabs_are_in_the_free_mask(self) -> None:
         b = P.budget()
         self.assertAlmostEqual(b.board_mm2, 237.5, places=1)
         self.assertAlmostEqual(b.free_literal_mm2, 69.36, places=1)
-        self.assertAlmostEqual(b.free_mm2, 82.97, places=1)
-        self.assertGreater(b.free_mm2, b.free_literal_mm2)
+        self.assertAlmostEqual(b.free_tabs_to_pad_mm2, 82.97, places=1)
+        self.assertAlmostEqual(b.free_mm2, 79.32, places=1)
         self.assertGreater(b.free_without_tabs_mm2, b.free_mm2)
-        self.assertAlmostEqual(b.free_tabs_to_pad_mm2, b.free_mm2, places=2)
+        self.assertNotAlmostEqual(b.free_mm2, b.free_tabs_to_pad_mm2, places=1)
         self.assertFalse(b.tqfp_fits)
         self.assertTrue(b.vqfn_fits)
 
@@ -119,12 +137,16 @@ class PlacementMathTests(unittest.TestCase):
     def test_conflict_checker_runs_for_every_option(self) -> None:
         seen = {option: P.layout_conflicts(option) for option in P.OPTION_NAMES}
         self.assertEqual(list(seen), list(P.OPTION_NAMES))
-        self.assertIn("BAV199S_1: no legal site", seen["A"])
-        self.assertIn("BAV199S_2: no legal site", seen["A"])
-        self.assertEqual(seen["B"], [])
-        self.assertEqual(seen["C"], [])
-        self.assertIn("BAV199S_1: no legal site", seen["E"])
-        self.assertIn("BAV199S_2: no legal site", seen["E"])
+        for option, conflicts in seen.items():
+            with self.subTest(option=option):
+                self.assertEqual(conflicts, [])
+
+    def test_option_a_places_named_pack_on_real_lug(self) -> None:
+        parts = P.placed_parts("A")
+        self.assertEqual(sorted(parts), sorted(P.PART_TARGETS))
+        for pad in P.LEAD_PADS:
+            self.assertLessEqual(P.clamp_distance(pad, "A"), P.CLAMP_MAX_MM)
+        self.assertEqual(P.layout_conflicts("A"), [])
 
     def test_option_c_places_named_pack_and_all_0402s(self) -> None:
         parts = P.placed_parts("C")
@@ -150,7 +172,8 @@ class PlacementMathTests(unittest.TestCase):
         self.assertIn("packing-options.md", text)
         self.assertTrue(SHEET.is_file())
         sheet = SHEET.read_text(encoding="utf-8")
-        self.assertIn("I pick C", sheet)
+        self.assertIn("I pick A", sheet)
+        self.assertIn("not a SKU", sheet)
         self.assertIn("Packing is **not confirmed**", text)
 
 
