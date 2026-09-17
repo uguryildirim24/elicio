@@ -1557,7 +1557,7 @@
     "m1": 52.0,
     "total_chord": 47.900523407445874
   },
-  "commit": "42e51d5b8b3271ecd4529c291952a752d2df48d5",
+  "commit": "66b5564151991f4fd5f6a6457f798839d349b1d9",
   "contact_stack": {
     "board_underside_y": 4.3,
     "keepout_top_y": 4.13,
@@ -1954,6 +1954,22 @@
       "VARIANT": "thin"
     }
   },
+  "views": {
+    "drawing.pdf": {
+      "bytes": 3729907,
+      "sha256": "d22cc9743c9821ff66922d89bd1f829649be1107c8ca46270a116eb024c0deae"
+    },
+    "render_lateral.png": {
+      "bytes": 107933,
+      "sha256": "f881fd0189b4f31ef42d3ab9dd08ff094b5ad73727d455ea93d86ee14f2c3b9e"
+    },
+    "render_medial.png": {
+      "bytes": 253346,
+      "sha256": "7f1f3f05fb7986db9a699e2286a34f46f3eb76d5dbad731821b44b87a66c8c10"
+    }
+  },
+  "views_commit": "66b5564151991f4fd5f6a6457f798839d349b1d9",
+  "views_hash_rule": "SHA-256 of raw file bytes. PNG tIME/tEXt/zTXt/iTXt/eXIf rewritten; Creation Time text and PDF CreationDate/ModDate/ID pinned to 2026-09-16T00:00:00Z. Same pin as the solids hash_rule timestamp.",
   "walls": {
     "anterior side wall": 1.5,
     "floor (WALL_MEDIAL)": 1.5,
