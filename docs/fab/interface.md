@@ -35,6 +35,7 @@ edit those numbers in CAD without bumping this file.
 | Version | Date | What changed |
 |---|---|---|
 | 1 | 2026-09-16 | First issue. Numbers from plan §3.2–§3.3, §3.5, §4–§6, §9–§10. |
+| 1 | 2026-09-17 | Review r1 errata; no dimension, keep-out, route, envelope or height changed. Stack derivation (§2.3, note D2, the ISO 4032 paragraph) corrected; WP5 SKU column added; pad gap given in the body frame (§6.1); nut material rule (§7); diode-array area marked UNVERIFIED (§8.2); §10 list updated; pending v2 notes added (§12). |
 
 ## 1. Frames and path
 
@@ -99,34 +100,47 @@ SKU is 4.5 / 1.5, this file becomes v2.
 ### 2.3 Stack above the floor
 
 Floor of the cavity is y = 1.5. The stack sits on that floor. Order
-from the floor: lug, nut, screw tip, Kapton disc.
+from the floor: lug, nut, screw tip, Kapton disc. The reservation is the
+plan's; the SKU column is `docs/fab/contacts.md` §2.2 set 1.
 
-| Layer | Height | y span (full body) | Unit | From |
-|---|---|---|---|---|
-| Cavity floor | – | 1.50 | mm | plan §3.3 CAVITY |
-| Ring lug | 0.50 | 1.50–2.00 | mm | plan §3.3, §4. See note D2 |
-| Thin nut | 1.60 | 2.00–3.60 | mm | plan §4 DIN 439; ISO 4035 M2.5 m max 1.6, s max 5, e min 5.45, read 2026-09-16 at https://www.fasteners.eu/standards/iso/4035/ |
-| Screw tip past nut | 0.40 | 3.60–4.00 | mm | plan §3.3, §4; 4.0 − 1.5 − 0.5 − 1.6 = 0.4 |
-| Kapton disc | 0.13 | 4.00–4.13 | mm | plan §3.3, §4. See note D3 |
-| Metal stack (lug+nut+tip) | 2.50 | 1.50–4.00 | mm | plan §3.3 CONTACT_STACK |
-| Total above floor | 2.63 | 1.50–4.13 | mm | plan §4; 2.50 + 0.13 |
-| Keep-out top | – | 4.13 | mm | plan §3.3 KEEPOUT_SIGNAL |
+| Layer | Reservation | SKU (WP5) | y span, reservation (full body) | Unit | From |
+|---|---|---|---|---|---|
+| Cavity floor | – | – | 1.50 | mm | plan §3.3 CAVITY |
+| Ring lug | 0.50 | 0.46 (TE 31428) | 1.50–2.00 | mm | plan §3.3, §4; contacts.md §1.3. See note D2 |
+| Thin nut | 1.60 | 1.60 (DIN 439 M2.5) | 2.00–3.60 | mm | plan §4 DIN 439; ISO 4035 M2.5 m max 1.6, s max 5, e min 5.45, read 2026-09-16 at https://www.fasteners.eu/standards/iso/4035/ |
+| Screw tip past nut | 0.40 | 0.44 | 3.60–4.00 | mm | 4.0 − 1.5 − lug − nut |
+| Kapton disc | 0.13 | 0.13 (two layers Adafruit 3057, 0.064 each) | 4.00–4.13 | mm | plan §3.3, §4; contacts.md §1.4. See note D3 |
+| Metal stack (lug+nut+tip) | 2.50 | 2.50 | 1.50–4.00 | mm | plan §3.3 CONTACT_STACK |
+| Total above floor | 2.63 | 2.63 | 1.50–4.13 | mm | plan §4; 2.50 + 0.13 |
+| Keep-out top | – | – | 4.13 | mm | plan §3.3 KEEPOUT_SIGNAL |
 
-Note D2. Plan §8 row 9 assigns the 0.5 mm lug thickness and tab ≤ 7 mm
-to WP5. Catalog #4 / M2.5 ring lugs read on 2026-09-16 are thicker:
-Molex 0193230001 0.71 mm, TE 34157 0.79 mm. **UNVERIFIED** until WP5
-shows a catalog drawing with thickness ≤ 0.5 mm and tab ≤ 7 mm. A
-thicker lug raises the stack and this file becomes v2.
+The screw head seats on the medial face at y 0, so the screw tip is at
+y 4.00 for a 4 mm screw whatever the lug and wall are. The stack top is
+the higher of the tip and the nut top (wall + lug + nut), plus Kapton.
+Lug or nut thickness therefore does not raise the stack until wall + lug
++ nut passes 4.00: at the nominal 1.5 wall that is lug + nut ≤ 2.50, at a
+wall printed 0.3 thick (plan §3.6 ±0.3) lug + nut ≤ 2.20. The reservation
+(2.10) and the SKU set (2.06) meet both. WP2's script checks this as
+`CONTACT_STACK`.
 
-Note D3. DuPont Kapton 500HN is 5.00 mil, 127 µm nominal, tolerance
-122–130 µm (QE-10167, https://www.qnityelectronics.com/content/dam/electronics/amer/us/en/electronics/public/documents/en/QE-10167-Kapton-General-Specifications.pdf,
-read 2026-09-16). Plan 0.13 mm is the rounded top of that band.
+Note D2. Plan §8 row 9 assigns the lug thickness and tab ≤ 7 mm to WP5.
+WP5 found TE 31428 at 0.46 mm (contacts.md §1.3), which closes the
+thickness; its barrel width against the 3 mm tab is still UNVERIFIED. The
+thicker catalog lugs read on 2026-09-16 (Molex 0193230001 0.71 mm, TE
+34157 0.79 mm) would not raise the stack at nominal (lug + nut 2.31 and
+2.39 ≤ 2.50) but break the wall +0.3 case (> 2.20).
+
+Note D3. Plan 0.13 mm Kapton is met two ways: two layers of 2.5 mil
+tape (WP5's SKU, 0.064 mm each including adhesive) or one disc of DuPont
+Kapton 500HN, 5.00 mil, 127 µm nominal, tolerance 122–130 µm (QE-10167, https://www.qnityelectronics.com/content/dam/electronics/amer/us/en/electronics/public/documents/en/QE-10167-Kapton-General-Specifications.pdf,
+read 2026-09-16).
 
 Do not use ISO 4032 for this nut. ISO 4032 M2.5 is a style-1 nut,
 m max 2.00 mm (https://www.fasteners.eu/standards/ISO/4032/, read
-2026-09-16). That nut adds 0.40 mm and the stack top would sit at
-y 4.53, into the board. The brief named ISO 4032; the plan names
-DIN 439 / ISO 4035. The plan wins.
+2026-09-16). With a 0.5 lug its top sits at y 4.00, level with the screw
+tip: the stack still totals 2.63 at nominal but has no margin, and a wall
+printed 0.3 thick puts the Kapton at y 4.43, into the board at 4.30. The
+brief named ISO 4032; the plan names DIN 439 / ISO 4035. The plan wins.
 
 ## 3. Keep-outs
 
@@ -246,10 +260,13 @@ Pad boxes at the BOARD_ZONE corners (full body):
 | Inferior, high-u | 14.0–15.5 | 36.4–37.9 | 1.5–4.3 | mm |
 
 The superior low-u pad's inner corner (u 3.0, s 19.8) is 3.64 mm from
-CONTACT_1 (u 5.9, s 22.0). KEEPOUT_SIGNAL radius is 3.55 mm, so the
-nominal gap is 0.09 mm. WP2 must check this pair. The 0.5 mm
-copper-free margin around the keep-out does overlap that pad in plan
-view; the pad is nylon support, not copper.
+CONTACT_1 (u 5.9, s 22.0) in (u, s). KEEPOUT_SIGNAL radius is 3.55 mm, so
+the gap is 0.09 mm in (u, s). In the body frame, where s spacing grows
+with u along the arc, WP2's script computes 0.152 mm at bow 3, 0.110 at
+bow 1 and 0.263 at bow 8 (`keepout_clearance` in `manifest.json`), and
+fails the build if any gap to a pad, the rib or a wall is not positive.
+The 0.5 mm copper-free margin around the keep-out does overlap that pad
+in plan view; the pad is nylon support, not copper.
 
 ### 6.2 Heights by zone
 
@@ -311,6 +328,7 @@ and clamps) is not this package.
 | CABLE_EXIT | Ø2.0 for tethered bring-up only; plugged before wear in Stage B | plan §5, §6 |
 | Tethered bring-up | Laptop on battery, not mains | plan §6; design record requirement 3 |
 | Skin materials | PA12 (natural grey) and titanium only | plan §4, §6 |
+| Metal inside the cavity | Nut and lug: plated steel or tinned copper (plan §4). Stainless is not in that allowance and plan §1 item 4 says "no stainless"; a stainless nut needs Rolf's decision. Full list: contacts.md §6 | plan §1, §4; contacts.md §1.2, §6 |
 | Cleaning | 70 % isopropanol wipe; nothing on the skin side but titanium and nylon | plan §4, §6 |
 
 ## 8. Packing budget
@@ -342,7 +360,7 @@ Feasible only with tighter courtyards or a diode array. WP6 decides
 
 | Option | What changes | Area it buys | Height / fit | From |
 |---|---|---|---|---|
-| A. Fits as drawn | Tighter courtyards, or one diode array in place of three SOT-23 (30 mm² → about 8 mm², about +22 mm² effective) | About +22 mm² if the array is used; enough to cover the 6 mm² shortfall | No shell change | plan §5 |
+| A. Fits as drawn | Tighter courtyards, or one diode array in place of three SOT-23 (plan §5). The array's area is **UNVERIFIED**: the "about 8 mm², +22 mm²" first written here has no datasheet; WP6 names the part | Enough to cover the 6 mm² shortfall only if the array saves ≥ 6 mm² | No shell change | plan §5; area UNVERIFIED (WP6) |
 | B. Longer | Board length +3.5 mm → 22.5 × 12.5 = 281 mm² | +44 mm² board; available about 149 against 111 required | Cavity length 36.7 → 40.2; BODY_ARC grows about 3.5; M1 gate moves. WP2 re-runs | plan §10 item 1 |
 | C. Wider | Board width +3.0 mm → 19.0 × 15.5 = 295 mm² | +57 mm² board; available about 162 against 111 required | BODY_WIDTH 17 → 20; cavity 14 → 17. Covertness. WP2 re-runs | plan §10 item 1 |
 | D. Smaller front end | ADS1292 VQFN-32 4 × 4 (16 mm²) instead of TQFP 7 × 7 (49 mm²) | +33 mm²; required drops to about 78 against 105 available | Medial height still ≤ 1.2 | TI datasheet RSM package; plan §10 item 1 |
@@ -373,13 +391,14 @@ The plan wins. These are not silent CAD changes.
 | # | Claim in this file | What would verify it | Owner |
 |---|---|---|---|
 | 1 | Dome Ø4.7, crown 1.35 | WP5 SKU drawing. ISO 7380-1:2022 has no M2.5 row; catalog M2.5 is 4.5 / 1.5 | WP5 |
-| 2 | Lug thickness 0.5, tab ≤ 7 | WP5 catalog drawing | WP5 |
-| 3 | Assembled lug + nut + Kapton inside Ø7.1 | WP5 stack on catalog drawings; plan §9 WP5 acceptance ≤ 2.63 | WP5 |
+| 2 | Lug tab ≤ 3 wide × 7 long | Thickness closed by WP5 (TE 31428, 0.46); barrel width still needs the drawing | WP5 |
+| 3 | Assembled lug + nut + Kapton inside Ø7.1 | Height closed by WP5 (2.63 on the SKU set); plan-view fit of the ring (5.16 wide) and nut (5.77 across corners) inside Ø7.1 is by arithmetic, not a drawing | WP5 |
 | 4 | Cell body ≤ 5.2 × 10.4 × 15.6 with PCM folded | WP6 named cell drawing | WP6 |
 | 5 | RF no-copper polygon in millimetres | WP6 trace of Raytac Spec L §2.3 | WP6 |
 | 6 | Lead pad (u, s) values | Interface v2 after WP6 placement | WP6 |
-| 7 | Channel opening 0.94 mm at bow 3 | WP2 geometry report (plan §10 open item 4) | WP2 |
-| 8 | 0.09 mm pad-to-keep-out gap at CONTACT_1 | WP2 keep-out check | WP2 |
+| 7 | Channel opening 0.94 mm at bow 3 | Closed by WP2: 0.938 at bow 3, 1.089 at bow 1, 0.537 at bow 8 (`wire_channel` in manifest.json). Stage B containment still WP8 | WP2 / WP8 |
+| 8 | 0.09 mm pad-to-keep-out gap at CONTACT_1 | Closed by WP2's check: body-frame gap 0.110–0.263 over bows 1–8 (§6.1) | WP2 |
+| 9 | Plated-steel DIN 439 M2.5 nut SKU | A product page, date and price (contacts.md §1.2) | WP5 |
 
 ## 11. Sources read (web, 2026-09-16)
 
@@ -402,3 +421,28 @@ The plan wins. These are not silent CAD changes.
 | DNK 501015 | https://www.fpbattery.com/wp-content/uploads/2024/06/fpbattery-501015-3.7V-50mAh-Lithium-Polymer-Battery-Specification.pdf | 15 × 10 × 5 cell, 17 ± 1 with PCM |
 | VCELL 501015 | https://www.vcellpower-battery.com/3.7v/501015-3-7v-50mah-lithium-polymer-battery-.html | 5.2 × 10.5 × 17.5 max example |
 | 28 AWG silicone | https://bntechgo.com/28-awg-silicone-wire-stranded-tinned-copper-wire-1-feet-11-colors-optional/ | OD 1.2 ± 0.1 |
+
+## 12. Pending interface v2 notes
+
+Recorded by review r1 (2026-09-17). None of these changes a v1 number;
+each becomes a v2 change when its owner closes it.
+
+| # | Item | Now | What would change | Owner |
+|---|---|---|---|---|
+| V2-1 | Contact dome | CAD prints Ø4.7 × 1.35 (plan §3.3). No SKU drawing on file: WP5's listings give dk 4.40–4.70 and k 1.20–1.36; a manufacturer ISO 7380 M2.5 row gives dk max 4.5, k max 1.5 (note D1) | A drawing for the bought screw sets CONTACT_DOME; area 17.3 mm² at 4.7, 15.9 at 4.5, 15.2 at 4.4 (plan §4 pressure estimate moves with it) | WP5, then WP8 |
+| V2-2 | Coupon-to-parameter mapping (plan §10 open item 2) | Coupon 12 × 12 × 3 in `docs/fab/cad/v1/coupon.*`; mapping below | Measured coupon sizes feed the parameters in the table | WP2 (mapping), WP8 (update) |
+| V2-3 | Nut material | Plan §4 allows plated steel or tinned copper; only stainless and bespoke titanium SKUs are on file | A plated-steel SKU, or Rolf accepting stainless inside the cavity, or titanium DIN 934 with its zero margin (§2.3) | WP5, Rolf |
+| V2-4 | Packing shortfall | 105 mm² available vs 111 required (§8) | One of §8.2 A–D | WP6, Rolf (plan §10 Open for Rolf item 6) |
+
+V2-2, coupon features and what each one measures. Coupon axes as in
+`scripts/cad/bte_fit_shell.py` `build_coupon`: x and y across the top
+face from its centre, the rib on the top face.
+
+| Coupon feature | Position (x, y) | Designed | Feeds |
+|---|---|---|---|
+| Hole | (−3, −3) | Ø1.7 through | Smallest round hole the process opens; lower bracket for CONTACT_HOLE |
+| Hole | (0, −3) | Ø2.9 through | CONTACT_HOLE directly: an M2.5 shank (2.5) must pass |
+| Hole | (3, −3) | Ø3.4 through | Upper bracket: CONTACT_HOLE moves toward it if Ø2.9 prints under 2.5 |
+| Slot | (0, 2), 6 long | 0.9 wide through | TONGUE_SLOT height (0.9) and the 0.4 tongue clearance |
+| Slot | (0, 4), 6 long | 0.4 wide through | Whether a 0.4 gap prints open: CLEAR_FIT and the 0.4 rigid-pair nominals (plan §3.6) |
+| Rib | along x at y −0.5 | 0.4 thick × 3 tall × 12 long | E4; the thin-feature floor under E1 (tongue 0.5) and E3 (nubs 0.8) |
