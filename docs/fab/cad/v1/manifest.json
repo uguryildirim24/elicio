@@ -1557,7 +1557,7 @@
     "m1": 52.0,
     "total_chord": 47.900523407445874
   },
-  "commit": "c58cffb71024f0740a2f5e53db0077130ba4e987",
+  "commit": "42e51d5b8b3271ecd4529c291952a752d2df48d5",
   "contact_stack": {
     "board_underside_y": 4.3,
     "keepout_top_y": 4.13,
@@ -1583,7 +1583,8 @@
   "crease_bow": {
     "clamped": 3.0,
     "computed_from_m1_m2": 11.001411613371118,
-    "requested": 3.0
+    "requested": 3.0,
+    "source": "CREASE_BOW parameter (M1 and M2 not both measured)"
   },
   "defaults_used": [
     "BODY_ARC",
