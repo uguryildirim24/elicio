@@ -11,6 +11,14 @@ C widens BODY_WIDTH 3 mm. E keeps the shell and uses the lateral face.
 Q13 short tabs (end under the pad, 3 mm wide) stay as a budget mask
 only. No crimp ring lug ends under its pad. See packing-options.md.
 
+Review r3 added the rules the lanes' layouts broke: each signal lead
+leaves its barrel along the tab axis and bends at LEAD_BEND_R (plan §3.3,
+3 mm) to a pad it reaches without a tighter turn; wires clear walls, the
+rib, keep-outs, corner pads and barrels; wires may cross only where no
+part or other net's pad is above; every 0402 needs a site. The lead pads
+move per option (``PADS_BY_OPTION``, from ``search_tab_degrees``); the
+interface v2 §4 pads (``LEAD_PADS``) stay frozen until Rolf picks.
+
 ``layout_conflicts(option)`` lists every rule that option breaks. An
 empty list is the only state that confirms that option. Packing of the
 product waits on ``docs/fab/packing-options.md`` until Rolf picks.
@@ -103,6 +111,12 @@ PAD_SIZE = 1.0  # lead-pad copper, millimetres
 CORNER_PAD = 1.5
 WIRE_OD = 1.3
 BEND_R = 3.0
+# A lead leaves its crimp barrel along the tab axis and turns at BEND_R
+# (plan §3.3 script checks: Ø1.3 envelope swept at a 3 mm bend radius from
+# each terminal to its pad). Its jacket reaches BEND_R + WIRE_OD/2 past the
+# barrel end, so a barrel aimed at a wall or a corner pad has no exit.
+LEAD_BEND_R = BEND_R
+LEAD_EXIT = LEAD_BEND_R + WIRE_OD / 2.0  # 3.65
 WRAP_S = 37.0
 CHANNEL_U = (7.7, 9.3)
 CHANNEL_S = (38.2, 40.5)
@@ -215,21 +229,63 @@ REF_WIRE_INFERIOR: tuple[tuple[float, float], ...] = (
     (4.0, 26.4),
     (4.0, 29.0),
 )
-# Search result (search_tab_degrees). Flat. 0° = +u, 90° = +s.
+# Round 2 route (interface v2 §4): round keep-out 2 on the low-u side.
+REF_WIRE_DIRECT: tuple[tuple[float, float], ...] = (
+    (8.5, 40.5),
+    (8.5, 38.2),
+    (8.5, 37.0),
+    (5.0, 34.6),
+    (4.0, 29.0),
+)
+REF_ROUTES: dict[str, tuple[tuple[float, float], ...]] = {
+    "direct": REF_WIRE_DIRECT,
+    "low": REF_WIRE_LOW_U,
+    "high": REF_WIRE_HIGH_U,
+    "inferior": REF_WIRE_INFERIOR,
+}
+
+
+def _shift_route(
+    route: tuple[tuple[float, float], ...],
+    ds: float,
+    ref_pad: tuple[float, float] | None = None,
+) -> tuple[tuple[float, float], ...]:
+    """Move the channel and wrap points (s ≥ WRAP_S) with the tail (option B); end at ``ref_pad``."""
+    out = [(u, s + ds if s >= WRAP_S - 1e-9 else s) for u, s in route]
+    if ref_pad is not None:
+        out[-1] = (float(ref_pad[0]), float(ref_pad[1]))
+    return tuple(out)
+
+
+# Search result (search_tab_degrees, review r3). Flat. 0° = +u, 90° = +s.
+# The r3 search adds the lead exit (LEAD_BEND_R), corner pads and wire
+# crossings, and moves the lead pads per option. The WP6b angles
+# (A/E 355°/170°, B 355°/120°, C 0°/180°) aimed each barrel end at a side
+# wall (SIG2 at 170° ends 0.13 mm from u 1.5), where its lead cannot leave.
 TAB_DEG_BY_OPTION: dict[str, dict[str, float]] = {
-    "A": {"SIG1": 355.0, "SIG2": 170.0},
-    "B": {"SIG1": 355.0, "SIG2": 120.0},
-    "C": {"SIG1": 0.0, "SIG2": 180.0},
-    "E": {"SIG1": 355.0, "SIG2": 170.0},
+    "A": {"SIG1": 110.0, "SIG2": 270.0},
+    "B": {"SIG1": 90.0, "SIG2": 295.0},
+    "C": {"SIG1": 110.0, "SIG2": 270.0},
+    "E": {"SIG1": 110.0, "SIG2": 270.0},
+}
+PADS_BY_OPTION: dict[str, dict[str, tuple[float, float]]] = {
+    "A": {"SIG1": (7.5, 29.35), "SIG2": (13.5, 21.35), "REF": (5.5, 29.35)},
+    "B": {"SIG1": (3.0, 34.6), "SIG2": (12.75, 21.1), "REF": (3.75, 29.1)},
+    "C": {"SIG1": (7.5, 29.35), "SIG2": (13.5, 21.35), "REF": (5.5, 29.35)},
+    "E": {"SIG1": (7.5, 29.35), "SIG2": (13.5, 21.35), "REF": (5.5, 29.35)},
 }
 TAB_DEG: dict[str, float] = dict(TAB_DEG_BY_OPTION["A"])
-REF_WIRE_BY_OPTION: dict[str, tuple[tuple[float, float], ...]] = {
-    "A": REF_WIRE_HIGH_U,
-    "B": REF_WIRE_INFERIOR,
-    "C": REF_WIRE_HIGH_U,
-    "E": REF_WIRE_HIGH_U,
+REF_ROUTE_BY_OPTION: dict[str, str] = {
+    "A": "direct",
+    "B": "direct",
+    "C": "direct",
+    "E": "direct",
 }
-REF_WIRE = REF_WIRE_HIGH_U
+REF_WIRE_BY_OPTION: dict[str, tuple[tuple[float, float], ...]] = {
+    key: _shift_route(REF_ROUTES[name], OPTION_B_DS if key == "B" else 0.0, PADS_BY_OPTION[key]["REF"])
+    for key, name in REF_ROUTE_BY_OPTION.items()
+}
+REF_WIRE = REF_WIRE_BY_OPTION["A"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -250,6 +306,7 @@ class Layout:
     ref_wire: tuple[tuple[float, float], ...]
     tab_deg: Mapping[str, float]
     give_up: str
+    tail_ds: float = 0.0  # B moves the tail, channel and wrap by +3.5
 
 
 @dataclass(frozen=True, slots=True)
@@ -310,7 +367,6 @@ def chord_from_arc_bow(arc: float, bow: float = CREASE_BOW) -> tuple[float, floa
 
 
 def _build_options() -> dict[str, Layout]:
-    pads = dict(LEAD_PADS)
     a = Layout(
         option="A",
         board_len=BOARD_LEN,
@@ -324,10 +380,10 @@ def _build_options() -> dict[str, Layout]:
         body_u=BODY_U,
         body_arc=BODY_ARC,
         two_sided=False,
-        lead_pads=pads,
+        lead_pads=dict(PADS_BY_OPTION["A"]),
         ref_wire=REF_WIRE_BY_OPTION["A"],
         tab_deg=dict(TAB_DEG_BY_OPTION["A"]),
-        give_up="nothing on the shell; 15 of 25 of the 0402s have no courtyard site",
+        give_up="does not close: no VQFN site once both barrels lie flat with a lead exit",
     )
     b_s1 = BOARD_S[1] + OPTION_B_DS
     b = Layout(
@@ -343,10 +399,11 @@ def _build_options() -> dict[str, Layout]:
         body_u=BODY_U,
         body_arc=BODY_ARC + OPTION_B_DS,
         two_sided=False,
-        lead_pads=pads,
+        lead_pads=dict(PADS_BY_OPTION["B"]),
         ref_wire=REF_WIRE_BY_OPTION["B"],
         tab_deg=dict(TAB_DEG_BY_OPTION["B"]),
-        give_up="3.5 mm of length behind the ear; M1 gate moves; 10 of 25 of the 0402s have no site",
+        give_up="3.5 mm of length behind the ear; M1 gate moves",
+        tail_ds=OPTION_B_DS,
     )
     c_u1 = BOARD_U[1] + OPTION_C_DU
     c = Layout(
@@ -362,7 +419,7 @@ def _build_options() -> dict[str, Layout]:
         body_u=(BODY_U[0], BODY_U[1] + OPTION_C_DU),
         body_arc=BODY_ARC,
         two_sided=False,
-        lead_pads=pads,
+        lead_pads=dict(PADS_BY_OPTION["C"]),
         ref_wire=REF_WIRE_BY_OPTION["C"],
         tab_deg=dict(TAB_DEG_BY_OPTION["C"]),
         give_up="3 mm of width in the crease",
@@ -380,10 +437,10 @@ def _build_options() -> dict[str, Layout]:
         body_u=BODY_U,
         body_arc=BODY_ARC,
         two_sided=True,
-        lead_pads=pads,
+        lead_pads=dict(PADS_BY_OPTION["E"]),
         ref_wire=REF_WIRE_BY_OPTION["E"],
         tab_deg=dict(TAB_DEG_BY_OPTION["E"]),
-        give_up="a two-sided assembly; 13 of 25 of the 0402s have no courtyard site",
+        give_up="does not close: no VQFN site on the medial face",
     )
     return {"A": a, "B": b, "C": c, "E": e}
 
@@ -456,10 +513,9 @@ def tab_span(pad: str, option: str = "A", *, mode: str = "real") -> tuple[float,
         return KEEPOUT_R, LUG_A1
     if mode == "literal":
         return KEEPOUT_R, KEEPOUT_R + LITERAL_TAB_LEN
-    lay = get_layout(option)
     c = PAD_CONTACT[pad]
     assert c is not None
-    pu, ps = lay.lead_pads[pad]
+    pu, ps = LEAD_PADS[pad]  # interface v2 §4 pads, the ones Q13 was read on
     d = math.hypot(pu - c[0], ps - c[1])
     return KEEPOUT_R, d + PAD_SIZE / 2.0
 
@@ -473,8 +529,7 @@ def _tab_axes(
         angle = get_layout(option).tab_deg[pad] if deg is None else deg
         rad = math.radians(angle)
         return c, math.cos(rad), math.sin(rad)
-    lay = get_layout(option)
-    pu, ps = lay.lead_pads[pad]
+    pu, ps = LEAD_PADS[pad]
     d = math.hypot(pu - c[0], ps - c[1])
     return c, (pu - c[0]) / d, (ps - c[1]) / d
 
@@ -544,14 +599,16 @@ def bind_layout(
     *,
     tab_deg: Mapping[str, float] | None = None,
     ref_wire: tuple[tuple[float, float], ...] | None = None,
+    lead_pads: Mapping[str, tuple[float, float]] | None = None,
 ) -> Layout:
-    """Swap tab angles or the reference wire on a live option (search / tests)."""
+    """Swap tab angles, lead pads or the reference wire on a live option (search / tests)."""
     key = option.upper()
     current = OPTIONS[key]
     OPTIONS[key] = replace(
         current,
         tab_deg=dict(tab_deg) if tab_deg is not None else current.tab_deg,
         ref_wire=ref_wire if ref_wire is not None else current.ref_wire,
+        lead_pads=dict(lead_pads) if lead_pads is not None else current.lead_pads,
     )
     placed_layout.cache_clear()
     return OPTIONS[key]
@@ -601,13 +658,21 @@ def board_free_mask(
     *,
     mode: str = "real",
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Copper-free mask on one face. Default tabs are TE 31428 (real)."""
+    """Copper-free mask on one face. Default tabs are TE 31428 (real).
+
+    ``punch_module=True`` is the lateral face (option E): the module
+    footprint, the RF zone and the rim are removed. The Ø7.1 keep-outs,
+    their 0.5 margin and the lug tabs are plan §5's *medial* side row; they
+    sit on the floor under the board and are not applied to the lateral
+    face.
+    """
     lay = get_layout(option)
     u, s, uu, ss = _mesh(option)
     free = np.ones(uu.shape, dtype=bool)
-    free = _punch_circle(free, uu, ss, CONTACT_1[0], CONTACT_1[1], KEEPOUT_R + COPPER_FREE)
-    free = _punch_circle(free, uu, ss, CONTACT_2[0], CONTACT_2[1], KEEPOUT_R + COPPER_FREE)
-    if tabs:
+    if not punch_module:
+        free = _punch_circle(free, uu, ss, CONTACT_1[0], CONTACT_1[1], KEEPOUT_R + COPPER_FREE)
+        free = _punch_circle(free, uu, ss, CONTACT_2[0], CONTACT_2[1], KEEPOUT_R + COPPER_FREE)
+    if tabs and not punch_module:
         for pad in ("SIG1", "SIG2"):
             free &= ~_tab_mask(uu, ss, pad, COPPER_FREE, option, mode=mode)
     au0, au1, as0, as1 = antenna_rect(option)
@@ -751,7 +816,7 @@ def placed_layout(option: str = "A") -> tuple[dict[str, tuple[float, float, floa
     _u, _s, _uu, medial = board_free_mask(option=option)
     lateral = board_free_mask(option=option, punch_module=True)[3] if lay.two_sided else medial
     pads = lay.lead_pads
-    taken_m = [pad_box(p, option) for p in pads]
+    taken_m = [pad_box(p, option) for p in pads] + crossing_boxes(option)
     taken_l = list(taken_m)
     out: dict[str, tuple[float, float, float, float]] = {}
     faces: dict[str, str] = {}
@@ -990,8 +1055,116 @@ def corner_pad_boxes(option: str = "A") -> list[tuple[float, float, float, float
     ]
 
 
-def tab_reasons(pad: str, deg: float, option: str = "A") -> list[str]:
-    """Why a flat TE 31428 tab at ``deg`` fails (empty means the metal is legal)."""
+def channel_s(option: str = "A") -> tuple[float, float]:
+    """WIRE_CHANNEL s range; option B moves the tail and channel by +3.5."""
+    ds = get_layout(option).tail_ds
+    return (CHANNEL_S[0] + ds, CHANNEL_S[1] + ds)
+
+
+def wrap_s(option: str = "A") -> float:
+    return WRAP_S + get_layout(option).tail_ds
+
+
+def _box_point_gap(box: tuple[float, float, float, float], u: float, s: float) -> float:
+    x, y, wu, ws = box
+    du = max(x - u, 0.0, u - (x + wu))
+    ds = max(y - s, 0.0, s - (y + ws))
+    if du == 0.0 and ds == 0.0:
+        return -min(u - x, x + wu - u, s - y, y + ws - s)
+    return math.hypot(du, ds)
+
+
+def floor_point_gap(u: float, s: float, option: str = "A", *, end_wall: bool = True) -> float:
+    """Clearance from a floor point under the board to walls, rib, keep-outs, corner pads.
+
+    Negative inside an obstacle. The floor space for wires is the cavity
+    width, from the rib's inferior face to the end wall.
+    """
+    lay = get_layout(option)
+    gaps = [
+        u - lay.cavity_u[0],
+        lay.cavity_u[1] - u,
+        s - RIB_S[1],
+    ]
+    if end_wall:
+        gaps.append(lay.cavity_s[1] - s)
+    gaps += [math.hypot(u - c[0], s - c[1]) - KEEPOUT_R for c in (CONTACT_1, CONTACT_2)]
+    gaps += [_box_point_gap(box, u, s) for box in corner_pad_boxes(option)]
+    return min(gaps)
+
+
+def lead_exit_arc(
+    pad: str, side: int, option: str = "A", *, deg: float | None = None, samples: int = 18
+) -> list[tuple[float, float]]:
+    """Centre-line of the lead leaving the barrel end and turning 90° at LEAD_BEND_R.
+
+    ``side`` is +1 (counter-clockwise) or −1.
+    """
+    (cu, cs), eu, es = _tab_axes(pad, option, deg=deg)
+    bu, bs = cu + LUG_A1 * eu, cs + LUG_A1 * es
+    nu, ns = -es * side, eu * side
+    r = LEAD_BEND_R
+    ou, os_ = bu + r * nu, bs + r * ns
+    pts = []
+    for k in range(samples + 1):
+        a = (math.pi / 2.0) * k / samples
+        # start at the barrel end, heading along the tab axis
+        pts.append((ou - r * math.cos(a) * nu + r * math.sin(a) * eu,
+                    os_ - r * math.cos(a) * ns + r * math.sin(a) * es))
+    return pts
+
+
+def lead_exit_gap(
+    pad: str,
+    option: str = "A",
+    *,
+    deg: float | None = None,
+    other_deg: float | None = None,
+) -> tuple[float, int]:
+    """Best (jacket clearance, side) for the lead leaving ``pad``'s barrel.
+
+    Clearance is to walls, rib, both keep-outs, corner pads and the other
+    signal barrel (at ``other_deg`` or the layout's angle). ≥ 0 means the
+    lead can leave the barrel at the plan's 3 mm bend radius.
+    """
+    other = "SIG2" if pad == "SIG1" else "SIG1"
+    best = (-math.inf, 1)
+    for side in (1, -1):
+        gap = math.inf
+        for u, s in lead_exit_arc(pad, side, option, deg=deg):
+            gap = min(
+                gap,
+                floor_point_gap(u, s, option) - WIRE_OD / 2.0,
+                point_tab_gap(other, u, s, option, deg=other_deg) - WIRE_OD / 2.0,
+            )
+        if gap > best[0]:
+            best = (gap, side)
+    return best
+
+
+def wire_floor_gap(option: str = "A", samples: int = 200) -> float:
+    """Reference wire surface to walls, rib, keep-outs and corner pads, inside the cavity."""
+    lay = get_layout(option)
+    wire = lay.ref_wire
+    best = math.inf
+    for a, b in zip(wire, wire[1:]):
+        for k in range(samples + 1):
+            t = k / samples
+            u = a[0] + t * (b[0] - a[0])
+            s = a[1] + t * (b[1] - a[1])
+            if s > lay.cavity_s[1]:
+                continue  # inside WIRE_CHANNEL
+            in_channel_u = CHANNEL_U[0] + WIRE_OD / 2.0 <= u <= CHANNEL_U[1] - WIRE_OD / 2.0
+            best = min(best, floor_point_gap(u, s, option, end_wall=not in_channel_u) - WIRE_OD / 2.0)
+    return best
+
+
+def tab_reasons(pad: str, deg: float, option: str = "A", *, movable_pads: bool = False) -> list[str]:
+    """Why a flat TE 31428 tab at ``deg`` fails (empty means the metal is legal).
+
+    ``movable_pads=True`` skips the lead pads, which the search places
+    after the tabs.
+    """
     lay = get_layout(option)
     us = [c[0] for c in tab_corners(pad, option, deg=deg)]
     ss = [c[1] for c in tab_corners(pad, option, deg=deg)]
@@ -1003,24 +1176,41 @@ def tab_reasons(pad: str, deg: float, option: str = "A") -> list[str]:
     if min(ss) < BATTERY_S[1]:
         out.append("battery")
     for name, _pad in lay.lead_pads.items():
-        if name == pad:
+        if name == pad or movable_pads:
             continue
         if _box_tab_gap(pad, pad_box(name, option), option, deg=deg) < COPPER_FREE:
             out.append(f"pad-{name}")
     for i, box in enumerate(corner_pad_boxes(option)):
         if _box_tab_gap(pad, box, option, deg=deg) <= 0.0:
             out.append(f"corner-{i}")
+    if not out:
+        gap, _side = _lead_exit_alone(pad, deg, option)
+        if gap < 0.0:
+            out.append(f"lead-exit {gap:.2f}")
     return out
 
 
+def _lead_exit_alone(pad: str, deg: float, option: str) -> tuple[float, int]:
+    """Lead exit clearance ignoring the other barrel (used before pairing)."""
+    best = (-math.inf, 1)
+    for side in (1, -1):
+        gap = min(
+            floor_point_gap(u, s, option) - WIRE_OD / 2.0
+            for u, s in lead_exit_arc(pad, side, option, deg=deg)
+        )
+        if gap > best[0]:
+            best = (gap, side)
+    return best
+
+
 def legal_tab_degrees(
-    pad: str, option: str = "A", step: float = TAB_SEARCH_STEP
+    pad: str, option: str = "A", step: float = TAB_SEARCH_STEP, *, movable_pads: bool = False
 ) -> list[float]:
     """Angles (deg, 0 = +u, 90 = +s) where the flat barrel clears walls and pads."""
     out: list[float] = []
     deg = 0.0
     while deg < 360.0 - 1e-9:
-        if not tab_reasons(pad, deg, option):
+        if not tab_reasons(pad, deg, option, movable_pads=movable_pads):
             out.append(deg)
         deg += step
     return out
@@ -1044,54 +1234,276 @@ def tab_tab_gap_at(d1: float, d2: float, option: str = "A") -> float:
     return min(gaps)
 
 
-SEARCH_WIRE: dict[str, tuple[tuple[float, float], ...]] = {}
+SEARCH_WIRE: dict[str, str] = {}
+PAD_SEARCH_STEP = 0.25
+
+
+def _polyline_points(path: list[tuple[float, float]], step: float = 0.1) -> list[tuple[float, float]]:
+    pts: list[tuple[float, float]] = []
+    for a, b in zip(path, path[1:]):
+        n = max(1, int(math.ceil(math.hypot(b[0] - a[0], b[1] - a[1]) / step)))
+        pts += [(a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n) for k in range(n)]
+    pts.append(path[-1])
+    return pts
+
+
+def _polyline_gap(p: list[tuple[float, float]], q: list[tuple[float, float]]) -> float:
+    """Smallest centre-line distance between two polylines (sampled)."""
+    return min(_segment_point_gap(a, b, x) for a, b in zip(q, q[1:]) for x in _polyline_points(p))
+
+
+def lead_path(pad: str, option: str = "A") -> list[tuple[float, float]]:
+    """Signal lead centre-line: out of the barrel, 90° at LEAD_BEND_R, then straight to its pad."""
+    _gap, side = lead_exit_gap(pad, option)
+    return lead_exit_arc(pad, side, option) + [tuple(get_layout(option).lead_pads[pad])]
+
+
+def lead_run_turn_ok(pad: str, site: tuple[float, float], option: str = "A") -> bool:
+    """The straight run from the exit bend to ``site`` turns by at most 90°,
+    and is long enough for a LEAD_BEND_R fillet (R·tan(θ/2)); a pad within
+    PAD_SIZE of the bend end needs no run.
+    """
+    _gap, side = lead_exit_gap(pad, option)
+    (_c, eu, es) = _tab_axes(pad, option)
+    tu, ts = -es * side, eu * side  # heading after the 90° bend
+    au, as_ = lead_exit_arc(pad, side, option)[-1]
+    du, ds = site[0] - au, site[1] - as_
+    d = math.hypot(du, ds)
+    if d <= PAD_SIZE:
+        return True
+    cos_t = max(-1.0, min(1.0, (du * tu + ds * ts) / d))
+    theta = math.acos(cos_t)
+    if theta > math.pi / 2.0 + 1e-9:
+        return False
+    return d >= LEAD_BEND_R * math.tan(theta / 2.0)
+
+
+def lead_path_gap(pad: str, option: str = "A") -> float:
+    """Lead jacket clearance to walls, rib, keep-outs, corner pads and the other barrel."""
+    other = "SIG2" if pad == "SIG1" else "SIG1"
+    return min(
+        min(floor_point_gap(u, s, option), point_tab_gap(other, u, s, option)) - WIRE_OD / 2.0
+        for u, s in _polyline_points(lead_path(pad, option))
+    )
+
+
+def _crossing_points(p: list[tuple[float, float]], q: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    """Sampled points of ``p`` whose Ø1.3 jacket touches ``q``'s jacket."""
+    return [x for x in _polyline_points(p) if min(_segment_point_gap(a, b, x) for a, b in zip(q, q[1:])) < WIRE_OD]
+
+
+def wire_crossings(option: str = "A") -> list[tuple[str, tuple[float, float]]]:
+    """Where insulated wires lie on each other on the floor: (which pair, sampled point).
+
+    Reading (review r3): the plan does not forbid two silicone leads
+    crossing. On the floor they stack to 2 × 1.3 = 2.6 mm under a board
+    2.8 mm above the floor (y 1.5 to 4.3), so a crossing is allowed only
+    where no part courtyard or lead pad is above it (parts hang to y 3.1).
+    """
+    lay = get_layout(option)
+    ref = [p for p in lay.ref_wire if p[1] <= lay.cavity_s[1]]
+    s1, s2 = lead_path("SIG1", option), lead_path("SIG2", option)
+    out = [("SIG1/SIG2", x) for x in _crossing_points(s1, s2)]
+    out += [("REF/SIG1", x) for x in _crossing_points(s1, ref)]
+    out += [("REF/SIG2", x) for x in _crossing_points(s2, ref)]
+    return out
+
+
+def crossing_boxes(option: str = "A") -> list[tuple[float, float, float, float]]:
+    """Squares around each wire crossing that medial parts must keep off."""
+    q = 0.25
+    seen = sorted({(round(u / q) * q, round(s / q) * q) for _pair, (u, s) in wire_crossings(option)})
+    h = WIRE_OD / 2.0 + q
+    return [(u - h, s - h, 2 * h, 2 * h) for u, s in seen]
+
+
+def crossings_under_parts(option: str = "A") -> list[str]:
+    """Crossings that sit under a courtyard, a 0402 site or another net's lead pad (not allowed).
+
+    A crossing under one of its own wires' pads is where that wire rises to
+    the board over the other one, so it is allowed.
+    """
+    lay = get_layout(option)
+    boxes = [(n, b) for n, b in placed_parts(option).items() if placed_faces(option).get(n) != "lateral"]
+    boxes += [("0402", (x, y, w, h)) for x, y, w, h, face in place_0402s(option=option) if face == "medial"]
+    boxes += [(f"pad {n}", pad_box(n, option)) for n in lay.lead_pads]
+    hits: set[str] = set()
+    for pair, (u, s) in wire_crossings(option):
+        for name, box in boxes:
+            if name.startswith("pad ") and name[4:] in pair.split("/"):
+                continue
+            if _box_point_gap(box, u, s) < WIRE_OD / 2.0:
+                hits.add(f"{pair} crossing under {name}")
+    return sorted(hits)
+
+
+def pad_is_legal(name: str, u: float, s: float, option: str, pads: Mapping[str, tuple[float, float]]) -> bool:
+    """A lead pad on the board, outside keep-outs + 0.5, the RF zone and other barrels + 0.5."""
+    lay = get_layout(option)
+    half = PAD_SIZE / 2.0
+    if u - half < lay.board_u[0] + RIM or u + half > lay.board_u[1] - RIM:
+        return False
+    if s - half < lay.board_s[0] + RIM or s + half > lay.board_s[1] - RIM:
+        return False
+    for c in (CONTACT_1, CONTACT_2):
+        if math.hypot(u - c[0], s - c[1]) - KEEPOUT_R - COPPER_FREE - half < 0.0:
+            return False
+    au0, au1, as0, as1 = antenna_rect(option)
+    if not (u + half < au0 or u - half > au1 or s + half < as0 or s - half > as1):
+        return False
+    box = (u - half, s - half, PAD_SIZE, PAD_SIZE)
+    for other in ("SIG1", "SIG2"):
+        if other != name and _box_tab_gap(other, box, option) < COPPER_FREE:
+            return False
+    for other, (ou, os_) in pads.items():
+        if other != name and max(abs(u - ou), abs(s - os_)) - PAD_SIZE < COPPER_FREE:
+            return False
+    return True
+
+
+def _board_grid(option: str, target: tuple[float, float]) -> list[tuple[float, float, float]]:
+    lay = get_layout(option)
+    step = PAD_SEARCH_STEP
+    cands = []
+    nu = int((lay.board_u[1] - lay.board_u[0]) / step)
+    ns = int((lay.board_s[1] - lay.board_s[0]) / step)
+    for i in range(nu + 1):
+        u = round(lay.board_u[0] + i * step, 3)
+        for j in range(ns + 1):
+            s = round(lay.board_s[0] + j * step, 3)
+            cands.append((round(math.hypot(u - target[0], s - target[1]), 6), u, s))
+    cands.sort()
+    return cands
+
+
+def choose_ref_pad(option: str) -> tuple[float, float] | None:
+    """Legal REF pad nearest the interface v2 pad (4.0, 29.0)."""
+    for _d, u, s in _board_grid(option, LEAD_PADS["REF"]):
+        if pad_is_legal("REF", u, s, option, {}):
+            return (u, s)
+    return None
+
+
+def choose_signal_pad(
+    name: str, option: str, pads: Mapping[str, tuple[float, float]]
+) -> tuple[float, float] | None:
+    """Legal pad nearest the end of the lead's exit bend, with a clear straight run to it.
+
+    The pad keeps off the reference wire and the other lead's exit bend, so
+    no wire runs under the point where this lead rises to its pad.
+    """
+    lay = get_layout(option)
+    _gap, side = lead_exit_gap(name, option)
+    arc = lead_exit_arc(name, side, option)
+    other = "SIG2" if name == "SIG1" else "SIG1"
+    _ogap, oside = lead_exit_gap(other, option)
+    avoid = [
+        [p for p in lay.ref_wire if p[1] <= lay.cavity_s[1]],
+        lead_exit_arc(other, oside, option),
+    ]
+    cands = _board_grid(option, arc[-1])
+    for _d, u, s in cands:
+        if not pad_is_legal(name, u, s, option, pads):
+            continue
+        if not lead_run_turn_ok(name, (u, s), option):
+            continue
+        box = (u - PAD_SIZE / 2.0, s - PAD_SIZE / 2.0, PAD_SIZE, PAD_SIZE)
+        if any(
+            _box_point_gap(box, x, y) < WIRE_OD
+            for line in avoid
+            for x, y in _polyline_points(line, step=0.25)
+        ):
+            continue
+        run = _polyline_points([arc[-1], (u, s)])
+        if all(
+            min(floor_point_gap(pu, ps, option), point_tab_gap(other, pu, ps, option)) >= WIRE_OD / 2.0
+            for pu, ps in run
+        ):
+            return (u, s)
+    return None
 
 
 @functools.cache
 def search_tab_degrees(
     option: str = "A", step: float = TAB_SEARCH_STEP
 ) -> dict[str, float]:
-    """Pick a SIG1/SIG2 pair. Prefers all named parts placed, then more 0402s.
+    """Pick SIG1/SIG2 tab angles, their lead pads and a reference route.
 
-    Tries the low-u and high-u reference wires. Signal tabs stay flat:
-    ``upright_signal_clear_mm`` is negative. Restores the layout on the way out.
+    A pair is legal when both barrels clear walls, the REF pad, corner pads
+    and each other by 0.5; both leads leave their barrels at LEAD_BEND_R
+    (``lead_exit_gap``) and reach a legal pad (``choose_signal_pad``)
+    without crossing each other; and the reference wire clears keep-outs,
+    barrels, walls and corner pads. Wires may cross only where no part or
+    pad is above (``wire_crossings``). The REF pad is the legal site nearest
+    (4.0, 29.0) and ends the reference route. Among legal layouts the score
+    prefers every named part placed, then more parts, more 0402s, fewer
+    crossings. A layout with a part missing is still returned;
+    ``layout_conflicts`` names what is missing. Signal tabs stay flat:
+    ``upright_signal_clear_mm`` is negative. The chosen pads are left in
+    ``SEARCH_PADS``; the layout is restored on the way out.
     """
     lay = get_layout(option)
-    saved_deg = dict(lay.tab_deg)
-    saved_wire = lay.ref_wire
-    sig1 = legal_tab_degrees("SIG1", option, step)
-    sig2 = legal_tab_degrees("SIG2", option, step)
-    wires = [("low", REF_WIRE_LOW_U), ("high", REF_WIRE_HIGH_U)]
-    if get_layout(option).cavity_s[1] > CAVITY_S[1] + 1e-9:
-        wires.append(("inferior", REF_WIRE_INFERIOR))
-    best: tuple[tuple[int, int, int, float, float], float, float, str] | None = None
+    saved = (dict(lay.tab_deg), lay.ref_wire, dict(lay.lead_pads))
+    sig1 = legal_tab_degrees("SIG1", option, step, movable_pads=True)
+    sig2 = legal_tab_degrees("SIG2", option, step, movable_pads=True)
+    names = ["direct", "low", "high"]
+    if lay.tail_ds > 0.0:
+        names.append("inferior")
+    best = None
     try:
         for d1 in sig1:
             for d2 in sig2:
                 if tab_tab_gap_at(d1, d2, option) < COPPER_FREE:
                     continue
+                if lead_exit_gap("SIG1", option, deg=d1, other_deg=d2)[0] < 0.0:
+                    continue
+                if lead_exit_gap("SIG2", option, deg=d2, other_deg=d1)[0] < 0.0:
+                    continue
                 deg = {"SIG1": float(d1), "SIG2": float(d2)}
-                for wname, wire in wires:
-                    bind_layout(option, tab_deg=deg, ref_wire=wire)
-                    if wire_keepout_gap(option) < 0:
+                bind_layout(option, tab_deg=deg, lead_pads={**LEAD_PADS})
+                ref = choose_ref_pad(option)
+                if ref is None:
+                    continue
+                for wname in names:
+                    wire = _shift_route(REF_ROUTES[wname], lay.tail_ds, ref)
+                    bind_layout(option, ref_wire=wire, lead_pads={**LEAD_PADS, "REF": ref})
+                    if wire_keepout_gap(option) < 0 or wire_floor_gap(option) < 0:
                         continue
                     if wire_tab_gap("SIG1", option=option) < 0 or wire_tab_gap("SIG2", option=option) < 0:
                         continue
+                    pads: dict[str, tuple[float, float]] = {"REF": ref}
+                    for name in ("SIG1", "SIG2"):
+                        site = choose_signal_pad(name, option, pads)
+                        if site is None:
+                            break
+                        pads[name] = site
+                    if len(pads) < 3:
+                        continue
+                    pads = {k: pads[k] for k in ("SIG1", "SIG2", "REF")}
+                    bind_layout(option, lead_pads=pads)
+                    if min(lead_path_gap("SIG1", option), lead_path_gap("SIG2", option)) < 0.0:
+                        continue
                     parts = placed_parts(option)
+                    if crossings_under_parts(option):
+                        continue
                     missing = sum(1 for name in PART_TARGETS if name not in parts)
                     n_ok = 1 if missing == 0 else 0
-                    n_parts = len(parts)
-                    n_0402 = len(place_0402s(option=option)) if n_ok else 0
-                    score = (n_ok, n_parts, n_0402, -abs(d1), -abs(d2 - 180.0))
+                    n_0402 = len(place_0402s(option=option))
+                    n_cross = len({pair for pair, _x in wire_crossings(option)})
+                    score = (n_ok, len(parts), n_0402, -n_cross, -abs(d1), -abs(d2 - 180.0))
                     if best is None or score > best[0]:
-                        best = (score, float(d1), float(d2), wname)
+                        best = (score, float(d1), float(d2), wname, dict(pads))
         if best is None:
             raise ValueError(f"no legal TE 31428 tab pair for option {option}")
-        _score, d1, d2, wname = best
-        SEARCH_WIRE[option.upper()] = {"low": REF_WIRE_LOW_U, "high": REF_WIRE_HIGH_U, "inferior": REF_WIRE_INFERIOR}[wname]
+        _score, d1, d2, wname, pads = best
+        SEARCH_WIRE[option.upper()] = wname
+        SEARCH_PADS[option.upper()] = pads
         return {"SIG1": d1, "SIG2": d2}
     finally:
-        bind_layout(option, tab_deg=saved_deg, ref_wire=saved_wire)
+        bind_layout(option, tab_deg=saved[0], ref_wire=saved[1], lead_pads=saved[2])
+
+
+SEARCH_PADS: dict[str, dict[str, tuple[float, float]]] = {}
 
 
 def layout_conflicts(option: str = "A") -> list[str]:
@@ -1150,8 +1562,21 @@ def layout_conflicts(option: str = "A") -> list[str]:
         for i, box in enumerate(corner_pad_boxes(option)):
             if _box_tab_gap(pad, box, option) <= 0.0:
                 out.append(f"{pad} lug tab hits corner pad {i}")
+        gap, _side = lead_exit_gap(pad, option)
+        if gap < 0.0:
+            out.append(f"{pad} lead cannot leave the barrel at a {LEAD_BEND_R:g} mm bend ({gap:.2f})")
+        elif lead_path_gap(pad, option) < 0.0:
+            out.append(f"{pad} lead hits a wall, keep-out, corner pad or barrel on the way to its pad")
+        elif not lead_run_turn_ok(pad, get_layout(option).lead_pads[pad], option):
+            out.append(f"{pad} lead turns tighter than {LEAD_BEND_R:g} mm on the way to its pad")
+    out += crossings_under_parts(option)
     if tab_tab_gap(option) < COPPER_FREE:
         out.append(f"signal lug tabs within 0.5 of each other ({tab_tab_gap(option):.2f})")
+    if wire_floor_gap(option) < 0:
+        out.append(f"reference wire hits a wall, the rib or a corner pad ({wire_floor_gap(option):.2f})")
+    n_0402 = len(place_0402s(option=option))
+    if n_0402 < N_0402:
+        out.append(f"{N_0402 - n_0402} of {N_0402} 0402 courtyards have no site")
     if wire_keepout_gap(option) < 0:
         out.append(f"reference wire enters a keep-out ({wire_keepout_gap(option):.2f})")
     for pad in ("SIG1", "SIG2"):
@@ -1160,12 +1585,18 @@ def layout_conflicts(option: str = "A") -> list[str]:
     return out
 
 
-def place_0402s(n: int = N_0402, option: str = "A") -> list[tuple[float, float, str]]:
-    """Greedy 0402 courtyards. Option E fills medial then lateral."""
+def place_0402s(n: int = N_0402, option: str = "A") -> list[tuple[float, float, float, float, str]]:
+    """Greedy 0402 courtyards as (u, s, width u, length s, face). E fills medial then lateral."""
     lay = get_layout(option)
     u, s, _uu, medial = board_free_mask(option=option)
     faces_masks: list[tuple[str, np.ndarray, list[tuple[float, float, float, float]]]] = [
-        ("medial", medial, list(placed_parts(option).values()) + [pad_box(p, option) for p in lay.lead_pads])
+        (
+            "medial",
+            medial,
+            [b for n, b in placed_parts(option).items() if placed_faces(option).get(n) != "lateral"]
+            + [pad_box(p, option) for p in lay.lead_pads]
+            + crossing_boxes(option),
+        )
     ]
     if lay.two_sided:
         lat_taken = [pad_box(p, option) for p in lay.lead_pads]
@@ -1173,7 +1604,7 @@ def place_0402s(n: int = N_0402, option: str = "A") -> list[tuple[float, float, 
             if placed_faces(option).get(name) == "lateral":
                 lat_taken.append(box)
         faces_masks.append(("lateral", board_free_mask(option=option, punch_module=True)[3], lat_taken))
-    sites: list[tuple[float, float, str]] = []
+    sites: list[tuple[float, float, float, float, str]] = []
     orients = (R0402_CY, (R0402_CY[1], R0402_CY[0]))
     for face, free, taken in faces_masks:
         if len(sites) >= n:
@@ -1189,7 +1620,7 @@ def place_0402s(n: int = N_0402, option: str = "A") -> list[tuple[float, float, 
                     if not any(_boxes_overlap(box, t) for t in taken) and _courtyard_in_free(
                         free, u, s, x, y, r_w, r_h, option
                     ):
-                        sites.append((x, y, face))
+                        sites.append((x, y, r_w, r_h, face))
                         taken.append(box)
                         x += r_w
                     else:
@@ -1279,9 +1710,9 @@ def render_svg(option: str = "A") -> bytes:
         label="battery pocket",
     )
     add_rect(
-        RIB_U[0],
+        lay.cavity_u[0],
         RIB_S[0],
-        RIB_U[1] - RIB_U[0],
+        lay.cavity_u[1] - lay.cavity_u[0],
         RIB_S[1] - RIB_S[0],
         facecolor="#b07a4a",
         edgecolor="#5c3a1e",
@@ -1398,6 +1829,18 @@ def render_svg(option: str = "A") -> bytes:
             )
         )
 
+    for i, pad in enumerate(("SIG1", "SIG2")):
+        arc = lead_path(pad, option)
+        ax.plot(
+            [p[0] for p in arc],
+            [p[1] for p in arc],
+            color="#7a1010",
+            linewidth=WIRE_OD * 2.2,
+            alpha=0.6,
+            solid_capstyle="round",
+            label=f"signal lead Ø1.3, bend r {LEAD_BEND_R:g}" if i == 0 else None,
+        )
+
     parts = placed_parts(option)
     faces = placed_faces(option)
     colors = {
@@ -1434,9 +1877,8 @@ def render_svg(option: str = "A") -> bytes:
         labels_done.add(lab)
         ax.text(x + 0.08, y + 0.12, name.replace("_", "\n"), fontsize=5, color="white")
 
-    r_w, r_h = R0402_CY
     sites_0402 = place_0402s(option=option)
-    for i, (x, y, face) in enumerate(sites_0402):
+    for i, (x, y, r_w, r_h, face) in enumerate(sites_0402):
         add_rect(
             x,
             y,
@@ -1461,7 +1903,7 @@ def render_svg(option: str = "A") -> bytes:
             linewidth=0.7,
             label="lead pad 1.0×1.0" if name == "SIG1" else None,
         )
-        ax.text(pu - 1.9, ps - 0.15, name, fontsize=6, color="#111")
+        ax.text(pu - 0.5, ps + 0.6, name, fontsize=6, color="#111")
 
     for pad in lay.lead_pads:
         arr = LINE_ARRAY[pad]
@@ -1488,12 +1930,12 @@ def render_svg(option: str = "A") -> bytes:
         label="ref wire Ø1.3",
     )
     ch_u = 0.5 * (CHANNEL_U[0] + CHANNEL_U[1])
-    ax.plot(ch_u, WRAP_S, "s", color="#c9a227", markersize=6, label="Kapton wrap s 37")
+    ax.plot(ch_u, wrap_s(option), "s", color="#c9a227", markersize=6, label=f"Kapton wrap s {wrap_s(option):g}")
     add_rect(
         CHANNEL_U[0],
-        CHANNEL_S[0],
+        channel_s(option)[0],
         CHANNEL_U[1] - CHANNEL_U[0],
-        CHANNEL_S[1] - CHANNEL_S[0],
+        channel_s(option)[1] - channel_s(option)[0],
         fill=False,
         edgecolor="#d4a017",
         linewidth=0.8,
