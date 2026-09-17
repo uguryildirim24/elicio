@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
 import sys
 import tempfile
 import unittest
@@ -9,7 +10,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "cad" / "bte_fit_shell.py"
+MANIFEST_SCRIPT = ROOT / "scripts" / "cad" / "manifest.py"
+RENDER_SCRIPT = ROOT / "scripts" / "cad" / "render.py"
 MANIFEST = ROOT / "docs" / "fab" / "cad" / "v1" / "manifest.json"
+ARTWORK = ("render_medial.png", "render_lateral.png", "drawing.pdf")
 
 
 def load_cad():
@@ -22,6 +26,30 @@ def load_cad():
 
 
 CAD = load_cad()
+
+try:
+    import matplotlib  # noqa: F401
+    import trimesh  # noqa: F401
+
+    HAS_RENDER = True
+except ImportError:
+    HAS_RENDER = False
+
+
+def load_manifest_mod():
+    spec = importlib.util.spec_from_file_location("cad_manifest", MANIFEST_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_render_mod():
+    spec = importlib.util.spec_from_file_location("cad_render", RENDER_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
 
 
 class CadMathTests(unittest.TestCase):
@@ -201,7 +229,7 @@ class CadRegenTests(unittest.TestCase):
         self.assertEqual(manifest["parts"], list(CAD.ORDER_PARTS))
         self.assertEqual(sum(manifest["quantities"].values()), 6)
         committed = {p.name for p in MANIFEST.parent.iterdir()}
-        self.assertEqual(committed, expected | {"manifest.json"})
+        self.assertEqual(committed, expected | {"manifest.json"} | set(ARTWORK))
         for name, meta in manifest["files"].items():
             with self.subTest(committed=name):
                 self.assertEqual(
@@ -220,7 +248,60 @@ class CadRegenTests(unittest.TestCase):
                         regenerated["files"][name]["sha256"], manifest["files"][name]["sha256"]
                     )
             self.assertTrue(all(check["passed"] for check in regenerated["checks"]))
+            self.assertEqual(regenerated["commit"], manifest["commit"])
+            self.assertNotIn("views", regenerated)
 
+
+class ManifestSchemaTests(unittest.TestCase):
+    def test_committed_manifest_validates(self) -> None:
+        mod = load_manifest_mod()
+        payload = mod.load_manifest(MANIFEST)
+        mod.validate(payload)
+        mod.validate_bytes(payload, MANIFEST.parent)
+
+    def test_validator_rejects_missing_key(self) -> None:
+        mod = load_manifest_mod()
+        payload = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        del payload["files"]
+        with self.assertRaises(mod.ManifestError) as ctx:
+            mod.validate(payload)
+        self.assertIn("files", str(ctx.exception))
+        self.assertIn("missing key", str(ctx.exception))
+
+
+@unittest.skipUnless(HAS_RENDER, "matplotlib/trimesh is not installed")
+class CadRenderTests(unittest.TestCase):
+    def test_renders_and_drawing_regen_byte_identical(self) -> None:
+        render = load_render_mod()
+        v1 = MANIFEST.parent
+        with tempfile.TemporaryDirectory() as temp_dir:
+            dest = Path(temp_dir)
+            for name in ("body_full_p15.stl", "body_thin_p15.stl", "lid.stl", "manifest.json"):
+                shutil.copy2(v1 / name, dest / name)
+            self.assertEqual(render.main(["--out", str(dest)]), 0)
+            for name in ARTWORK:
+                with self.subTest(name=name):
+                    self.assertEqual(
+                        CAD.sha256_file(dest / name),
+                        CAD.sha256_file(v1 / name),
+                        name,
+                    )
+            again = Path(tempfile.mkdtemp())
+            self.addCleanup(shutil.rmtree, again, True)
+            for name in ("body_full_p15.stl", "body_thin_p15.stl", "lid.stl", "manifest.json"):
+                shutil.copy2(v1 / name, again / name)
+            self.assertEqual(render.main(["--out", str(again)]), 0)
+            for name in ARTWORK:
+                with self.subTest(second=name):
+                    self.assertEqual(
+                        CAD.sha256_file(dest / name),
+                        CAD.sha256_file(again / name),
+                        name,
+                    )
+
+
+@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+class CadBuildGuardTests(unittest.TestCase):
     def test_clamp_limits_build_one_solid(self) -> None:
         for bow in (1.0, 8.0):
             with self.subTest(bow=bow), tempfile.TemporaryDirectory() as temp_dir:

@@ -54,7 +54,26 @@ The manifest `notes` record each of these per body:
 - Lip root fillet (§3.5 step 7): 0.2, not 0.5. Above the 0.2 lip-to-top-face gap the fillet overlaps the body's top edge when seated.
 - LID_EDGE 0.8 runs round the plate rim except the top edge at the lip end, which stays sharp so the lip keeps its full joint.
 
-The lid emboss uses the Arial font OCCT finds on this Mac. Another machine's font set can change the lid's bytes; regenerate hashes there before comparing.
+The lid emboss uses `fonts/LiberationSans-Regular.ttf` (SIL Open Font Licence 1.1, `fonts/OFL.txt`). It does not use Arial or any system font.
+
+## Renders and drawing
+
+Headless. No GUI. Matplotlib Agg shades the STL triangulation. pypdf pins PDF dates. PNG `tIME`/`tEXt` dates are rewritten. Run twice; the hashes must match.
+
+```bash
+.venv/bin/python scripts/cad/render.py --out docs/fab/cad/v1/
+```
+
+Writes `render_medial.png`, `render_lateral.png`, `drawing.pdf` and the `views` map in `manifest.json`. It does not rebuild solids and does not change hashes in `files`.
+
+## Validate the manifest
+
+```bash
+.venv/bin/python scripts/cad/manifest.py docs/fab/cad/v1/manifest.json
+.venv/bin/python scripts/cad/manifest.py --check-bytes docs/fab/cad/v1/manifest.json
+```
+
+`schema` must be 1. `hash_rule` is SHA-256 of raw file bytes with the STEP/STL/3MF pins. `commit` is the last git commit that changed a hashed solid (`*.step`, `*.stl`, `*.3mf` under `docs/fab/cad/v1`), not HEAD. Artwork under `views` uses the same SHA-256 rule; PNG and PDF dates are pinned to 2026-09-16T00:00:00Z. `views_commit` is that same solids commit; adding or regenerating artwork does not move `commit`.
 
 ## Run the checks
 
