@@ -110,14 +110,17 @@ CLAMP_MAX_MM = 10.0
 BATTERY_RF_MIN = 5.0
 # TE Connectivity 31428, Customer Drawing C-31428 rev D4, date read
 # 2026-09-17 (contacts.md §8.1). Ring OD 5.16 → radius 2.58. Barrel end
-# 8.85 from the ring centre. Packing envelope: 1.96 wide, 6.27 long from
-# the Ø7.1 edge (WP6b second pass). The tab need not point at its pad;
-# the wire does that. Q13 short tabs are not buildable with a crimp lug.
+# 8.85 from the contact centre (0.348 in). 6.27 from the outer ring edge
+# (2.58 + 6.27 = 8.85). The Ø7.1 keep-out already covers the ring
+# (3.55 > 2.58), so the tab beyond the keep-out is 8.85 − 3.55 = 5.30.
+# Packing envelope: a0 3.55, a1 8.85, width 1.96. The tab need not point
+# at its pad; the wire does that. Q13 short tabs are not buildable.
 RING_OD = 5.16
 RING_R = RING_OD / 2.0
-LUG_A1 = 8.85  # physical barrel end from the ring centre
+LUG_A1 = 8.85  # barrel end from the contact centre; C-31428 D4 0.348 in
 TAB_W = 1.96
-TAB_LEN = 6.27  # from the Ø7.1 keep-out edge
+TAB_LEN = 6.27  # from the outer ring edge; LUG_A1 − RING_R
+TAB_PAST_KEEPOUT = LUG_A1 - KEEPOUT_R  # 5.30 mm beyond the Ø7.1 edge
 LUG_THICK = 0.46
 TAB_W_Q13 = 3.0
 LITERAL_TAB_LEN = 7.0
@@ -214,19 +217,19 @@ REF_WIRE_INFERIOR: tuple[tuple[float, float], ...] = (
 )
 # Search result (search_tab_degrees). Flat. 0° = +u, 90° = +s.
 TAB_DEG_BY_OPTION: dict[str, dict[str, float]] = {
-    "A": {"SIG1": 25.0, "SIG2": 290.0},
-    "B": {"SIG1": 25.0, "SIG2": 290.0},
-    "C": {"SIG1": 5.0, "SIG2": 255.0},
-    "E": {"SIG1": 25.0, "SIG2": 290.0},
+    "A": {"SIG1": 355.0, "SIG2": 170.0},
+    "B": {"SIG1": 355.0, "SIG2": 120.0},
+    "C": {"SIG1": 0.0, "SIG2": 180.0},
+    "E": {"SIG1": 355.0, "SIG2": 170.0},
 }
 TAB_DEG: dict[str, float] = dict(TAB_DEG_BY_OPTION["A"])
 REF_WIRE_BY_OPTION: dict[str, tuple[tuple[float, float], ...]] = {
-    "A": REF_WIRE_LOW_U,
-    "B": REF_WIRE_LOW_U,
-    "C": REF_WIRE_LOW_U,
-    "E": REF_WIRE_LOW_U,
+    "A": REF_WIRE_HIGH_U,
+    "B": REF_WIRE_INFERIOR,
+    "C": REF_WIRE_HIGH_U,
+    "E": REF_WIRE_HIGH_U,
 }
-REF_WIRE = REF_WIRE_LOW_U
+REF_WIRE = REF_WIRE_HIGH_U
 
 
 @dataclass(frozen=True, slots=True)
@@ -324,7 +327,7 @@ def _build_options() -> dict[str, Layout]:
         lead_pads=pads,
         ref_wire=REF_WIRE_BY_OPTION["A"],
         tab_deg=dict(TAB_DEG_BY_OPTION["A"]),
-        give_up="packing does not close on the plan shell",
+        give_up="nothing on the shell; 15 of 25 of the 0402s have no courtyard site",
     )
     b_s1 = BOARD_S[1] + OPTION_B_DS
     b = Layout(
@@ -343,7 +346,7 @@ def _build_options() -> dict[str, Layout]:
         lead_pads=pads,
         ref_wire=REF_WIRE_BY_OPTION["B"],
         tab_deg=dict(TAB_DEG_BY_OPTION["B"]),
-        give_up="3.5 mm of length behind the ear; M1 gate moves; VQFN still has no site",
+        give_up="3.5 mm of length behind the ear; M1 gate moves; 10 of 25 of the 0402s have no site",
     )
     c_u1 = BOARD_U[1] + OPTION_C_DU
     c = Layout(
@@ -380,7 +383,7 @@ def _build_options() -> dict[str, Layout]:
         lead_pads=pads,
         ref_wire=REF_WIRE_BY_OPTION["E"],
         tab_deg=dict(TAB_DEG_BY_OPTION["E"]),
-        give_up="a two-sided assembly; the VQFN still has no site on the medial face",
+        give_up="a two-sided assembly; 13 of 25 of the 0402s have no courtyard site",
     )
     return {"A": a, "B": b, "C": c, "E": e}
 
@@ -442,14 +445,15 @@ def tab_width(mode: str = "real") -> float:
 def tab_span(pad: str, option: str = "A", *, mode: str = "real") -> tuple[float, float]:
     """Start and end of a signal lug tab along its axis, from the contact centre.
 
-    ``mode="real"`` is TE 31428 on the board: Ø7.1 edge to Ø7.1 + 6.27.
+    ``mode="real"`` is TE 31428 on the board: Ø7.1 edge (3.55) to barrel
+    end 8.85 (C-31428 D4: 2.58 + 6.27).
     ``mode="q13"`` is the short-tab reading: Ø7.1 edge to the far pad edge.
     ``mode="literal"`` is the r2 7 mm envelope from the Ø7.1 edge.
     """
     if mode not in TAB_MODES:
         raise ValueError(f"mode must be one of {TAB_MODES}, got {mode!r}")
     if mode == "real":
-        return KEEPOUT_R, KEEPOUT_R + TAB_LEN
+        return KEEPOUT_R, LUG_A1
     if mode == "literal":
         return KEEPOUT_R, KEEPOUT_R + LITERAL_TAB_LEN
     lay = get_layout(option)
@@ -1390,7 +1394,7 @@ def render_svg(option: str = "A") -> bytes:
                 alpha=0.35,
                 hatch="\\\\",
                 linewidth=0.5,
-                label="TE 31428 barrel 1.96×6.27" if i == 0 else None,
+                label="TE 31428 tab to 8.85" if i == 0 else None,
             )
         )
 
