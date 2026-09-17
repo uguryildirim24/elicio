@@ -9,7 +9,16 @@ run is byte-identical.
 
 Writes ``render_medial.png``, ``render_lateral.png``, ``drawing.pdf`` and
 updates the ``views`` map in the manifest. Solid hashes in ``files`` are
-not rewritten.
+not rewritten. ``--debug-png DIR`` also writes the drawing page as a PNG
+(not hashed, not committed) so it can be looked at without a PDF viewer.
+
+Shading is a z-buffer rasteriser in numpy over the STL triangles, one
+flat shade per triangle, with outline and crease lines found in the depth
+and normal buffers. Every view is orthographic and head-on or edge-on, so
+the 10 mm scale bar is true in the plane of the view. Large flat faces
+shade as one tone whatever their triangulation, so tessellation seams do
+not show. Images are embedded in the PDF as rasters; the section views,
+tables and text stay vector.
 """
 from __future__ import annotations
 
@@ -17,7 +26,9 @@ import argparse
 import hashlib
 import io
 import json
+import math
 import struct
+import subprocess
 import sys
 import zlib
 from pathlib import Path
@@ -39,16 +50,23 @@ VIEWS_HASH_RULE = (
     "Creation Time text and PDF CreationDate/ModDate/ID pinned to "
     "2026-09-16T00:00:00Z. Same pin as the solids hash_rule timestamp."
 )
+# Versions the committed hashes were produced with; another matplotlib or
+# numpy build can move PNG/PDF bytes (README, "Renders and drawing").
+TESTED_WITH = "numpy 2.5.3, matplotlib 3.11.2, pypdf 6.19.0, trimesh 5.1.0"
 
-# Nylon-grey, lid slightly warmer, thin slightly cooler.
-COLOR_FULL = np.array([0.74, 0.76, 0.78])
-COLOR_THIN = np.array([0.60, 0.70, 0.80])
-COLOR_LID = np.array([0.86, 0.82, 0.72])
+# Nylon grey, thin body slightly cooler, lid warm so the seam reads.
+COLOR_FULL = np.array([0.78, 0.79, 0.80])
+COLOR_THIN = np.array([0.66, 0.74, 0.84])
+COLOR_LID = np.array([0.88, 0.80, 0.62])
+EDGE_SHADE = 0.18
+CREASE_COS = math.cos(math.radians(28.0))
+DEPTH_JUMP_MM = 0.6
+RASTER_CHUNK = 3_000_000
 
-
-def view_light(right: np.ndarray, up: np.ndarray, vf: np.ndarray) -> np.ndarray:
-    vec = 0.70 * vf + 0.40 * up + 0.25 * right
-    return vec / np.linalg.norm(vec)
+# Body-frame view directions (toward the camera) and screen up.
+MEDIAL = (np.array([0.0, -1.0, 0.0]), np.array([0.0, 0.0, 1.0]))
+LATERAL = (np.array([0.0, 1.0, 0.0]), np.array([0.0, 0.0, 1.0]))
+POSTERIOR = (np.array([1.0, 0.0, 0.0]), np.array([0.0, 0.0, 1.0]))
 
 
 class RenderError(RuntimeError):
@@ -91,12 +109,10 @@ def pin_png(data: bytes) -> bytes:
     ]
     out = bytearray(PNG_SIG)
     for tag, chunk in kept:
+        out.extend(_png_chunk(tag, chunk))
         if tag == b"IHDR":
-            out.extend(_png_chunk(tag, chunk))
             for etag, edata in extra:
                 out.extend(_png_chunk(etag, edata))
-        else:
-            out.extend(_png_chunk(tag, chunk))
     return bytes(out)
 
 
@@ -130,10 +146,11 @@ def configure_matplotlib() -> None:
     import matplotlib.pyplot as plt
     from matplotlib import font_manager
 
-    if FONT_PATH.is_file():
-        font_manager.fontManager.addfont(str(FONT_PATH))
-        name = font_manager.FontProperties(fname=str(FONT_PATH)).get_name()
-        plt.rcParams["font.family"] = name
+    if not FONT_PATH.is_file():
+        raise RenderError(f"font missing: {FONT_PATH}")
+    font_manager.fontManager.addfont(str(FONT_PATH))
+    name = font_manager.FontProperties(fname=str(FONT_PATH)).get_name()
+    plt.rcParams["font.family"] = name
     plt.rcParams.update(
         {
             "figure.autolayout": False,
@@ -142,6 +159,7 @@ def configure_matplotlib() -> None:
             "ps.fonttype": 42,
             "svg.hashsalt": "elicio-cad-v1",
             "axes.unicode_minus": False,
+            "image.interpolation": "antialiased",
         }
     )
 
@@ -160,10 +178,10 @@ def load_stl(path: Path) -> tuple[np.ndarray, np.ndarray]:
 def rotate_x(vertices: np.ndarray, deg: float) -> np.ndarray:
     rad = np.radians(deg)
     cos_a, sin_a = np.cos(rad), np.sin(rad)
-    out = np.array(vertices, copy=True)
-    y, z = out[:, 1], out[:, 2]
-    out[:, 1] = y * cos_a - z * sin_a
-    out[:, 2] = y * sin_a + z * cos_a
+    out = np.array(vertices, copy=True, dtype=np.float64)
+    y, z = out[..., 1].copy(), out[..., 2].copy()
+    out[..., 1] = y * cos_a - z * sin_a
+    out[..., 2] = y * sin_a + z * cos_a
     return out
 
 
@@ -177,157 +195,227 @@ def basis(view_forward: np.ndarray, up_hint: np.ndarray) -> tuple[np.ndarray, np
     vf = vf / np.linalg.norm(vf)
     up = np.asarray(up_hint, dtype=np.float64)
     right = np.cross(up, vf)
-    norm = np.linalg.norm(right)
-    if norm < 1e-9:
-        up = np.array([1.0, 0.0, 0.0])
-        right = np.cross(up, vf)
-        norm = np.linalg.norm(right)
-    right = right / norm
+    right = right / np.linalg.norm(right)
     up = np.cross(vf, right)
     up = up / np.linalg.norm(up)
     return right, up, vf
 
 
-def add_mesh(
-    ax,
-    vertices: np.ndarray,
-    faces: np.ndarray,
+class View:
+    """Orthographic view: screen x along ``right``, screen y along ``up``, mm."""
+
+    def __init__(self, direction: tuple[np.ndarray, np.ndarray]) -> None:
+        self.right, self.up, self.vf = basis(*direction)
+        light = 0.75 * self.vf + 0.45 * self.up - 0.35 * self.right
+        self.light = light / np.linalg.norm(light)
+
+    def project(self, points: np.ndarray) -> np.ndarray:
+        pts = np.asarray(points, dtype=np.float64)
+        return np.stack((pts @ self.right, pts @ self.up), axis=-1)
+
+    def bounds(self, meshes: list[tuple[np.ndarray, np.ndarray, np.ndarray]]) -> tuple[float, float, float, float]:
+        pts = np.concatenate([self.project(v) for v, _f, _c in meshes])
+        return (
+            float(pts[:, 0].min()),
+            float(pts[:, 0].max()),
+            float(pts[:, 1].min()),
+            float(pts[:, 1].max()),
+        )
+
+
+def rasterize(
+    view: View,
+    meshes: list[tuple[np.ndarray, np.ndarray, np.ndarray]],
     *,
-    origin: np.ndarray,
-    right: np.ndarray,
-    up: np.ndarray,
-    vf: np.ndarray,
-    color: np.ndarray,
-    light: np.ndarray,
+    extent: tuple[float, float, float, float],
+    px_per_mm: float,
+    supersample: int = 2,
 ) -> np.ndarray:
-    from matplotlib.collections import PolyCollection
+    """Return an RGB float image of ``meshes`` seen through ``view``.
 
-    tri = vertices[faces]
-    normals = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
-    lengths = np.linalg.norm(normals, axis=1)
-    good = lengths > 1e-12
-    tri, normals, lengths = tri[good], normals[good], lengths[good]
-    normals = normals / lengths[:, None]
-    visible = normals @ vf > 0.02
-    tri, normals, lengths = tri[visible], normals[visible], lengths[visible]
-    if len(tri) == 0:
-        return np.zeros((0, 2))
-    # Offset along the normal so coplanar boolean leftovers (contact caps)
-    # do not sparkle. This is a draw offset; the STL is unchanged.
-    tri = tri + 0.03 * normals[:, None, :]
-    centroids = tri.mean(axis=1)
-    order = np.argsort(centroids @ vf + 1e-5 * lengths)
-    tri, normals = tri[order], normals[order]
-    uv = np.stack(((tri - origin) @ right, (tri - origin) @ up), axis=-1)
-    intensity = 0.38 + 0.62 * np.clip(normals @ light, 0.0, 1.0)
-    rgba = np.zeros((len(tri), 4))
-    rgba[:, :3] = np.outer(intensity, color)
-    rgba[:, 3] = 1.0
-    coll = PolyCollection(
-        uv,
-        facecolors=rgba,
-        edgecolors="none",
-        linewidths=0.0,
-        antialiaseds=True,
-    )
-    ax.add_collection(coll)
-    return uv.reshape(-1, 2)
+    ``extent`` is (x0, x1, y0, y1) in view millimetres. One z-buffer for
+    all meshes, so occlusion between parts is correct.
+    """
+    x0, x1, y0, y1 = extent
+    scale = px_per_mm * supersample
+    width = int(math.ceil((x1 - x0) * scale))
+    height = int(math.ceil((y1 - y0) * scale))
+    zbuf = np.full(width * height, -np.inf)
+    tbuf = np.full(width * height, -1, dtype=np.int64)
+    tri_normal: list[np.ndarray] = []
+    tri_color: list[np.ndarray] = []
+    tri_mesh: list[np.ndarray] = []
+    offset = 0
+    for mesh_id, (vertices, faces, color) in enumerate(meshes):
+        tri = vertices[faces]
+        normal = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+        length = np.linalg.norm(normal, axis=1)
+        keep = length > 1e-12
+        tri, normal, length = tri[keep], normal[keep], length[keep]
+        normal = normal / length[:, None]
+        keep = normal @ view.vf > 1e-9
+        tri, normal = tri[keep], normal[keep]
+        sx = (tri @ view.right - x0) * scale
+        sy = (y1 - tri @ view.up) * scale
+        depth = tri @ view.vf
+        _raster_triangles(sx, sy, depth, offset, width, height, zbuf, tbuf)
+        tri_normal.append(normal)
+        tri_color.append(np.broadcast_to(color, normal.shape))
+        tri_mesh.append(np.full(len(normal), mesh_id, dtype=np.int64))
+        offset += len(normal)
+    normals = np.concatenate(tri_normal)
+    colors = np.concatenate(tri_color)
+    mesh_of = np.concatenate(tri_mesh)
+    hit = tbuf >= 0
+    idx = np.where(hit, tbuf, 0)
+    shade = 0.36 + 0.64 * np.clip(normals[idx] @ view.light, 0.0, 1.0)
+    rgb = np.where(hit[:, None], colors[idx] * shade[:, None], 1.0)
+    # Outline and crease lines from neighbouring pixels.
+    tb = tbuf.reshape(height, width)
+    zb = np.where(hit, zbuf, 0.0).reshape(height, width)
+    nb = np.where(hit[:, None], normals[idx], 0.0).reshape(height, width, 3)
+    mb = np.where(hit, mesh_of[idx], -1).reshape(height, width)
+    edge = np.zeros((height, width), dtype=bool)
+    for axis in (0, 1):
+        a = (slice(None, -1), slice(None)) if axis == 0 else (slice(None), slice(None, -1))
+        b = (slice(1, None), slice(None)) if axis == 0 else (slice(None), slice(1, None))
+        ha, hb = tb[a] >= 0, tb[b] >= 0
+        both = ha & hb
+        crease = both & ((nb[a] * nb[b]).sum(axis=-1) < CREASE_COS)
+        jump = both & (np.abs(zb[a] - zb[b]) > DEPTH_JUMP_MM)
+        part = both & (mb[a] != mb[b])
+        line = crease | jump | part | (ha != hb)
+        edge[a] |= line
+        edge[b] |= line & (ha != hb)
+    img = rgb.reshape(height, width, 3)
+    img[edge] = EDGE_SHADE
+    if supersample > 1:
+        h2, w2 = height // supersample, width // supersample
+        img = img[: h2 * supersample, : w2 * supersample]
+        img = img.reshape(h2, supersample, w2, supersample, 3).mean(axis=(1, 3))
+    return np.clip(img, 0.0, 1.0)
 
 
-def finish_view(
-    ax,
-    points: np.ndarray,
-    *,
-    title: str,
-    labels: list[tuple[float, float, str]],
-    commit: str,
-    scale_mm: float = 10.0,
+def _raster_triangles(
+    sx: np.ndarray,
+    sy: np.ndarray,
+    depth: np.ndarray,
+    offset: int,
+    width: int,
+    height: int,
+    zbuf: np.ndarray,
+    tbuf: np.ndarray,
 ) -> None:
-    ax.set_aspect("equal")
-    ax.set_axis_off()
-    ax.set_facecolor("white")
-    if points.size == 0:
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        return
-    xmin, ymin = points.min(axis=0)
-    xmax, ymax = points.max(axis=0)
-    span = max(xmax - xmin, ymax - ymin, 1.0)
-    pad = 0.08 * span
-    ax.set_xlim(xmin - pad, xmax + pad)
-    ax.set_ylim(ymin - pad, ymax + pad)
-    bar_x = xmin
-    bar_y = ymin - 0.04 * span
-    ax.plot([bar_x, bar_x + scale_mm], [bar_y, bar_y], color="black", lw=1.4, solid_capstyle="butt")
-    ax.plot([bar_x, bar_x], [bar_y - 0.6, bar_y + 0.6], color="black", lw=1.2)
-    ax.plot(
-        [bar_x + scale_mm, bar_x + scale_mm],
-        [bar_y - 0.6, bar_y + 0.6],
-        color="black",
-        lw=1.2,
+    area = (sx[:, 1] - sx[:, 0]) * (sy[:, 2] - sy[:, 0]) - (sx[:, 2] - sx[:, 0]) * (sy[:, 1] - sy[:, 0])
+    ix0 = np.clip(np.ceil(sx.min(axis=1) - 0.5), 0, width).astype(np.int64)
+    ix1 = np.clip(np.floor(sx.max(axis=1) - 0.5), -1, width - 1).astype(np.int64)
+    iy0 = np.clip(np.ceil(sy.min(axis=1) - 0.5), 0, height).astype(np.int64)
+    iy1 = np.clip(np.floor(sy.max(axis=1) - 0.5), -1, height - 1).astype(np.int64)
+    bw = np.maximum(ix1 - ix0 + 1, 0)
+    bh = np.maximum(iy1 - iy0 + 1, 0)
+    counts = np.where(np.abs(area) > 1e-12, bw * bh, 0)
+    ends = np.cumsum(counts)
+    start = 0
+    n = len(counts)
+    while start < n:
+        base = ends[start - 1] if start else 0
+        stop = int(np.searchsorted(ends, base + RASTER_CHUNK, side="right"))
+        stop = max(stop, start + 1)
+        sel = np.arange(start, stop)
+        cnt = counts[sel]
+        total = int(cnt.sum())
+        start = stop
+        if total == 0:
+            continue
+        rep = np.repeat(sel, cnt)
+        first = np.cumsum(cnt) - cnt
+        k = np.arange(total, dtype=np.int64) - np.repeat(first, cnt)
+        w = bw[rep]
+        px = ix0[rep] + k % w
+        py = iy0[rep] + k // w
+        cx = px + 0.5
+        cy = py + 0.5
+        X, Y, A = sx[rep], sy[rep], area[rep]
+        w0 = ((X[:, 1] - cx) * (Y[:, 2] - cy) - (X[:, 2] - cx) * (Y[:, 1] - cy)) / A
+        w1 = ((X[:, 2] - cx) * (Y[:, 0] - cy) - (X[:, 0] - cx) * (Y[:, 2] - cy)) / A
+        w2 = 1.0 - w0 - w1
+        inside = (w0 >= -1e-9) & (w1 >= -1e-9) & (w2 >= -1e-9)
+        if not inside.any():
+            continue
+        D = depth[rep]
+        d = (w0 * D[:, 0] + w1 * D[:, 1] + w2 * D[:, 2])[inside]
+        pid = (py * width + px)[inside]
+        tid = rep[inside] + offset
+        order = np.lexsort((-d, pid))
+        pid, d, tid = pid[order], d[order], tid[order]
+        head = np.ones(len(pid), dtype=bool)
+        head[1:] = pid[1:] != pid[:-1]
+        pid, d, tid = pid[head], d[head], tid[head]
+        better = d > zbuf[pid]
+        zbuf[pid[better]] = d[better]
+        tbuf[pid[better]] = tid[better]
+
+
+def place_image(ax, img: np.ndarray, extent: tuple[float, float, float, float], ppm: float, dx: float = 0.0) -> None:
+    """Draw ``img`` with its top-left corner at (x0 + dx, y1), one pixel = 1/ppm mm."""
+    x0, _x1, _y0, y1 = extent
+    h, w = img.shape[:2]
+    ax.imshow(
+        img,
+        extent=(x0 + dx, x0 + dx + w / ppm, y1 - h / ppm, y1),
+        origin="upper",
+        interpolation="antialiased",
+        zorder=1,
     )
+
+
+def scale_bar(ax, x: float, y: float, length: float = 10.0, size: float = 8.0) -> None:
+    ax.plot([x, x + length], [y, y], color="black", lw=1.4, solid_capstyle="butt", zorder=5)
+    for xx in (x, x + length):
+        ax.plot([xx, xx], [y - 0.6, y + 0.6], color="black", lw=1.1, zorder=5)
+    ax.text(x + length / 2.0, y - 1.0, f"{length:.0f} mm", ha="center", va="top", fontsize=size, zorder=5)
+
+
+def git_commit_date(commit: str) -> str:
+    """Committer date (YYYY-MM-DD) of the solids commit; fixed for a given commit."""
+    try:
+        return subprocess.check_output(
+            ["git", "show", "-s", "--format=%cs", commit],
+            cwd=REPO_ROOT,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip() or "unknown"
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def stamp(ax, commit: str, date: str) -> None:
     ax.text(
-        bar_x + scale_mm / 2.0,
-        bar_y - 1.4,
-        f"{scale_mm:.0f} mm",
-        ha="center",
-        va="top",
-        fontsize=8,
-        color="black",
-    )
-    ax.text(
-        0.01,
-        0.99,
-        title,
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=9,
-        color="black",
-    )
-    ax.text(
-        0.99,
-        0.01,
-        commit[:12],
+        0.995,
+        0.005,
+        f"solids commit {commit[:12]}  {date}",
         transform=ax.transAxes,
         ha="right",
         va="bottom",
         fontsize=7,
         family="monospace",
-        color="black",
     )
-    for x, y, text in labels:
-        ax.text(x, y, text, fontsize=8, color="black", ha="left", va="bottom")
 
 
-def save_png(fig, path: Path) -> bytes:
+def save_png(fig) -> bytes:
     import matplotlib.pyplot as plt
 
     buf = io.BytesIO()
-    fig.savefig(
-        buf,
-        format="png",
-        dpi=DPI,
-        facecolor="white",
-        edgecolor="none",
-        bbox_inches=None,
-        pad_inches=0.15,
-    )
+    fig.savefig(buf, format="png", dpi=DPI, facecolor="white", edgecolor="none")
     plt.close(fig)
     return pin_png(buf.getvalue())
 
 
-def save_pdf(fig, path: Path) -> bytes:
+def save_pdf(fig) -> bytes:
     import matplotlib.pyplot as plt
 
     buf = io.BytesIO()
-    fig.savefig(
-        buf,
-        format="pdf",
-        facecolor="white",
-        edgecolor="none",
-        bbox_inches=None,
-    )
+    fig.savefig(buf, format="pdf", facecolor="white", edgecolor="none")
     plt.close(fig)
     return pin_pdf(buf.getvalue())
 
@@ -337,182 +425,87 @@ def write_bytes(path: Path, data: bytes) -> dict[str, Any]:
     return {"sha256": sha256_bytes(data), "bytes": len(data)}
 
 
-def render_medial(
-    out_dir: Path,
-    *,
-    theta_deg: float,
-    commit: str,
-) -> dict[str, Any]:
+def _view_block(view: View, meshes, pad: float = 1.0) -> tuple[float, float, float, float]:
+    xa, xb, ya, yb = view.bounds(meshes)
+    return (xa - pad, xb + pad, ya - pad, yb + pad)
+
+
+def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date: str) -> dict[str, Any]:
+    """Medial faces of full p15 and thin p15, each with an edge-on posterior view."""
     import matplotlib.pyplot as plt
 
-    full_v, full_f = load_stl(out_dir / "body_full_p15.stl")
-    thin_v, thin_f = load_stl(out_dir / "body_thin_p15.stl")
-    full_v = to_body_frame(full_v, theta_deg)
-    thin_v = to_body_frame(thin_v, theta_deg)
-    gap = 8.0
-    offset = float(full_v[:, 0].max() - thin_v[:, 0].min() + gap)
-    thin_v = np.array(thin_v, copy=True)
-    thin_v[:, 0] += offset
-    # Medial 3/4: mostly −Y so caps face the camera; a little +X/+Z shows thickness.
-    right, up, vf = basis(np.array([0.28, -1.0, 0.18]), np.array([0.0, 0.0, 1.0]))
-    light = view_light(right, up, vf)
-    origin = np.array(
-        [
-            0.5 * (full_v[:, 0].mean() + thin_v[:, 0].mean()),
-            0.5 * (full_v[:, 1].mean() + thin_v[:, 1].mean()),
-            0.5 * (full_v[:, 2].mean() + thin_v[:, 2].mean()),
-        ]
+    theta = float(manifest["parameters"]["THETA_DEG"])
+    span = manifest["span"]
+    bodies = (
+        ("body_full_p15", COLOR_FULL, "full p15"),
+        ("body_thin_p15", COLOR_THIN, "thin p15"),
     )
-    fig, ax = plt.subplots(figsize=(11.0, 6.2), dpi=DPI, facecolor="white")
-    pts = []
-    pts.append(add_mesh(ax, full_v, full_f, origin=origin, right=right, up=up, vf=vf, color=COLOR_FULL, light=light))
-    pts.append(add_mesh(ax, thin_v, thin_f, origin=origin, right=right, up=up, vf=vf, color=COLOR_THIN, light=light))
-    points = np.vstack([p for p in pts if p.size])
-    full_c = (full_v - origin) @ np.stack((right, up), axis=1)
-    thin_c = (thin_v - origin) @ np.stack((right, up), axis=1)
-    labels = [
-        (float(full_c[:, 0].mean()), float(full_c[:, 1].max()) + 2.0, "full p15  BODY_THICK 9.0"),
-        (float(thin_c[:, 0].mean()), float(thin_c[:, 1].max()) + 2.0, "thin p15  BODY_THICK 7.0"),
-    ]
-    finish_view(
-        ax,
-        points,
-        title="medial  full p15 + thin p15  caps, tail, hook",
-        labels=labels,
-        commit=commit,
-        scale_mm=10.0,
-    )
-    fig.subplots_adjust(left=0.04, right=0.98, top=0.96, bottom=0.08)
-    dest = out_dir / "render_medial.png"
-    return write_bytes(dest, save_png(fig, dest))
-
-
-def render_lateral(
-    out_dir: Path,
-    *,
-    theta_deg: float,
-    commit: str,
-) -> dict[str, Any]:
-    import matplotlib.pyplot as plt
-
-    body_v, body_f = load_stl(out_dir / "body_full_p15.stl")
-    lid_v, lid_f = load_stl(out_dir / "lid.stl")
-    body_v = to_body_frame(body_v, theta_deg)
-    lid_v = to_body_frame(lid_v, theta_deg)
-    right, up, vf = basis(np.array([-0.22, 1.0, 0.16]), np.array([0.0, 0.0, 1.0]))
-    light = view_light(right, up, vf)
-    origin = np.concatenate((body_v, lid_v)).mean(axis=0)
-    fig, ax = plt.subplots(figsize=(11.0, 6.2), dpi=DPI, facecolor="white")
-    pts = []
-    pts.append(add_mesh(ax, body_v, body_f, origin=origin, right=right, up=up, vf=vf, color=COLOR_FULL, light=light))
-    pts.append(add_mesh(ax, lid_v, lid_f, origin=origin, right=right, up=up, vf=vf, color=COLOR_LID, light=light))
-    points = np.vstack([p for p in pts if p.size])
-    finish_view(
-        ax,
-        points,
-        title="lateral  full p15  lid seated, hook",
-        labels=[],
-        commit=commit,
-        scale_mm=10.0,
-    )
-    fig.subplots_adjust(left=0.04, right=0.98, top=0.96, bottom=0.08)
-    dest = out_dir / "render_lateral.png"
-    return write_bytes(dest, save_png(fig, dest))
-
-
-def _rect(ax, s0, s1, y0, y1, *, fc, ec="black", lw=0.4, hatch=None, z=2):
-    from matplotlib.patches import Rectangle
-
-    ax.add_patch(
-        Rectangle(
-            (s0, y0),
-            s1 - s0,
-            y1 - y0,
-            facecolor=fc,
-            edgecolor=ec,
-            linewidth=lw,
-            hatch=hatch,
-            zorder=z,
+    medial, posterior = View(MEDIAL), View(POSTERIOR)
+    ppm = 13.0
+    fig, ax = plt.subplots(figsize=(11.0, 6.6), dpi=DPI, facecolor="white")
+    cursor = 0.0
+    top = bottom = 0.0
+    labels: list[tuple[float, str]] = []
+    for name, color, label in bodies:
+        verts, faces = load_stl(out_dir / f"{name}.stl")
+        verts = to_body_frame(verts, theta)
+        meshes = [(verts, faces, color)]
+        thick = float(span[name]["BODY_THICK"])
+        labels.append(
+            (cursor, f"{label}:  BODY_THICK {thick:.1f} mm,  SPAN {float(span[name]['span']):.2f} (thickness + crown 1.35)")
         )
-    )
-
-
-def draw_closure_geometry(ax, cad, params: dict[str, Any]) -> dict[str, Any]:
-    """(s, y) from plan §3.3 / §3.5 constants, not pixels."""
-    lid_y = float(params["LID_Y"])
-    thick = float(params["BODY_THICK"])
-    lid_t = float(params["LID_THICK"])
-    lip_y0 = lid_y + lid_t - cad.LIP_LENGTH
-    _rect(ax, cad.LIP_S[0], 48.4, 0.0, thick, fc="#d9d9d9", ec="#444444", lw=0.5, z=1)
-    _rect(ax, cad.LID_PLATE_S[0], cad.LID_PLATE_S[1], lid_y, lid_y + lid_t, fc="#e6d9b8", ec="#5a4a20", lw=0.5, z=3)
-    _rect(ax, cad.LIP_S[0], cad.LIP_S[1], lip_y0, lid_y + lid_t, fc="#e6d9b8", ec="#5a4a20", lw=0.6, z=4)
-    _rect(ax, cad.LIP_S[1], cad.LIP_S[1] + cad.BUMP_OUT, lip_y0, lip_y0 + cad.BUMP_TALL, fc="#c9a24a", ec="#5a4a20", lw=0.6, z=5)
-    _rect(ax, cad.GROOVE_S[0], cad.GROOVE_S[1], lid_y + cad.GROOVE_Y_OFF[0], lid_y + cad.GROOVE_Y_OFF[1], fc="#ffffff", ec="#222222", lw=0.7, z=2)
-    _rect(ax, cad.NUB_S[0], cad.NUB_S[1], lid_y - cad.NUB, lid_y, fc="#e6d9b8", ec="#5a4a20", lw=0.6, hatch="///", z=4)
-    _rect(ax, cad.LID_WEB_S[0], cad.LID_WEB_S[1], lid_y + cad.LID_WEB_Y_OFF[0], lid_y + cad.LID_WEB_Y_OFF[1], fc="#e6d9b8", ec="#5a4a20", lw=0.6, z=4)
-    _rect(ax, cad.LID_TONGUE_S[0], cad.LID_TONGUE_S[1], lid_y + cad.LID_TONGUE_Y_OFF[0], lid_y + cad.LID_TONGUE_Y_OFF[1], fc="#e6d9b8", ec="#5a4a20", lw=0.6, z=4)
-    _rect(ax, cad.WEB_POCKET_S[0], cad.WEB_POCKET_S[1], lid_y + cad.WEB_POCKET_Y_OFF[0], lid_y + cad.WEB_POCKET_Y_OFF[1], fc="#ffffff", ec="#222222", lw=0.6, z=2)
-    _rect(ax, cad.TONGUE_SLOT_S[0], cad.TONGUE_SLOT_S[1], lid_y + cad.TONGUE_SLOT_Y_OFF[0], lid_y + cad.TONGUE_SLOT_Y_OFF[1], fc="#ffffff", ec="#222222", lw=0.6, z=2)
-    return {"lid_y": lid_y, "lid_t": lid_t, "lip_y0": lip_y0, "thick": thick}
-
-
-def _section_axes(ax, xlim, ylim, title: str) -> None:
-    ax.set_aspect("equal")
-    ax.set_xlim(*xlim)
-    ax.set_ylim(*ylim)
-    ax.set_xlabel("s (mm)", fontsize=7)
-    ax.set_ylabel("y (mm)", fontsize=7)
-    ax.set_title(title, fontsize=8)
-    ax.tick_params(labelsize=6)
-
-
-def shaded_pair(ax, body_v, body_f, lid_v, lid_f, view_forward, title: str):
-    right, up, vf = basis(np.asarray(view_forward, dtype=np.float64), np.array([0.0, 0.0, 1.0]))
-    light = view_light(right, up, vf)
-    origin = np.concatenate((body_v, lid_v)).mean(axis=0)
-    add_mesh(ax, body_v, body_f, origin=origin, right=right, up=up, vf=vf, color=COLOR_FULL, light=light)
-    add_mesh(ax, lid_v, lid_f, origin=origin, right=right, up=up, vf=vf, color=COLOR_LID, light=light)
-    pts = np.concatenate(
-        (
-            (body_v - origin) @ np.stack((right, up), axis=1),
-            (lid_v - origin) @ np.stack((right, up), axis=1),
-        )
-    )
+        for view, caption in ((medial, "medial face"), (posterior, "edge-on, from posterior")):
+            ext = _view_block(view, meshes)
+            img = rasterize(view, meshes, extent=ext, px_per_mm=ppm)
+            dx = cursor - ext[0]
+            place_image(ax, img, ext, ppm, dx)
+            top = max(top, ext[3])
+            bottom = min(bottom, ext[2])
+            if view is posterior:
+                # BODY_THICK dimension across the body at mid-length (y 0 → thick).
+                ymid = 0.5 * (ext[2] + ext[3]) - 8.0
+                ax.annotate(
+                    "",
+                    xy=(dx + 0.0, ymid),
+                    xytext=(dx + thick, ymid),
+                    arrowprops={"arrowstyle": "<->", "lw": 0.9, "color": "#b00000", "shrinkA": 0, "shrinkB": 0},
+                    zorder=6,
+                )
+                ax.text(dx + thick / 2.0, ymid - 1.2, f"{thick:.1f}", ha="center", va="top", fontsize=9, color="#b00000", zorder=6)
+                ax.text(dx + ext[0], ext[2] - 1.0, "medial ← → lateral", fontsize=6.5, va="top", zorder=6)
+            ax.text(cursor, ext[3] + 1.2, caption, fontsize=7.5, va="bottom", zorder=6)
+            cursor += (ext[1] - ext[0]) + (4.0 if view is medial else 14.0)
+    for x, text in labels:
+        ax.text(x, top + 6.0, text, fontsize=9.5, va="bottom", zorder=6)
+    ax.set_xlim(-2.0, cursor - 8.0)
+    ax.set_ylim(bottom - 9.0, top + 13.0)
     ax.set_aspect("equal")
     ax.set_axis_off()
-    lo, hi = pts.min(axis=0), pts.max(axis=0)
-    span = max(*(hi - lo), 1.0)
-    pad = 0.10 * span
-    ax.set_xlim(lo[0] - pad, hi[0] + pad)
-    ax.set_ylim(lo[1] - pad, hi[1] + pad)
-    ax.set_title(title, fontsize=9)
-    bar_x, bar_y = lo[0], lo[1] - 0.04 * span
-    ax.plot([bar_x, bar_x + 10.0], [bar_y, bar_y], color="black", lw=1.1)
-    ax.text(bar_x + 5.0, bar_y - 0.8, "10 mm", ha="center", va="top", fontsize=7)
-    return origin, right, up
-
-
-def _annotate(ax, origin, right, up, xyz, text, dy=0.0, dx=4.0):
-    uv = (np.asarray(xyz) - origin) @ np.stack((right, up), axis=1)
-    ax.annotate(
-        text,
-        xy=(uv[0], uv[1]),
-        xytext=(uv[0] + dx, uv[1] + 3.0 + dy),
-        fontsize=6.5,
-        arrowprops={"arrowstyle": "->", "lw": 0.5, "color": "black"},
-        color="black",
+    scale_bar(ax, 0.0, bottom - 3.5)
+    ax.text(
+        0.0,
+        1.0,
+        "Medial (skin side): three mock contact caps, tail, hook. Same scale throughout; "
+        "edge-on views show the 9.0 vs 7.0 thickness.\nFaint facet shading on curved edges is the STL mesh "
+        "(0.02 mm chord), not geometry.",
+        transform=ax.transAxes,
+        fontsize=8.5,
+        va="top",
     )
+    stamp(ax, commit, date)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.97, bottom=0.03)
+    return write_bytes(out_dir / "render_medial.png", save_png(fig))
 
 
-def draw_page(
-    out_dir: Path,
-    *,
-    cad,
-    manifest: dict[str, Any],
-    commit: str,
-) -> dict[str, Any]:
+def lid_outside_body(view: View, body: tuple, lid: tuple, extent, ppm: float) -> np.ndarray:
+    """Mask of pixels where the lid shows outside the body's silhouette."""
+    body_img = rasterize(view, [(body[0], body[1], np.ones(3))], extent=extent, px_per_mm=ppm, supersample=1)
+    lid_img = rasterize(view, [(lid[0], lid[1], np.ones(3))], extent=extent, px_per_mm=ppm, supersample=1)
+    return (lid_img.min(axis=2) < 0.999) & ~(body_img.min(axis=2) < 0.999)
+
+
+def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date: str) -> dict[str, Any]:
     import matplotlib.pyplot as plt
-    from matplotlib.gridspec import GridSpec
 
     params = manifest["parameters"]
     theta = float(params["THETA_DEG"])
@@ -520,21 +513,205 @@ def draw_page(
     lid_v, lid_f = load_stl(out_dir / "lid.stl")
     body_v = to_body_frame(body_v, theta)
     lid_v = to_body_frame(lid_v, theta)
-    fig = plt.figure(figsize=(8.27, 11.69), dpi=100, facecolor="white")
-    gs = GridSpec(
-        4,
-        6,
-        figure=fig,
-        height_ratios=[1.20, 1.05, 1.20, 0.80],
-        hspace=0.42,
-        wspace=0.55,
-        left=0.07,
-        right=0.97,
-        top=0.93,
-        bottom=0.06,
+    lateral = View(LATERAL)
+    meshes = [(body_v, body_f, COLOR_FULL), (lid_v, lid_f, COLOR_LID)]
+    ext = _view_block(lateral, meshes)
+    ppm = 13.0
+    img = rasterize(lateral, meshes, extent=ext, px_per_mm=ppm)
+    fig, ax = plt.subplots(figsize=(11.0, 6.6), dpi=DPI, facecolor="white")
+    place_image(ax, img, ext, ppm)
+    cad = load_cad()
+    path = cad.make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
+    lid_y = float(params["LID_Y"])
+
+    def at(u: float, s: float, y: float) -> np.ndarray:
+        return lateral.project(np.array(cad.p_xyz(path, u, s, y)))
+
+    lip = at(sum(cad.LIP_U) / 2.0, sum(cad.LIP_S) / 2.0, lid_y + 1.0)
+    ax.annotate(
+        "lid lip (E5) and plate edge stand past the body's top end by\n"
+        "design: the lip hooks over the top face and its bump snaps\n"
+        "into the groove (plan §3.3 LID_LIP, §3.5 step 7). The only lid\n"
+        "area outside the body outline in this view: about 9 mm²",
+        xy=lip,
+        xytext=(lip[0] + 30.0, lip[1] - 12.0),
+        fontsize=8,
+        arrowprops={"arrowstyle": "->", "lw": 0.7},
+        zorder=6,
     )
-    ax_side = fig.add_subplot(gs[0, 0:3])
-    ax_med = fig.add_subplot(gs[0, 3:6])
+    tail = at(8.5, cad.TONGUE_SLOT_S[1] - 0.8, lid_y + 1.0)
+    ax.annotate(
+        "tail lip, full thickness; the lid tongue (E1)\nis hidden in the slot under it",
+        xy=tail,
+        xytext=(tail[0] + 14.0, tail[1] - 2.0),
+        fontsize=8,
+        arrowprops={"arrowstyle": "->", "lw": 0.7},
+        zorder=6,
+    )
+    hook_c = rotate_x(
+        np.array([float(params["HOOK_ROOT_X"]) - float(params["HOOK_RADIUS"]), float(params["HOOK_ROOT_Y"]), 0.0]),
+        theta,
+    )
+    hc = lateral.project(hook_c)
+    hook_mid = lateral.project(rotate_x(np.array([float(params["HOOK_ROOT_X"]) - float(params["HOOK_RADIUS"]), float(params["HOOK_ROOT_Y"]), float(params["HOOK_RADIUS"])]), theta))
+    ax.annotate(
+        "hook, glasses flat on its lateral-superior side",
+        xy=hook_mid,
+        xytext=(hook_mid[0] + 8.0, hook_mid[1] + 3.0),
+        fontsize=8,
+        arrowprops={"arrowstyle": "->", "lw": 0.7},
+        zorder=6,
+    )
+    del hc
+    ax.set_xlim(ext[0] - 2.0, ext[1] + 62.0)
+    ax.set_ylim(ext[2] - 8.0, ext[3] + 4.0)
+    ax.set_aspect("equal")
+    ax.set_axis_off()
+    scale_bar(ax, ext[0], ext[2] - 3.0)
+    ax.text(0.0, 1.0, "Lateral (outer side): full p15, lid seated, hook", transform=ax.transAxes, fontsize=9.5, va="top")
+    stamp(ax, commit, date)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.97, bottom=0.03)
+    return write_bytes(out_dir / "render_lateral.png", save_png(fig))
+
+
+def _rect(ax, s0, s1, y0, y1, *, fc, ec="black", lw=0.5, hatch=None, z=2):
+    from matplotlib.patches import Rectangle
+
+    ax.add_patch(Rectangle((s0, y0), s1 - s0, y1 - y0, facecolor=fc, edgecolor=ec, linewidth=lw, hatch=hatch, zorder=z))
+
+
+BODY_FC, BODY_EC = "#d4d4d4", "#555555"
+LID_FC, LID_EC = "#ead9ad", "#6a5520"
+AIR_FC = "#ffffff"
+
+
+def _section_axes(ax, xlim, ylim, title: str, xlabel: str) -> None:
+    ax.set_aspect("equal")
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.set_xlabel(xlabel, fontsize=6.5, labelpad=1)
+    ax.set_ylabel("y (mm)", fontsize=6.5, labelpad=1)
+    ax.set_title(title, fontsize=7.5, pad=3)
+    ax.tick_params(labelsize=5.5, length=2, pad=1)
+
+
+def _callout(ax, xy, xytext, text) -> None:
+    ax.annotate(
+        text,
+        xy=xy,
+        xytext=xytext,
+        fontsize=5.8,
+        arrowprops={"arrowstyle": "-", "lw": 0.4, "color": "#222222"},
+        zorder=8,
+    )
+
+
+def section_lip(ax, cad, lid_y: float) -> None:
+    """(s, y) at u 11 (inside LIP_U and GROOVE_U): lip, bump, groove, E5."""
+    lip_y0 = lid_y + 1.0 - cad.LIP_LENGTH
+    _rect(ax, 0.0, 3.2, 0.0, lid_y, fc=BODY_FC, ec=BODY_EC, z=1)
+    _rect(ax, cad.CAVITY_S[0], 3.2, 1.5, lid_y, fc=AIR_FC, ec=BODY_EC, z=2)
+    _rect(ax, cad.GROOVE_S[0], cad.GROOVE_S[1], lid_y + cad.GROOVE_Y_OFF[0], lid_y + cad.GROOVE_Y_OFF[1], fc=AIR_FC, ec=BODY_EC, z=2)
+    _rect(ax, cad.LID_PLATE_S[0], 3.2, lid_y, lid_y + 1.0, fc=LID_FC, ec=LID_EC, z=3)
+    _rect(ax, cad.LIP_S[0], cad.LIP_S[1], lip_y0, lid_y + 1.0, fc=LID_FC, ec=LID_EC, z=3)
+    _rect(ax, cad.LIP_S[1], cad.LIP_S[1] + cad.BUMP_OUT, lip_y0, lip_y0 + cad.BUMP_TALL, fc="#c9a24a", ec=LID_EC, z=4)
+    _section_axes(ax, (-4.2, 3.2), (2.4, 10.0), "lip, bump, groove (E5)  at u 11", "s (mm)")
+    _callout(ax, (-0.7, 6.0), (-4.0, 7.2), "lip 1.0\nE5 min 1.0")
+    _callout(ax, (0.05, lip_y0 + 0.3), (-4.0, 3.0), "bump 0.5 × 0.6\nE5 min 0.2")
+    _callout(ax, (0.4, lid_y + cad.GROOVE_Y_OFF[1] - 0.1), (1.0, 5.2), "groove\n0.5 × 1.0")
+    _callout(ax, (1.0, lid_y + 0.5), (0.4, 9.3), "plate, lid top y 9.0")
+
+
+def section_nubs(ax, cad, lid_y: float, clear_fit: float) -> None:
+    """(u, y) at s 17.9 (through the nubs and the rib): nub to side wall, E3."""
+    _rect(ax, 0.0, 4.2, 0.0, 1.5, fc=BODY_FC, ec=BODY_EC, z=1)
+    _rect(ax, 0.0, cad.CAVITY_U[0], 0.0, lid_y, fc=BODY_FC, ec=BODY_EC, z=1)
+    _rect(ax, cad.CAVITY_U[0], 4.2, cad.RIB_Y[0], cad.RIB_Y[1], fc=BODY_FC, ec=BODY_EC, hatch="////", z=1)
+    _rect(ax, clear_fit, 4.2, lid_y, lid_y + 1.0, fc=LID_FC, ec=LID_EC, z=3)
+    nub_u = cad.NUB_U[0]
+    _rect(ax, nub_u[0], nub_u[1], lid_y - cad.NUB, lid_y, fc=LID_FC, ec=LID_EC, z=3)
+    _section_axes(ax, (-0.6, 4.2), (3.2, 9.6), "nub (E3)  at s 17.9", "u (mm)")
+    ax.annotate(
+        "",
+        xy=(cad.CAVITY_U[0], lid_y - 0.4),
+        xytext=(nub_u[0], lid_y - 0.4),
+        arrowprops={"arrowstyle": "<->", "lw": 0.5, "shrinkA": 0, "shrinkB": 0},
+        zorder=8,
+    )
+    _callout(ax, (1.7, lid_y - 0.4), (0.2, 5.6), f"nub : side wall\n{nub_u[0] - cad.CAVITY_U[0]:.1f}")
+    _callout(ax, (2.3, lid_y - 0.6), (2.6, 5.9), "nub 0.8\nE3 min 0.6")
+    _callout(ax, (3.5, 4.2), (2.6, 5.0), "rib (E2),\n0.8 in s")
+
+
+def section_tail(ax, cad, lid_y: float, thick: float) -> None:
+    """(s, y) at u 8.5 (tail centre): web, pocket, tongue, slot, E1."""
+    s0 = 44.2
+    _rect(ax, s0, cad.LID_RECESS_S1, 0.0, lid_y, fc=BODY_FC, ec=BODY_EC, z=1)
+    _rect(ax, cad.LID_RECESS_S1, cad.TONGUE_SLOT_S[1], 0.0, thick, fc=BODY_FC, ec=BODY_EC, z=1)
+    _rect(ax, cad.WEB_POCKET_S[0], cad.WEB_POCKET_S[1], lid_y + cad.WEB_POCKET_Y_OFF[0], lid_y, fc=AIR_FC, ec=BODY_EC, z=2)
+    _rect(ax, cad.TONGUE_SLOT_S[0], cad.TONGUE_SLOT_S[1] + 0.05, lid_y + cad.TONGUE_SLOT_Y_OFF[0], lid_y + cad.TONGUE_SLOT_Y_OFF[1], fc=AIR_FC, ec=BODY_EC, z=2)
+    _rect(ax, s0, cad.LID_PLATE_S[1], lid_y, lid_y + 1.0, fc=LID_FC, ec=LID_EC, z=3)
+    _rect(ax, cad.LID_WEB_S[0], cad.LID_WEB_S[1], lid_y - 0.8, lid_y, fc=LID_FC, ec=LID_EC, z=3)
+    _rect(ax, cad.LID_TONGUE_S[0], cad.LID_TONGUE_S[1], lid_y - 0.8, lid_y - 0.3, fc=LID_FC, ec=LID_EC, z=3)
+    _section_axes(ax, (s0, 49.4), (5.0, 10.2), "web, tongue, slot (E1)  at u 8.5", "s (mm)")
+    _callout(ax, (46.0, lid_y - 0.6), (44.4, 5.4), "web 0.8 in pocket 1.4")
+    _callout(ax, (47.6, lid_y - 0.55), (47.2, 5.9), "tongue 0.5\nE1 min 0.4")
+    _callout(ax, (48.2, lid_y - 0.15), (48.0, 9.6), "slot 0.9,\nlip 1.1 above")
+
+
+def load_cad():
+    import importlib.util
+
+    script = SCRIPT_DIR / "bte_fit_shell.py"
+    if "bte_fit_shell" in sys.modules:
+        return sys.modules["bte_fit_shell"]
+    spec = importlib.util.spec_from_file_location("bte_fit_shell", script)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules["bte_fit_shell"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def parameter_set_name(manifest: dict[str, Any]) -> str:
+    used = set(manifest["defaults_used"])
+    measured = [f"M{i}" for i in range(1, 9) if f"M{i}" not in used]
+    if not measured:
+        return "default.toml (REF: M1–M8 all defaults)"
+    return "overlay, measured " + ", ".join(measured)
+
+
+def fillet_summary(manifest: dict[str, Any]) -> list[str]:
+    rows = []
+    for name in ("body_full_p15", "body_thin_p15", "body_full_p25"):
+        notes = manifest["notes"].get(name, {})
+        hook = next((f for f in notes.get("fillets", []) if "hook joint" in f), "hook joint: not recorded")
+        lip = next((f for f in notes.get("fillets", []) if "lip root" in f), "lip root: not recorded")
+        rows.append(f"{name}: {hook.replace('§3.5 step 9 ', '')}; {lip}")
+    return rows
+
+
+def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date: str, debug_png: Path | None = None) -> dict[str, Any]:
+    import matplotlib.pyplot as plt
+    from matplotlib.gridspec import GridSpec
+
+    params = manifest["parameters"]
+    theta = float(params["THETA_DEG"])
+    lid_y = float(params["LID_Y"])
+    thick = float(params["BODY_THICK"])
+    body_v, body_f = load_stl(out_dir / "body_full_p15.stl")
+    lid_v, lid_f = load_stl(out_dir / "lid.stl")
+    body_v = to_body_frame(body_v, theta)
+    lid_v = to_body_frame(lid_v, theta)
+    path = cad.make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
+
+    fig = plt.figure(figsize=(8.27, 11.69), dpi=100, facecolor="white")
+    fig.suptitle("Elicio BTE fit gauge v1 — reference body (full p15) and lid", fontsize=12, y=0.985)
+    gs = GridSpec(
+        4, 6, figure=fig, height_ratios=[1.85, 0.95, 1.05, 0.95],
+        hspace=0.28, wspace=0.45, left=0.05, right=0.98, top=0.955, bottom=0.02,
+    )
+    ax_views = fig.add_subplot(gs[0, :])
     ax_lip = fig.add_subplot(gs[1, 0:2])
     ax_nub = fig.add_subplot(gs[1, 2:4])
     ax_tail = fig.add_subplot(gs[1, 4:6])
@@ -542,116 +719,150 @@ def draw_page(
     ax_e = fig.add_subplot(gs[2, 3:6])
     ax_block = fig.add_subplot(gs[3, :])
 
-    origin, right, up = shaded_pair(
-        ax_side, body_v, body_f, lid_v, lid_f, (-1.0, 0.35, 0.08), "side  (thickness × length)"
-    )
-    hook_root = np.array([float(params["HOOK_ROOT_X"]), float(params["HOOK_ROOT_Y"]), 0.0])
-    _annotate(ax_side, origin, right, up, hook_root, "M4 root Y = M4/2", dy=2.0)
-    _annotate(
-        ax_side,
-        origin,
-        right,
-        up,
-        np.array([float(params["BODY_WIDTH"]) / 2.0, float(params["BODY_THICK"]), -float(params["TOTAL_CHORD"]) / 2.0]),
-        "M3 SPAN 10.35 vs 11",
-        dy=8.0,
-        dx=2.0,
-    )
+    ppm = 11.0
+    body_mesh = (body_v, body_f, COLOR_FULL)
+    lid_mesh = (lid_v, lid_f, COLOR_LID)
+    lateral, medial, posterior = View(LATERAL), View(MEDIAL), View(POSTERIOR)
+    cursor = 0.0
+    placed: dict[str, tuple[View, float]] = {}
+    top = bottom = 0.0
+    for key, view, meshes, caption in (
+        ("lateral", lateral, [body_mesh, lid_mesh], "lateral (lid side)"),
+        ("medial", medial, [body_mesh, lid_mesh], "medial (skin side)"),
+        ("posterior", posterior, [body_mesh, lid_mesh], "edge-on from posterior"),
+    ):
+        ext = _view_block(view, meshes)
+        img = rasterize(view, meshes, extent=ext, px_per_mm=ppm)
+        dx = cursor - ext[0]
+        place_image(ax_views, img, ext, ppm, dx)
+        placed[key] = (view, dx)
+        ax_views.text(cursor, ext[3] + 1.5, caption, fontsize=8, va="bottom")
+        top, bottom = max(top, ext[3]), min(bottom, ext[2])
+        cursor += (ext[1] - ext[0]) + (30.0 if key != "posterior" else 0.0)
 
-    origin, right, up = shaded_pair(
-        ax_med, body_v, body_f, lid_v, lid_f, (0.08, -1.0, 0.05), "medial  (caps toward viewer)"
-    )
-    path = cad.make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
-    x1, _y1, z1 = cad.p_xyz(path, cad.CONTACT_1[0], cad.CONTACT_1[1], 0.0)
-    xr, _yr, zr = cad.p_xyz(path, cad.CONTACT_REF[0], cad.CONTACT_REF[1], 0.0)
-    _annotate(ax_med, origin, right, up, np.array([x1, 0.0, z1]), "C1  M1 chord along Z", dy=4.0)
-    _annotate(ax_med, origin, right, up, np.array([xr, 0.0, zr]), "REF  M6 recorded", dy=-4.0)
-    hook_inner = np.array(
-        [
-            float(params.get("HOOK_ROOT_X", 4.0)) - float(params["HOOK_RADIUS"]),
-            float(params["HOOK_ROOT_Y"]),
-            0.0,
-        ]
-    )
-    _annotate(ax_med, origin, right, up, hook_inner, "M8 HOOK_RADIUS 13.5", dy=-2.0, dx=-12.0)
+    def pt(key: str, xyz) -> np.ndarray:
+        view, dx = placed[key]
+        p = view.project(np.asarray(xyz, dtype=np.float64))
+        return np.array([p[0] + dx, p[1]])
 
-    for ax in (ax_lip, ax_nub, ax_tail):
-        info = draw_closure_geometry(ax, cad, params)
-    _section_axes(ax_lip, (-2.4, 2.8), (2.8, 10.2), "lip, bump, groove  E5")
-    ax_lip.text(cad.LIP_S[0] + 0.05, info["lip_y0"] + 2.4, "lip 1.0", fontsize=6.5)
-    ax_lip.text(cad.LIP_S[1] + 0.05, info["lip_y0"] + 0.15, "bump 0.5", fontsize=6.5)
-    ax_lip.text(cad.GROOVE_S[1] + 0.08, info["lid_y"] + cad.GROOVE_Y_OFF[0] + 0.15, "groove", fontsize=6.5)
-    _section_axes(ax_nub, (16.6, 19.4), (6.6, 9.4), "nubs  E3  (u 1.9–2.7, 14.3–15.1)")
-    ax_nub.text(cad.NUB_S[0] + 0.05, info["lid_y"] - cad.NUB - 0.35, "nub 0.8", fontsize=6.5)
-    _section_axes(ax_tail, (44.6, 49.4), (6.4, 9.6), "web, tongue, slot  E1")
-    ax_tail.text(cad.LID_WEB_S[0], info["lid_y"] + cad.LID_WEB_Y_OFF[0] - 0.35, "web 0.8", fontsize=6.5)
-    ax_tail.text(cad.LID_TONGUE_S[0], info["lid_y"] + cad.LID_TONGUE_Y_OFF[0] - 0.35, "tongue 0.5", fontsize=6.5)
+    def note(key, xyz, dxy, text, color="black"):
+        p = pt(key, xyz)
+        ax_views.annotate(
+            text, xy=p, xytext=(p[0] + dxy[0], p[1] + dxy[1]), fontsize=6.2, color=color,
+            arrowprops={"arrowstyle": "->", "lw": 0.5, "color": color}, zorder=8,
+        )
+
+    red = "#a00000"
+    # M1 / TOTAL_CHORD: the chord from O to the path end, lateral view.
+    o = pt("lateral", (0.0, lid_y + 1.0, 0.0))
+    end = pt("lateral", cad.p_xyz(path, 0.0, float(params["BODY_ARC"]), lid_y + 1.0))
+    ax_views.plot([o[0], end[0]], [o[1], end[1]], color=red, lw=0.8, ls="--", zorder=7)
+    gate = manifest["chord_gate"]
+    ax_views.text(
+        max(o[0], end[0]) + 1.5, 0.5 * (o[1] + end[1]) + 6.0,
+        f"M1 {params['M1']:.1f} vs chord O→tail\nTOTAL_CHORD {gate['total_chord']:.2f}\ngate M1 ≥ {gate['gate']:.2f}",
+        fontsize=6.2, color=red, ha="left", va="center", zorder=8,
+    )
+    # M2: path arc, CREASE_BOW.
+    arc_mid = cad.p_xyz(path, 0.0, float(params["BODY_ARC"]) / 2.0, lid_y + 1.0)
+    note("lateral", arc_mid, (5.0, -14.0), f"M2 {params['M2']:.1f} → CREASE_BOW {params['CREASE_BOW']:.2f}\nBODY_ARC {params['BODY_ARC']:.1f}\nalong the path", red)
+    # M8 and M5 on the hook, lateral view.
+    hr = float(params["HOOK_RADIUS"])
+    hcx = float(params["HOOK_ROOT_X"]) - hr
+    hook_c = rotate_x(np.array([hcx, float(params["HOOK_ROOT_Y"]), 0.0]), theta)
+    hook_top = rotate_x(np.array([hcx, float(params["HOOK_ROOT_Y"]), hr]), theta)
+    pc, ptop = pt("lateral", hook_c), pt("lateral", hook_top)
+    ax_views.annotate("", xy=ptop, xytext=pc, arrowprops={"arrowstyle": "->", "lw": 0.7, "color": red}, zorder=8)
+    ax_views.text(pc[0] + 0.8, pc[1] + 1.0, f"M8 {params['M8']:.1f} → HOOK_RADIUS {hr:.2f}\n(= M8 + HOOK_DIA/2 + 0.75)", fontsize=6.2, color=red, zorder=8)
+    a75 = math.radians(75.0)
+    hook_75 = rotate_x(np.array([hcx + hr * math.cos(a75), float(params["HOOK_ROOT_Y"]), hr * math.sin(a75)]), theta)
+    flat = "GLASSES_FLAT 0.8 over 30°–120°" if float(params["M5"]) > 0 else "no glasses flat (M5 = 0)"
+    note("lateral", hook_75, (-14.0, 9.0), f"M5 {params['M5']:.1f} → {flat}", red)
+    # M6, M7 at the contacts, medial view.
+    c1 = cad.p_xyz(path, cad.CONTACT_1[0], cad.CONTACT_1[1], -cad.CONTACT_DOME_CROWN)
+    c2 = cad.p_xyz(path, float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]), -cad.CONTACT_DOME_CROWN)
+    cr = cad.p_xyz(path, cad.CONTACT_REF[0], cad.CONTACT_REF[1], -cad.CONTACT_DOME_CROWN)
+    note("medial", c1, (12.0, 4.0), f"C1 (u {cad.CONTACT_1[0]}, s {cad.CONTACT_1[1]})\nM7 {params['M7']:.1f} recorded, not a driver", red)
+    note("medial", c2, (12.0, 0.0), "C2 = C1 + 12.0 at 22°", red)
+    note("medial", cr, (12.0, -3.0), f"REF (u {cad.CONTACT_REF[0]}, s {cad.CONTACT_REF[1]})\nM6 {params['M6']:.1f} recorded, not a driver", red)
+    # M4 and M3 on the edge-on view.
+    hook_root = rotate_x(np.array([float(params["HOOK_ROOT_X"]), float(params["HOOK_ROOT_Y"]), 0.0]), theta)
+    y0 = pt("posterior", (0.0, 0.0, 2.0))
+    yh = pt("posterior", hook_root + np.array([0.0, 0.0, 2.0]))
+    ax_views.annotate("", xy=(y0[0], y0[1] + 3.0), xytext=(yh[0], y0[1] + 3.0), arrowprops={"arrowstyle": "<->", "lw": 0.6, "color": red, "shrinkA": 0, "shrinkB": 0}, zorder=8)
+    ax_views.text(y0[0] - 1.0, y0[1] + 4.2, f"M4 {params['M4']:.1f} → hook plane\ny = M4/2 = {params['HOOK_ROOT_Y']:.1f}", fontsize=6.2, color=red, zorder=8, ha="right")
+    span_row = manifest["span"]["body_full_p15"]
+    crown = pt("posterior", c2)
+    lid_top = pt("posterior", cad.p_xyz(path, float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]), thick))
+    ax_views.annotate("", xy=(crown[0], crown[1]), xytext=(lid_top[0], crown[1]), arrowprops={"arrowstyle": "<->", "lw": 0.6, "color": red, "shrinkA": 0, "shrinkB": 0}, zorder=8)
+    ax_views.text(lid_top[0] + 1.5, crown[1], f"M3 {span_row['M3']:.1f}\nvs SPAN {span_row['span']:.2f}\n= BODY_THICK\n{thick:.1f} + crown\n1.35", fontsize=6.2, color=red, va="center", ha="left", zorder=8)
+
+    ax_views.set_xlim(-6.0, cursor + 22.0)
+    ax_views.set_ylim(bottom - 7.0, top + 5.0)
+    ax_views.set_aspect("equal")
+    ax_views.set_axis_off()
+    scale_bar(ax_views, 0.0, bottom - 3.0, size=7)
+
+    section_lip(ax_lip, cad, lid_y)
+    section_nubs(ax_nub, cad, lid_y, float(params.get("CLEAR_FIT", 0.4)))
+    section_tail(ax_tail, cad, lid_y, thick)
 
     ax_m.axis("off")
     ax_e.axis("off")
     m_rows = [
-        ["M", "lands on the part", "mm"],
-        ["M1", "ear-root chord; gate vs TOTAL_CHORD", f"{params['M1']:.2f}"],
-        ["M2", "crease arc (BODY_ARC 48.4); bow source", f"{params['M2']:.2f}"],
-        ["M3", "sulcus; SPAN = 9.0 + 1.35 crown = 10.35", f"{params['M3']:.2f}"],
-        ["M4", "HOOK_ROOT.Y = M4/2 = 3.0", f"{params['M4']:.2f}"],
-        ["M5", "GLASSES_FLAT 0.8 on hook (M5 > 0)", f"{params['M5']:.2f}"],
-        ["M6", "recorded for WP7a; not a CAD driver", f"{params['M6']:.2f}"],
-        ["M7", "recorded for WP7a; not a CAD driver", f"{params['M7']:.2f}"],
-        ["M8", "HOOK_RADIUS = M8 + 1.75 + 0.75 = 13.5", f"{params['M8']:.2f}"],
+        ["M", "value", "where it lands on the part"],
+        ["M1", f"{params['M1']:.2f}", f"gate M1 ≥ TOTAL_CHORD + 3 = {gate['gate']:.2f}"],
+        ["M2", f"{params['M2']:.2f}", f"CREASE_BOW {params['CREASE_BOW']:.2f}, " + ("computed from M1 and M2" if manifest["crease_bow"]["source"].startswith("computed") else "default (M1 and M2 not both measured)")],
+        ["M3", f"{params['M3']:.2f}", f"span report: SPAN {span_row['span']:.2f}"],
+        ["M4", f"{params['M4']:.2f}", f"HOOK_ROOT Y = M4/2 = {params['HOOK_ROOT_Y']:.2f}"],
+        ["M5", f"{params['M5']:.2f}", flat],
+        ["M6", f"{params['M6']:.2f}", "recorded for WP7a; not a CAD driver"],
+        ["M7", f"{params['M7']:.2f}", "recorded for WP7a; not a CAD driver"],
+        ["M8", f"{params['M8']:.2f}", f"HOOK_RADIUS {hr:.2f}"],
     ]
-    table_m = ax_m.table(
-        cellText=m_rows, loc="center", cellLoc="left", colWidths=[0.10, 0.72, 0.18]
-    )
+    table_m = ax_m.table(cellText=m_rows, loc="center", cellLoc="left", colWidths=[0.09, 0.13, 0.78])
     table_m.auto_set_font_size(False)
     table_m.set_fontsize(6.2)
-    table_m.scale(1.05, 1.38)
-    ax_m.set_title("M1–M8  (plan §3.3 values)", fontsize=9)
+    table_m.scale(1.0, 1.25)
+    ax_m.set_title("M1–M8 (defaults unless measured)", fontsize=8.5, pad=10)
 
     ex = manifest["exceptions"]
-    e_rows = [["id", "feature", "nominal", "fitted min"]]
-    e_rows.append(["E1", "tongue", "0.5", "0.4"])
-    e_rows.append(["E2", "rib (locating only)", "0.8", "0.8"])
-    e_rows.append(["E3", "nubs", "0.8", "0.6"])
-    e_rows.append(["E4", "coupon rib", "0.4", "0.4"])
-    e_rows.append(["E5 lip", "lip cantilever", f"{ex['E5']['plan_size']['lip']}", f"{ex['E5']['minimum']['lip']}"])
-    e_rows.append(["E5 bump", "snap bump", f"{ex['E5']['plan_size']['bump']}", f"{ex['E5']['minimum']['bump']}"])
-    table_e = ax_e.table(
-        cellText=e_rows, loc="center", cellLoc="left", colWidths=[0.16, 0.40, 0.22, 0.22]
-    )
+    e_rows = [["id", "feature", "nominal", "fitted min", "note"]]
+    for eid in ("E1", "E2", "E3", "E4"):
+        e_rows.append([eid, ex[eid]["feature"], f"{ex[eid]['plan_size']}", f"{ex[eid]['minimum']}", ex[eid].get("note", "")])
+    e_rows.append(["E5", "lip cantilever", f"{ex['E5']['plan_size']['lip']}", f"{ex['E5']['minimum']['lip']}", "below JLC 1.5"])
+    e_rows.append(["E5", "snap bump", f"{ex['E5']['plan_size']['bump']}", f"{ex['E5']['minimum']['bump']}", "below JLC 1.5"])
+    table_e = ax_e.table(cellText=e_rows, loc="center", cellLoc="left", colWidths=[0.08, 0.30, 0.14, 0.16, 0.32])
     table_e.auto_set_font_size(False)
     table_e.set_fontsize(6.2)
-    table_e.scale(1.05, 1.38)
-    ax_e.set_title("E1–E5  nominal and fitted minimum (§3.6)", fontsize=9)
+    table_e.scale(1.0, 1.25)
+    ax_e.set_title("E1–E5 exceptions (plan §3.6), from manifest.json", fontsize=8.5, pad=10)
 
     ax_block.axis("off")
-    gate = manifest["chord_gate"]
-    title = (
-        "Elicio BTE fit gauge  v1  drawing.pdf\n"
-        f"parameter set: default.toml  REF={'yes' if manifest['ref_build'] else 'no'}  "
-        f"VARIANT={params['VARIANT']}  HOOK_PRELOAD={params['HOOK_PRELOAD']}\n"
-        f"CREASE_BOW={params['CREASE_BOW']}  TOTAL_CHORD={params['TOTAL_CHORD']:.3f}  "
-        f"chord gate={gate['gate']:.3f}  (M1 ≥ TOTAL_CHORD + 3)\n"
-        f"commit (solids last-change) {commit}   date {PIN_DATE}\n"
-        "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12\n"
-        "Dimensions are plan §3.3 / §3.5 values, not measured from pixels."
-    )
-    ax_block.text(0.0, 1.0, title, ha="left", va="top", fontsize=8, family="monospace")
-    fig.suptitle("Elicio BTE fit gauge v1 — reference body + lid", fontsize=12, y=0.98)
-    dest = out_dir / "drawing.pdf"
-    return write_bytes(dest, save_pdf(fig, dest))
+    lines = [
+        f"parameter set: {parameter_set_name(manifest)}   SIDE={params.get('SIDE', 'right')}   "
+        f"VARIANT={params['VARIANT']}   HOOK_PRELOAD={params['HOOK_PRELOAD']}",
+        f"CREASE_BOW={params['CREASE_BOW']:.2f}   TOTAL_CHORD={gate['total_chord']:.3f}   "
+        f"chord gate: M1 ≥ {gate['gate']:.3f}",
+        f"solids commit {commit}   date {date}",
+        "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
+        "Built fillets (plan §3.5 asks hook joint 2.0, lip root 0.5; open questions Q3, Q4):",
+        *("  " + row for row in fillet_summary(manifest)),
+        "Numbers are plan §3.3/§3.5 constants and manifest values, not pixel measurements. Views are",
+        "orthographic STL shading at one scale; sections are drawn from the constants. Thin p15 and",
+        "full p25 differ only in BODY_THICK 7.0 and HOOK_PRELOAD 2.5 (see render_medial.png).",
+    ]
+    ax_block.text(0.0, 1.0, "\n".join(lines), ha="left", va="top", fontsize=6.6, family="monospace", linespacing=1.35)
+
+    data = save_pdf_and_debug(fig, debug_png)
+    return write_bytes(out_dir / "drawing.pdf", data)
 
 
-def load_cad():
-    import importlib.util
-
-    script = SCRIPT_DIR / "bte_fit_shell.py"
-    spec = importlib.util.spec_from_file_location("bte_fit_shell", script)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    sys.modules["bte_fit_shell"] = module
-    spec.loader.exec_module(module)
-    return module
+def save_pdf_and_debug(fig, debug_png: Path | None) -> bytes:
+    if debug_png is not None:
+        debug_png.mkdir(parents=True, exist_ok=True)
+        fig.savefig(debug_png / "drawing_page.png", format="png", dpi=160, facecolor="white")
+    return save_pdf(fig)
 
 
 def update_manifest(out_dir: Path, views: dict[str, Any], views_commit: str, solids_commit: str) -> None:
@@ -667,6 +878,7 @@ def update_manifest(out_dir: Path, views: dict[str, Any], views_commit: str, sol
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Render order-1 PNGs and drawing.pdf.")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--debug-png", type=Path, default=None, help="also write drawing_page.png here (not hashed)")
     args = parser.parse_args(argv)
     out_dir = args.out
     manifest_path = out_dir / "manifest.json"
@@ -678,12 +890,12 @@ def main(argv: list[str] | None = None) -> int:
     configure_matplotlib()
     cad = load_cad()
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    theta = float(manifest["parameters"]["THETA_DEG"])
     solids_commit = cad.git_commit_solids(REPO_ROOT)
+    date = git_commit_date(solids_commit)
     views = {
-        "render_medial.png": render_medial(out_dir, theta_deg=theta, commit=solids_commit),
-        "render_lateral.png": render_lateral(out_dir, theta_deg=theta, commit=solids_commit),
-        "drawing.pdf": draw_page(out_dir, cad=cad, manifest=manifest, commit=solids_commit),
+        "render_medial.png": render_medial(out_dir, manifest=manifest, commit=solids_commit, date=date),
+        "render_lateral.png": render_lateral(out_dir, manifest=manifest, commit=solids_commit, date=date),
+        "drawing.pdf": draw_page(out_dir, cad=cad, manifest=manifest, commit=solids_commit, date=date, debug_png=args.debug_png),
     }
     update_manifest(out_dir, views, solids_commit, solids_commit)
     print(json.dumps({"out": str(out_dir), "views": views}, indent=2))
