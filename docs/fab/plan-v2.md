@@ -1,9 +1,13 @@
-# Elicio fabrication plan v2 — draft, turn 07 (2026-09-17)
+# Elicio fabrication plan v2 — draft, turn 09 (2026-09-17)
 
 Status: DRAFT in spec dialogue (`tasks/plan-v2/turns/`). Turn 02 (Pro)
 returned findings 1–15, turn 04 findings 16–22, turn 06 findings 23–25
-with conditions on the rest; turn 07 answers them and this draft folds
-them in, several of Pro's replacement sentences verbatim. When signed off
+with conditions on the rest; turn 07 answered them (the plan rewrite
+landed at `2fbad34`, one commit after the turn file at `dba5552`); turn
+08 returned findings 26 (the rewrite was missing at `dba5552`) and 27
+(an acceptance contract for the direct-contact joint) and a C14 result;
+turn 09 folds them in, Pro's replacement paragraphs verbatim. When
+signed off
 it supersedes the named sections of `docs/fab/plan.md` (`0c5d0eb`); every
 other v1 section stands. Until sign-off nothing is ordered, quoted or
 uploaded. Inputs: plan v1; `docs/fab/open-questions.md` Q1–Q36; rounds 1
@@ -35,9 +39,10 @@ Rolf is the client.
    sits captive in a printed hex pocket; the standoff is the nut and the
    landing. The board is pulled down onto the three standoff tops by its
    own mounting screws and meets each top with a large gold pad
-   (interface I, §5.3, an unqualified candidate until G7 passes); flex
-   tabs are the fallback (interface II). No springs, no wires, no lugs,
-   no solder by Rolf. D-3.
+   (interface I, §5.3, an unqualified direct-contact candidate until G7
+   passes; the board itself supplies the compliance); flex tabs are the
+   fallback (interface II). No discrete spring contacts, no wires, no
+   lugs, no solder by Rolf. D-3.
 4. Cell: Data Power DTP301120 protected pack (40 mAh; 3.2 × 11.5 × 22
    maximum with protection; maximum continuous charge 40 mA; charge
    0–45 °C; over-discharge protection at 2.4 V, all from its sheet). The
@@ -129,15 +134,24 @@ BODY_WIDTH − 3.0. Contact stack inside the wall: the screw projects 2.5
 beyond the wall; the standoff is 3.0 long, so the screw tip sits 0.5
 below the standoff's top face, which is a flat brass face 5 mm across
 flats with a Ø2.5 threaded hole; the landing height is 3.0 above the
-floor (3.0 or 3.5, WP11 runs both; the standoff SKU is C14). Interface I
-has no springs: the board's underside pad rests on the standoff top, so
+floor (3.0, 3.5 and 4.0 are run; the standoff SKU per height is C14: turn
+08 verified a 3.0 catalogue part, Spacer Express LAI-FF-M2.5-SW5-L3-100,
+leaded nickel-plated brass, sold per 100, and a 4.0 part, Harwin
+R25-1000402, nickel plated, neither with a verified on-hand count or a
+landing drawing; no 3.5 part was found). Interface I has no discrete
+spring contacts: the board's underside pad rests on the standoff top, so
 the board underside is at the standoff height across the whole board
-(rigid), and the cell can lie under the board wherever no standoff or
-boss stands (3.2 + 0.3 foam needs a 3.5 standoff). The module sits on the
-board's top; nothing taller than the module anywhere. Turn 06 verified
-that no stocked spring-loaded SMD pin at a 2.0–2.5 working height exists
-(Mill-Max 0900 works at 3.80, 0919 at 8.13), which is why the pins are
-gone.
+(rigid, before deformation), and the cell may lie under the board only
+where no standoff or boss stands and where the cell top plus foam sits
+below the board's deformed underside with positive clearance: cell 3.2 +
+foam 0.3 = 3.5 leaves −0.5 under a 3.0 standoff and 0.0 under 3.5, so the
+cell-under-board arrangement needs the 4.0 standoff or a 0.5 recess in
+the floor under the cell (floor web ≥ 1.0 there; JLC's minimum wall is
+C15), and the cell must carry no load. The module sits on the board's
+top; nothing taller than the module anywhere. The prior review did not
+authenticate a pin meeting the complete low-height specification
+(Mill-Max 0900 works at 3.80, 0919 at 8.13); this plan elects not to use
+pins.
 Modules: Raytac 10.5 × 15.5, reserve 2.3; E73 13 × 18 × 2.0 (antenna
 keep-out is gate G3c). Cell: 22.0 × 11.5 × 3.2 plus its connector and
 100 ± 3 mm leads reserved as a routed volume; foam 0.3. Board: rigid
@@ -150,10 +164,13 @@ lays out A and B with interfaces I and II, series and stacked, at lid
 heights 6.0, 6.5, 7.0, 8.0, 8.5 and 9.0 and widths 18 to 20, with the
 complete envelopes above, and measures on the built solid. Only a
 passing layout supports a thickness. Expectation, not result: with the
-board on 3.0–3.5 standoffs, a 1.0 board and a 2.0–2.3 module, the stack
-over the module is 6.0–6.8 before clearance, so thin (4.5) is expected to
-fail and full (6.5) is marginal; the table says which, with verified
-envelopes only.
+board on 3.0–4.0 standoffs, a 1.0 board and a 2.0–2.3 module, the stack
+over the module is 6.0–7.3 before clearance, deformation and lid
+variation (outer 8.5–9.8 with the 1.5 floor and 1.0 lid, zero added
+clearance), so thin (4.5) is expected to fail and full (6.5) is marginal;
+the table says which, from the deformed maximum board envelope and a
+positively cleared, unloaded cell envelope, with verified envelopes
+only.
 
 ## 4. Architecture: gates first, then objectives
 
@@ -211,13 +228,25 @@ Gates, each pass/fail with evidence, none waived:
 - G7 Contact joint drawing: standoff SKU with thread depth, finish and
   landing face; hex pocket; pad geometry and plating; the datum chain
   from the printed floor through the standoff to the board and the
-  bosses with tolerances; the boss-to-standoff height offset that
-  guarantees the board lands on the standoffs first; the board's
-  deflection and the resulting contact force per site from its stiffness
-  and the screw preload; the pull-out margin of the board screws in PA12;
-  insulation envelope around each contact net; and the off-body
-  continuity and motion-noise test of §5.3. Interface I is an unqualified
-  candidate until this passes.
+  bosses with tolerances, both heights from one datum with the actual
+  supported relative tolerance; the nominal boss offset, screw
+  coordinates and tightening sequence; acceptable retained contact at
+  all three sites across the permitted site region, the assembly
+  sequence and the tolerance cases (low contact with high boss, high
+  contact with low boss), with a contact allowed to open in the analysis
+  rather than assigned a tensile reaction; bounded strain on the
+  populated board and its components, board-fastener and boss loads and
+  the pull-out margin in PA12; positive clearance from the cell and
+  unrelated conductors; retained preload after the specified mechanical
+  checks; insulation envelope around each contact net; and the off-body
+  contact-stability test of §5.3 with a declared low-level electrical
+  acceptance. Interface I is an unqualified candidate until this passes.
+  Before G3d/G7 passes, each standoff length actually used has an exact
+  supplier SKU, current availability and purchase quantity, a
+  dimensional/landing drawing, thread-depth and tolerance information,
+  actual base material and finish, and a supported delivered cost; a
+  near-match or generic brass family is not accepted as the selected
+  part, and no part is machined or shortened in Rolf's steps.
 - G8 Whole-project delivered budget under Rolf's ceiling (R8).
 
 Among survivors, objectives in order, proposed for Rolf's approval:
@@ -238,31 +267,60 @@ printed bosses, fastened with ISO 7380 M2.5 screws and the same hex key
 into printed pilot holes; the boss and pilot design is WP14's, the
 pull-out margin is G7's, the check is S4's.
 
-5.3 Contact interface I (default candidate). No springs. Each brass
-standoff (female M2.5, 5 mm across flats, 3.0 or 3.5 long, C14) stands
-captive in its hex pocket on the floor with the titanium screw threaded
-into it from outside, tip 0.5 below the top. The board carries on its
-underside one large gold pad per site (ENIG or hard gold, about 8 × 8,
-its net kept clear of all other copper), and is fastened to two or more
-printed bosses by ISO 7380 M2.5 screws; the bosses are designed lower
-than the standoff tops by a stated offset larger than the printed
-tolerance (± 0.3 per JLC's page) so the board always lands on the three
-standoffs first and the screws pull it down, the board's bending over
-the offset supplying the contact force (a few newtons per site from FR4
-stiffness, computed in G7). Contact: the standoff's top annulus against
-the pad. Adjustment region per site: the pad half-size minus the
-standoff's circumradius (2.9 for 5 mm across flats) minus positional
-tolerances, computed by G5; about ± 1 mm for an 8 × 8 pad, stated per
-site, never assumed. A site outside it is a stop. Path: skin → titanium
-dome → screw thread → standoff → gold pad → board. Landing states G7
-must show acceptable: pad fully on the annulus, pad edge over the hole
-(the recessed tip is never touched), standoff at the pad's edge.
-Off-body test: continuity per site under finger pressure on the shell,
-and a 30 s motion test on the bench with the trace inspected for steps
-at the µV scale. Interface II (fallback if G7 fails for I): a flex with
-FR4 stiffeners and three ring pads clamped under the standoffs, with the
+5.3 Contact interface I (default candidate). Contract, before the
+mechanism: interface I is an unqualified direct-contact candidate. The
+released drawing names the standoff and actual top-face finish, exposed
+PCB pad geometry, separate board-fastener positions, nominal boss offset
+and its full tolerance chain. G7 demonstrates acceptable retained
+contact at all three sites across the permitted site region, assembly
+sequence and tolerance cases, with bounded PCB/component strain,
+board-fastener and boss loads, and positive clearance from the cell and
+unrelated conductors. G5 computes the permitted region from both
+geometric containment and those mechanical limits; no ± 1 mm workspace is
+promised beforehand. WP11 uses the deformed maximum board envelope and a
+positively cleared, unloaded battery envelope. Off-body
+contact-stability and post-assembly mechanical checks remain release
+requirements; static calculations do not replace them. If these
+conditions fail, interface I is not eligible and interface II requires
+its own complete qualification and budget.
+
+The candidate mechanism: each standoff (female M2.5, 5 mm across flats;
+3.0 or 4.0 per C14, nickel-plated brass on both verified pages, so the
+pressure pair is nickel on gold, qualified as that pair) stands captive
+in its hex pocket on the floor with the titanium screw threaded into it
+from outside, the tip below the top at worst-case screw length, wall,
+standoff length and face tilt (nominal 0.5 for the 3.0 part, 1.5 for the
+4.0 part). The board carries on its underside one exposed gold pad per
+site (ENIG or hard gold, nominal 8 × 8, its net kept clear of all other
+copper) and is fastened to two or more printed bosses by ISO 7380 M2.5
+screws. The bosses are designed lower than the standoff tops by a
+nominal offset the drawing states (0.5 is the starting value; two
+independent ± 0.3 heights can differ adversely by 0.6, so the offset is
+justified from the datum chain, not from one tolerance figure). The
+populated board is the spring: it bends over the offset when the screws
+seat, and G7 shows the resulting reaction at every standoff for every
+tolerance case, not only that a pad touches first. Contact: the
+standoff's top annulus against the pad. Site region: the pad-containment
+bound for a 5 mm hexagon in an 8 mm exposed pad is a ≤ 4 − 5/√3 − e =
+1.113 − e per axis, e the complete adverse allowance for pad opening,
+standoff size and orientation, board-to-shell placement, pocket fit and
+edge margin; the released region is G5's output after intersection with
+G7's mechanical limits and the clearances, stated per site. A site
+outside it is a stop. Path: skin → titanium dome → screw thread →
+standoff → gold pad → board. Landing states G7 must show acceptable: pad
+fully on the annulus, pad edge over the hole with the tip clear, standoff
+at the pad's edge, edge contact on a tilted face. Off-body test:
+continuity per site under finger pressure on the shell, a 30 s motion
+test on the bench with the trace inspected at the µV scale against a
+declared acceptance, repeated after the closure and drop checks of §5.4
+and WP14. Interface II (fallback if G7 fails for I): a flex with FR4
+stiffeners and three ring pads clamped under the standoffs, with the
 same drawing content plus bend radius, strain relief and the assembler's
-flex acceptance and fixture price.
+flex acceptance and fixture price. A third candidate is recorded for the
+research lane only, not for the plan: SMD grounding spring contacts on
+the board underside (Harwin S17xx/S7121, Würth WE-GSC class) with their
+actual travel, force and landing footprint (C16); it enters the plan
+only through a turn that qualifies it.
 
 5.4 Charging port. USB-C 16-pin receptacle with 5.1 kΩ CC pull-downs,
 its mating axis normal to the medial face near the hook end, opening
@@ -310,8 +368,9 @@ part in the shell order or a folded card; WP15 says which).
 5.7 Materials table (R3): titanium screw (skin; Grade 5 uncoated per the
 seller; ISO 7380 conformity and a material record are G3d); PA12 shell
 (skin; R3 evidence or acceptance); silicone port plug (skin; material
-statement in order 3); brass standoff (inside, under the board); ENIG
-pads and gold-over-nickel pins (inside, covered by the board and lid);
+statement in order 3); nickel-plated brass standoff (inside, under the
+board; the pressure pair with the pad is nickel on gold); ENIG pads
+(inside, covered by the board and lid);
 module shield (inside); receptacle shell (recessed, behind the plug);
 cell pouch and PCM (inside, on foam); recovery switch (inside). The
 cavity is closed by the lid and the plug, not sealed; nothing inside is
@@ -436,7 +495,7 @@ Not quotes. Destination Massachusetts, USA, assumed until Rolf confirms.
 |---|---|---|---|---|
 | 1 Board | 2 to 5 boards, standard PCBA, sides per placement (two-sided assumed), 4-layer ENIG, X-ray for the module, bootloader programming if accepted | JLCPCB / MacroFab or Screaming Circuits | standard setup $25.56 one side or $51.12 two sides; stencil $8.21 or $16.42; feeder $1.53 per part line (standard tier only, not the economic $3.07); X-ray $1.64 per inspected part in the 1–10 bracket; two-fixture $16.42 where applicable | $160–240 |
 | 2 Shell | body, lid, spare lid, stand if printed; MJF PA12; finish per R3 | JLC3DP / Xometry | JLC "from $1.00, 72 h" is a starting price only | $50–90, reserved as a maximum before order 1 is paid |
-| 3 Small parts | 10 titanium screws (Sortafast $17.50), brass M2.5 standoffs (UNVERIFIED), cell (SparkFun $7.39), 1.5 mm hex key, USB-C cable, pre-cut foam pads, three silicone port plugs, three snap-electrode leads with pin sockets, gel electrodes, a nickel test kit or Rolf's written waiver | US sellers, several parcels | screws and cell page-priced; the rest allowances | $80–130 |
+| 3 Small parts | 10 titanium screws (Sortafast $17.50), M2.5 standoffs (Spacer Express 3.0 sold per 100, €91.08 ex VAT for 100 on its page, delivery 5–10 working days, shipping to Massachusetts unverified; Harwin R25-1000402 4.0 at a distributor, small-quantity price unverified), cell (SparkFun $7.39), 1.5 mm hex key, USB-C cable, pre-cut foam pads, three silicone port plugs, three snap-electrode leads with pin sockets, gel electrodes, a nickel test kit or Rolf's written waiver | US sellers, several parcels | screws and cell page-priced; the rest allowances | $80–130 |
 | Conditional | first-load kit: TC2030-IDC-NL $33.95 + Debug Probe $12.00 listed, plus jumpers, shipping | US sellers | listed prices, not a complete kit price | $50–70 |
 
 Ledger before the first payment (R8): the selected population and
@@ -484,7 +543,7 @@ Rolf's decision.
 
 | WP | Owns | Output | Acceptance |
 |---|---|---|---|
-| 11 Packing v2 | `placement.py`, Stage B of `bte_fit_shell.py`, `docs/fab/packing-v2.md` | A and B, interfaces I and II, series and stacked, lids 6.0–9.0, widths 18–20, verified envelopes only (standoffs 3.0 and 3.5, board on them, cell under the board, harness, medial opening and plug volume, bench header, switch); the per-site adjustment region from the pad geometry | measured on the built solid; the table says which close and why the rest fail |
+| 11 Packing v2 | `placement.py`, Stage B of `bte_fit_shell.py`, `docs/fab/packing-v2.md` | A and B, interfaces I and II, series and stacked, lids 6.0–9.0, widths 18–20, verified envelopes only (standoffs 3.0, 3.5 and 4.0, the deformed board envelope on them, the cell under the board only with positive clearance and no load, or beside it, harness, medial opening and plug volume, bench header, switch); the per-site region from pad containment, pending G7's mechanical limits | measured on the built solid; the table says which close and why the rest fail |
 | 12 Board | `hardware/board/`, `docs/fab/board.md` | KiCad project, ERC/DRC, BOM with assembler codes, STEP, joint drawing, G2 diagram, charger and undervoltage calculations | traced values; release job passes; reviewed against reference designs |
 | 13 Firmware | `firmware/`, protocol v2 table in `montage.md` | bootloader build and layout, streaming firmware with the §6 frame, receiver | builds in CI; bench-tested at S2 |
 | 14 Shell v2 | `scripts/cad/`, `docs/fab/cad/v2/` | body, lid, closure and hook drawings, port wall, bosses, pockets, renders, manifest | §7 checks; Stage B checks on the built solid; identical regeneration |
@@ -501,17 +560,23 @@ by turn 06 (no stocked spring-loaded SMD pin at a 2.0–2.5 working
 height; the pins are gone); C12 the harness drawing; C13 the complete
 import collection for China-origin PCBA and prints delivered to
 Massachusetts (CBP CSMS 69326983 is primary evidence for a 12.5 %
-component, not a product total); C14 a stocked brass female M2.5 hex
-standoff, 5 mm across flats, 3.0 and 3.5 long, with its finish and a
-landing-face drawing.
+component, not a product total); C14 the standoff per height actually
+used, with exact SKU, on-hand availability and purchase quantity,
+landing drawing, thread depth, tolerances, base material and finish and
+delivered cost (turn 08: Spacer Express LAI-FF-M2.5-SW5-L3-100 at 3.0 and
+Harwin R25-1000402 at 4.0 exist as catalogue pages, nickel plated, no
+stock count or landing drawing; nothing at 3.5); C15 JLC MJF PA12
+minimum wall for a 0.5 floor recess under the cell; C16 an SMD grounding
+spring contact with verified travel, force and footprint, research only.
 
 ## 13. Decisions for the dialogue, then Rolf
 
 - D-1 Thickness: from WP11's table; thin live.
 - D-2 Gates G1–G8, then objectives height, Rolf's burden, cost.
 - D-3 Interface I: board pulled onto standoff tops by its own screws,
-  gold pads, adjustment region computed per site; an unqualified
-  candidate until G7; II as fallback.
+  gold pads, the board as the spring, under the §5.3 contract; an
+  unqualified candidate until G7; standoff 3.0 or 4.0 per C14; II as
+  fallback.
 - D-4 Cell DTP301120 with a BQ25100-class charger at 20 mA, termination
   and timers active, TS fixed network, temperature window by procedure.
 - D-5 R7 as rewritten with Pro's limits: a procedural rule for Rolf's
