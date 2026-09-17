@@ -1449,8 +1449,11 @@ def assemble_shell(
     stub = _overlap_volume(hook, cavity)
     notes["hook_stub_in_cavity_removed_mm3"] = round(stub, 4)
     if stub > 0.0:
-        hook = _first_solid(hook.cut(cavity), "hook")
-    fused = body_r.fuse(hook)
+        # The cut can leave a sliver of tube inside the floor (y < WALL_MEDIAL,
+        # at large bows); it lies in body material, so the whole cut result is
+        # fused and the one-solid check runs on the assembly.
+        hook = hook.cut(cavity)
+    fused = _first_solid(body_r.fuse(hook), "body+hook")
     hook_r = float(params["HOOK_RADIUS"])
     hook_dia = float(params["HOOK_DIA"])
     root = Vector(float(params.get("HOOK_ROOT_X", 4.0)), float(params["HOOK_ROOT_Y"]), 0.0)
