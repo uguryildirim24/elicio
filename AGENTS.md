@@ -66,6 +66,7 @@ All training/evaluation splits must use `cross_session_split` and
 | `src/elicio/pipeline/` | GRABMyo preparation, feature extraction, splitting, models, and CLI |
 | `tests/` | Class-based stdlib `unittest` suite |
 | `docs/` | Engineering handoff and research provenance ledger |
+| `docs/fab/` | Stage B fabrication plan, lane reports, and CAD outputs |
 
 `.elicio-demo/`, `.elicio-replay-demo/`, `results/`, `.venv/`, `__pycache__/`, and `*.egg-info/`
 are generated or local artifacts. `.elicio-demo/` and `*.egg-info/` are gitignored.
@@ -151,6 +152,7 @@ engineering work.
 - `src/elicio/signal/detector.py` and `src/elicio/signal/replay.py`: detection and deterministic fixtures.
 - `src/elicio/signal/capture.py`: stream parsing, recording save/load, and the biofeedback meter.
 - `docs/EARPIECE_DESIGN.md`: earpiece hardware design record, staged build plan, and safety rules.
+- `docs/fab/plan.md`: Phase 1 fabrication contract for the Stage B shell.
 - `src/elicio/pipeline/config.py`: shared research defaults.
 - `src/elicio/pipeline/splits.py`: session-leakage guard.
 - `src/elicio/pipeline/README.md`: pipeline workflow and data shapes.
