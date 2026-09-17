@@ -337,6 +337,34 @@ a nickel test kit, allowance about $130, after the §9 gates.
 Fail at S3 returns to S2. Changed contacts, coordinates, or shell void
 the affected S0 and S3 observations.
 
+### Phase 1, rounds 1 to 3 (2026-09-17)
+
+**Order 1 files exist; packing and a real cell still wait on Rolf.**
+Rounds 1 to 3 left the order 1 solids, renders and drawing in
+`docs/fab/cad/v1/`, interface version 2 in `docs/fab/interface.md`,
+measurement and order sheets in `docs/fab/measure.md`,
+`docs/fab/order1.md` and `docs/fab/orders.md`, the contacts kit with
+drawings in `docs/fab/contacts.md`, the frozen dry-test protocol in
+`docs/fab/montage.md`, and the packing sheet in
+`docs/fab/packing-options.md`.
+
+Decisions after the plan live in one place:
+`docs/fab/open-questions.md`. The plan stays the spec. Where a review
+disagrees on a number, that file records the reading the build follows
+until Rolf rules.
+
+Three facts changed the design's shape.
+
+A crimp ring lug does not end under its pad. The drawings are in
+`docs/fab/contacts.md` §8.
+
+Only the 3 mm wider body closes the packing on that lug, pending Rolf.
+The layouts are in `docs/fab/packing-options.md`.
+
+No published cell pack fits folded, so the plan's hand fold stands until
+a cell is measured. The SKUs that were read are in
+`docs/fab/interface.md` §5.
+
 ## Open questions
 
 1. ~~Does the owner's voluntary auricular control include each ear
@@ -348,16 +376,15 @@ the affected S0 and S3 observations.
 2. Can the owner produce a tensor tympani rumble at all? Stage C answers
    this with the pressure sensor if self-testing stays inconclusive.
 3. Exact microcontroller and ADC for Stage B (the bench stage is
-   deliberately module-based and forgiving). Pointed 2026-09-16, still
-   open until WP6 confirms the board: L4
+   deliberately module-based and forgiving). Pointed 2026-09-16: L4
    (`docs/fab/L4-pod.md`) picks the Raytac MDBT50Q-1MV2 (nRF52840) for
-   the custom board and the TI ADS1292 as the front-end ADC. Envelope,
-   keep-outs, and packing live in the interface (`docs/fab/interface.md`,
-   WP1 then WP6). The board itself stays out of the shell plan.
-4. ~~Dry-electrode contact geometry behind the ear, where skin curvature
+   the custom board and the TI ADS1292 as the front-end ADC. Status
+   2026-09-17, electronics fit: WP6 ran the packing options against the
+   real lug; the result is in `docs/fab/packing-options.md`. The pick is
+   Rolf's (Q20).
+4. Dry-electrode contact geometry behind the ear, where skin curvature
    is tighter than the forearm geometries in the cited papers. Constrained
-   by the fabrication route chosen below.~~ Answered 2026-09-16 by the
-   fabrication plan §3.3 and §4: three ISO 7380 M2.5 titanium button
-   heads (4.7 mm domes), pair at 22° off the body axis at 12 mm pitch,
-   reference in the tail over the mastoid surface. Final coordinates
-   wait on the WP7a montage test.
+   by the fabrication route chosen below. Status 2026-09-17: the plan
+   §3.3 defaults stand until WP7a part 2, which waits on the Stage A
+   parts (`docs/fab/montage.md` §1). The reference site is checked when
+   the gauge is worn (Q17).
