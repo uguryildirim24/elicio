@@ -110,17 +110,18 @@ CLAMP_MAX_MM = 10.0
 BATTERY_RF_MIN = 5.0
 # TE Connectivity 31428, Customer Drawing C-31428 rev D4, date read
 # 2026-09-17 (contacts.md §8.1). Ring OD 5.16 → radius 2.58. Barrel end
-# 8.85 from the ring centre, 6.27 from the outer ring edge. Barrel width
-# 1.96 max. Stock 0.46 nominal. The tab need not point at its pad; the
-# wire does that. Q13 short tabs (3 mm, far pad edge) are not a SKU.
+# 8.85 from the ring centre. Packing envelope: 1.96 wide, 6.27 long from
+# the Ø7.1 edge (WP6b second pass). The tab need not point at its pad;
+# the wire does that. Q13 short tabs are not buildable with a crimp lug.
 RING_OD = 5.16
 RING_R = RING_OD / 2.0
-LUG_A1 = 8.85
+LUG_A1 = 8.85  # physical barrel end from the ring centre
 TAB_W = 1.96
-TAB_LEN = 6.27  # LUG_A1 - RING_R, from the outer ring edge
+TAB_LEN = 6.27  # from the Ø7.1 keep-out edge
 LUG_THICK = 0.46
 TAB_W_Q13 = 3.0
 LITERAL_TAB_LEN = 7.0
+TAB_SEARCH_STEP = 5.0
 SKIN_Y = 1.5
 TAB_MODES = ("real", "q13", "literal")
 KEEPOUT_TOP_Y = 4.13
@@ -203,10 +204,29 @@ REF_WIRE_HIGH_U: tuple[tuple[float, float], ...] = (
     (4.0, 26.4),
     (4.0, 29.0),
 )
-# SIG1 0° (+u, out of the pad cluster). SIG2 180° (−u, out of the VQFN
-# corridor). packing-options.md records the pair after the angle search.
-TAB_DEG: dict[str, float] = {"SIG1": 0.0, "SIG2": 180.0}
-REF_WIRE = REF_WIRE_HIGH_U
+REF_WIRE_INFERIOR: tuple[tuple[float, float], ...] = (
+    (8.5, 40.5),
+    (8.5, 41.0),
+    (14.80, 41.0),
+    (14.80, 26.4),
+    (4.0, 26.4),
+    (4.0, 29.0),
+)
+# Search result (search_tab_degrees). Flat. 0° = +u, 90° = +s.
+TAB_DEG_BY_OPTION: dict[str, dict[str, float]] = {
+    "A": {"SIG1": 25.0, "SIG2": 290.0},
+    "B": {"SIG1": 25.0, "SIG2": 290.0},
+    "C": {"SIG1": 5.0, "SIG2": 255.0},
+    "E": {"SIG1": 25.0, "SIG2": 290.0},
+}
+TAB_DEG: dict[str, float] = dict(TAB_DEG_BY_OPTION["A"])
+REF_WIRE_BY_OPTION: dict[str, tuple[tuple[float, float], ...]] = {
+    "A": REF_WIRE_LOW_U,
+    "B": REF_WIRE_LOW_U,
+    "C": REF_WIRE_LOW_U,
+    "E": REF_WIRE_LOW_U,
+}
+REF_WIRE = REF_WIRE_LOW_U
 
 
 @dataclass(frozen=True, slots=True)
@@ -288,8 +308,6 @@ def chord_from_arc_bow(arc: float, bow: float = CREASE_BOW) -> tuple[float, floa
 
 def _build_options() -> dict[str, Layout]:
     pads = dict(LEAD_PADS)
-    wire = REF_WIRE
-    deg = dict(TAB_DEG)
     a = Layout(
         option="A",
         board_len=BOARD_LEN,
@@ -304,9 +322,9 @@ def _build_options() -> dict[str, Layout]:
         body_arc=BODY_ARC,
         two_sided=False,
         lead_pads=pads,
-        ref_wire=wire,
-        tab_deg=deg,
-        give_up="nothing on the shell",
+        ref_wire=REF_WIRE_BY_OPTION["A"],
+        tab_deg=dict(TAB_DEG_BY_OPTION["A"]),
+        give_up="packing does not close on the plan shell",
     )
     b_s1 = BOARD_S[1] + OPTION_B_DS
     b = Layout(
@@ -323,9 +341,9 @@ def _build_options() -> dict[str, Layout]:
         body_arc=BODY_ARC + OPTION_B_DS,
         two_sided=False,
         lead_pads=pads,
-        ref_wire=wire,
-        tab_deg=deg,
-        give_up="3.5 mm of length behind the ear; M1 gate moves",
+        ref_wire=REF_WIRE_BY_OPTION["B"],
+        tab_deg=dict(TAB_DEG_BY_OPTION["B"]),
+        give_up="3.5 mm of length behind the ear; M1 gate moves; VQFN still has no site",
     )
     c_u1 = BOARD_U[1] + OPTION_C_DU
     c = Layout(
@@ -342,8 +360,8 @@ def _build_options() -> dict[str, Layout]:
         body_arc=BODY_ARC,
         two_sided=False,
         lead_pads=pads,
-        ref_wire=wire,
-        tab_deg=deg,
+        ref_wire=REF_WIRE_BY_OPTION["C"],
+        tab_deg=dict(TAB_DEG_BY_OPTION["C"]),
         give_up="3 mm of width in the crease",
     )
     e = Layout(
@@ -360,9 +378,9 @@ def _build_options() -> dict[str, Layout]:
         body_arc=BODY_ARC,
         two_sided=True,
         lead_pads=pads,
-        ref_wire=wire,
-        tab_deg=deg,
-        give_up="a two-sided assembly; plan §5 listed only the module on the lateral face",
+        ref_wire=REF_WIRE_BY_OPTION["E"],
+        tab_deg=dict(TAB_DEG_BY_OPTION["E"]),
+        give_up="a two-sided assembly; the VQFN still has no site on the medial face",
     )
     return {"A": a, "B": b, "C": c, "E": e}
 
@@ -424,14 +442,14 @@ def tab_width(mode: str = "real") -> float:
 def tab_span(pad: str, option: str = "A", *, mode: str = "real") -> tuple[float, float]:
     """Start and end of a signal lug tab along its axis, from the contact centre.
 
-    ``mode="real"`` is TE 31428: ring radius 2.58 to barrel end 8.85.
+    ``mode="real"`` is TE 31428 on the board: Ø7.1 edge to Ø7.1 + 6.27.
     ``mode="q13"`` is the short-tab reading: Ø7.1 edge to the far pad edge.
     ``mode="literal"`` is the r2 7 mm envelope from the Ø7.1 edge.
     """
     if mode not in TAB_MODES:
         raise ValueError(f"mode must be one of {TAB_MODES}, got {mode!r}")
     if mode == "real":
-        return RING_R, LUG_A1
+        return KEEPOUT_R, KEEPOUT_R + TAB_LEN
     if mode == "literal":
         return KEEPOUT_R, KEEPOUT_R + LITERAL_TAB_LEN
     lay = get_layout(option)
@@ -442,12 +460,14 @@ def tab_span(pad: str, option: str = "A", *, mode: str = "real") -> tuple[float,
     return KEEPOUT_R, d + PAD_SIZE / 2.0
 
 
-def _tab_axes(pad: str, option: str = "A", *, mode: str = "real") -> tuple[tuple[float, float], float, float]:
+def _tab_axes(
+    pad: str, option: str = "A", *, mode: str = "real", deg: float | None = None
+) -> tuple[tuple[float, float], float, float]:
     c = PAD_CONTACT[pad]
     assert c is not None
     if mode == "real":
-        deg = get_layout(option).tab_deg[pad]
-        rad = math.radians(deg)
+        angle = get_layout(option).tab_deg[pad] if deg is None else deg
+        rad = math.radians(angle)
         return c, math.cos(rad), math.sin(rad)
     lay = get_layout(option)
     pu, ps = lay.lead_pads[pad]
@@ -456,10 +476,16 @@ def _tab_axes(pad: str, option: str = "A", *, mode: str = "real") -> tuple[tuple
 
 
 def point_tab_gap(
-    pad: str, u: float, s: float, option: str = "A", *, mode: str = "real"
+    pad: str,
+    u: float,
+    s: float,
+    option: str = "A",
+    *,
+    mode: str = "real",
+    deg: float | None = None,
 ) -> float:
     """Distance from (u, s) to the tab rectangle of ``pad``'s contact; 0 inside."""
-    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode)
+    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode, deg=deg)
     a0, a1 = tab_span(pad, option, mode=mode)
     along = (u - cu) * eu + (s - cs) * es
     across = -(u - cu) * es + (s - cs) * eu
@@ -468,8 +494,10 @@ def point_tab_gap(
     return math.hypot(da, dc)
 
 
-def tab_corners(pad: str, option: str = "A", *, mode: str = "real") -> list[tuple[float, float]]:
-    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode)
+def tab_corners(
+    pad: str, option: str = "A", *, mode: str = "real", deg: float | None = None
+) -> list[tuple[float, float]]:
+    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode, deg=deg)
     a0, a1 = tab_span(pad, option, mode=mode)
     h = tab_width(mode) / 2.0
     return [
@@ -902,13 +930,19 @@ def wire_tab_gap(pad: str, samples: int = 400, option: str = "A") -> float:
     return best
 
 
-def _box_tab_gap(pad: str, box: tuple[float, float, float, float], option: str = "A") -> float:
+def _box_tab_gap(
+    pad: str,
+    box: tuple[float, float, float, float],
+    option: str = "A",
+    *,
+    deg: float | None = None,
+) -> float:
     """Smallest gap from a box to a tab rectangle; ≤ 0 when they touch."""
     x, y, wu, ws = box
     corners_box = [(x, y), (x + wu, y), (x + wu, y + ws), (x, y + ws)]
-    if any(point_tab_gap(pad, cu, cs, option) == 0.0 for cu, cs in corners_box):
+    if any(point_tab_gap(pad, cu, cs, option, deg=deg) == 0.0 for cu, cs in corners_box):
         return 0.0
-    tab = tab_corners(pad, option)
+    tab = tab_corners(pad, option, deg=deg)
     if any(x <= tu <= x + wu and y <= ts <= y + ws for tu, ts in tab):
         return 0.0
     gaps = []
@@ -950,6 +984,110 @@ def corner_pad_boxes(option: str = "A") -> list[tuple[float, float, float, float
         (zu0, zs1 - CORNER_PAD, CORNER_PAD, CORNER_PAD),
         (zu1 - CORNER_PAD, zs1 - CORNER_PAD, CORNER_PAD, CORNER_PAD),
     ]
+
+
+def tab_reasons(pad: str, deg: float, option: str = "A") -> list[str]:
+    """Why a flat TE 31428 tab at ``deg`` fails (empty means the metal is legal)."""
+    lay = get_layout(option)
+    us = [c[0] for c in tab_corners(pad, option, deg=deg)]
+    ss = [c[1] for c in tab_corners(pad, option, deg=deg)]
+    out: list[str] = []
+    if min(us) < lay.cavity_u[0] or max(us) > lay.cavity_u[1]:
+        out.append(f"wall-u {min(us):.2f}–{max(us):.2f}")
+    if min(ss) < lay.cavity_s[0] or max(ss) > lay.cavity_s[1]:
+        out.append(f"wall-s {min(ss):.2f}–{max(ss):.2f}")
+    if min(ss) < BATTERY_S[1]:
+        out.append("battery")
+    for name, _pad in lay.lead_pads.items():
+        if name == pad:
+            continue
+        if _box_tab_gap(pad, pad_box(name, option), option, deg=deg) < COPPER_FREE:
+            out.append(f"pad-{name}")
+    for i, box in enumerate(corner_pad_boxes(option)):
+        if _box_tab_gap(pad, box, option, deg=deg) <= 0.0:
+            out.append(f"corner-{i}")
+    return out
+
+
+def legal_tab_degrees(
+    pad: str, option: str = "A", step: float = TAB_SEARCH_STEP
+) -> list[float]:
+    """Angles (deg, 0 = +u, 90 = +s) where the flat barrel clears walls and pads."""
+    out: list[float] = []
+    deg = 0.0
+    while deg < 360.0 - 1e-9:
+        if not tab_reasons(pad, deg, option):
+            out.append(deg)
+        deg += step
+    return out
+
+
+def tab_tab_gap_at(d1: float, d2: float, option: str = "A") -> float:
+    a = tab_corners("SIG1", option, deg=d1)
+    b = tab_corners("SIG2", option, deg=d2)
+    if any(point_tab_gap("SIG2", u, s, option, deg=d2) == 0.0 for u, s in a):
+        return 0.0
+    if any(point_tab_gap("SIG1", u, s, option, deg=d1) == 0.0 for u, s in b):
+        return 0.0
+    gaps = []
+    for i in range(4):
+        p, q = a[i], a[(i + 1) % 4]
+        for r in b:
+            gaps.append(_segment_point_gap(p, q, r))
+        p, q = b[i], b[(i + 1) % 4]
+        for r in a:
+            gaps.append(_segment_point_gap(p, q, r))
+    return min(gaps)
+
+
+SEARCH_WIRE: dict[str, tuple[tuple[float, float], ...]] = {}
+
+
+@functools.cache
+def search_tab_degrees(
+    option: str = "A", step: float = TAB_SEARCH_STEP
+) -> dict[str, float]:
+    """Pick a SIG1/SIG2 pair. Prefers all named parts placed, then more 0402s.
+
+    Tries the low-u and high-u reference wires. Signal tabs stay flat:
+    ``upright_signal_clear_mm`` is negative. Restores the layout on the way out.
+    """
+    lay = get_layout(option)
+    saved_deg = dict(lay.tab_deg)
+    saved_wire = lay.ref_wire
+    sig1 = legal_tab_degrees("SIG1", option, step)
+    sig2 = legal_tab_degrees("SIG2", option, step)
+    wires = [("low", REF_WIRE_LOW_U), ("high", REF_WIRE_HIGH_U)]
+    if get_layout(option).cavity_s[1] > CAVITY_S[1] + 1e-9:
+        wires.append(("inferior", REF_WIRE_INFERIOR))
+    best: tuple[tuple[int, int, int, float, float], float, float, str] | None = None
+    try:
+        for d1 in sig1:
+            for d2 in sig2:
+                if tab_tab_gap_at(d1, d2, option) < COPPER_FREE:
+                    continue
+                deg = {"SIG1": float(d1), "SIG2": float(d2)}
+                for wname, wire in wires:
+                    bind_layout(option, tab_deg=deg, ref_wire=wire)
+                    if wire_keepout_gap(option) < 0:
+                        continue
+                    if wire_tab_gap("SIG1", option=option) < 0 or wire_tab_gap("SIG2", option=option) < 0:
+                        continue
+                    parts = placed_parts(option)
+                    missing = sum(1 for name in PART_TARGETS if name not in parts)
+                    n_ok = 1 if missing == 0 else 0
+                    n_parts = len(parts)
+                    n_0402 = len(place_0402s(option=option)) if n_ok else 0
+                    score = (n_ok, n_parts, n_0402, -abs(d1), -abs(d2 - 180.0))
+                    if best is None or score > best[0]:
+                        best = (score, float(d1), float(d2), wname)
+        if best is None:
+            raise ValueError(f"no legal TE 31428 tab pair for option {option}")
+        _score, d1, d2, wname = best
+        SEARCH_WIRE[option.upper()] = {"low": REF_WIRE_LOW_U, "high": REF_WIRE_HIGH_U, "inferior": REF_WIRE_INFERIOR}[wname]
+        return {"SIG1": d1, "SIG2": d2}
+    finally:
+        bind_layout(option, tab_deg=saved_deg, ref_wire=saved_wire)
 
 
 def layout_conflicts(option: str = "A") -> list[str]:
