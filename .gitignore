@@ -8,3 +8,5 @@ __pycache__/
 .claude/state/
 .elicio-replay-demo/
 .elicio-recording-replay/
+.worktrees/
+.reports/
