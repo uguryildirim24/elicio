@@ -36,6 +36,17 @@ The reviewer numbered its decisions 13 to 19; these are Q13 to Q19.
 | Q18 | Cell pack: no published 501015 pack fits folded; the DNK in-line pack is 17 ± 1 long and its drawing is preliminary; the plan's hand fold has 0.3 to 0.5 mm for PCM and Kapton | The plan's fold on the lateral face stands as the design. One cell is bought with the Stage A parts and its folded thickness measured; the +2.4 mm pocket is WP8's fallback and moves the M1 gate, which the interface states. No cell purchase on a preliminary drawing | measurement on a real cell; **Rolf** buys it | open |
 | Q19 | The PROPOSED numbers in `montage.md` §3 (5 µV RMS, 45 µV, 3:1 flex, 10:1 clench, 70 % ratio, 100 ms dropout, ±0.5 V at the INA128 output, 9 of 10, 0.20 per minute eating, 0 talking and walking, the yawn and smile counts) | Frozen as proposed. The file's own rule allows one revision from Stage A gel data before the first dry recording, with a dated row. Rolf may edit them earlier | **Rolf**, before S1 | open |
 
+## Round 3 (review `tasks/reviews/code-r3.md`, merged 2026-09-17)
+
+The reviewer numbered its decisions 20 to 23; these are Q20 to Q23.
+
+| # | Question | Reading the build follows | Closes it | Status |
+|---|---|---|---|---|
+| Q20 | Packing: on the real TE 31428 lug with leads that can leave their barrels, only option C closes (BODY_WIDTH 17 → 20, board 19 × 15.5), with the lead pads moved to SIG1 (7.5, 29.35), SIG2 (13.5, 21.35), REF (5.5, 29.35) and one reference-over-SIG1 wire crossing on the floor where nothing sits above it | Rolf's pick from `docs/fab/packing-options.md`. Coordinator's reading: C, with the crossing (the plan does not forbid one; the alternative is a 2 mm lead bend against the plan's 3). WP8 starts on the line "I pick C". Closes Q15 | **Rolf** | open |
+| Q21 | Reference lug in the tail pocket: TE 31428 upright is 1.96 thick against the plan's 1.5 envelope, reaches about y 8.2 against the lid at 8.0 when bent at the ring edge, and its wire would leave pointing at the lid | Before order 2, bend the tab toward the axis over the Kapton at a smaller radius and check it as installed geometry (plan §10 already requires that check); WP8 sizes the pocket to the real lug. Changing KEEPOUT_REF in plan §3.3 is Rolf's | **Rolf** (plan §3.3), before order 2 | open |
+| Q22 | Signal lug barrel height: 1.96 mm across against the plan's 1.5 mm tab envelope; the barrel tops at y 3.46 under the board at 4.3 | Plan erratum: the flat-tab envelope height becomes 2.0 for WP8's keep-out solids; the placement already keeps parts and copper off the barrel strip, so option C does not change. Rolf may instead ask WP5 for a flatter barrel | plan erratum, coordinator; Rolf may override | decided |
+| Q23 | 28 AWG wire in TE 31428's 26 to 22 AWG barrel (carried from round 1) | Fold the strip and solder the crimp, as the assembly sheet says; acceptable for a bench prototype. WP5 keeps looking for a 28 AWG barrel of similar length at purchase time | Rolf accepts, or WP5 at purchase time | open, low |
+
 ## For Rolf
 
 Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
@@ -46,6 +57,8 @@ Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
 - Buying the Stage A parts (`docs/STAGE_A_PARTS.md`) gates WP7a part 2 and
   order 2; add one 501015 cell to that order for Q18.
 - Q13 confirm the short lug tab, or keep 7 mm and the pads move.
-- Q15 pick the packing escalation once WP6 round 3 has the sheet.
+- Q20 pick the packing option from `docs/fab/packing-options.md` (only C closes); this closes Q15.
+- Q21 the reference lug in the tail pocket, before order 2.
+- Q23 accept fold-and-solder for the 28 AWG lead in the 26 to 22 AWG barrel.
 - Q17 after wearing the gauge: is the reference mark on bone.
 - Q19 accept the frozen protocol numbers, or edit them before Stage A data.
