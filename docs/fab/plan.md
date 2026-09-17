@@ -1,445 +1,458 @@
 # Elicio earpiece — fabrication plan
 
 Phase 0 synthesis and Phase 1 specification for the Stage B behind-the-ear
-shell. Draft, turn 01, 2026-09-16. Author `fable`, reviewer `pro`. Inputs:
-`docs/fab/brief.md`, `docs/EARPIECE_DESIGN.md`, `docs/fab/L1-cad.md` (L1),
-`docs/fab/L2-vendors.md` (L2), `docs/fab/L3-contacts.md` (L3),
-`docs/fab/L4-pod.md` (L4). Lane reports are evidence, not law; where they
-disagree, section 2 picks and says why. Nothing here buys anything.
+shell. Revision 2, turn 03, 2026-09-16. Author `fable`, reviewer `pro`.
+Inputs: `docs/fab/brief.md`, `docs/EARPIECE_DESIGN.md`, lane reports L1–L4
+in `docs/fab/`, and `tasks/plan/turns/02-pro.md`. Lane reports are evidence,
+not law; section 2 picks and says why. Nothing here buys anything.
 
-**For Rolf, in short.** We script the shell in Python (build123d), not
-Blender, from eight caliper numbers you take at home, with defaults that
-print a plausible shell if you take none. JLCPCB prints it in nylon (MJF
-PA12) and ships to Massachusetts with duties prepaid; the first order is
-three shells and two lids for about $33. The skin contacts are three small
-titanium domes you screw in yourself. The first shell is a fit gauge with no
-electronics: you wear it for four hours and answer the checklist in section
-3.7. The second shell, with real contact holes, is ordered only after that
-check and after the bench amplifier has told us where the contacts belong.
+**For Rolf, in short.** The shell is scripted in Python (build123d), not
+Blender, from eight caliper numbers with defaults for any you skip. JLCPCB
+prints it in nylon (MJF PA12, natural grey) and ships with duties prepaid.
+The first order is a passive fit gauge: three bodies, two lids, one test
+coupon, allowance about $40. It tests your ear, not the electronics; the
+electronics fit is proved on paper (WP6) before the second order. Measure M1
+(ear root length) first: the default shell needs 52 mm or more; below that
+the reference contact moves to the hook tip. Contacts are three titanium
+domes you screw in; there is no stainless option because the brief says
+nickel-free. Nothing is ordered until you approve the renders.
 
 ## 1. Decision summary
 
-1. Tool: build123d, headless Python, native STEP; script
-   `scripts/cad/bte_fit_shell.py`. Blender only if a scan ever appears.
-2. Geometry: no scan and no impression for order 1. A generic behind-the-ear
-   shell from L1's seven caliper measurements plus one (helix rise), all with
-   defaults.
-3. Vendor and material: JLCPCB 3D printing (JLC3DP), HP Multi Jet Fusion
-   PA12 nylon, dyed black, DDP shipping. Resin is rejected for any part worn
-   on skin.
-4. Contacts: three. Grade 2 titanium M3 button-head screws as 5.7 mm domes,
-   each floating on a silicone-foam washer with a thin nut and ring lug
-   inside; 316 stainless as fallback; nothing gold-plated.
-5. Electronics envelope: one 36 × 12.5 × 6.9 mm cavity, battery (501015,
-   50 mAh) at the top end, an 18 × 12.5 × 3.3 mm board stack at the bottom
-   end over the two signal contacts; reference contact on a 10 mm tail.
-   Outer body 38 × 15 × 9.2 mm plus hook. A 7.6 mm "thin" body is printed
-   only as a gauge of what a hearing-aid-class thickness would feel like.
-6. Order 1: three bodies and two lids, PA12, JLC3DP, about $33 all-in with
-   slow DDP shipping, placed by Rolf after he approves the renders.
-7. Order 2, after the fit check and the Stage A montage test: two Stage B
-   bodies with real contact holes, titanium hardware from McMaster-Carr, and
-   a nickel spot-test kit, about $105 total.
+1. Tool: build123d, headless, native STEP; `scripts/cad/bte_fit_shell.py`.
+2. Geometry: no scan, no impression; a generic shell from L1's M1–M7 plus M8
+   (helix rise), each with a published default; a defaults-only build is a
+   provisional gauge, not a personal fit.
+3. Vendor: JLC3DP, HP MJF PA12-HP, natural grey, DDP. Resin never touches
+   skin.
+4. Contacts: three Grade 2 or Grade 5 titanium ISO 7380 M2.5 button heads
+   (4.7 mm domes), rigidly mounted through a 1.5 mm wall with a ring lug and
+   thin nut inside; hook preload supplies clamping. Per-contact suspension is
+   deferred to the active-contact gate. No stainless fallback.
+5. Envelope: cavity 36.7 × 14.0 × 6.5 mm; battery (501015, 50 mAh) at the top,
+   a 19 × 12.5 mm board zone at the bottom over the two signal contacts;
+   reference in a 10.2 mm tail. Body 48.4 × 17.0 × 9.0 mm plus hook, with a
+   7.0 mm thin gauge. These are design values pending WP6's packing proof.
+6. Order 1: gauge set, provisional, allowance $30–41 standard shipping.
+7. Order 2: two Stage B bodies plus verified titanium hardware and a nickel
+   test kit, allowance about $120, after the fit check, the montage test,
+   and the packing proof.
 8. No agent purchases, uploads, quotes, or contacts anyone.
 
 ## 2. Conflicts resolved
 
 | # | Topic | Lanes said | Pick | Why |
 |---|---|---|---|---|
-| 1 | Battery | L2 assumed 110 mAh; L4 picked 501015 50 mAh (7.3 h streaming) over 401030 100 mAh (30 mm long) | 501015, 50 mAh, 5.0 × 10 × 15 mm | 7 h covers any session; the 100 mAh cell spans the whole body and forces stacking above 10 mm thick; 110 mAh was L2's pricing placeholder |
-| 2 | Envelope | L4 33 × 10.5 × 6.8; L2 35 × 20 × 12; L1 34–38 × 7.5–8.2 × 8.5–10 | Body 38 × 15 × 9.2 plus 10 mm tail and hook; thin gauge 7.6 | L4's box cannot hold its own parts: two 16 × 9.5 islands cannot carry a 15.5 × 10.5 module, and a 17 mm battery pocket plus 16 mm of boards in tandem exceed 33 mm. L2's box was for quoting. L1's width assumes no contact hardware. Section 5 derives the number from parts |
-| 3 | Contact metal | L3 titanium or 316L domes; L2 316L or gold-plated 4 mm snaps; L4 316L discs | Grade 2 titanium; 316 fallback; gold-plated rejected | Design record says nickel-free. 316L is 10–14 % nickel (release-compliant, not free). Gold flash over a nickel barrier wears through (L3 §5.1.2). Titanium costs about $1.60 more per contact |
-| 4 | Contact diameter | L1 3 mm mock studs; L2 4 mm snaps; L3 7–9 mm domes but its concrete parts are M3 (5.7 mm head) | 5.7 mm, ISO 7380 M3 button head | L3's own per-contact force (0.3–0.4 N) over a 7 mm dome is 8–10 kPa, under its own 10–25 kPa window; over 5.7 mm it is 12–16 kPa. M3 hardware intrudes 3.6 mm into the cavity, M4 over 4 mm |
-| 5 | Conductive TPU | Design record cites Palmiga; L2 and L3: no bureau prints it; L4 lists it | Dropped for Stage B | No print service will make it; metal domes need no large area (L3 §7.1.4). Revisit only if Rolf owns an FDM printer |
-| 6 | Lid closure | L2 M1.6 heat-set inserts; L1 PA12 cantilever snaps at 1.46 % strain | Snap lid: two tabs in the battery zone, tongue at the tail end | Insert bosses (5.3 mm footprint) eat cavity; PA12 elongation supports snaps; no hardware to buy |
-| 7 | Fit-check material | L2 9000R resin ($1.50–2.50); L1 resin or nylon | MJF PA12 | The fit check is four hours on skin; unreacted acrylates are an irritant risk (L2 summary 3); same material as order 2 so snap and feel are real; costs $2–3 more per part |
-| 8 | Contact montage | L3 horizontal PAM pair 12–15 mm behind the crease, reference at the mastoid tip; L1/L4 a narrow pod in the crease | Pair on the body's medial face, 12 mm pitch, 30° off the body axis; reference on a 10 mm tail over the mastoid surface; all positions parametric; Stage A with gel electrodes fixes them before order 2 | A 15 mm wide pod cannot hold a horizontal 12 mm pair; the mastoid tip sits about 55 mm below the hook root, beyond any behind-the-ear body |
-| 9 | Contact count | L4 asks whether to fit 5 (two channels); design record and L3 say 3 | 3 | Clench is 3–5× larger than a flex on the same pair (L3 §2.3); one channel plus reference; the ADS1292's second channel stays spare |
-| 10 | Suspension | L3 floating stud plus foam, 0.3–0.4 N each; L4 shell preload only, 0.5 N total | Both: 1.5 mm hook preload (about 0.9 N, estimated) and foam washers | Rigid mounts lose contact under jaw motion (L3 §7.2); the cost is 3.6 mm of cavity depth under the signal contacts, which is why the body is 9.2 mm |
-| 11 | Ear capture | L1 putty impression plus photogrammetry ($12–15) versus generic | Generic for order 1; impression deferred to Stage C | L1 §4.3: generic shells fit most adults; the canal tip needs an impression anyway |
-| 12 | Shipping | L2 Global Standard DDP $6–10, 10–14 d; DHL DDP $22–28, 3–5 d | Standard for order 1 (Rolf may upgrade); DHL for order 2 | Order 1 is not on the critical path while Stage A is unbuilt |
-| 13 | Shell and PCB in one parcel | L2 Q5 | Separate shipments | Different tariff lines; the board is another work package |
-| 14 | Hook | L4 flexible silicone/TPU hook; L1 solid 13.5 mm nylon hook | PA12 hook, one piece with the body | One part, one material; PA12 flex supplies the preload at about 0.5 % strain |
-| 15 | Lid gasket | L1 Q4 | None; conformal coating on the board | A gasket adds a part and a groove for nothing the prototype needs |
-| 16 | Charging port | L4 wants pads on the skin face so charging while worn is impossible | No port in order 1; optional 6 × 3 mm medial window in order 2, off by default | The board decides its charging path; the shell reserves the window (section 5) |
+| 1 | Battery | L2 assumed 110 mAh; L4 picked 501015 50 mAh over 401030 100 mAh | 501015 | 7 h streaming covers a session; 30 mm cell forces stacking past 10 mm thick; 110 was a pricing box |
+| 2 | Envelope | L4 33 × 10.5 × 6.8; L2 35 × 20 × 12; L1 34–38 × 7.5–8.2 × 8.5–10 | 48.4 × 17 × 9.0, derived in §5 | L4's 16 × 9.5 islands cannot carry a 15.5 × 10.5 module; L2's box was for quoting; L1 assumes no contact hardware. Length is set by battery, module, and three contact keep-outs, width by module plus front-end parts |
+| 3 | Contact metal | L3 Ti or 316L; L2 316L or gold-plated snaps; L4 316L | Titanium only | Brief and design record say nickel-free; 316L is 10–14 % Ni; gold flash over nickel wears through (L3 §5.1.2). Changing the requirement is Rolf's, outside this plan |
+| 4 | Contact size | L1 3 mm; L2 4 mm; L3 7–9 mm, concrete part M3 | ISO 7380 M2.5, 4.7 mm dome; M3 is a parameter switch (+2.4 mm length) | L3's 0.3–0.4 N over 7 mm is 8–10 kPa, under its own window; over 4.7 mm it is 17–23 kPa. Every millimetre of nut keep-out costs body length; pressure numbers are exploratory (§4) |
+| 5 | Conductive TPU | Design record cites Palmiga; L2/L3 say bureaus do not print it | Titanium primary; Palmiga's service kept as a conditional alternative | Palmiga offers conductive TPU printing (turn 02, finding 12). Titanium wins on assembly into nylon, small area, and no third supplier; TPU needs 12–16 mm pads the face cannot spare |
+| 6 | Lid closure | L2 heat-set inserts; L1 PA12 snaps | External snap lip at the top, tongue at the tail tip, two nubs; nylon screw as fallback | Nothing inside the cavity; JLC says ±0.3 mm and > 1.5 mm for snap features, so the coupon in order 1 tests the lip |
+| 7 | Gauge material | L2 resin; L1 either | MJF PA12 | Hours on skin; same material as order 2 |
+| 8 | Montage | L3 horizontal PAM pair, reference at mastoid tip; L1/L4 narrow pod | Pair at 22° off the body axis, 12 mm pitch; reference on a tail over the mastoid surface, or on the hook tip for short ears; Stage A gel test fixes positions | 17 mm face cannot hold a horizontal pair; the mastoid tip is beyond any BTE body |
+| 9 | Contact count | L4 asks 5; design record and L3 say 3 | 3 | Clench is 3–5× a flex on the same pair |
+| 10 | Suspension | L3 floating stud plus foam; L4 shell preload only | Rigid mount, hook preload 1.5 mm; suspension deferred | A floating M3 stack does not fit under the board (turn 02, finding 4); skin compliance and preload first, measured at the active gate |
+| 11 | Ear capture | L1 putty impression versus generic | Generic gauge; impression at Stage C | Gauge is $40 and tests the real ear |
+| 12 | Shipping | L2 standard DDP versus DHL DDP | Standard for order 1, DHL for order 2 | Order 1 is not on the critical path |
+| 13 | Shells and PCB in one parcel | L2 Q5 | Separate | Different tariff lines |
+| 14 | Hook | L4 flexible TPU; L1 nylon | PA12, one piece | One material; preload from PA12 flex, measured in WP4 |
+| 15 | Gasket | L1 Q4 | None | Prototype |
+| 16 | Charging | L4 skin-side pads | No port, no window; charge pads inside the closed cavity, lid off to charge | Pad placement alone is not an interlock (turn 02, finding 10) |
 
 ## 3. Fit-check shell specification
 
 ### 3.1 Tool and files
 
-- Tool: build123d 0.7+ (Apache-2.0) under `uv`; `uv add build123d trimesh`.
-  Reason over Blender: exact booleans, native STEP, deterministic regeneration
-  from a parameter file, no GUI. Blender is the fallback only if a scan mesh
-  ever needs shrink-wrapping.
-- Script: `scripts/cad/bte_fit_shell.py`. Parameters live in
-  `scripts/cad/params/default.toml`; Rolf's numbers go in
-  `scripts/cad/params/rolf.toml`, which overrides defaults key by key.
-- Invocation: `uv run scripts/cad/bte_fit_shell.py --params
-  scripts/cad/params/rolf.toml --variant full --preload 1.5 --out
-  docs/fab/cad/v1/`. Outputs are committed so Rolf can fetch them on his
-  phone.
-- Units: millimetres everywhere. Right ear is built; `SIDE=left` mirrors the
-  finished solid across the YZ plane.
+- build123d 0.7+ under `uv` (`uv add build123d trimesh`). Blender only if
+  a scan mesh ever needs shrink-wrapping.
+- Script `scripts/cad/bte_fit_shell.py`; defaults in
+  `scripts/cad/params/default.toml`; Rolf's numbers in
+  `scripts/cad/params/rolf.toml`, key-by-key override; a missing key takes
+  the default and the manifest lists it as `default`.
+- `uv run scripts/cad/bte_fit_shell.py --params rolf.toml --variant full
+  --preload 1.5 --out docs/fab/cad/v1/`. Outputs are committed.
+- Millimetres. Right ear built; `SIDE=left` mirrors every output solid
+  across the plane X = 0, after which +X is anterior. Parameters keep their
+  right-ear meaning.
 
-### 3.2 Frame
+### 3.2 Frames
 
-Origin at the hook root: the point on the skin where the top of the body meets
-the hook, at the superior attachment of the ear. X posterior, Y lateral (away
-from the skull), Z superior. The skull is approximated by the plane Y = 0; the
-hook preload absorbs the real curvature. `s` is distance down the body's
-centre path from the origin.
+Shell frame: origin O at the hook root reference on the top face of the
+body; X posterior, Y lateral, Z superior. The hook and the final assembly
+live here. The ear's skull surface is the plane Y = 0 in this frame when
+the hook rests on the ear.
 
-### 3.3 Parameters
+Body frame: the shell frame rotated about the X axis through O by −θ,
+θ = atan(HOOK_PRELOAD / TOTAL_LENGTH) = 1.78° at defaults, so the tail tip
+sits HOOK_PRELOAD medial of Y = 0. Body, tail, cavity, pockets, rib, pads,
+contact holes, lid features, and the lid itself are built in the body
+frame, where the medial face is the plane Y = 0 and every contact axis is
+−Y. They are then transformed into the shell frame as one group. The lid
+receives the identical transform.
 
-Every parameter has a default; a shell built from defaults alone is a valid
-order. "Maps to" names the caliper measurement from 3.4.
+Path coordinates: the body path is a planar arc in the body frame's XZ
+plane; `s` is arc length from O, `u` is offset along the section's in-plane
+normal on the posterior side, `y` is lateral height. Chord and arc differ:
+BODY_CHORD is the endpoint separation, arc length is derived and reported.
+A helper `P(u, s, y)` maps path coordinates to body-frame points; all
+feature placements use it.
 
-| Parameter | Default | Unit | Maps to | Note |
+### 3.3 Parameters (defaults are the reference-ear build)
+
+| Parameter | Default | Unit | From | Note |
 |---|---|---|---|---|
-| SIDE | right | – | Rolf's choice | mirror for left |
-| VARIANT | full | – | – | full = 9.2 thick, thin = 7.6 |
-| BODY_LENGTH | 38.0 | mm | check ≤ 0.8 × M1 | set by contents, not by ear |
-| BODY_WIDTH | 15.0 | mm | check vs M6 | set by contents |
-| BODY_THICK | 9.2 (thin 7.6) | mm | check ≤ M3 − 1 | covertness gauge |
-| CREASE_BOW | 3.0 | mm | M1, M2 | posterior bow at mid-length; from arc–chord if measured, else default |
-| TAIL_LENGTH | 10.0 | mm | check BODY_LENGTH + TAIL ≤ M1 − 3 | carries the reference contact |
-| TAIL_THICK | 4.8 | mm | – | 1.2 wall + 3.6 pocket |
-| TAIL_TIP_WIDTH | 9.0 | mm | – | tapers from BODY_WIDTH |
-| WALL_MEDIAL | 1.2 | mm | – | carries contacts |
-| WALL_SIDE | 1.25 | mm | – | |
-| WALL_END | 1.0 | mm | – | |
+| SIDE | right | – | Rolf | |
+| VARIANT | full | – | – | full 9.0, thin 7.0 |
+| REF_SITE | tail | – | M1 | tail if M1 ≥ 52, else hook_tip |
+| BODY_CHORD | 48.4 (hook_tip 38.2) | mm | – | set by contents |
+| BODY_WIDTH | 17.0 | mm | – | set by contents |
+| BODY_THICK | 9.0 / 7.0 | mm | – | |
+| CREASE_BOW | 3.0 | mm | M1, M2 | posterior bow at mid-chord; from arc–chord when both measured, clamped 1–8 |
+| WALL_MEDIAL | 1.5 | mm | – | carries fasteners |
+| WALL_SIDE | 1.5 | mm | – | |
+| WALL_END | 1.5 | mm | – | both ends of the cavity |
 | LID_THICK | 1.0 | mm | – | |
-| LID_CLEAR | 0.3 | mm | – | MJF mating clearance |
-| CAVITY_LENGTH | 36.0 | mm | – | derived: BODY_LENGTH − 2 × WALL_END |
-| CAVITY_WIDTH | 12.5 | mm | – | derived |
-| CAVITY_DEPTH | 6.9 (thin 5.4) | mm | – | derived: BODY_THICK − WALL_MEDIAL − LID_THICK − 0.1 |
-| BATTERY_POCKET | 16.8 × 10.6 × 5.4 | mm | – | superior end, centred in width |
-| BOARD_ZONE | 18.0 × 12.5 × full depth | mm | – | inferior end |
-| RIB | 0.8 × 3.0 | mm | – | between pockets, thickness × height |
-| HOOK_RADIUS | 13.5 | mm | M8 + HOOK_DIA/2 + 1.0 | centre-line radius |
-| HOOK_ANGLE | 145 | deg | – | L1 |
-| HOOK_DIA | 3.5 | mm | – | round section |
-| HOOK_Y | 3.0 | mm | M4 / 2 | lateral offset of the hook plane |
-| HOOK_PRELOAD | 1.5 | mm | – | body tilted so the tail tip sits this far medial of Y = 0 |
-| GLASSES_RELIEF | 2.5 | mm | M5 (0 = none) | 45° chamfer, lateral-superior edge of hook crest and body top |
-| CONTACT_DIA | 5.7 | mm | – | ISO 7380 M3 head |
-| CONTACT_CROWN | 1.65 | mm | – | dome height |
-| CONTACT_STANDOFF | 0.6 | mm | – | compressed foam washer |
-| CONTACT_HOLE | 3.4 | mm | – | Stage B only |
-| CONTACT_POCKET | Ø7.5 × 3.6 | mm | – | nut, lug, travel; Stage B only |
-| FOAM_OD | 7.0 | mm | – | washer footprint |
-| CONTACT_1 | X 4.5, s 22.5 | mm | s = M7, clamped 19.5–22.8 | signal + |
-| CONTACT_PITCH | 12.0 | mm | – | L3 IED 12–15 |
-| PAIR_ANGLE | 30 | deg | – | from body axis toward posterior; contact 2 = contact 1 + pitch × (sin, −cos) |
-| CONTACT_REF | X 7.5, s 43.5 | mm | X = min(M6, 7.5) | on the tail |
-| MOCK_CONTACTS | true | – | – | fit check prints domes; Stage B cuts holes |
-| CABLE_EXIT_DIA | 2.0 | mm | – | inferior end wall; 0 = none |
-| LEAD_CHANNEL | 1.5 × 1.5 | mm | – | cavity to tail pocket |
-| CHARGE_WINDOW | false | – | – | 6 × 3 mm medial window at s 5–11, X 7.5 |
-| FILLET_LATERAL | 3.0 | mm | – | lateral long edges |
-| FILLET_MEDIAL | 1.0 | mm | – | medial long edges |
-| TIP_ROUND | 4.0 | mm | – | tail tip |
-| MESH_CHORD | 0.02 | mm | – | STL export |
-| MESH_ANGLE | 5 | deg | – | STL export |
+| CLEAR_FIT | 0.4 | mm | – | nominal mating clearance; ±0.3 print tolerance |
+| CAVITY | s 1.5–38.2, u 1.5–15.5, y 1.5 up through the lateral face; lid underside at 8.0 (thin 6.0) | mm | – | swept along the path |
+| BATTERY_POCKET | s 1.5–17.5, u 3.1–13.9, y 1.5–7.5 | mm | – | cell max 5.2 × 10.4 × 15.6 plus PCM folded on the face |
+| RIB | s 17.5–18.3, y 1.5–4.5 | mm | – | full width |
+| BOARD_ZONE | s 18.3–37.9, u 1.5–15.5 | mm | – | four pads 1.5 × 1.5 at y 1.5–4.3 in the corners |
+| CONTACT_SIZE | M2.5 | – | – | M3 alternative: dome 5.7, keep-out Ø8.1, +2.4 length |
+| CONTACT_DOME | 4.7 dia, 1.35 crown | mm | – | ISO 7380 M2.5 |
+| CONTACT_HOLE | 2.9 | mm | – | through the medial wall |
+| CONTACT_STACK | 2.5 | mm | – | lug 0.5 + nut 1.6 + tip 0.4 above the floor, screw ×4 |
+| KEEPOUT | Ø7.1, y 1.5–4.0 | mm | – | nut across corners 5.8, lug 5.5, plus CLEAR_FIT; nothing enters it |
+| CONTACT_1 | u 5.9, s 22.0 | mm | – | fixed by keep-out against rib and wall |
+| CONTACT_PITCH | 12.0 | mm | – | L3 range 12–15 |
+| PAIR_ANGLE | 22 | deg | – | contact 2 = contact 1 + pitch × (sin, +cos): u 10.4, s 33.1 |
+| CONTACT_REF | u 8.5, s 42.5 (tail) | mm | M6 recorded | tail pocket Ø6.5 from the lateral face to y 1.5, open to the lid |
+| TAIL | s 38.2–48.4, width tapers 17 → 10 from s 38.2 | mm | – | tip round 4.0 |
+| HOOK_ROOT | X 4.0, Y 3.0, Z 0 | mm | M4 → Y = M4/2 | on the top face, shell frame |
+| HOOK_RADIUS | 13.5 | mm | M8 + 2.75 | centre-line |
+| HOOK_ANGLE | 145 | deg | – | arc from −5° (inside the body) to 145° |
+| HOOK_DIA | 3.5 | mm | – | |
+| HOOK_PRELOAD | 1.5 | mm | – | variants 1.5 and 2.5 |
+| GLASSES_FLAT | 0.8 (0 if M5 = 0) | mm | M5 | flat on the hook's lateral-superior side, 30°–120° |
+| LID_LIP | u 8–14, 1.0 thick, 5.0 long, 0.4 bump | mm | – | external, on the top face; groove 0.5 × 1.2 at y BODY_THICK − 5.6 to − 4.4 (3.4–4.6 full) |
+| LID_TONGUE | 6 wide, 0.5 thick, 1.4 long | mm | – | slot 0.9 × 1.6 under a 1.0 lip at the tail tip |
+| LID_NUBS | 0.8 cube at s 17.9, u 1.9 and 15.1 | mm | – | hang 0.8, locate against the walls |
+| EMBOSS | 0.8 | mm | – | `ELICIO V1 R FULL P15 REF` inside the lid; REF marks a defaults-only build |
+| MOCK_CONTACTS | true | – | – | gauge prints domes; Stage B cuts holes |
+| CABLE_EXIT | Ø2.0 at the inferior end wall, u 4 | mm | – | lead exit for tethered bring-up, plugged in Stage B |
+| FILLET_MEDIAL | 1.5 | mm | – | medial long edges |
+| LID_EDGE | 0.8 | mm | – | lid outer edge fillet |
+| MESH | chord 0.02, angle 5° | – | – | STL export |
 
-Derived checks the script must print and fail on: dome crowns of contacts 1
-and 2 inside the medial face by ≥ 1.0 mm margin; ref dome inside the tail;
-BODY_LENGTH + TAIL_LENGTH ≤ M1 − 3; the lid tabs clear the battery pocket by
-≥ 0.25 mm.
+Reference-ear measurement defaults, used for any key Rolf leaves out: M1 52,
+M2 58, M3 11, M4 6.0, M5 2.5, M6 15, M7 22, M8 11.
+
+Checks the script prints and fails on. Design checks (always): one connected
+solid per part; every wall from the analytic table ≥ 1.0 and a ray-cast
+thickness sample over the medial face, walls, lip, and tail ≥ 1.0; lid and
+body intersect empty at nominal and at −0.3 on every mating pair; keep-outs
+intersect nothing but air; contact axes equal −Y in the body frame; STLs
+watertight. Ear checks (reported, fail only where stated): TOTAL_LENGTH ≤
+M1 − 3 (fail); SPAN = BODY_THICK + crown = 10.35 versus M3, reported as
+pinna displacement; hook inner rise versus M8 (fail if under).
 
 ### 3.4 Caliper protocol for Rolf
 
-Ten minutes with a digital caliper and a piece of string. Enter numbers in
-`rolf.toml`; skip any and the default stands. L1's M1–M7 plus M8.
+Digital caliper and string, ten minutes. Enter in `rolf.toml`; any key left
+out takes the reference value above and the build is marked REF.
 
 | No. | Measure | How | Typical | Feeds |
 |---|---|---|---|---|
-| M1 | Ear root length | Caliper, top attachment to bottom attachment, straight | 45–58 | length checks |
-| M2 | Crease arc length | String along the crease bottom, same endpoints | 50–65 | CREASE_BOW |
-| M3 | Sulcus clearance | Depth rod, skull to helix rim at mid-height | 8–14 | thickness check |
-| M4 | Helix root thickness | Jaws across the cartilage bridge at the top, no squeeze | 4.5–7.5 | HOOK_Y |
-| M5 | Glasses temple thickness | Jaws on the temple where it passes the ear | 1.8–3.2, or 0 | GLASSES_RELIEF |
-| M6 | Mastoid offset | Crease to the bony bump behind the lower ear | 12–18 | CONTACT_REF X |
-| M7 | Crease top to mid-concha | Along the crease, top fold to the level of the canal opening | 18–26 | CONTACT_1 s |
-| M8 | Helix rise | Top attachment point up to the highest point of the ear rim | 8–14 | HOOK_RADIUS |
+| M1 | Ear root length | Top attachment to bottom attachment, straight | 45–58 | REF_SITE, length check; measure this first |
+| M2 | Crease arc | String along the crease, same endpoints | 50–65 | CREASE_BOW |
+| M3 | Sulcus clearance | Depth rod, skull to helix rim at mid-height | 8–14 | span report |
+| M4 | Helix root thickness | Jaws across the top cartilage bridge, no squeeze | 4.5–7.5 | HOOK_ROOT Y |
+| M5 | Glasses temple thickness | Jaws on the temple at the ear, 0 if none | 1.8–3.2 | GLASSES_FLAT |
+| M6 | Mastoid offset | Crease to the bony bump behind the lower ear | 12–18 | recorded for WP7 |
+| M7 | Crease top to mid-concha | Along the crease to the canal-opening level | 18–26 | recorded for WP7 |
+| M8 | Helix rise | Top attachment up to the ear rim's highest point | 8–14 | HOOK_RADIUS |
 
-### 3.5 Construction (what the script does, in order)
+### 3.5 Construction, in order (body frame unless stated)
 
-1. Path: three-point arc in the XZ plane from (0, 0, 0) through
-   (CREASE_BOW, 0, −BODY_LENGTH/2) to (0, 0, −BODY_LENGTH). Extend by
-   TAIL_LENGTH on the same arc.
-2. Body: sweep a rounded rectangle BODY_WIDTH × BODY_THICK (X from 0 to
-   BODY_WIDTH, Y from 0 to BODY_THICK; medial corners FILLET_MEDIAL, lateral
-   corners FILLET_LATERAL) along the body part of the path. Sweep a second
-   section for the tail: width tapering to TAIL_TIP_WIDTH, thickness
-   TAIL_THICK, tip rounded TIP_ROUND. Union.
-3. Cavity: from the lateral face, cut CAVITY_LENGTH × CAVITY_WIDTH ×
-   CAVITY_DEPTH, ends WALL_END from the body ends. Leave the RIB at
-   s = WALL_END + 16.8 from the medial floor. Battery pocket is the space
-   above the rib; board zone is below it (inferior). Four corner pads
-   1.5 × 1.5 × 3.6 in the board zone hold the board off the floor.
-4. Lid rebate: from the lateral face cut a pocket (CAVITY_LENGTH + 1.0) ×
-   (CAVITY_WIDTH + 1.5) × LID_THICK, leaving a ledge 0.75 on the long sides
-   and 0.5 at the ends. Windows for the snap tabs: two 0.5 deep × 2.0 tall
-   × 6.0 long recesses in the long walls, centred at s = 9, starting 6.0
-   below the ledge. Tongue slot at the inferior end wall: 2.0 wide × 0.6
-   deep × 1.0 tall under the ledge.
-5. Lid: plate (CAVITY_LENGTH + 1.0 − 2 × LID_CLEAR) × (CAVITY_WIDTH + 1.5 −
-   2 × LID_CLEAR) × LID_THICK. Two cantilever tabs on the long edges at
-   s = 9: 1.0 thick, 6.0 long, 6.0 wide, 0.35 outward bump, 0.5 root fillet
-   (L1 §5.2: 1.46 % strain). Tongue 2.0 × 0.5 at the inferior end.
-   Fingernail notch 6 × 1.5 × 0.5 at the superior end of the lid. Emboss
-   `ELICIO V1 R FULL P15` 0.5 mm high on the inside.
-6. Hook: circle HOOK_DIA swept along an arc of radius HOOK_RADIUS, angle
-   HOOK_ANGLE, in the plane Y = HOOK_Y, centre (−HOOK_RADIUS, HOOK_Y, 0),
-   starting tangent +Z at the origin, going up and over anteriorly. Blend
-   into the body top with a 2.0 fillet. Glasses relief: 45° chamfer of
-   GLASSES_RELIEF along the lateral-superior edge over the top 90° of the
-   hook and the top 12 mm of the body's lateral-superior edge.
-7. Preload: rotate the body and tail (not the hook) about the X axis through
-   the origin so the tail tip moves −HOOK_PRELOAD in Y.
-8. Contacts: if MOCK_CONTACTS, add a cylinder Ø CONTACT_DIA × CONTACT_STANDOFF
-   topped by a spherical cap of height CONTACT_CROWN at each contact position
-   on the medial face (Y = 0, standing to −Y). Else cut Ø CONTACT_HOLE
-   through the wall and a Ø7.5 × 3.6 pocket into the cavity floor (ref: into
-   the tail from the lateral side), plus LEAD_CHANNEL from the ref pocket to
-   the cavity and CABLE_EXIT_DIA through the inferior end wall.
-9. Export per 3.6; run the checks in 3.3; write `manifest.json` with every
-   parameter, git commit, and file hashes.
+1. Path: three-point arc in the XZ plane through (0, 0, 0),
+   (CREASE_BOW, 0, −BODY_CHORD/2), (0, 0, −BODY_CHORD). Report arc length.
+   Define `P(u, s, y)`: the point at arc length s, offset u along the in-plane
+   normal (posterior), height y.
+2. Body: sweep the section (u 0–17, y 0–BODY_THICK, medial corners
+   FILLET_MEDIAL 1.5, lateral corners sharp) along s 0–38.2 with the
+   binormal fixed to Y. Tail: sweep on s 38.2–48.4 with width tapering 17 → 10
+   and the same thickness; round the tip 4.0. Union. The medial face is the
+   plane y = 0.
+3. Cavity: sweep the rectangle (u 1.5–15.5, y 1.5–9.0) along s 1.5–38.2 and
+   subtract, leaving the wall tops at y BODY_THICK − 1.0. Add back the rib (s 17.5–18.3, y 1.5–4.5, full width) and four
+   pads (1.5 × 1.5, y 1.5–4.3) at the board-zone corners. The battery pocket
+   is the space above the rib; it needs no further cut. Flat parts see the
+   plan-view bow: 0.32 mm over 16 mm, 0.46 over 19 mm, absorbed by the width
+   clearances.
+4. Contacts: if MOCK_CONTACTS, at each of P(5.9, 22.0, 0), P(10.4, 33.1, 0),
+   P(8.5, 42.5, 0) add a spherical cap Ø4.7, height 1.35, standing to −y.
+   Else cut Ø2.9 through the wall at each, cut the tail pocket (Ø6.5 from
+   the lateral face down to the inner wall face y 1.5 at the reference), and cut CABLE_EXIT through the
+   inferior end wall at u 4, y 3.
+5. Lid features on the body: groove for the lip across the top face: cut
+   0.5 into the body at s 0–0.5, u 7.5–14.5, y BODY_THICK − 5.6 to
+   BODY_THICK − 4.4 (3.4–4.6 on the full body). Slot for the
+   tongue at the tail tip: s 46.8–48.4, y BODY_THICK − 2.0 to BODY_THICK − 1.1, u centred, 7 wide,
+   under the 1.0 mm lip left at the lateral face. The lateral face of the tail outside the
+   pocket and slot stays solid.
+6. Lid: plate y BODY_THICK − 1.0 to BODY_THICK with the body's plan outline over s −0.2 to 46.8,
+   outer edge fillet 0.8, minus CLEAR_FIT on the outline. Lip: from the
+   top end, a tab u 8–14, 1.0 thick, hanging 5.0 from the lid top at
+   s −1.2 to −0.2, with a 0.4 bump toward +s at its tip; root fillet 0.5
+   (strain 2.4 %). Tongue: 6 wide, 0.5 thick, its top 0.3 below the lid underside,
+   extending s 46.8–48.2. Nubs: 0.8 cubes at s 17.9, u 1.9 and 15.1, hanging 0.8 below the lid underside.
+   Emboss inside. Nothing else enters the cavity.
+7. Hook (shell frame): circle Ø3.5 swept along the arc centred
+   (−9.5, 3.0, 0) in the plane Y = 3.0, radius 13.5, from −5° to 145°,
+   angle 0 at (4.0, 3.0, 0) with tangent +Z, increasing toward −X. Glasses
+   flat: cut 0.8 off the lateral-superior side between 30° and 120°.
+8. Assembly: rotate body and lid from the body frame into the shell frame
+   about the X axis through O by −θ; union hook and body; fillet the joint
+   2.0. Left side: mirror all outputs across X = 0.
+9. Run the checks in 3.3; export; write `manifest.json` (parameters, which
+   were defaults, git commit, file hashes, part quantities).
 
-### 3.6 Design rules (JLC3DP MJF PA12, from L1 §5.1; UNVERIFIED against the live page)
+### 3.6 Print rules and outputs
 
-| Rule | Value | Applied as |
-|---|---|---|
-| Minimum wall | 0.8 (recommend 1.0–1.2) | walls 1.0–1.25, medial 1.2 |
-| Mating clearance | 0.25–0.35 | 0.3 |
-| Minimum hole | 1.0 | smallest hole 1.5 (lead channel) |
-| Tolerance | ±0.15 | lid and tabs sized for it |
-| Snap fit | allowed, strain ≤ 3 % | 1.46 % |
-| Powder escape | any closed void needs an opening | cavity is open; no closed voids |
-| Emboss | ≥ 0.5 mm | 0.5 |
+JLC3DP MJF PA12-HP, from the pages `pro` checked on 2026-09-16
+(jlc3dp.com/help/article/pa12-hp-nylon, updated 2026-07-30;
+jlc3dp.com/help/article/3d-printing-design-guideline): tolerance ±0.3 mm
+under 100 mm; wall 1 mm listed; snap and fastener features over 1.5 mm;
+emboss 0.8 mm; assembly clearance 0.2–0.4 mm. Applied: walls 1.5; nominal
+clearances 0.4 with a stated worst case of −0.2 interference on the lip
+bump and tongue, which the coupon and hand fitting absorb; drawing
+tolerances are ±0.3 general with no tighter callouts.
 
-Outputs: `body_full_p15.step/.stl/.3mf`, `body_thin_p15.*`,
-`body_full_p25.*`, `lid.*`, `render_side.png`, `render_iso.png`,
-`drawing.pdf` (one page: side, top and section views with M1–M8 and the
-critical dimensions: cavity +0.2/−0.0, contact positions ±0.2), and
-`manifest.json`. STL must be watertight (trimesh `is_watertight`), chord
-0.02, angle 5°.
+Coupon: a 12 × 12 × 3 block with holes Ø1.7, Ø2.9, Ø3.4, a 0.9 slot, a 0.4
+slot, and a 0.4 rib, printed with order 1 to measure the process before
+order 2.
 
-### 3.7 Acceptance: what Rolf checks wearing it
+Outputs in `docs/fab/cad/v1/`: `body_full_p15`, `body_thin_p15`,
+`body_full_p25`, `lid`, `coupon`, each as `.step`, `.stl`, `.3mf`;
+`render_medial.png`, `render_lateral.png`; `drawing.pdf` (side, medial, and
+section views; M1–M8; closure section; contact positions); `manifest.json`.
+Order manifest: body files ×1 each, lid ×2, coupon ×1: six parts, five files.
 
-Weight the cavity with about 4 g (two M6 nuts or fishing split-shot) before
-the retention tests. Do the list with the full body first, then the thin one,
-then the 2.5 mm preload body.
+### 3.7 Passive fit acceptance
 
-1. Goes on and comes off one-handed in under five seconds without pulling
-   the ear.
-2. Stays put through ten head shakes, five hard jaw clenches, three yawns,
-   one flight of stairs.
-3. One hour: no pain, no pinch at the hook.
-4. Four hours: no red mark under a dome lasting more than 15 minutes after
-   removal, no numbness.
-5. Photos: front, side, back, with and without glasses. Front: nothing
+The gauge is provisional: it checks Rolf's ear, comfort, and covertness. It
+does not prove electronics fit (WP6) or dry-contact signal (WP7). Put about
+4 g in the cavity first (two M6 nuts). Order: full/1.5, thin/1.5, full/2.5.
+
+1. On and off one-handed in under five seconds without pulling the ear.
+2. Stays put through ten head shakes, five hard clenches, three yawns, one
+   flight of stairs.
+3. Wear 15 minutes, inspect the skin; then one hour; then four hours. Remove
+   at once on pain, numbness, or any skin reaction, and record it. A red mark
+   lasting over 15 minutes after removal is a fail for that variant.
+4. Photos: front, side, back, with and without glasses. Front: nothing
    visible. Side: no more than a hearing aid shows. Back: his call.
-6. All three domes touch skin: a strip of paper slid under each dome is
-   pinched, with the head turned left, right, and chin down.
-7. Glasses on and off ten times; the shell does not lift.
-8. Lid snaps on and off ten times with a fingernail, no cracks.
-9. Which thickness is acceptable, and which preload is comfortable.
-10. After removal, mark the three dome positions on the skin with a pen and
-    photograph; this is the input to the Stage A montage test.
+5. Paper strip under each dome is pinched with the head turned left, right,
+   and chin down.
+6. Glasses on and off ten times; no lift.
+7. Lid on and off ten times; lip and tongue intact; nubs seat.
+8. Which thickness and which preload he accepts. These are observations,
+   not biocompatibility evidence.
+9. Mark the dome positions on the skin, photograph; input to WP7.
 
 ## 4. Contacts specification
 
-Count: three. Two signal contacts on the body's medial face, one reference on
-the tail (positions in 3.3, final positions from the Stage A montage test).
+Three contacts: two signal on the body's medial face, one reference on the
+tail (or hook tip). Final positions come from WP7.
 
 | Item | Spec |
 |---|---|
-| Material | Grade 2 commercially pure titanium (ASTM F67), 0 % nickel. Fallback: 316 stainless (nickel release below EN 1811 limit per L3, but not nickel-free). Gold-plated snaps, pogo pins, and bare ENIG pads rejected: nickel under the gold |
-| Geometry | ISO 7380 M3 button head: dome Ø5.7, crown 1.65, 2 mm hex socket in the crown (accepted; it is 1 mm deep). Screw length 6 mm |
-| Pressure | Target 10–25 kPa per L3. At 0.3–0.4 N per contact and 25.5 mm² dome area: 12–16 kPa |
-| Suspension | Silicone foam washer Ø7.0 × Ø3.4 × 1.0 mm under the head, outside the wall; inside: M3 crimp ring lug then M3 thin nut (DIN 439, 1.8 mm). The nut sets the outward stop; skin pressure compresses the foam and the nut lifts into the Ø7.5 × 3.6 pocket. Travel about 0.5 mm. Plus 1.5 mm hook preload for gross clamping |
-| Mounting | Through Ø3.4 hole in the 1.2 mm medial wall (body) or tail. No adhesive on the skin side. Assembly by Rolf with a 2 mm hex key and a 5.5 mm nut driver |
-| Leads | 28 AWG silicone-insulated stranded wire, ≤ 40 mm each, twisted, crimped to the ring lug. Reference lead runs through the LEAD_CHANNEL into the cavity. Board end: three pads or a 3-pin 1.0 mm connector, the board package decides. The 220 kΩ series resistor and clamps are on the board within 10 mm of the pads (L4 §5.1) |
-| Cleaning | Wipe domes with 70 % isopropanol; replace foam washers when soiled |
+| Material | Titanium, Grade 2 (ASTM F67) or Grade 5 (ASTM F1472/F136), bought with the supplier's material statement or mill certificate kept on file. No plating. Nickel content is what the supplier's specification states, not "zero" |
+| Geometry | ISO 7380 M2.5 × 4 button head: dome Ø4.7, crown 1.35, 1.5 mm hex socket. Rigid mount through the 1.5 mm wall |
+| Inside stack | ring lug (#4 or M2.5, crimped to 28 AWG silicone-insulated wire, 26–28 AWG barrel) 0.5, DIN 439 M2.5 thin nut 1.6, screw tip 0.4: 2.5 mm above the floor. Nut and lug may be plated steel or tinned copper; they never see skin and sit under the lid, with a 0.13 mm Kapton disc over each stack |
+| Clamping | hook preload 1.5 mm, estimated 0.9 N total, measured in WP4. Nominal 0.3 N per contact over 17 mm² is 17 kPa. These are exploratory targets, not comfort or performance bounds |
+| Leads | ≤ 40 mm each, twisted, to three pads on the board's superior edge; each pad feeds its own 220 kΩ resistor and clamp within 10 mm (L4 §5.1) |
+| Cleaning | 70 % isopropanol wipe after each wear; nothing on the skin side but titanium and nylon |
+| Hook-tip variant | Ø7 × 4 mm foot at the hook end with the same stack in a lateral pocket, potted with silicone adhesive after assembly; lead in a 1.2 × 1.2 groove along the hook's medial side |
 
-Sourcing candidates. Prices are from L3 unless marked; none was checked
-against a live page.
+Sourcing is by specification; WP5 finds and verifies part numbers with
+live pages before any purchase. L3's McMaster-Carr 93625A110 is an M8
+stainless locknut (turn 02, finding 11) and is struck. Candidate routes,
+all UNVERIFIED: McMaster-Carr titanium screws category (L3 source 9);
+titanium fastener vendors selling ISO 7380 GR5 M2.5; ASTM F136 body-jewelry
+disc tops as an alternative dome (L3 §5.1.3, post too thin for a lug).
+Verification kit: dimethylglyoxime spot test (Nickel Alert, nonickel.com,
+$24.99, listed unavailable on 2026-09-16; WP5 finds a substitute).
 
-| Part | Source | Price | Status |
-|---|---|---|---|
-| Grade 2 Ti M3 × 6 button head, pack of 10 | McMaster-Carr 93625A110 | $18.65 | UNVERIFIED (L3 §5.1.3) |
-| 316 M3 × 6 button head, pack of 50 (fallback) | McMaster-Carr 92095A178 | $11.20 | UNVERIFIED (L3 §5.1.1) |
-| ASTM F136 titanium flat-back labret studs (alternate dome) | bodyartforms.com | $4.50–7.00 each | UNVERIFIED (L3 §5.1.3); post is 1.2 mm, no lug possible |
-| M3 thin nuts, 316 or titanium, pack | McMaster-Carr | ≈ $6 | UNVERIFIED, no part number yet |
-| M3 ring terminals, 22–26 AWG, pack | McMaster-Carr or DigiKey | ≈ $8 | UNVERIFIED |
-| Silicone foam sheet 1 mm (Rogers Bisco HT-800 or equivalent) | McMaster-Carr | ≈ $12 | UNVERIFIED (L3 names the material, not a source) |
-| Dimethylglyoxime nickel spot test (Nickel Alert) | nonickel.com | ≈ $18 | UNVERIFIED (L3 §7.3 names it, no price) |
+Nickel evidence, in order: (1) supplier material statement for the exact
+lot or SKU; (2) DMG swab on every dome on receipt and after two weeks of
+wear as a reject screen only; it does not prove absence (Thyssen 2010,
+turn 02, finding 8). Every other metal part is inside the closed cavity or
+potted.
 
-Nickel verification, in order: (1) buy only parts sold as Grade 2 or Grade 5
-titanium (or 316 for the fallback) and keep the order page; McMaster
-certificates on request are UNVERIFIED. (2) On receipt, DMG swab every dome
-and nut for 60 s; any pink means reject the lot. (3) Repeat the swab after
-two weeks of wear. EN 1811 lab testing is out of scope.
+## 5. Electronics envelope handoff and packing budget
 
-## 5. Electronics envelope handoff
+The board is out of scope. The shell reserves the volumes below; WP6
+produces the placement drawing at maximum part dimensions and either
+confirms or raises interface v2. Until then 9.0 mm is a design value.
 
-The board is out of scope. The shell reserves the following; the board
-designer confirms fit against `docs/fab/cad/v1/envelope.step` (WP5) before
-order 2.
+| Feature | Reserved |
+|---|---|
+| Cavity | s 1.5–38.2 × u 1.5–15.5 × y 1.5–8.0: 36.7 × 14.0 × 6.5 |
+| Battery pocket | 16.0 × 10.8 × 6.0 at the top; cell body ≤ 5.2 × 10.4 × 15.6, PCM folded on the lateral face under Kapton, tabs toward the rib; 0.5 mm foam under the lid |
+| Rib | 0.8 × 3.0, full width; leads pass over it |
+| Board | one board 19.0 × 12.5 × 1.0, underside at y 4.3 on four pads, 0.75 side and 0.3 end clearance; retained by pads, lid, and a 0.5 foam strip over its superior 3 mm |
+| Lateral side | Raytac MDBT50Q-1MV2 15.8 × 10.8 × 2.3 max, antenna end at the inferior board edge, ≥ 5 mm from the battery; height budget 4.3 + 1.0 + 2.3 = 7.6, lid underside 8.0 |
+| Medial side | components ≤ 1.2 tall; two Ø7.1 keep-outs plus 0.5 copper-free margin at contact 1 and 2; the module's antenna no-copper zone overlaps keep-out 2 |
+| Medial packing budget | board 237 mm²; minus keep-out 1 (49 on board), minus keep-out 2 ∪ antenna zone (≈ 68), minus 0.3 rim (≈ 15): ≈ 105 available. Required at max dims: ADS1292 TQFP-32 7 × 7 (49), three SOT-23 clamp arrays (30), charger DSBGA and LDO (7), about 25 passives 0402 (25): ≈ 111. Feasible only with tighter courtyards or a diode array; WP6 decides |
+| Insulation | pre-resistor conductors: the three stacks (Kapton discs) and leads (silicone); board medial side solder-masked except the three pads |
+| Debug and charge | charge pads on the board inside the cavity, reached with the lid off; Ø2 lead exit for tethered bring-up, plugged in Stage B |
 
-| Feature | Reserved | Note |
-|---|---|---|
-| Cavity | 36.0 × 12.5 × 6.9 mm (L × W × depth from lid underside to floor) | thin variant 5.4, gauge only |
-| Battery pocket | 16.8 × 10.6 × 5.4 at the superior end, centred | 501015 cell 5.0 × 10 × 15 plus tabs; PCM strip folded over the top |
-| Rib | 0.8 thick, 3.0 high | flex bridge or wires pass over it |
-| Board zone | 18.0 × 12.5 mm floor, usable height 3.3 above the corner pads | pads at 3.6 from the floor clear the contact pockets; FR4 1.0 plus 2.1 of components on the lateral side; medial side of the board component-free |
-| Contact keep-outs | two cylinders Ø7.5 × 3.6 rising from the floor at CONTACT_1 and CONTACT_2 | nut and lug travel |
-| Lead entry | ref lead via LEAD_CHANNEL at the inferior end wall; signal leads rise beside the board | three pads or one 3-pin connector on the board edge |
-| Antenna | module antenna toward the lateral-superior corner of the board zone, ≥ 5 mm from the battery | Raytac MDBT50Q 15.5 × 10.5 × 2.05 sets the 12.5 width; L4's 9.5 mm islands are too narrow |
-| Retention | no screws; a 1 mm foam pad under the lid presses board and battery | |
-| Charging | no port in order 1; optional 6 × 3 mm window on the medial face at s 5–11 for skin-side pads (L4 §5.3) | CHARGE_WINDOW |
-| Debug | Ø2.0 cable exit at the inferior end wall, plugged in Stage B | tethered bring-up |
+If WP6 cannot pack the medial side, the options are, in order: a smaller
+protection arrangement; +3.5 mm board zone (total length 51.9, REF_SITE
+hook_tip for most ears); +3 mm width. That choice goes to Rolf.
 
 ## 6. Skin, safety, hygiene
 
-Material: MJF PA12 is chosen because sintered polyamide 12 has no residual
-monomer, tolerates isopropanol, and is the safest uncertified polymer the
-bureaus offer (L2 summary 3). HP states its PA12 powder meets USP Class VI
-and intact-skin contact guidance; that claim is UNVERIFIED and section 8
-lists it. Resin parts never touch skin. Skin-facing metal is titanium only.
-Foam washers are silicone. No paint, glue, or coating on the skin side. The
-black dye's skin record is UNVERIFIED; if the four-hour wear shows redness
-away from the domes, reorder in natural grey.
+Material: HP states its MJF PA12 meets USP Class I–VI and FDA intact-skin
+guidance, based on preliminary testing of representative printed parts
+(hp.com materials page, checked by `pro` 2026-09-16). That covers the
+powder, not JLC's finishing or a dye, so order 1 is natural grey; black
+only after a process statement exists. Skin side: PA12 and titanium only.
+Cleaning: 70 % isopropanol wipe, air dry; no acetone. Wear progression is
+in 3.7; observations are recorded as observations.
 
-Cleaning: wipe the medial face and domes with 70 % isopropanol after each
-wear and let it dry; never acetone. Washers are consumables.
+Battery-only: the shell has no connector and no port. Charging happens off
+the ear with the lid removed, at the board's pads; the harness rule "never
+charge while worn" is procedural and stated on the assembly sheet, because
+no shell feature can enforce it. Tethered bring-up uses the lead exit with
+the laptop on battery, and the plug goes back in before wear.
 
-Battery-only rule as shell constraints: the shell has no power connector and
-no mains-capable opening; its only openings are the contact holes, the
-optional skin-side charge window (charging while worn is then physically
-blocked, L4 §5.3), and a 2 mm debug exit that is plugged in Stage B.
-Tethered debugging goes through that exit only with the laptop on battery.
-
-Series-protection rule as shell constraints: leads are the only conductors
-between skin and board; each is ≤ 40 mm and lands on a pad that has its
-220 kΩ resistor and clamp within 10 mm. Nothing in the shell path can
-stimulate: no metal touches skin except the three domes, and the domes
-connect only to those pads.
+Series protection: each skin contact reaches the board only through its own
+lead and its own resistor-plus-clamp; no pre-resistor conductor may touch
+the battery, charge pads, or any other copper. The shell reserves the Kapton
+discs, the solder-mask rule, and the lead route in §5. Active wear is gated
+on a reviewed schematic, an assembled inspection, and a battery-powered
+bench leakage check; an ordinary mains meter is not used on the body.
 
 ## 7. Orders
 
-Price sources: JLC3DP ranges from L2 §1.1 (jlcpcb.com/3d-printing, read
-2026-09-16), tariff from L2 §2.2 (jlcpcb.com/help/article/us-tariff-faq,
-dated 2026-03-17). All are ranges, not quotes; the exact price appears only
-after Rolf uploads the files. No line item exceeds $200.
+All figures are planning allowances dated 2026-09-16, not quotes. Sources:
+JLC3DP ranges from L2 §1.1; DDP policy from jlcpcb.com/help/article/
+us-tariff-policy-faq (updated 2026-09-09, verified by `pro`); the 40 %
+plastics collection rate is from L2 and UNVERIFIED; destination shipping
+ranges are from L2 and UNVERIFIED. No line exceeds $200.
 
-### Order 1: fit-check shell
+### Order 1: fit gauge, provisional
 
-| Item | Value |
+| Line | Allowance |
 |---|---|
-| Vendor, process, material | JLCPCB 3D printing (JLC3DP), HP MJF, PA12-HP, dyed black |
-| Parts | body_full_p15, body_thin_p15, body_full_p25 (1 each); lid (2) |
-| Files | the five STL files from `docs/fab/cad/v1/` (STEP also uploadable) |
-| Parts cost | 3 bodies at $3.50–5.50, 2 lids at about $2: $16–21 (L2 range) |
-| Tariff | 40 % of parts, collected at checkout, DDP: $6.50–8.50 (L2, UNVERIFIED rate) |
-| Shipping | Global Standard DDP $6–10, 10–14 days; or DHL DDP $22–28, 3–5 days |
-| All-in | about $33 standard, about $49 DHL |
-| Lead time | 48–72 h production plus transit: 12–17 days standard, 5–8 days DHL |
+| JLC3DP, MJF PA12-HP natural grey: 3 bodies, 2 lids, 1 coupon | $17–24 |
+| Import collection at checkout, 40 % of parts (rate UNVERIFIED) | $7–10 |
+| Shipping, Global Standard DDP 10–14 d (UNVERIFIED), or DHL DDP 3–5 d | $6–10, or $22–28 |
+| Total | $30–44 standard; $46–62 DHL |
+| Lead | 72 h build plus transit |
+| Rework if WP6 changes thickness or width | one more gauge, about $20 |
 
-What Rolf does, and only after he has approved the two renders:
-1. Download the five STL files from the repo.
-2. jlcpcb.com/3d-printing, "Add 3D files", upload all five.
-3. Per file: MJF, PA12-HP, black; quantity 2 for the lid; no post-processing.
-4. Read the automatic DFM warnings; anything about wall thickness goes back
-   to WP1 before ordering.
-5. Shipping to Massachusetts; pick a DDP option; confirm the tariff line is
-   on the invoice. Never CPT.
-6. Pay; paste the order number and total into `docs/fab/orders.md`.
+What Rolf does, after approving both renders: download the five files from
+`docs/fab/cad/v1/`; upload at jlcpcb.com/3d-printing; per file MJF,
+PA12-HP, natural, quantities per the manifest; read the DFM warnings and
+send any wall warning back to WP2; ship to Massachusetts on a DDP option.
+Checkout gate: stop and report if any of these fail: parts and finish match
+the manifest, a DDP or tariff line is shown, a delivered total is shown and
+is at most $55 standard or $75 DHL, an expected delivery date is shown.
+Record order number and total in `docs/fab/orders.md`.
 
-### Order 2: Stage B shell and contact hardware
+### Order 2: Stage B shell and hardware
 
-Placed only after 3.7 passes, the Stage A montage test has set the contact
-positions, and the board designer has signed the envelope.
+After 3.7 passes, WP6 confirms interface v2, and WP7 sets positions.
 
-| Item | Value |
+| Line | Allowance |
 |---|---|
-| Shell | JLC3DP, MJF PA12-HP black, 2 bodies (Stage B variant: real holes and pockets, MOCK_CONTACTS false) + 2 lids; DHL DDP. Parts $11–15, tariff $4.50–6, shipping $22–28: about $42 |
-| Hardware | McMaster-Carr: Ti M3 × 6 button heads $18.65, M3 thin nuts ≈ $6, ring terminals ≈ $8, silicone foam ≈ $12; nickel test kit ≈ $18. About $63, prices UNVERIFIED |
-| All-in | about $105 |
-| Lead time | shell 5–8 days; McMaster 1–2 days to Massachusetts |
-| Rolf | same upload steps; one McMaster cart; one nonickel.com cart; DMG-test every metal part on arrival; assemble per WP4's sheet |
+| JLC3DP, 2 Stage B bodies, 2 lids, DHL DDP, collection included | $38–49 |
+| Titanium M2.5 × 4 ISO 7380 screws, one pack (SKU by WP5) | $20 |
+| M2.5 thin nuts, ring lugs, Kapton discs, 28 AWG silicone wire | $20 |
+| DMG nickel test kit (Nickel Alert $24.99, unavailable 2026-09-16, or substitute) | $25 |
+| Hardware shipping, two suppliers (UNVERIFIED) | $15 |
+| Massachusetts sales tax on hardware, 6.25 % | $5 |
+| Total | $123–134; gate $160 |
+
+Rolf: same upload steps; one cart per hardware supplier; DMG-swab every
+dome on arrival; assemble per WP5's sheet; never charge worn.
 
 ## 8. Claims to verify before ordering
 
-| # | Claim | Source | Verified by |
+| # | Claim | Source | Status |
 |---|---|---|---|
-| 1 | JLC3DP collects a 40 % advance tariff on 3D-printed plastics under DDP | L2 §2.2, tariff FAQ 2026-03-17 | nobody yet |
-| 2 | De minimis suspended for China parcels; DDP needed | L2 §2.1 | nobody yet |
-| 3 | MJF PA12-HP one-off price $3.50–5.50 for a 35 mm shell | L2 §1.1 | nobody yet |
-| 4 | Global Standard DDP $6–10 offered for 3D parts to the US | L2 §1.1 | nobody yet |
-| 5 | MJF PA12 rules: wall 0.8 min, clearance 0.25–0.35, tolerance ±0.15, snaps allowed | L1 §5.1 (jlc3dp.com guideline) | nobody yet |
-| 6 | HP PA12 (MJF) meets USP Class VI and intact-skin contact guidance | not in any lane; author's recollection | UNVERIFIED |
-| 7 | JLC black dye is skin-tolerable | none | UNVERIFIED |
-| 8 | McMaster 93625A110 is Grade 2 Ti M3 × 6 button head, $18.65 per 10 | L3 §5.1.3 | UNVERIFIED |
-| 9 | ISO 7380 M3 head: Ø5.7, height 1.65 | standard; L3 quotes the same for 92095A178 | nobody yet |
-| 10 | 316L nickel release < 0.03 µg/cm²/week under EN 1811 | L3 §5.1.1, no page | UNVERIFIED |
-| 11 | Dry-contact pressure window 10–25 kPa | L3 §7.2, no page | UNVERIFIED |
-| 12 | Raytac MDBT50Q-1MV2 is 15.5 × 10.5 × 2.05 mm | L4 §1.1, raytac.com | nobody yet |
-| 13 | 501015 LiPo is 5.0 × 10 × 15 mm, 50 mAh, with a PCM strip | L4 §1.4, no page | UNVERIFIED |
-| 14 | Hook preload 1.5 mm gives about 0.9 N in PA12 (E ≈ 1.7 GPa, Ø3.5, 40 mm) | author's cantilever estimate | measured on the printed part (WP3) |
-| 15 | Generic BTE shells fit most adult ears without a scan | L1 §4.3 | tested by 3.7 |
+| 1 | JLC collects 40 % on 3D-printed plastics at checkout | L2 §2.2 | UNVERIFIED (rate table image failed, turn 02) |
+| 2 | US orders ship DDP at JLC | tariff FAQ 2026-09-09 | verified by `pro` |
+| 3 | PA12-HP price range $3.50–5.50 per shell | L2 §1.1; JLC page says "from $1.00" | not a quote; checkout closes it |
+| 4 | Standard DDP $6–10, DHL $22–28 to Massachusetts | L2 §1.1 | UNVERIFIED |
+| 5 | PA12-HP ±0.3 mm, 1 mm wall; snaps > 1.5; emboss 0.8; clearance 0.2–0.4 | JLC pages 2026-07-30 | verified by `pro` |
+| 6 | HP MJF PA12 meets USP Class I–VI and intact-skin guidance, preliminary testing | hp.com materials page | verified by `pro`, scope limited |
+| 7 | JLC finishing or dye is skin-tolerable | none | UNVERIFIED; grey default |
+| 8 | A titanium ISO 7380 M2.5 × 4 with material evidence is purchasable | none yet | WP5 |
+| 9 | ISO 7380 M2.5: dk 4.7, k 1.35; DIN 439 M2.5 nut 5 AF × 1.6 | standards tables | nobody yet |
+| 10 | Ring lug 0.5 thick, OD ≤ 5.5, 26–28 AWG | catalog | WP5 |
+| 11 | Raytac MDBT50Q-1MV2 15.5 × 10.5 × 2.05 nominal, toleranced, antenna keep-out | Raytac spec L | verified by `pro` |
+| 12 | ADS1292 TQFP-32 5 × 5 body | TI datasheet rev C | verified by `pro` |
+| 13 | 501015 cell 5.0 × 10 × 15, 50 mAh, PCM strip | L4 §1.4 | UNVERIFIED; WP6 names a cell |
+| 14 | Hook preload 1.5 mm gives about 0.9 N | cantilever estimate | measured in WP4 |
+| 15 | Palmiga prints conductive TPU on request | palmiga.com/3d-printing | verified by `pro`; job acceptance unknown |
+| 16 | Dry-contact pressure window 10–25 kPa | L3 §7.2 | exploratory, no source |
+| 17 | Nickel Alert $24.99, unavailable | nonickel.com | verified by `pro` |
 
 ## 9. Phase 1 work packages
 
-One worker each, one to three days, in this order. WP1 and WP2 deliver the
-order 1 files first.
+One worker each, one to three days, in this order. WP1 precedes any
+production-intent geometry; WP2 and WP3 deliver the order 1 files.
 
 | WP | Owns | Inputs | Outputs | Acceptance |
 |---|---|---|---|---|
-| 1 Shell script | `scripts/cad/`, `docs/fab/cad/v1/*.step .stl .3mf`, `manifest.json` | section 3 | all five parts, both variants, preload 1.5 and 2.5 | runs headless under `uv run`; checks in 3.3 pass; STLs watertight; regenerates byte-identical from `manifest.json` |
-| 2 Renders and drawing | `docs/fab/cad/v1/render_*.png`, `drawing.pdf` | WP1 outputs | two renders, one-page drawing | renders show medial and lateral faces with domes; drawing carries M1–M8 and the tolerances in 3.6; readable on a phone |
-| 3 Rolf's sheets | `docs/fab/measure.md`, `docs/fab/order1.md`, `docs/fab/orders.md` | 3.4, 3.7, section 7 | measurement sheet, order checklist, order log; a preload test (hang 100 g from the tail tip, measure deflection) | phone-readable, no step needs a question |
-| 4 Contacts kit | `docs/fab/contacts.md` | section 4 | bill of materials with verified prices and part numbers, DMG protocol, assembly sheet with torque and lead lengths | every price has a live page and date; assembly fits the 3.6 mm pocket in a paper mock-up |
-| 5 Envelope handoff | `docs/fab/envelope.md`, `docs/fab/cad/v1/envelope.step` | section 5, WP1 | keep-out solid and sheet for the board designer | board designer's written confirmation, or a listed change to section 5 |
-| 6 Montage test | `docs/fab/montage.md` | section 2 row 8, L3 §2.2, Stage A bench | protocol: gel electrodes at the plan's positions versus L3's horizontal pair, three sessions, SNR table | blocked until Stage A parts are bought; ends with three coordinates for `rolf.toml` |
-| 7 Stage B shell | `scripts/cad/` (variant), `docs/fab/cad/v2/` | 3.7 results, WP5, WP6 | order 2 files | same checks as WP1 plus hole and pocket dimensions on the drawing |
-| 8 Fold into design record | `docs/EARPIECE_DESIGN.md` | signed-off plan | design record updated | every decision in section 2 appears there once |
+| 1 Interface v1 | `docs/fab/interface.md` | §§3.3, 4, 5 | contact coordinates and stacks, keep-outs, cell envelope, board outline and heights, RF zone, insulation, packing budget | every dimension traced to a standard table, datasheet, or this plan; versioned |
+| 2 Gauge script | `scripts/cad/`, `docs/fab/cad/v1/*.step .stl .3mf`, `manifest.json` | §3, interface v1 | five files, six parts | all §3.3 checks pass; regenerates identically from the manifest |
+| 3 Renders, drawing | `docs/fab/cad/v1/render_*.png`, `drawing.pdf` | WP2 | two renders, one-page drawing | shows medial and lateral faces, closure section, M1–M8, ±0.3 general; phone-readable |
+| 4 Rolf's sheets | `docs/fab/measure.md`, `order1.md`, `orders.md` | §§3.4, 3.7, 7 | measurement sheet with M1 first, checkout gate, order log, hook test (100 g at the tail tip, deflection recorded) | no step needs a question |
+| 5 Contacts kit | `docs/fab/contacts.md` | §4 | verified SKUs with live pages and dates, material-evidence route, DMG protocol, assembly sheet, internal-metal isolation list | every price has a page and date; stack measured on catalog drawings ≤ 2.5 mm |
+| 6 Packing proof | `docs/fab/interface.md` v2, placement drawing | §5, WP1 | placement at max dims, cell named, RF zone drawn | confirmed, or v2 with the escalation option for Rolf |
+| 7 Montage and active gate | `docs/fab/montage.md` | §2 row 8, L3 §2.2, Stage A bench | gel-electrode montage protocol; bench force, travel, continuity test of the real stack; active gate: baseline, SNR, dropout under jaw motion, three-day re-donning at a fixed threshold | blocked until Stage A parts exist; ends with three coordinates and pass criteria |
+| 8 Stage B shell | `scripts/cad/` variant, `docs/fab/cad/v2/` | 3.7 results, interface v2, WP7 | order 2 files | §3.3 checks; positions from WP7; wear only after the WP7 gate passes |
+| 9 Design record | `docs/EARPIECE_DESIGN.md` | signed-off plan | record updated | each §2 decision appears once |
 
-## 10. Open items and Open for Rolf
+Interface rule: any change to contact coordinates, stack height, cell,
+board outline, or thickness bumps the interface version, re-runs WP2's
+checks, and repeats any 3.7 item whose input changed; a changed gauge is a
+reprint, not an inherited pass.
 
-Open items (carried; each names the package and the check that closes it):
+## 10. Open items, interface decisions, Open for Rolf
 
-1. Contact hardware intrusion: 3.6 mm assumed. WP4 measures a real M3 nut,
-   lug and screw tip stack; if over 3.6, WP1 deepens the pockets and
-   BODY_THICK grows by the difference.
-2. Board zone 18 × 12.5 × 3.3: WP5 closes it with the board designer's
-   confirmation.
-3. PA12 skin claim and black dye (claims 6, 7): pro or WP4 finds the HP
-   material page; otherwise order 1 in natural grey.
-4. Hook preload force: WP3's 100 g test; if under 0.5 N or over 1.5 N,
-   HOOK_DIA changes for order 2.
-5. Tariff and shipping ranges (claims 1–4): closed by the JLC checkout page
-   on order 1; Rolf records the real numbers in `docs/fab/orders.md`.
-6. Charge window: WP5 decides with the board designer; default off.
-7. CREASE_BOW from M1/M2: WP1 writes the arc–chord formula and clamps it to
-   1–8 mm.
- 8. Total length 48 mm needs M1 ≥ 51. If Rolf's M1 is smaller, WP1 shortens
-   the tail to 8 mm and the battery pocket to 16 mm and moves the reference
-   to s = 41.5.
+Open items (single-package, carried):
 
-Open for Rolf (only he can decide):
+1. CREASE_BOW from M1 and M2: WP2 writes the arc–chord formula, clamps
+   1–8 mm, and reports it.
+2. Coupon feature list and how each result maps to a parameter: WP2.
+3. Manifest schema and hash rule: WP3.
 
-1. Take the eight measurements in 3.4, or say "defaults" and order the
-   generic shell.
-2. Which ear first (default right).
-3. Approve the renders, then place order 1; pick standard or DHL shipping.
-4. Thickness: after 3.7, accept the 9.2 mm class or ask for the electronics
-   to be squeezed toward 7.6 (thinner cell, no per-contact suspension).
-5. Titanium (plan) or 316 stainless (cheaper) for the domes.
-6. Black or natural grey nylon.
-7. Whether to take a silicone impression now ($12–15, L1) or wait for
-   Stage C. The plan says wait.
-8. Buy the Stage A parts (`docs/STAGE_A_PARTS.md`), which gates WP6 and
-   therefore order 2.
+Interface decisions pending (cross-package, decided at interface v2):
+
+1. Medial-side packing: fits, or +3.5 mm length, or +3 mm width (WP6).
+2. Cell identity and maximum dimensions (WP6).
+3. Hook stiffness measured versus estimate; HOOK_DIA if outside 0.5–1.5 N
+   (WP4 measures, WP6 decides).
+4. Contact size M2.5 versus M3 after WP7 (WP7 recommends, WP8 applies).
+
+Open for Rolf:
+
+1. Measure M1 first. Below 52 mm the reference moves to the hook tip; below
+   41 mm this layout does not fit and the plan comes back.
+2. The other seven measurements, or "defaults" for a REF gauge.
+3. Which ear first (default right).
+4. Approve the renders, then place order 1 under the checkout gate.
+5. After 3.7: which thickness and preload he accepts, and whether the back
+   view is acceptable.
+6. If WP6 escalates: longer, wider, or a smaller front end.
+7. Black nylon later, only with a finishing statement; grey until then.
+8. Buy the Stage A parts (`docs/STAGE_A_PARTS.md`); WP7 and order 2 wait
+   on them.
+9. Any change to the nickel-free requirement is his to make, outside this
+   plan.
