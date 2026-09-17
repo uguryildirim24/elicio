@@ -1,0 +1,27 @@
+# Reference-ear build. Defaults match plan §3.3.
+SIDE = "right"
+VARIANT = "full"
+BODY_ARC = 48.4
+BODY_WIDTH = 17.0
+CREASE_BOW = 3.0
+WALL_MEDIAL = 1.5
+WALL_SIDE = 1.5
+WALL_END = 1.5
+LID_THICK = 1.0
+CLEAR_FIT = 0.4
+HOOK_DIA = 3.5
+HOOK_ANGLE = 145.0
+HOOK_PRELOAD = 1.5
+HOOK_RADIUS = 13.5
+HOOK_ROOT_X = 4.0
+FILLET_MEDIAL = 1.5
+LID_EDGE = 0.8
+MOCK_CONTACTS = true
+M1 = 52.0
+M2 = 58.0
+M3 = 11.0
+M4 = 6.0
+M5 = 2.5
+M6 = 15.0
+M7 = 22.0
+M8 = 11.0
