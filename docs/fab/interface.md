@@ -1,6 +1,6 @@
 # Elicio earpiece — mechanical interface
 
-Version **1**. Date 2026-09-16. Plan revision 5, commit `0c5d0eb`.
+Version **2**. Date 2026-09-17. Plan revision 5, commit `0c5d0eb`.
 
 This file is the mechanical contract between the shell (WP2/WP8), the
 contact hardware (WP5), and the Stage B board (WP6). All coordinates
@@ -22,6 +22,7 @@ verify it.
 
 This file starts at version 1. Any change to a dimension, keep-out,
 route, envelope, height, or safety reservation in this file:
+route, envelope, height, or safety reservation in this file:
 
 1. Bumps the version in this header and adds a dated row to the
    change log below.
@@ -36,6 +37,7 @@ edit those numbers in CAD without bumping this file.
 |---|---|---|
 | 1 | 2026-09-16 | First issue. Numbers from plan §3.2–§3.3, §3.5, §4–§6, §9–§10. |
 | 1 | 2026-09-17 | Review r1 errata; no dimension, keep-out, route, envelope or height changed. Stack derivation (§2.3, note D2, the ISO 4032 paragraph) corrected; WP5 SKU column added; pad gap given in the body frame (§6.1); nut material rule (§7); diode-array area marked UNVERIFIED (§8.2); §10 list updated; pending v2 notes added (§12). |
+| 2 | 2026-09-17 | WP6 packing. Cell named (no published folded pack fits; pocket change for WP8). RF no-copper 12.4 × 3.8 traced. Lead pads frozen. Courtyards at max dims; packing confirmed with VQFN-32 and BAV199S, not a shell change. Flat-board sagitta and lid-underside constraint recorded. |
 
 ## 1. Frames and path
 
@@ -200,44 +202,85 @@ KEEPOUT_REF, §5). The bare tab stays inside the pocket.
 | Reference wire length | 15 | mm | plan §3.3, §5 |
 | All leads | ≤ 40, twisted | mm | plan §4 |
 | Signal lug tabs | On the floor, under Kapton | 3 × 7 × 1.5 toward the pads | mm | plan §3.3 |
-| LEAD_PADS (candidates) | Three pads, medial board copper | (u, s) = (5.9, 26.5), (5.5, 30.0), (4.0, 29.0) | mm | plan §3.3; final positions interface v2 (plan §10 item 7) |
-| Reference pad | The (4.0, 29.0) candidate | Route: pocket → channel → under the board at y 2.5–4.1 → pad | mm | plan §5 |
+| LEAD_PADS (frozen, v2) | Three pads, medial board copper | (u, s) = (5.9, 26.6) SIG1, (5.5, 30.0) SIG2, (4.0, 29.0) REF | mm | plan §3.3 candidates; SIG1 s 26.5 → 26.6 so a 1.0 × 1.0 pad stays outside keep-out 1 plus 0.5 (`scripts/cad/placement.py`) |
+| Reference pad | The (4.0, 29.0) pad | Route: pocket → channel → under the board at y 2.5–4.1 → pad; Ø1.3; 3 mm bend; Kapton wrap at s 37 | mm | plan §5; drawn in `docs/fab/cad/v1/placement.svg` |
 | Strain wrap | One Kapton wrap to the floor | at s 37 | mm | plan §5 |
 | CABLE_EXIT | Cylinder through the posterior side wall (high-u wall) | Ø2.0 at s 36, y 3; plugged in Stage B | mm | plan §3.3, §5, §6 |
 
 Pad rule: each pad sits on the medial side of the board, outside
 keep-outs plus 0.5 mm and outside the antenna no-copper zone. Each
 pad feeds its own 220 kΩ resistor and clamp within 10 mm (L4 §5.1,
-plan §4). Those resistors are schematic, not this file.
+plan §4). The three frozen pads and the BAV199S array meet that 10 mm
+rule on the placement drawing (1.69–1.73 mm).
 
 ## 5. Cell envelope
 
-The cell is a 501015-class pouch. WP6 names the SKU and freezes
-maximum dimensions (plan §8 row 12, §10 item 2). Until then the
-pocket is sized for the plan's maximum body.
+The cell is a 501015-class pouch. WP6 names the SKU below. No published
+folded pack fits the plan's 5.2 × 10.4 × 15.6 mm envelope. The pocket
+size in CAD does not change in this version; WP8 applies the pocket
+change in the table if Rolf keeps the in-line DNK pack.
 
 | Feature | Value | Unit | From |
 |---|---|---|---|
 | Class | 501015, 50 mAh, 3.7 V | – | plan §1, §5; L4 §1.4 |
-| Cell body maximum | 5.2 thick × 10.4 wide × 15.6 long | mm | plan §3.3, §5 |
-| Nominal class size | 5.0 × 10.0 × 15.0 | mm | 501015 name; DNK 501015 drawing L = 15, W = 10, T = 5, https://www.fpbattery.com/wp-content/uploads/2024/06/fpbattery-501015-3.7V-50mAh-Lithium-Polymer-Battery-Specification.pdf, read 2026-09-16 |
-| Pack with PCM in-line | 17 ± 1 long in that DNK drawing (BL) | mm | same datasheet. Does not fit the pocket unless the PCM is folded |
-| PCM | Folded on the lateral face of the cell, under Kapton; tabs toward the rib | – | plan §5 |
+| Named SKU | DNK 501015 (fpbattery drawing, file A/FP1015-12293, page 2) | – | https://www.fpbattery.com/wp-content/uploads/2024/06/fpbattery-501015-3.7V-50mAh-Lithium-Polymer-Battery-Specification.pdf, read 2026-09-17. Drawing date on the cell art: 2022-12-10 |
+| Cell body (drawing) | T 5, W 10, L 15 | mm | same page |
+| Pack as drawn | PCM in-line; BL 17 ± 1, so 16–18 long × 10 wide × 5 thick | mm | same page, items BL, W, T |
+| Folded pack ≤ 5.2 × 10.4 × 15.6 | **No published SKU** | mm | DNK in-line BL max 18. JP501015 cell 5.0 × 10 × 15 Max with "PCB: customized" and no folded envelope (https://www.jx-battery.com/consumer-electronic-battery/li-polymer-battery/headset-battery-li-polymer-battery-jp501015.html, read 2026-09-17) |
+| PCM on this drawing | In-line on the length; tabs (M = 10) at the BL end | – | DNK page 2 |
+| Tab exit for this shell | Tabs toward the rib; cell packed toward the hook (low-s) | – | plan §5; RF 5 mm rule in §6.3 |
+| Cell body maximum (plan envelope) | 5.2 thick × 10.4 wide × 15.6 long | mm | plan §3.3, §5. Unchanged. Not met by the DNK pack as drawn |
 | BATTERY_POCKET | s 1.5–17.5, u 3.1–13.9, y 1.5–7.5 | mm | plan §3.3 |
-| Pocket size | 16.0 × 10.8 × 6.0 | mm | plan §5 |
+| Pocket size (gauge, unchanged) | 16.0 × 10.8 × 6.0 | mm | plan §5 |
 | Foam under the lid | 0.5 | mm | plan §5 |
-| Cell identity | Left for WP6 | – | plan §8 row 12, §10 item 2 |
+| WP8 pocket change if the DNK in-line pack is kept | Pocket length 16.0 → 18.4 along s (BL max 18 plus 0.4 leftover, same leftover the plan gave 15.6 in 16.0). BOARD_ZONE start moves from 18.3 to 20.7 unless BODY_ARC grows 2.4. Rib can stay 0.8 thick. | mm | DNK BL 17 ± 1; plan leftover 0.4 |
 
-A vendor max of 5.2 × 10.5 × 17.5 (VCELL VP501015, read 2026-09-16 at
-https://www.vcellpower-battery.com/3.7v/501015-3-7v-50mah-lithium-polymer-battery-.html)
-does not fit this pocket if the PCM stays in line. WP6 must pick a
-cell whose folded pack is ≤ 5.2 × 10.4 × 15.6 in the pocket axes, or
-this file becomes v2.
+A custom fold of the DNK PCM onto the 10 mm face is not on the datasheet.
+That fold would be about 10 + PCM thick, which already uses the 10.8 mm
+pocket width and breaks the 10.4 mm envelope. Do not buy a cell on a
+custom fold until Rolf accepts either the +2.4 mm pocket or a drawing
+that shows a pack ≤ 5.2 × 10.4 × 15.6.
+
+### 5.1 Flat board on the curved floor
+
+The floor follows PATH_RADIUS 97.1025 mm (`manifest.json`). A 19.0 mm
+flat board is a chord of that arc.
+
+| Feature | Value | Unit | From |
+|---|---|---|---|
+| PATH_RADIUS | 97.1025 | mm | manifest `PATH_RADIUS`; WP2 `make_path(48.4, 3.0)` |
+| Board length (chord) | 19.0 | mm | plan §5 |
+| Sagitta (arc to chord at mid-s) | 0.466 | mm | h = R − sqrt(R² − (c/2)²); `placement.py` `sagitta_mm` |
+| Direction | Path plane (body XZ / −u), not Y | – | `p_xyz` passes y through as Cartesian Y |
+| Pad placement | Chord: four pads equal height y 1.5–4.3 | mm | plan §5 underside y 4.3; staggering pad heights would tilt the board in Y |
+| Board underside Y | 4.3 everywhere | mm | planar PCB at constant Y |
+| KEEPOUT_SIGNAL top Y | 4.13 | mm | plan §3.3 |
+| Y clearance, whole board | 0.17 | mm | 4.3 − 4.13. Holds at mid-s, not only at the pads |
+| Arc-to-chord gap at keep-out 1 | 0.274 | mm toward −u | `chord_gap_at(6.1)` from board mid-s 28.1 |
+| v1 §6.1 0.09 mm figure | Developed (u, s) nylon-pad gap; not a Y clearance | mm | superseded for Y by this 0.17 mm; body-frame pad gap remains WP2 0.152 / 0.110 / 0.263 |
+
+The 0.17 mm Y gap survives the sagitta. Do not raise the board. Mid-s the
+board sits 0.47 mm toward −u of the developed rectangle; keep copper 0.5 mm
+in from the low-u edge at mid-s. WP8 does not change the gauge for this.
+
+### 5.2 Lid underside (Q11, order 2)
+
+The 0.8 mm lid emboss is from the lid underside into the cavity. Module
+top is y 7.6; lid underside is y 8.0; headroom 0.4. An 0.8 stamp reaches
+y 7.2 and enters the module envelope.
+
+| Rule for order 2 | Value | From |
+|---|---|---|
+| Over BOARD_ZONE (s 18.3–37.9) | Emboss depth ≤ 0.4 mm, so the stamp stays at y ≥ 7.6 | plan §5 stack; Q11 |
+| Preferred | Move the string over BATTERY_POCKET (s 1.5–17.5), still ≤ 0.4 mm, into the 0.5 foam | same |
+| Gauge (order 1) | 0.8 mm remains; no module in the gauge | Q11 reading |
+
+WP8 builds one of those two. Do not keep 0.8 mm over the module.
 
 ## 6. Board
 
-The board is out of scope for layout. This section is the envelope
-WP6 must meet or raise as interface v2.
+The board is out of scope for trace layout. This section is the envelope
+the named pack meets.
 
 ### 6.1 Outline and supports
 
@@ -267,7 +310,9 @@ with u along the arc, WP2's script computes 0.152 mm at bow 3, 0.110 at
 bow 1 and 0.263 at bow 8 (`keepout_clearance` in `manifest.json`), and
 fails the build if any gap to a pad, the rib or a wall is not positive.
 The 0.5 mm copper-free margin around the keep-out does overlap that pad
-in plan view; the pad is nylon support, not copper.
+in plan view; the pad is nylon support, not copper. Y clearance from the
+board underside to the keep-out top is 0.17 mm everywhere (§5.1). The
+sagitta does not reduce that Y gap.
 
 ### 6.2 Heights by zone
 
@@ -278,7 +323,7 @@ in plan view; the pad is nylon support, not copper.
 | Board core | 1.0 | 4.3–5.3 | mm | plan §5 |
 | Lateral, module | 2.3 max | 5.3–7.6 | mm | plan §5; 4.3 + 1.0 + 2.3 = 7.6 |
 | Under the lid | Lid underside at 8.0; 0.4 remains above the module | 7.6–8.0 | mm | plan §5 |
-| Thin body | Same stack does not fit under LID_Y = 6.0 | – | plan §5: 9.0 mm is a design value until WP6 |
+| Thin body | Same stack does not fit under LID_Y = 6.0 | – | plan §5. Full 9.0 mm is confirmed for the named pack; thin remains a gauge only |
 
 ### 6.3 RF zone
 
@@ -286,32 +331,33 @@ Module: Raytac MDBT50Q-1MV2, chip antenna.
 
 | Feature | Value | Unit | From |
 |---|---|---|---|
-| Nominal module | 15.5 × 10.5 × 2.05 | mm | Raytac Spec L, https://www.raytac.com/download/index.php?index_id=43, and product page https://www.raytac.com/product/ins.php?index_id=24, read 2026-09-16; plan §8 row 10 verified by `pro` |
-| Width max on Spec K/L table | 10.5 + 0.2 = 10.7 | mm | SparkFun Spec K table, https://cdn.sparkfun.com/assets/4/7/4/3/8/_nRF52840__MDBT50Q-1MV2___MDBT50Q-P1MV2_Ver.K_spec.pdf, read 2026-09-16 |
-| Reserved max (this interface) | 15.8 × 10.8 × 2.3 | mm | plan §5 (tolerance, solder, shield) |
-| Placement | Lateral side of the board; antenna end at the inferior board edge (high-s) | – | plan §5 |
-| Battery separation | ≥ 5 from the battery | mm | plan §5 |
-| No-copper rule | No ground or copper on any layer in the antenna's corresponding area; make that area as wide as the PCB allows; put the module on the PCB edge | – | Raytac Spec L §2.3, read 2026-09-16 |
-| Overlap | The antenna no-copper zone overlaps KEEPOUT_SIGNAL of CONTACT_2 | – | plan §5 |
-| Exact polygon | **UNVERIFIED** | mm | Spec L §2.3 is a drawing. WP6 traces that drawing into copper. Do not invent millimetres |
-
-Until WP6 traces the drawing, treat the inferior end of the module
-footprint, full module width, on every layer, as no-copper, and keep
-that zone off the three lead pads.
+| Nominal module | 15.5 × 10.5 × 2.05 | mm | Raytac Spec K, issued 2022-07-01, page 7, https://cdn.sparkfun.com/assets/4/7/4/3/8/_nRF52840__MDBT50Q-1MV2___MDBT50Q-P1MV2_Ver.K_spec.pdf, read 2026-09-17; plan §8 row 10 |
+| Width max | 10.5 + 0.2 = 10.7; length 15.5 + 0.2 = 15.7 | mm | Spec K page 7 table (Min −0.15, MAX +0.2 on L and W) |
+| Reserved max (this interface) | 15.8 × 10.8 × 2.3 | mm | plan §5 (tolerance, solder, shield). Unchanged |
+| Placement | Lateral side of the board; antenna end at the inferior board edge (high-s). Nominal footprint s 22.1–37.6, u centred on the board | – | plan §5; module 15.5 from s 37.6 |
+| No-copper polygon | 12.4 wide × 3.8 along s, on every layer, at the inferior board edge; make it as wide as the PCB (here 12.5, clipped to 12.4). Extra top-layer notch at the feed as in Spec K page 9 | mm | Spec K §2.3 pages 9 and 13, issued 2022-07-01, read 2026-09-17 |
+| Antenna on the board | s 33.8–37.6, u 2.30–14.70 | mm | 3.8 mm in from s 37.6; 12.4 centred on BOARD_U |
+| Battery separation, cell packed to the hook | 5.00 (s 22.1 − 17.1) | mm | cell body 15.6 from s 1.5; plan §5 ≥ 5 mm |
+| Battery separation, cell against the rib | 4.60 (s 22.1 − 17.5) | mm | fails the 5 mm rule. Pack the cell toward the hook; tabs toward the rib |
+| Overlap | Antenna s 33.8–37.6 overlaps KEEPOUT_SIGNAL of CONTACT_2 (s 29.55–36.65) | – | plan §5; `placement.py` `rf_keepout2_overlap` |
+| Lead pads vs RF | All three frozen pads have s ≤ 30.0, outside s 33.8 | – | §4 |
 
 ### 6.4 Where the ADS1292 and the charger may sit
 
 | Part | Package | Body / courtyard | Height | Side | Rule | From |
 |---|---|---|---|---|---|---|
-| ADS1292 | TQFP-32 (PBS) | Body 5.00 × 5.00; TI package size 7 × 7 | 1.0 typ, 1.2 max | Medial (height = the 1.2 cap) | Entire 7 × 7 courtyard outside keep-outs + 0.5 and outside the RF zone | TI ADS1292 datasheet rev C, https://www.ti.com/lit/ds/symlink/ads1292.pdf, read 2026-09-16; plan §5, §8 row 11 |
-| ADS1292 VQFN option | VQFN-32 (RSM) | Body 4.00 × 4.00; TI package size 4 × 4 | 1.0 max | Medial | Same keep-out rule; this is the "smaller front end" escalation | same datasheet |
-| Charger | TI BQ25100 YFP DSBGA-6 | 1.60 × 0.90 | 0.5 class | Either; prefer superior, toward the rib, for short battery leads | Not in the RF zone; not over keep-outs | TI BQ25100, https://www.ti.com/lit/gpn/BQ25100A, read 2026-09-16; L4 §1.4; plan packing 7 mm² for charger + LDO |
+| ADS1292 packing choice | VQFN-32 (RSM) | Body 4.00 × 4.00; courtyard 4.50 × 4.50 | 1.0 max | Medial | Entire courtyard outside keep-outs + 0.5 and outside the RF zone. Placed u 10.00–14.50, s 18.90–23.40 | TI ADS1292 datasheet rev C, RSM 4 × 4, https://www.ti.com/lit/ds/symlink/ads1292.pdf, read 2026-09-17; IPC-7351B Nominal excess 0.25 mm/side, https://www.pcbsync.com/ipc-7351-land-pattern/, read 2026-09-17 |
+| ADS1292 TQFP-32 (PBS) | Not used on this board | Body 4.95–5.05 SQ; lead span 6.90–7.10 SQ; height 1.20 max; courtyard 7.60 × 7.60 | 1.2 max | Medial | Does not fit: largest empty rectangle on the free mask is 4.55 × 10.20 | TI PBS drawing 4087735/B 07/05, https://www.ti.com/lit/ml/mpqf027a/mpqf027a.pdf, read 2026-09-17 |
+| Charger | TI BQ25100 YFP DSBGA-6 | Body 1.60 × 0.90; courtyard 2.10 × 1.40 | 0.5 max | Either; placed u 10.10, s 23.50, toward the rib | Not in the RF zone; not over keep-outs | TI BQ25100 YFP0006 4223410/A 11/2016, https://www.ti.com/lit/ds/symlink/bq25100.pdf, read 2026-09-17 |
+| LDO | TI TLV713 3.3 V, X2SON-4 (DQN) | Body 1.00 × 1.00; courtyard 1.50 × 1.50 | ≤ 1.2 | Medial, next to the charger | Not in the RF zone | TI TLV713 SBVS195F, revised August 2019, page 1, https://www.ti.com/lit/ds/symlink/tlv713.pdf, read 2026-09-17 |
 | Charge pads | On the board, inside the cavity | – | – | Reached with the lid off | No skin-side port | plan §2 item 16, §5, §6 |
-| Clamps | Three SOT-23 (BAV199 class) | Body max 3.0 × 1.4 × 1.1; packing uses 10 mm² each | ≤ 1.2 | Medial, within 10 mm of each pad | Each contact's own clamp | Nexperia BAV199, https://assets.nexperia.com/documents/data-sheet/BAV199.pdf, read 2026-09-16; L4 §5.1; plan §5 |
+| Clamps | One BAV199S-Q TSSOP6 (SOT363-3) | Occupied area 2.65 × 2.35; placed u 4.20, s 27.10 | ≤ 1.2 | Medial, within 10 mm of each pad (1.69–1.73 mm) | One array in place of three SOT-23 | Nexperia BAV199S-Q, 20 July 2026, Fig. 8, https://assets.nexperia.com/documents/data-sheet/BAV199S-Q.pdf, read 2026-09-17 |
+| Clamps, SOT-23 option | Three BAV199 SOT-23 | Occupied area 3.3 × 3.0 each | ≤ 1.2 | Medial | Fits by area (29.70 mm²) if VQFN is used; the array is the packing choice | Nexperia BAV199, 1 April 2023, Fig. 9, https://assets.nexperia.com/documents/data-sheet/BAV199.pdf, read 2026-09-17 |
 
 The module takes most of the lateral face (15.8 × 10.8 on a 19.0 × 12.5
-board). The ADS1292 and the charger therefore share the medial face
-with the keep-outs, the lug tabs, and the three pads.
+board). The ADS1292 VQFN and the charger share the medial face with the
+keep-outs, the lug tabs, and the three pads. TQFP-32 does not fit that
+face at Nominal courtyards.
 
 ## 7. Insulation and safety (mechanical)
 
@@ -324,6 +370,8 @@ and clamps) is not this package.
 | Three separately protected paths | Each contact reaches the board only through its own lug, insulated lead, pad, resistor, and clamp. No pre-resistor conductor may touch the battery, the charge pads, or other copper | plan §6; design record requirement 4 |
 | Only insulated wire leaves the reference pocket | Bare tab stays in KEEPOUT_REF | plan §3.3, §5 |
 | Board medial copper | Solder-mask except the three lead pads | plan §5 |
+| Board underside vs keep-out top | 0.17 mm in Y everywhere on a chord-mounted board (§5.1). Do not stagger pad heights | plan §5; PATH_RADIUS |
+| Lid underside over the module | Emboss ≤ 0.4 mm over BOARD_ZONE, or move the string over the battery zone (§5.2) | Q11 |
 | No charging port | No skin-side connector. Charge pads inside the closed cavity, lid off | plan §5, §6 |
 | Never charge while worn | Procedural, on the assembly sheet | plan §6; design record requirement 3 |
 | CABLE_EXIT | Ø2.0 for tethered bring-up only; plugged before wear in Stage B | plan §5, §6 |
@@ -335,40 +383,64 @@ and clamps) is not this package.
 ## 8. Packing budget
 
 Board area 19.0 × 12.5 = 237.5 mm², quoted 237 in plan §5. Heights
-are in §6.2. 9.0 mm body thickness is a design value until WP6
-confirms it (plan §5).
+are in §6.2. 9.0 mm body thickness stays a design value; the named
+pack (VQFN-32, module 2.3 max) still fits the 8.0 mm lid with 0.4 mm
+headroom, subject to §5.2.
 
-### 8.1 Area at maximum datasheet dimensions
+Raster: 0.025 mm pitch on the board rectangle in `scripts/cad/placement.py`.
+Unions, not a sum of overlapping boxes.
+
+### 8.1 Area at maximum datasheet courtyards
 
 | Item | mm² | From |
 |---|---|---|
-| Board | 237 | plan §5 |
-| Minus keep-out 1 on the board | 49 | plan §5 (Ø7.1 reserved as ≈ 7 × 7) |
-| Minus keep-out 2 ∪ antenna zone | ≈ 68 | plan §5 |
-| Minus rim | ≈ 15 | plan §5 |
-| Available | ≈ 105 | plan §5 |
-| ADS1292 TQFP-32 courtyard | 49 (7 × 7) | plan §5; TI package size 7 × 7, read 2026-09-16 |
-| Three SOT-23 clamps | 30 | plan §5 |
-| Charger and LDO | 7 | plan §5 |
-| About 25 passives 0402 | 25 | plan §5 |
-| Required | ≈ 111 | plan §5 |
-| Shortfall | ≈ 6 | 111 − 105 |
+| Board | 237.50 | 19.0 × 12.5; plan §5 |
+| Keep-out 1 on the board (Ø7.1, no margin) | 39.38 | circle ∩ board |
+| Keep-out 1 + 0.5 copper-free | 48.65 | plan §5 margin 0.5 |
+| Keep-out 2 on the board | 39.59 | circle ∩ board |
+| Keep-out 2 + 0.5 | 51.53 | same margin |
+| Antenna no-copper 12.4 × 3.8 | 47.12 | Spec K pages 9 and 13 |
+| Keep-out 2 ∪ antenna (with margin) | 78.53 | union; plan estimated ≈ 68 |
+| Rim 0.25 mm | 15.50 | plan §5 ≈ 15 |
+| Available (free mask) | 101.53 | board minus keep-out 1+0.5 minus (keep-out 2 ∪ antenna) minus rim, unions |
+| Largest empty rectangle | 4.55 × 10.20 = 46.41 | high-u pocket u 9.96–14.51, s 18.86–29.04 |
+| ADS1292 TQFP-32 courtyard | 57.76 (7.60 × 7.60) | PBS lead span max 7.10 + 2 × 0.25 IPC-7351B Nominal |
+| Three BAV199 SOT-23 | 29.70 (3 × 3.3 × 3.0) | Nexperia Fig. 9 occupied area, 1 April 2023 |
+| One BAV199S-Q | 6.23 (2.65 × 2.35) | Nexperia Fig. 8 occupied area, 20 July 2026 |
+| BQ25100 courtyard | 2.94 (2.10 × 1.40) | 1.60 × 0.90 + 2 × 0.25 |
+| TLV713 courtyard | 2.25 (1.50 × 1.50) | 1.00 × 1.00 + 2 × 0.25 |
+| 25 × 0402 | 40.50 (25 × 1.80 × 0.90) | IPC-7351B small-chip Nominal; pcbsync courtyard excess 0.15 mm on chips smaller than 1608, read 2026-09-17 |
+| Required, as-drawn TQFP + 3 SOT-23 | 133.15 | 57.76 + 29.70 + 2.94 + 2.25 + 40.50 |
+| Required, named (VQFN + BAV199S) | 72.17 | 20.25 + 6.23 + 2.94 + 2.25 + 40.50 |
+| Spare, named | 29.36 | 101.53 − 72.17 |
+| TQFP 7.60² on the free mask | Does not fit | largest empty 4.55 wide |
+| VQFN 4.50² on the free mask | Fits | placed u 10.00, s 18.90 |
 
-Feasible only with tighter courtyards or a diode array. WP6 decides
-(plan §5). Rolf chooses the escalation (plan §10 Open for Rolf item 6).
+Plan 105 vs 111 used body-sized boxes (7 × 7, 1 mm² per 0402). Real Nominal
+courtyards are larger, and the keep-out ∪ antenna union is 78.53 not 68.
+As drawn (TQFP-32 and three SOT-23) does not fit. The named change below
+does, with no shell change.
+
+One of the 25 0402 courtyards sits on the lateral face over the VQFN
+(two-sided; 0402 height ~0.5 mm; module starts at s 22.1). The other 24
+sit in the free mask.
 
 ### 8.2 Escalation options (plan §10 interface item 1)
 
+Result: **confirmed with a named change that is not a shell change.**
+ADS1292 in VQFN-32 (RSM) and one BAV199S-Q array. IPC-7351B Nominal
+courtyards. Option D of the v1 table, plus the array from option A.
+Rolf does not need to pick B or C for packing.
+
 | Option | What changes | Area it buys | Height / fit | From |
 |---|---|---|---|---|
-| A. Fits as drawn | Tighter courtyards, or one diode array in place of three SOT-23 (plan §5). The array's area is **UNVERIFIED**: the "about 8 mm², +22 mm²" first written here has no datasheet; WP6 names the part | Enough to cover the 6 mm² shortfall only if the array saves ≥ 6 mm² | No shell change | plan §5; area UNVERIFIED (WP6) |
-| B. Longer | Board length +3.5 mm → 22.5 × 12.5 = 281 mm² | +44 mm² board; available about 149 against 111 required | Cavity length 36.7 → 40.2; BODY_ARC grows about 3.5; M1 gate moves. WP2 re-runs | plan §10 item 1 |
-| C. Wider | Board width +3.0 mm → 19.0 × 15.5 = 295 mm² | +57 mm² board; available about 162 against 111 required | BODY_WIDTH 17 → 20; cavity 14 → 17. Covertness. WP2 re-runs | plan §10 item 1 |
-| D. Smaller front end | ADS1292 VQFN-32 4 × 4 (16 mm²) instead of TQFP 7 × 7 (49 mm²) | +33 mm²; required drops to about 78 against 105 available | Medial height still ≤ 1.2 | TI datasheet RSM package; plan §10 item 1 |
+| A. Diode array only | BAV199S-Q in place of three SOT-23 | Saves 23.47 mm² (29.70 − 6.23) | TQFP still does not fit (7.60 > 4.55 empty width) | Nexperia occupied areas |
+| B. Longer | Board length +3.5 mm → 22.5 × 12.5 = 281.25 | +43.75 board; empty width stays ~4.55; TQFP still no | Cavity length 36.7 → 40.2; BODY_ARC grows about 3.5; M1 gate moves. WP2 re-runs | plan §10 item 1 |
+| C. Wider | Board width +3.0 mm → 19.0 × 15.5 = 294.5 | +57.0 board; empty width ~7.55; TQFP 7.60 still 0.05 short at Nominal; Least courtyard 7.30 would fit | BODY_WIDTH 17 → 20; cavity 14 → 17. Covertness. WP2 re-runs | plan §10 item 1 |
+| D. Smaller front end (this v2) | ADS1292 VQFN-32 4.50 × 4.50 (20.25 mm²) instead of TQFP 7.60 × 7.60 (57.76); plus BAV199S | Required 72.17 against 101.53 available; spare 29.36 | Medial height still ≤ 1.2; no shell change | TI RSM; this file §8.1 |
 
-Options B and C are interface v2 and a second gauge if thickness or
-width changes (plan §7 order 1 rework). Option D is a WP6 parts
-choice and stays on this shell if the courtyards fit.
+Options B and C remain a second gauge if thickness or width changes
+(plan §7 order 1 rework). They are not needed for packing.
 
 ## 9. Version notes (plan vs brief vs design record)
 
@@ -387,6 +459,8 @@ The plan wins. These are not silent CAD changes.
    inside the cavity, lid off. This file follows the plan.
 5. L4's module number is 15.5 × 10.5 × 2.05. This file reserves the
    plan's 15.8 × 10.8 × 2.3 maximum.
+6. Plan packing used TQFP-32 and three SOT-23. Those courtyards do not
+   fit. This file uses VQFN-32 and BAV199S (plan §10 option D plus A).
 
 ## 10. UNVERIFIED list
 
@@ -395,14 +469,14 @@ The plan wins. These are not silent CAD changes.
 | 1 | Dome Ø4.7, crown 1.35 | WP5 SKU drawing. ISO 7380-1:2022 has no M2.5 row; catalog M2.5 is 4.5 / 1.5 | WP5 |
 | 2 | Lug tab ≤ 3 wide × 7 long | Thickness closed by WP5 (TE 31428, 0.46); barrel width still needs the drawing | WP5 |
 | 3 | Assembled lug + nut + Kapton inside Ø7.1 | Height closed by WP5 (2.63 on the SKU set); plan-view fit of the ring (5.16 wide) and nut (5.77 across corners) inside Ø7.1 is by arithmetic, not a drawing | WP5 |
-| 4 | Cell body ≤ 5.2 × 10.4 × 15.6 with PCM folded | WP6 named cell drawing | WP6 |
-| 5 | RF no-copper polygon in millimetres | WP6 trace of Raytac Spec L §2.3 | WP6 |
-| 6 | Lead pad (u, s) values | Interface v2 after WP6 placement | WP6 |
+| 4 | Cell body ≤ 5.2 × 10.4 × 15.6 with PCM folded | Closed as a negative: no published SKU. DNK 501015 in-line BL 17 ± 1. WP8 pocket +2.4 mm along s if that pack is kept (§5) | WP6 / WP8 |
+| 5 | RF no-copper polygon in millimetres | Closed: 12.4 × 3.8 at the inferior board edge, Spec K pages 9 and 13, issued 2022-07-01 (§6.3) | WP6 |
+| 6 | Lead pad (u, s) values | Closed: (5.9, 26.6), (5.5, 30.0), (4.0, 29.0) (§4) | WP6 |
 | 7 | Channel opening 0.94 mm at bow 3 | Closed by WP2: 0.938 at bow 3, 1.089 at bow 1, 0.537 at bow 8 (`wire_channel` in manifest.json). Stage B containment still WP8 | WP2 / WP8 |
 | 8 | 0.09 mm pad-to-keep-out gap at CONTACT_1 | Closed by WP2's check: body-frame gap 0.110–0.263 over bows 1–8 (§6.1) | WP2 |
 | 9 | Plated-steel DIN 439 M2.5 nut SKU | A product page, date and price (contacts.md §1.2) | WP5 |
 
-## 11. Sources read (web, 2026-09-16)
+## 11. Sources read (web, 2026-09-16 and 2026-09-17)
 
 | Source | URL | Used for |
 |---|---|---|
@@ -414,27 +488,35 @@ The plan wins. These are not silent CAD changes.
 | ISO 4035 / DIN 439 | https://www.fasteners.eu/standards/iso/4035/ | Thin nut m 1.6, s 5 |
 | ISO 4032 | https://www.fasteners.eu/standards/ISO/4032/ | Style-1 nut m 2.0; not used |
 | ISO 273 medium M2.5 | https://fastenerchart.com/clearance-hole-chart/ | Hole Ø2.9 |
-| Raytac Spec L | https://www.raytac.com/download/index.php?index_id=43 | Module size, RF rules |
-| Raytac Spec K | https://cdn.sparkfun.com/assets/4/7/4/3/8/_nRF52840__MDBT50Q-1MV2___MDBT50Q-P1MV2_Ver.K_spec.pdf | W max +0.2 |
-| TI ADS1292 | https://www.ti.com/lit/ds/symlink/ads1292.pdf | 5 × 5 body, 7 × 7 package, 1.2 max height |
-| TI BQ25100 | https://www.ti.com/lit/gpn/BQ25100A | 1.60 × 0.90 |
-| Nexperia BAV199 | https://assets.nexperia.com/documents/data-sheet/BAV199.pdf | SOT-23 3.0 × 1.4 × 1.1 max |
+| Raytac Spec L | https://www.raytac.com/download/index.php?index_id=43 | Module size (v1). Spec K used for the keep-out millimetres in v2 |
+| Raytac Spec K | https://cdn.sparkfun.com/assets/4/7/4/3/8/_nRF52840__MDBT50Q-1MV2___MDBT50Q-P1MV2_Ver.K_spec.pdf | Issued 2022-07-01. Module size page 7; no-ground 12.4 × 3.8 pages 9 and 13 |
+| TI ADS1292 | https://www.ti.com/lit/ds/symlink/ads1292.pdf | VQFN 4 × 4, TQFP 7 × 7 class, 1.2 max (PBS) |
+| TI PBS (S-PQFP-G32) | https://www.ti.com/lit/ml/mpqf027a/mpqf027a.pdf | 4087735/B 07/05; body 5.05 SQ max, lead span 7.10 SQ max |
+| TI BQ25100 | https://www.ti.com/lit/ds/symlink/bq25100.pdf | YFP 1.60 × 0.90, 0.5 max, drawing 4223410/A 11/2016 |
+| TI TLV713 | https://www.ti.com/lit/ds/symlink/tlv713.pdf | SBVS195F Aug 2019; X2SON 1.00 × 1.00 |
+| Nexperia BAV199 | https://assets.nexperia.com/documents/data-sheet/BAV199.pdf | 1 April 2023; SOT23 occupied 3.3 × 3.0 Fig. 9 |
+| Nexperia BAV199S-Q | https://assets.nexperia.com/documents/data-sheet/BAV199S-Q.pdf | 20 July 2026; occupied 2.65 × 2.35 Fig. 8 |
+| IPC-7351B courtyard excess | https://www.pcbsync.com/ipc-7351-land-pattern/ | Nominal 0.25 mm/side; Least 0.10; small-chip Nominal 0.15; read 2026-09-17 |
 | Kapton 500HN | https://www.qnityelectronics.com/content/dam/electronics/amer/us/en/electronics/public/documents/en/QE-10167-Kapton-General-Specifications.pdf | 0.127 mm, tol. 0.122–0.130 |
-| DNK 501015 | https://www.fpbattery.com/wp-content/uploads/2024/06/fpbattery-501015-3.7V-50mAh-Lithium-Polymer-Battery-Specification.pdf | 15 × 10 × 5 cell, 17 ± 1 with PCM |
+| DNK 501015 | https://www.fpbattery.com/wp-content/uploads/2024/06/fpbattery-501015-3.7V-50mAh-Lithium-Polymer-Battery-Specification.pdf | Page 2: L 15, W 10, T 5, BL 17 ± 1; cell art 2022-12-10 |
+| JP501015 | https://www.jx-battery.com/consumer-electronic-battery/li-polymer-battery/headset-battery-li-polymer-battery-jp501015.html | Cell 5.0 × 10 × 15 Max; PCM customized, no folded envelope |
 | VCELL 501015 | https://www.vcellpower-battery.com/3.7v/501015-3-7v-50mah-lithium-polymer-battery-.html | 5.2 × 10.5 × 17.5 max example |
 | 28 AWG silicone | https://bntechgo.com/28-awg-silicone-wire-stranded-tinned-copper-wire-1-feet-11-colors-optional/ | OD 1.2 ± 0.1 |
 
-## 12. Pending interface v2 notes
+## 12. Pending interface notes
 
-Recorded by review r1 (2026-09-17). None of these changes a v1 number;
-each becomes a v2 change when its owner closes it.
+V2 items closed by this version are marked closed. Open items stay until
+their owner closes them. None of the closed rows changes a number that
+v1 froze except the three lead pads, the RF polygon, the packing choice,
+and the cell identity.
 
 | # | Item | Now | What would change | Owner |
 |---|---|---|---|---|
 | V2-1 | Contact dome | CAD prints Ø4.7 × 1.35 (plan §3.3). No SKU drawing on file: WP5's listings give dk 4.40–4.70 and k 1.20–1.36; a manufacturer ISO 7380 M2.5 row gives dk max 4.5, k max 1.5 (note D1) | A drawing for the bought screw sets CONTACT_DOME; area 17.3 mm² at 4.7, 15.9 at 4.5, 15.2 at 4.4 (plan §4 pressure estimate moves with it) | WP5, then WP8 |
-| V2-2 | Coupon-to-parameter mapping (plan §10 open item 2) | Coupon 12 × 12 × 3 in `docs/fab/cad/v1/coupon.*`; mapping below | Measured coupon sizes feed the parameters in the table | WP2 (mapping), WP8 (update) |
-| V2-3 | Nut material | Plan §4 allows plated steel or tinned copper; only stainless and bespoke titanium SKUs are on file | A plated-steel SKU, or Rolf accepting stainless inside the cavity, or titanium DIN 934 with its zero margin (§2.3) | WP5, Rolf |
-| V2-4 | Packing shortfall | 105 mm² available vs 111 required (§8) | One of §8.2 A–D | WP6, Rolf (plan §10 Open for Rolf item 6) |
+| V2-2 | Coupon-to-parameter mapping (plan §10 open item 2) | Mapping in this file, in `scripts/cad/bte_fit_shell.py` docstring, in `scripts/cad/placement.py` docstring, and in `scripts/cad/README.md` | Measured coupon sizes feed the parameters in the table | WP2 (mapping), WP8 (update) |
+| V2-3 | Nut metal (Q6; Rolf's) | Plan §4 allows plated steel or tinned copper. No plated-steel DIN 439 M2.5 SKU is on file. Candidates, none chosen: (1) plated carbon-steel DIN 439 thin nut, zinc not nickel, SKU UNVERIFIED; (2) McMaster 18-8 `90710A025`, outside plan text, nickel-bearing; (3) Accu A2 `HNU-M2-5-A2`, same; (4) titanium DIN 934, m = 2.0, zero stack margin at wall +0.3. Status: open. WP6 does not decide it | A plated-steel SKU, or Rolf accepting stainless inside the cavity, or titanium DIN 934 with its zero margin (§2.3) | **Rolf**, WP5 |
+| V2-4 | Packing shortfall | Closed: named pack VQFN-32 + BAV199S, spare 29.36 mm², no shell change (§8.2 D) | — | WP6 |
+| V2-5 | Lid emboss vs module (Q11) | Constraint written in §5.2. Gauge keeps 0.8 mm | Order 2: emboss 0.4 mm or move over the battery zone | WP8 |
 
 V2-2, coupon features and what each one measures. Coupon axes as in
 `scripts/cad/bte_fit_shell.py` `build_coupon`: x and y across the top
