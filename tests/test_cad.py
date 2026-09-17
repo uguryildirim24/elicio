@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -212,10 +213,23 @@ class CadOverlayTests(unittest.TestCase):
             CAD.cli(["--set", "BODY_WIDTH=15", "--checks-only"])
         self.assertIn("BODY_WIDTH=15", str(ctx.exception))
 
-    def test_stage_b_contacts_fail_before_export(self) -> None:
-        with self.assertRaises(CAD.CheckFail) as ctx:
-            CAD.cli(["--set", "MOCK_CONTACTS=false", "--checks-only"])
-        self.assertIn("MOCK_CONTACTS", str(ctx.exception))
+    def test_stage_b_mock_false_checks_run(self) -> None:
+        self.assertEqual(CAD.cli(["--set", "MOCK_CONTACTS=false", "--checks-only"]), 0)
+        params, _used = CAD.build_reference_params(
+            variant="full", preload=1.5, overrides={"MOCK_CONTACTS": False}
+        )
+        names = {check.name: check for check in CAD.run_pre_cad_checks(params)}
+        self.assertIn("Q21_REF_lug", names)
+        self.assertFalse(names["Q21_REF_lug"].passed)
+        self.assertGreater(names["Q21_REF_lug"].numbers["lug_top_y"], names["Q21_REF_lug"].numbers["lid_y"])
+        self.assertNotIn("E1", names)
+        self.assertNotIn("E5_bump", names)
+        self.assertIn("BOARD_underside_clear", names)
+        self.assertIn("CELL_envelope", names)
+        self.assertIn("REF_WIRE_envelope", names)
+        self.assertIn("CABLE_EXIT_cavity", names)
+        self.assertIn("TAB_envelope_air", names)
+        self.assertIn("M1_gate", names)
 
 
 @unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
@@ -349,6 +363,191 @@ class CadBuildGuardTests(unittest.TestCase):
                     ]
                 )
             self.assertEqual(list(Path(temp_dir).iterdir()), [])
+
+
+class CadStageBTests(unittest.TestCase):
+    STAGE_B = ROOT / "scripts" / "cad" / "params" / "stageb_provisional.toml"
+
+    def _stage_b(self, overrides: dict | None = None) -> dict:
+        merged = {"MOCK_CONTACTS": False}
+        if overrides:
+            merged.update(overrides)
+        params, _used = CAD.build_reference_params(
+            variant="full", preload=1.5, overrides=merged
+        )
+        return params
+
+    def test_packing_a_is_plan_shell(self) -> None:
+        params = self._stage_b({"PACKING": "A"})
+        self.assertEqual(params["PACKING"], "A")
+        self.assertAlmostEqual(params["BODY_WIDTH"], 17.0)
+        self.assertAlmostEqual(params["BODY_ARC"], 48.4)
+
+    def test_packing_c_widens_body_and_uses_placement_pads(self) -> None:
+        params = self._stage_b({"PACKING": "C"})
+        self.assertEqual(params["PACKING"], "C")
+        self.assertAlmostEqual(params["BODY_WIDTH"], 20.0)
+        self.assertEqual(params["LEAD_PADS"]["SIG1"], [7.5, 29.35])
+        self.assertEqual(params["LEAD_PADS"]["SIG2"], [13.5, 21.35])
+        self.assertEqual(params["LEAD_PADS"]["REF"], [5.5, 29.35])
+        placement = CAD.load_placement()
+        self.assertEqual(
+            params["LEAD_PADS"]["SIG1"],
+            list(placement.PADS_BY_OPTION["C"]["SIG1"]),
+        )
+
+    def test_packing_b_lengthens_arc_and_moves_tail(self) -> None:
+        params = self._stage_b({"PACKING": "B"})
+        self.assertAlmostEqual(params["BODY_ARC"], 51.9)
+        self.assertAlmostEqual(params["TAIL_DS"], 3.5)
+        self.assertAlmostEqual(params["TAIL_S0"], 41.7)
+
+    def test_q21_records_failure_with_numbers(self) -> None:
+        params = self._stage_b()
+        q21 = {c.name: c for c in CAD.run_pre_cad_checks(params)}["Q21_REF_lug"]
+        self.assertFalse(q21.passed)
+        self.assertIn("Q21", q21.detail)
+        self.assertGreater(q21.numbers["lug_top_y"], q21.numbers["lid_y"])
+        self.assertGreater(q21.numbers["barrel_outer"], q21.numbers["pocket_r"])
+
+    def test_keepout_on_rib_fails_with_gap(self) -> None:
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.cli(
+                [
+                    "--set",
+                    "MOCK_CONTACTS=false",
+                    "--set",
+                    "CONTACT_1_S=17.9",
+                    "--checks-only",
+                ]
+            )
+        message = str(ctx.exception)
+        self.assertIn("keep-out", message)
+        self.assertIn("gap", message)
+
+    def test_tab_height_3_fails_board_clearance(self) -> None:
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.cli(
+                [
+                    "--set",
+                    "MOCK_CONTACTS=false",
+                    "--set",
+                    "TAB_HEIGHT=3",
+                    "--checks-only",
+                ]
+            )
+        message = str(ctx.exception)
+        self.assertIn("BOARD_underside_clear", message)
+        self.assertIn("4.5", message)
+
+    def test_cable_exit_in_battery_fails(self) -> None:
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.cli(
+                [
+                    "--set",
+                    "MOCK_CONTACTS=false",
+                    "--set",
+                    "CABLE_EXIT_S=10",
+                    "--checks-only",
+                ]
+            )
+        message = str(ctx.exception)
+        self.assertIn("CABLE_EXIT_cavity", message)
+        self.assertIn("10", message)
+
+    def test_cell_too_wide_fails(self) -> None:
+        params = self._stage_b()
+        original = CAD.BATTERY_U
+        CAD.BATTERY_U = (3.1, 8.0)
+        try:
+            with self.assertRaises(CAD.CheckFail) as ctx:
+                CAD.run_pre_cad_checks(params)
+        finally:
+            CAD.BATTERY_U = original
+        self.assertIn("CELL_envelope", str(ctx.exception))
+
+    def test_closure_passed_restores_e1_e3_e5(self) -> None:
+        params = self._stage_b({"CLOSURE_PASSED": True})
+        names = {c.name for c in CAD.run_pre_cad_checks(params)}
+        self.assertIn("E1", names)
+        self.assertIn("E3", names)
+        self.assertIn("E5_bump", names)
+
+    def test_provisional_file_defaults(self) -> None:
+        args = CAD.parse_args(["--params", str(self.STAGE_B)])
+        overrides, _from_m = CAD.resolve_overrides(args)
+        self.assertFalse(overrides["MOCK_CONTACTS"])
+        self.assertEqual(overrides["PACKING"], "C")
+        self.assertFalse(overrides["CLOSURE_PASSED"])
+        self.assertEqual(overrides["TAB_HEIGHT"], 2.0)
+
+    def test_stage_b_refuses_v1_out(self) -> None:
+        params = self._stage_b()
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.assert_stage_b_out_dir(CAD.V1_DIR, params)
+        self.assertIn("v1", str(ctx.exception).lower())
+        with self.assertRaises(CAD.CheckFail):
+            CAD.assert_stage_b_out_dir(CAD.V2_DIR, params)
+
+
+@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+class CadStageBBuildTests(unittest.TestCase):
+    STAGE_B = ROOT / "scripts" / "cad" / "params" / "stageb_provisional.toml"
+
+    def test_hole_in_side_wall_fails_wall_only_check(self) -> None:
+        params, _used = CAD.build_reference_params(
+            variant="full",
+            preload=1.5,
+            overrides={"MOCK_CONTACTS": False, "CONTACT_1_U": 0.5},
+        )
+        body, lid, path, _notes = CAD.build_body_and_lid(params)
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.run_stage_b_solid_checks(body, lid, path, params)
+        self.assertIn("CONTACT_HOLE_wall", str(ctx.exception))
+        self.assertIn("0.5", str(ctx.exception))
+
+    def test_provisional_build_into_temp_records_q21(self) -> None:
+        cmd = [
+            sys.executable,
+            str(SCRIPT),
+            "--params",
+            str(self.STAGE_B),
+            "--parts",
+            "body_full_p15,lid,coupon",
+        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            dest = Path(temp_dir)
+            self.assertEqual(subprocess.check_call(cmd + ["--out", str(dest)]), 0)
+            payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(payload["stage"], "B")
+            self.assertTrue(payload["provisional"])
+            self.assertEqual(payload["packing"], "C")
+            self.assertFalse(payload["closure_passed"])
+            self.assertIn("plan §3.3", payload["contact_source"])
+            q21 = payload["stage_b"]["Q21_REF_lug"]
+            self.assertFalse(q21["passed"])
+            self.assertGreater(q21["numbers"]["lug_top_y"], q21["numbers"]["lid_y"])
+            for name in (
+                "BOARD_underside_clear",
+                "CELL_envelope",
+                "REF_WIRE_envelope",
+                "CABLE_EXIT_cavity",
+                "TAB_envelope_air",
+                "CONTACT_HOLE_wall",
+                "KEEPOUT_SIGNAL_air",
+                "KEEPOUT_REF_air",
+            ):
+                with self.subTest(name=name):
+                    self.assertIn(name, payload["stage_b"])
+                    if name != "Q21_REF_lug":
+                        self.assertTrue(payload["stage_b"][name]["passed"], name)
+            mod = load_manifest_mod()
+            mod.validate(payload)
+        with tempfile.TemporaryDirectory() as temp_dir2:
+            dest2 = Path(temp_dir2)
+            self.assertEqual(subprocess.check_call(cmd + ["--out", str(dest2)]), 0)
+            again = json.loads((dest2 / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(again["files"], payload["files"])
 
 
 if __name__ == "__main__":
