@@ -78,8 +78,8 @@ Round 4 runs two lanes that need none of Rolf's answers:
   brief `tasks/WP8-prep-stageb.md` (Stage B geometry path in
   `bte_fit_shell.py` on provisional inputs: MOCK_CONTACTS false, packing
   option parameter default C, real lug envelopes, every §3.3 Stage B check,
-  open item 4 containment; no files under `docs/fab/cad/v2/`, order 1
-  outputs byte-identical). Last told: "Round 4, package WP8-prep ... do
+  open item 4 containment; no files under `docs/fab/cad/v2/` (expected
+  absent), order 1 outputs byte-identical). Last told: "Round 4, package WP8-prep ... do
   everything in it". Waiting for from the coordinator: nothing. Report
   expected at `.reports/WP8-prep-report.md` (absent). When it lands: check
   the tree, read the report, hold for w9.
@@ -89,8 +89,8 @@ Round 4 runs two lanes that need none of Rolf's answers:
   4, package WP9b ... do everything in it". Waiting for: nothing. Report
   expected at `.reports/WP9b-report.md` (absent).
 
-When both land: `.worktrees/review` on `review/r4`, `tasks/review-r4.md`
-(expected) from the template with both reports and the seams (order 1
+When both land: `.worktrees/review` on a new branch review/r4 (expected),
+`tasks/review-r4.md` (expected) from the template with both reports and the seams (order 1
 hashes untouched; the Stage B checks fail where they should, Q21
 especially; pads shared with `placement.py`, not copied; the record states
 each fact once), one fresh reviewer `rev4` on Opus 5 high, merge, open
