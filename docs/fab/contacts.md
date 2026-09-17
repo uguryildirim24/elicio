@@ -10,6 +10,8 @@ This specification serves the requirements in `docs/EARPIECE_DESIGN.md` and `doc
 
 All source pages and catalog specifications were inspected on 2026-09-16. Prices are recorded with vendor URLs and access dates. Any unverified parameter is marked UNVERIFIED.
 
+Review r1 note (2026-09-17). Where the URL recorded for a price is a site's home page or a distributor's front page, not the product page, the price is marked UNVERIFIED: plan §9 row WP5 asks for a page per price. Head and nut dimensions quoted without a drawing page are marked UNVERIFIED the same way. The reviewer did not re-read any vendor page.
+
 ### 1.1 Contact Screws: ISO 7380 M2.5 Button-Head Titanium Screws
 
 The three skin-contact electrodes require ISO 7380 M2.5 button-head screws in Grade 2 commercially pure titanium (ASTM F67) or Grade 5 titanium alloy (Ti-6Al-4V, ASTM F136 / ASTM F1472). No plating or coating is permitted on the skin-contact surface.
@@ -30,14 +32,18 @@ The three skin-contact electrodes require ISO 7380 M2.5 button-head screws in Gr
 | **Product Page URL** | [rjxhobby.com](https://www.rjxhobby.com/) | [titane-services.eu](https://www.titane-services.eu/vis-titane-ISO7380-G5-M2.5) | [sortafast.com](https://sortafast.com) |
 | **Date Read** | 2026-09-16 | 2026-09-16 | 2026-09-16 |
 | **Material Grade** | Grade 2 Titanium (TA2 / CP Titanium, ASTM F67 equivalent) | Grade 5 Titanium (TA6V / Ti-6Al-4V, ASTM F136 equivalent) | Grade 5 Titanium (6Al-4V) |
-| **Price** | $33.99 USD | 3.57 € (approx. $3.85 USD) | $17.50 USD |
+| **Price** | $33.99 USD — UNVERIFIED: the URL above is the home page, not the product page | 3.57 € (approx. $3.85 USD) | $17.50 USD — UNVERIFIED: the URL above is the home page |
 | **Pack Size** | Pack of 50 ($0.68 / each) | 1 piece (bulk tiers available) | Pack of 10 ($1.75 / each) |
 | **Thread Size** | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch |
 | **Length under head ($L$)** | 4.0 mm nominal | 4.0 mm nominal | 4.0 mm nominal (or 6.0 mm trimmed) |
 | **Head Style / Standard** | ISO 7380 Button Head | ISO 7380 Button Head | ISO 7380 Button Head profile |
-| **Head Diameter ($d_k$)** | 4.70 mm (spec: 4.40–4.70 mm) | 4.70 mm | 4.70 mm |
-| **Head Crown Height ($k$)**| 1.35 mm (spec: 1.20–1.36 mm) | 1.35 mm | 1.35 mm |
+| **Head Diameter ($d_k$)** | UNVERIFIED; the listing range quoted was 4.40–4.70 mm, no drawing page | UNVERIFIED; no drawing page cited | UNVERIFIED; no drawing page cited |
+| **Head Crown Height ($k$)**| UNVERIFIED; the listing range quoted was 1.20–1.36 mm, no drawing page | UNVERIFIED; no drawing page cited | UNVERIFIED; no drawing page cited |
 | **Drive Style** | Hex Socket, 1.5 mm Allen key | Hex Socket, 1.5 mm Allen key | Hex Socket, 1.5 mm Allen key |
+
+The head numbers above equal the plan's CAD reservation (dome Ø4.7, crown 1.35), but none is read from a drawing. `docs/fab/interface.md` §2.2 note D1 cites a manufacturer ISO 7380 M2.5 row of dk max 4.5, k max 1.5, and RJXHOBBY's own range reaches 4.40. A 4.4–4.5 mm dome changes the contact area (17.3 mm² at 4.7, 15.9 at 4.5, 15.2 at 4.4) and the crown the gauge prints. This is interface v2 item V2-1 in `interface.md`; the gauge keeps 4.7 × 1.35 until a drawing is on file.
+
+Plan §7 order 2 allows $20 for one screw pack. The RJXHOBBY pack ($33.99, UNVERIFIED) is over that line; the order 2 gate ($160) still holds.
 
 ---
 
@@ -48,31 +54,33 @@ The internal retaining nut secures the screw and ring lug against the internal f
 #### Stocking Status: Titanium vs. Conventional Thin Nuts
 
 *   **Titanium M2.5 Thin Nuts (DIN 439 / ISO 4035):** NOT STOCKED off-the-shelf by standard retail distributors (McMaster-Carr, Bolt Depot, Accu). Fastenright ([fastenright.com](https://www.fastenright.com)) manufactures DIN 439 M2.5 titanium half nuts in Grade 2 and Grade 5 upon request, but pricing is UNVERIFIED without a formal commercial quotation.
-*   **Nearest Real Option (Plan §4 Conforming):** Plan §4 establishes: *"Nut and lug may be plated steel or tinned copper; they sit under the lid and never see skin."* Standard off-the-shelf DIN 439B / ISO 4035 M2.5 thin hex nuts in 18-8 stainless steel or zinc-plated steel are readily available from McMaster-Carr and Accu.
+*   **What the plan allows inside:** Plan §4 says: *"Nut and lug may be plated steel or tinned copper; they sit under the lid and never see skin."* That allowance names plated steel and tinned copper. It does not name stainless steel, and plan §1 item 4 (the contacts line, which lists the thin nut) ends "no stainless". A plated carbon-steel DIN 439 M2.5 thin nut (zinc-plated, not nickel-plated) is the plan's nut. **No plated-steel SKU is verified in this file: UNVERIFIED**, to be closed with a product page, date and price before order 2.
+*   **Stainless (18-8 / A2) thin nuts** fit the same stack and are listed below because they are the stocked option found, but they sit outside the plan text. Using one is Rolf's decision (see "Needs a decision" in `tasks/reviews/code-r1.md`).
 *   **Alternative Option (Standard Full Nut DIN 934 in Titanium):** Standard-height DIN 934 M2.5 hex nuts in titanium have a nominal height of 2.0 mm (versus 1.6 mm for DIN 439).
 
 #### Verified Sourcing Options for Thin Nuts
 
-| Item | Primary Option: McMaster-Carr 18-8 Thin Nut | Alternative Option: Accu A2 Thin Nut | Bespoke Titanium Option: Fastenright DIN 439 |
+| Item | Outside plan text (stainless): McMaster-Carr 18-8 Thin Nut | Outside plan text (stainless): Accu A2 Thin Nut | Bespoke Titanium Option: Fastenright DIN 439 |
 | :--- | :--- | :--- | :--- |
 | **Supplier** | McMaster-Carr | Accu (UK / US) | Fastenright Ltd |
 | **Product Name** | Metric 18-8 Stainless Steel Thin Hex Nut | M2.5 Thin Hexagon Nuts (DIN 439) | Titanium Half Nuts (DIN 439) |
-| **Part / Model No.** | `90710A025` | `HNU-M2-5-A2` | `M2.5-DIN439-TI` |
-| **Product Page URL** | [mcmaster.com](https://www.mcmaster.com/90710A025/) | [accu.co.uk](https://www.accu.co.uk/thin-nuts/36829-HNU-M2-5-A2) | [fastenright.com](https://www.fastenright.com) |
+| **Part / Model No.** | `90710A025` | `HNU-M2-5-A2` | UNVERIFIED (`M2.5-DIN439-TI` is not shown on a product page) |
+| **Product Page URL** | [mcmaster.com](https://www.mcmaster.com/90710A025/) | [accu.co.uk](https://www.accu.co.uk/thin-nuts/36829-HNU-M2-5-A2) | [fastenright.com](https://www.fastenright.com) (home page) |
 | **Date Read** | 2026-09-16 | 2026-09-16 | 2026-09-16 |
 | **Material** | 18-8 Stainless Steel (AISI 304) | Stainless Steel A2 (AISI 304) | Grade 2 or Grade 5 Titanium |
 | **Price** | $2.50 USD | £0.38 to £0.91 GBP (~$0.50–$1.20 USD) | UNVERIFIED (requires supplier quote) |
 | **Pack Size** | Pack of 50 ($0.05 / each) | 1 piece (tiered quantity discounts) | Custom batch |
 | **Standard** | DIN 439B / ISO 4035 | DIN 439 / ISO 4035 | DIN 439 |
 | **Thread Size** | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch |
-| **Nut Height ($m$)** | 1.60 mm | 1.60 mm | 1.35–1.60 mm |
+| **Nut Height ($m$)** | 1.60 mm | 1.60 mm | UNVERIFIED |
 | **Width Across Flats ($s$)** | 5.0 mm | 5.0 mm | 5.0 mm |
 | **Skin Contact** | None (internal cavity, sealed under Kapton) | None (internal cavity, sealed under Kapton) | None (internal cavity, sealed under Kapton) |
 
 #### Impact of Nearest Real Options
 
-1.  **Using 18-8 Stainless Steel Thin Nut (McMaster `90710A025`):** Retains the exact 1.60 mm height and 5.0 mm width across flats specified in plan §3.3 (`CONTACT_STACK`). Contains 8–10% nickel, but resides entirely within the sealed shell cavity beneath a Kapton dielectric disc and the snap-fit lid. It cannot touch skin during any normal or mechanical failure mode.
-2.  **Using Standard Full Nut DIN 934 in Titanium (2.0 mm height):** If an all-titanium internal bill-of-materials is mandated, using a DIN 934 M2.5 titanium nut increases nut height by 0.40 mm (from 1.60 mm to 2.00 mm). With a 4.0 mm screw, the screw tip becomes flush with the top of the nut (tip protrusion 0.04 mm instead of 0.44 mm). The total stack height above the floor remains $0.46\text{ mm (lug)} + 2.00\text{ mm (nut)} + 0.04\text{ mm (tip)} = 2.50\text{ mm}$, plus 0.13 mm Kapton = 2.63 mm. The stack height limit is satisfied.
+1.  **Plated carbon-steel DIN 439 thin nut (plan §4):** same 1.60 mm height and 5.0 mm across flats as the reservation. SKU UNVERIFIED. Zinc plating, not nickel plating, keeps nickel out of the cavity hardware.
+2.  **18-8 stainless thin nut (McMaster `90710A025`):** same 1.60 mm and 5.0 mm. Contains 8–10 % nickel. It sits inside the cavity under Kapton and the lid, like the ENIG board finish and the cell's nickel-plated tab, but plan §1 item 4 says "no stainless" and §4's allowance names plated steel and tinned copper only. Rolf decides.
+3.  **Titanium DIN 934 full nut (2.0 mm height):** no product page or price is in this file (UNVERIFIED). At nominal the stack still totals 2.63 mm: 0.46 (lug) + 2.00 (nut) + 0.04 (tip) + 0.13 (Kapton). It has no margin: the nut top sits 0.04 mm under the screw tip, so a medial wall printed 0.3 mm thick (MJF ±0.3, plan §3.6) lifts the nut top to y 4.26 and the Kapton to y 4.39, into the board at y 4.30. The thin nut keeps 0.44 mm of margin (see §2.2).
 
 ---
 
@@ -97,12 +105,12 @@ The ring lug terminates the biological potential from the screw and crimps to 28
 | **Base Material** | High-conductivity Electrolytic Tough Pitch (ETP) Copper | High-conductivity ETP Copper |
 | **Finish / Plating** | 100% Matte Pure Tin per ASTM B545 (**Nickel-Free**) | 100% Pure Tin per ASTM B545 (**Nickel-Free**) |
 | **Underplate** | None (direct tin on copper; zero nickel barrier) | None (zero nickel barrier) |
-| **Stock Thickness** | 0.018 in (0.457 mm ≈ 0.46 mm; nominal 0.50 mm) | 0.031 in (0.787 mm) |
+| **Stock Thickness** | 0.018 in (0.457 mm ≈ 0.46 mm); under the plan's 0.5 reservation | 0.031 in (0.787 mm) |
 | **Tongue Width** | 0.203 in (5.16 mm; clears Ø7.1 mm keep-out) | 0.250 in (6.35 mm) |
 | **Overall Length** | 0.453 in (11.51 mm) | 0.550 in (13.97 mm) |
-| **Tab Clearance** | Fits within $3 \times 7\text{ mm}$ floor envelope (`KEEPOUT_SIGNAL`) | Exceeds floor envelope; requires trimming |
+| **Tab Clearance** | Length fits: 11.51 mm overall less the 2.58 mm ring radius is 8.93 mm from the stud, 5.38 mm past the Ø7.1 keep-out, inside the 7 mm tab. Barrel width against the 3 mm tab: UNVERIFIED (not on the page as quoted) | Exceeds floor envelope; requires trimming |
 
-*Assessment:* TE Connectivity Part `31428` is selected as the primary component. Its 0.46 mm stock thickness, 5.16 mm tongue width, and pure tin plating directly satisfy plan §3.3, §4, and §8 claim 9.
+*Assessment:* TE Connectivity Part `31428` is selected as the primary component. Its 0.46 mm stock thickness, 5.16 mm tongue width, and pure tin plating satisfy plan §3.3, §4, and §8 claim 9 on thickness and finish. What it changes: plan §4 asks for a 26–28 AWG barrel; 31428's barrel is rated 22–26 AWG, so a 28 AWG wire is under range. The assembly sheet doubles the stripped end before crimping and solders the crimp (§5.2 step 1).
 
 ---
 
@@ -117,9 +125,9 @@ A dielectric disc covers the internal nut and screw tip to isolate the contact f
 | **Supplier** | Adafruit Industries | Bertech (via DigiKey) |
 | **Product Name** | High Temperature Polyimide Tape (Kapton) | Polyimide Masking Discs (1/4 in) |
 | **Part / Product ID** | `3057` | `PPD-1/4` |
-| **Product Page URL** | [adafruit.com](https://www.adafruit.com/product/3057) | [digikey.com](https://www.digikey.com) |
+| **Product Page URL** | [adafruit.com](https://www.adafruit.com/product/3057) | [digikey.com](https://www.digikey.com) (front page; price UNVERIFIED) |
 | **Date Read** | 2026-09-16 | 2026-09-16 |
-| **Price** | $4.95 USD | $38.50 USD (pack of 1,000 discs) |
+| **Price** | $4.95 USD | $38.50 USD (pack of 1,000 discs) — UNVERIFIED, no product page |
 | **Pack Size** | 1 roll ($10\text{ mm} \times 33\text{ m}$) | Roll of 1,000 pre-cut dots |
 | **Substrate** | Polyimide film, 1.0 mil (0.025 mm) | Polyimide film, 1.0 mil (0.025 mm) |
 | **Adhesive** | Silicone adhesive, 1.5 mil (0.038 mm) | Silicone adhesive, 1.5 mil (0.038 mm) |
@@ -199,6 +207,7 @@ $$\text{Internal Stack Height Above Floor} = t_{\text{lug}} + m_{\text{nut}} + \
 
 | Parameter | SKU Set 1: Primary (RJX Gr2 + McMaster Nut) | SKU Set 2: Specialist (Titane Gr5 + Accu Nut) | SKU Set 3: All-Titanium Full Nut (DIN 934) | SKU Set 4: Non-Compliant (Untrimmed 6mm Screw) |
 | :--- | :--- | :--- | :--- | :--- |
+| **Nut material** | plated steel (plan §4; SKU UNVERIFIED) or stainless (outside plan text) | stainless A2 (outside plan text) | titanium (SKU UNVERIFIED) | any |
 | **Screw Length ($L$)** | 4.00 mm | 4.00 mm | 4.00 mm | 6.00 mm |
 | **Medial Wall ($t_{\text{wall}}$)** | 1.50 mm | 1.50 mm | 1.50 mm | 1.50 mm |
 | **Ring Lug ($t_{\text{lug}}$)** | 0.46 mm (TE 31428) | 0.46 mm (TE 31428) | 0.46 mm (TE 31428) | 0.46 mm (TE 31428) |
@@ -210,6 +219,10 @@ $$\text{Internal Stack Height Above Floor} = t_{\text{lug}} + m_{\text{nut}} + \
 | **Total Stack Above Floor** | **2.63 mm** | **2.63 mm** | **2.63 mm** | **4.63 mm** |
 | **Top of Stack ($y$)** | **4.13 mm** | **4.13 mm** | **4.13 mm** | **6.13 mm** |
 | **Acceptance ($\le 2.63\text{ mm}$)**| **PASS** | **PASS** | **PASS** | **FAIL** (+2.00 mm clash) |
+| **Nut top at wall 1.80 mm (MJF +0.3)** | y 3.86, under the tip at 4.00 | y 3.86 | y 4.26, above the tip | – |
+| **Stack top at wall 1.80 mm** | **4.13** (tip governs) | **4.13** | **4.39: above the board at 4.30, FAIL** | – |
+
+Why the lug thickness does not move the total: the screw head seats on the medial face at y 0, so the tip sits at y 4.00 whatever the lug and wall are. The stack top is the higher of the tip and the nut top (wall + lug + nut), plus Kapton. A thicker lug or wall only eats the tip's margin until the nut top passes y 4.00. The plan's reservation (lug 0.50, nut 1.60, tip 0.40, Kapton 0.13) and these SKUs (lug 0.46, nut 1.60, tip 0.44, Kapton 0.13) both total 2.63; `scripts/cad/bte_fit_shell.py` checks the reservation as `CONTACT_STACK`, including wall +0.3.
 
 ### 2.3 Thread Engagement Verification
 
@@ -231,7 +244,7 @@ To establish that skin-contact hardware meets the biocompatibility standard, the
   EN 10204 Type 3.1 Inspection Certificate
   - Specific heat/lot chemical analysis
   - Direct supplier certification to ASTM F67 (Gr2) or ASTM F136/F1472 (Gr5)
-  - Explicit verification of Ni <= 0.01% (below detection limit)
+  - Nickel content as the specification states it, not "zero" (plan §4)
           |
           v  (If supplier does not furnish Tier 1 certificate)
 [ Tier 2: Secondary Evidence ]
@@ -250,8 +263,8 @@ To establish that skin-contact hardware meets the biocompatibility standard, the
 
 | Supplier | Documentation Provided | Conformance Route |
 | :--- | :--- | :--- |
-| **Titane Services** | EN 10204 Type 3.1 Inspection Certificate available upon request with order; certifies chemical composition and mechanical batch properties. | **Primary Route:** Request EN 10204 3.1 certificate during order placement. |
-| **Fastenright Ltd** | EN 10204 3.1 Inspection Certificate available on custom manufacturing orders. | **Primary Route:** Order with certified mill cert on file. |
+| **Titane Services** | EN 10204 Type 3.1 Inspection Certificate available upon request with order (UNVERIFIED: no page cited; ask before ordering). | **Primary Route:** Request EN 10204 3.1 certificate during order placement. |
+| **Fastenright Ltd** | EN 10204 3.1 Inspection Certificate available on custom manufacturing orders (UNVERIFIED: no page cited). | **Primary Route:** Order with certified mill cert on file. |
 | **RJXHOBBY** | Product specification states "TA2 Pure Titanium" (Chinese national standard GB/T 3620.1 Grade TA2, chemically equivalent to ASTM F67 Grade 2). Mill certificates are not supplied with consumer packs. | **Secondary / Fallback Route:** Supplier invoice specification + 100% receipt DMG screening. |
 | **Sortafast Industries**| Product specification states "Grade 5 6Al-4V Titanium". No lot-specific MTC is supplied. | **Secondary / Fallback Route:** Supplier specification + 100% receipt DMG screening. |
 
@@ -315,7 +328,7 @@ The DMG chemical spot test serves as an empirical fail-closed reject screen. It 
 
 ### 4.3 Interpretation and Pass/Fail Criteria
 
-*   **Negative Reaction (PASS):** The cotton swab remains completely white (or shows faint grey mechanical dirt). This confirms that leachable nickel is below the 10 ppm detection threshold. The screw is accepted for assembly.
+*   **Negative Reaction (PASS):** The cotton swab remains completely white (or shows faint grey mechanical dirt). This is a screen pass only; it does not prove the absence of leachable nickel (§4.4; plan §4 "a reject screen only"). The screw is accepted for assembly.
 *   **Positive Reaction (FAIL / REJECT THE LOT):** Any distinct pink, strawberry-red, or reddish-purple coloration on the cotton tip indicates the formation of the bis(dimethylglyoximato)nickel(II) complex:
 
 $$\text{Ni}^{2+} + 2\,\text{C}_4\text{H}_8\text{N}_2\text{O}_2 + 2\,\text{NH}_4\text{OH} \longrightarrow \text{Ni}(\text{C}_4\text{H}_7\text{N}_2\text{O}_2)_2\downarrow (\text{pink ppt}) + 2\,\text{NH}_4^+ + 2\,\text{H}_2\text{O}$$
@@ -334,8 +347,7 @@ Per [Thyssen et al. (2010)](https://pubmed.ncbi.nlm.nih.gov/20536475/), the DMG 
 ### 5.1 Required Tooling and Consumables
 
 *   1.5 mm precision hex key (Wiha or Wera ESD-safe hex driver).
-*   4.0 mm or 5.0 mm miniature thin open-ended wrench or nut driver.
-*   Calibrated micro-torque screwdriver (0.1–0.5 N·m range, e.g., Wera 7400) if available; otherwise precision hand driver.
+*   5.0 mm miniature thin open-ended wrench or nut driver (the DIN 439 M2.5 nut is 5.0 mm across flats; a 4.0 mm tool does not fit).
 *   Lead wire: 28 AWG ultra-flexible stranded silicone wire (e.g., BNTECHGO 28 AWG silicone wire, OD 1.2 mm).
 *   Precision wire stripper (rated for 28 AWG).
 *   Miniature crimp tool (e.g., Engineer PA-09 or IWISS IWS-2820M) matching TE 31428 barrel.
@@ -368,7 +380,7 @@ Each signal contact is located on the body medial wall: Contact 1 at $(u=5.9,\, 
 1.  **Preparation:**
     *   Degrease the PA12 shell and screws using 70% isopropanol.
     *   Cut two lengths of 28 AWG silicone wire to 35 mm. Strip 2.5 mm of insulation from one end of each wire.
-    *   Insert the stripped wire into the barrel of a TE Connectivity 31428 ring lug. Crimp using the 1.4 mm / 1.6 mm die of an Engineer PA-09 tool. Inspect the crimp: confirm all copper strands are captured and tensile pull strength exceeds 5 N.
+    *   Fold the stripped 2.5 mm back on itself (the 31428 barrel is rated 22–26 AWG; a single 28 AWG end is under range). Insert it into the barrel of a TE Connectivity 31428 ring lug and crimp with a crimp tool matching that barrel. Flow a little solder into the crimp. Inspect: all strands captured, and the wire does not pull out by hand.
 2.  **Screw Insertion:**
     *   Take one inspected, DMG-tested titanium ISO 7380 M2.5 × 4 mm button-head screw.
     *   Insert the screw shank from the **outside** of the shell through the Ø2.9 mm clearance hole in the medial wall. The convex dome seats flush against the outer nylon face.
@@ -378,9 +390,8 @@ Each signal contact is located on the body medial wall: Contact 1 at $(u=5.9,\, 
 4.  **Nut Fastening:**
     *   Thread an M2.5 DIN 439 thin hex nut onto the screw shank.
     *   Engage a 1.5 mm hex driver into the screw head from outside, and engage a 5.0 mm thin wrench on the internal nut.
-    *   **Torque Specification:** Tighten to **0.20 to 0.25 N·m** (approximately 2.0 to 2.5 kgf·cm).
-        *   *Source / Rationale:* ISO metric fastener guidelines for miniature screws into rigid thermoplastics recommend 0.20–0.25 N·m for M2.5 into PA12 to achieve firm clamp preload without yielding the 1.5 mm nylon wall boss (compressive yield ~50 MPa).
-        *   *Alternative (Feel):* Tighten until the nut makes positive solid contact with the copper lug and resistance sharply increases ("finger-snug plus 1/8 turn"); do not over-torque or crush the nylon wall.
+    *   **Tightening, by feel:** Tighten until the nut makes solid contact with the lug and resistance rises sharply, then stop ("finger-snug plus 1/8 turn"). Do not crush the nylon wall.
+        *   *No torque number is given.* The 0.20–0.25 N·m this sheet first gave had no source. As a check on it: with a nut factor of 0.2, 0.25 N·m on M2.5 is about 500 N of clamp; under the button head (about 10.7 mm² of bearing on a Ø2.9 hole) that is about 47 MPa, close to PA12's compressive yield. UNVERIFIED either way; a bench trial on a printed coupon or gauge would set a number.
 5.  **Dielectric Insulation:**
     *   Inspect the top of the fastened stack: verify that the screw tip stands 0.40–0.44 mm proud of the nut.
     *   Apply a double layer of Kapton tape (or two Ø6.35 mm pre-cut dots, total thickness 0.13 mm) centered over the top face of the nut and protruding tip. Press firmly around the edges to conform to the nut facets.
@@ -415,17 +426,23 @@ The reference contact is located in the narrow tail section at $(u=8.5,\, s=43.0
 2.  **Lug Tab Preparation:**
     *   Take a TE Connectivity 31428 ring lug. Using smooth flat-nose pliers, bend the terminal crimp barrel **90° upright relative to the flat ring ring plane**.
     *   The upright tab envelope occupies $3\text{ mm wide} \times 1.5\text{ mm thick} \times 6.0\text{ mm tall}$, fitting entirely inside the Ø7.5 mm pocket volume (`KEEPOUT_REF`).
-    *   Crimp and solder a 25 mm length of 28 AWG silicone wire into the upright barrel.
+    *   Crimp and solder a 25 mm length of 28 AWG silicone wire into the upright barrel (fold the stripped end, as in §5.2 step 1).
 3.  **Fastening:**
     *   Insert an M2.5 × 4 mm titanium screw from the exterior medial face through the Ø2.9 mm hole into the pocket.
     *   Place the bent ring lug over the thread, oriented so the upright tab rises along the posterior interior wall of the pocket.
-    *   Thread the M2.5 DIN 439 thin nut and torque to **0.20–0.25 N·m**.
-    *   Apply a Kapton dielectric disc over the bottom of the nut.
+    *   Thread the M2.5 DIN 439 thin nut and tighten by feel as in §5.2 step 4.
+    *   Apply a Kapton dielectric disc over the top of the nut and the screw tip.
 4.  **Wire Routing through Wire Channel:**
     *   Feed the insulated 28 AWG wire from the reference pocket through `WIRE_CHANNEL` ($u = 7.7–9.3\text{ mm}$, $y = 2.5–4.1\text{ mm}$, $s = 38.2–40.5\text{ mm}$) through the 1.05 mm end wall into the main cavity.
     *   **Safety Rule:** Only the fully insulated wire passes through the channel. No bare metal terminal or screw extends into or through the channel.
     *   Inside the main cavity, route the wire along the floor ($y = 2.5–4.1\text{ mm}$) under the PCB toward the reference solder pad at $(u=4.0,\, s=29.0\text{ mm})$.
     *   Secure the wire to the floor at $s = 37.0\text{ mm}$ using one wrap of Kapton tape. Maintain wire bend radius $\ge 3.0\text{ mm}$ at all turns.
+
+### 5.4 Before any wear (plan §6)
+
+1.  **Never charge while worn.** Charge only with the earpiece off the ear and the lid removed.
+2.  **Tethered bring-up** uses the Ø2.0 side exit with the laptop on battery, not mains. Plug the exit before the earpiece goes back on the ear.
+3.  Fit the lid. Nothing but the three titanium domes and the nylon shell may touch skin.
 
 ---
 
@@ -436,7 +453,7 @@ Every metallic component located within or passing through the shell boundary is
 | Item No. | Component Description | Quantity | Alloy / Base Material | Plating / Surface Finish | Normal Location | Can Touch Skin in Any Failure? | Analysis & Containment Failure Modes |
 | :---: | :--- | :---: | :--- | :--- | :--- | :---: | :--- |
 | **1** | Contact Screws (Contacts 1, 2, 3) | 3 | Titanium Grade 2 (ASTM F67) or Grade 5 (ASTM F136) | None (bare, unplated, natural passivated $\text{TiO}_2$) | Shank through 1.5 mm wall; dome on exterior skin | **YES (By Design)** | Intended skin interface. Material is biocompatible titanium; 100% DMG screen verifies absence of leachable nickel. If wall fractures, material remains biocompatible titanium. |
-| **2** | Internal Retaining Thin Nuts | 3 | 18-8 Stainless Steel (AISI 304) or Titanium Grade 2/5 | None (unplated) | Threaded onto screws inside cavity/pocket | **NO** | Enclosed inside sealed cavity under PA12 lid; covered by Kapton disc. In the event of lid detachment, nut remains recessed 1.5 mm within the interior pocket. Only total catastrophic crushing of the 1.5 mm nylon shell could liberate the nut. |
+| **2** | Internal Retaining Thin Nuts | 3 | Plated carbon steel per plan §4 (zinc, not nickel; SKU UNVERIFIED); 18-8 stainless only if Rolf accepts it; or titanium DIN 934 | Zinc plating, or none | Threaded onto screws inside cavity/pocket | **NO** | Enclosed inside sealed cavity under PA12 lid; covered by Kapton disc. In the event of lid detachment, nut remains recessed 1.5 mm within the interior pocket. Only total catastrophic crushing of the 1.5 mm nylon shell could liberate the nut. |
 | **3** | Ring Tongue Terminals | 3 | High-Conductivity ETP Copper | 100% Pure Matte Tin per ASTM B545 (Zero nickel underplate) | Clamped between inner wall and nut | **NO** | Enclosed inside sealed cavity; covered by Kapton and snap lid. Tin-plated copper is non-sensitizing even if exposed, but physical exposure is impossible without shell wall destruction. |
 | **4** | Lead Wires (Signal & Reference) | 3 | High-Purity Copper Strands | 100% Pure Tin | Inside cavity and reference channel | **NO** | Jacketed in medical-grade silicone/PTFE insulation along full length. Only insulated jacket passes through `WIRE_CHANNEL`. |
 | **5** | Solder Joints (Lead to Board) | 3 | Lead-Free SAC305 (96.5% Sn, 3.0% Ag, 0.5% Cu) | None | Medial PCB pads | **NO** | Enclosed at $y = 4.3\text{ mm}$, isolated by 1.5 mm nylon wall and snap lid. Solder alloy is nickel-free and lead-free. |
@@ -444,18 +461,26 @@ Every metallic component located within or passing through the shell boundary is
 | **7** | Li-Ion Battery Cell & Tabs | 1 cell | Aluminum (positive tab), Nickel-plated copper (negative tab) | Aluminum pouch laminate | Battery pocket ($s = 1.5–17.5\text{ mm}$) | **NO** | Fully sealed inside pouch. Pouch is wrapped in Kapton; battery pocket is isolated from the board zone by an internal transverse nylon rib ($s = 17.5–18.3\text{ mm}$) and enclosed under the snap lid. |
 | **8** | Front-End Protection Components | 6 parts | Silicon dies, copper leadframes | Pure Tin (leadframe finish) | Medial PCB surface | **NO** | SOT-23 diode clamps and 0402 resistors are soldered to board; enclosed in cavity. |
 | **9** | Temporary Debug Exit Port Plug | 1 | PA12 or Silicone Elastomer | None (non-metallic) | Ø2.0 mm side wall exit at $s = 36\text{ mm}$ | **NO** | The debug cable exit is plugged during wear. No metal conductor extends through the wall during active sessions. |
+| **10** | Radio module (Raytac MDBT50Q-1MV2) shield can and pads | 1 | UNVERIFIED (WP6 names the part; shield cans are commonly nickel-silver or tin-plated steel) | UNVERIFIED | Lateral side of the board, under the lid | **NO** | Inside the closed cavity; faces the lid, not the medial wall. |
+| **11** | ICs: ADS1292, charger, LDO | 3 | Copper leadframes / solder balls | UNVERIFIED (WP6) | Board, medial side and either side | **NO** | Inside the closed cavity. |
+| **12** | 0402 passives (about 25) | ~25 | Nickel barrier under tin on the terminations (typical for chip parts; UNVERIFIED per SKU) | Tin | Board | **NO** | Inside the closed cavity. |
+| **13** | Cell protection board (PCM) and its strips | 1 | Nickel or nickel-plated strips typical (UNVERIFIED; WP6 names the cell) | – | Folded on the cell's lateral face under Kapton | **NO** | Inside the battery pocket under the lid. |
+| **14** | Charge pads on the board | 2 | Copper | ENIG or OSP (UNVERIFIED; WP6) | Board, reached with the lid off | **NO** | Inside the cavity; used only off the ear (plan §6). |
+| **15** | Order 1 gauge ballast: two M6 nuts | 2 | Steel, plating as bought (often zinc; UNVERIFIED) | As bought | Loose in the gauge cavity for plan §3.7 | **NO while the lid holds** | Gauge only, not Stage B. If the lid comes off during the shake test the nuts can fall out; use zinc-plated or stainless nuts you already know you tolerate. |
+
+Nickel inside the cavity already exists in this design: the ENIG finish (item 6), the cell's negative tab (item 7), and likely the passives and PCM (items 12, 13). Plan §4 accepts metal "under the lid" that "never see[s] skin"; the plan's nut allowance still names plated steel and tinned copper, not stainless (§1.2).
 
 ---
 
 ## 7. Quality Assurance Checklist for S1 Gate Entry
 
-Before advancing to Stage B shell fabrication (S1 Entry Gate per plan §9), the following verification criteria must be confirmed on file:
+Before order 2 (S1 per plan §9), each line needs evidence on file. Nothing is ticked: this file is a desk specification, and nothing was bought, received or tested. Status as of review r1:
 
-1.  [x] **Screws:** Verified ISO 7380 M2.5 × 4 mm Grade 2 or Grade 5 titanium screws identified on live catalog pages with pricing and dates.
-2.  [x] **Nuts:** Verified DIN 439 / ISO 4035 M2.5 thin hex nuts (1.6 mm height, 5.0 mm AF) sourced and stack height verified.
-3.  [x] **Lugs:** Verified TE Connectivity 31428 ring terminals (0.46 mm thick, pure tin over copper) sourced.
-4.  [x] **Kapton:** Verified polyimide dielectric tape sourced; 2-layer thickness (0.13 mm) covers internal nut/tip.
-5.  [x] **DMG Test Kit:** Active substitute (Delasco SPOT-TEST, $17.99) confirmed in stock and protocol frozen.
-6.  [x] **Stack Arithmetic:** Catalog drawing stack height totals **2.63 mm** above cavity floor, meeting the $\le 2.63\text{ mm}$ requirement.
-7.  [x] **Safety Proof:** Internal-metal inventory completed; all non-titanium metals confirmed isolated inside the shell cavity with zero skin contact in any single-point mechanical failure.
-8.  [x] **316 Prohibition:** Explicit exclusion of 316/316L stainless steel recorded as a non-negotiable binding requirement.
+1.  [ ] **Screws:** a titanium ISO 7380 M2.5 × 4 SKU with a product page, date, price and a head drawing. Status: Titane Services has a product URL; RJXHOBBY and Sortafast prices have home-page URLs only; no head drawing (§1.1).
+2.  [ ] **Nuts:** a DIN 439 M2.5 thin nut in a material the plan allows, with page, date, price. Status: no plated-steel SKU; stainless SKUs need Rolf's decision (§1.2).
+3.  [ ] **Lugs:** TE 31428 page, date, price on file (0.46 mm, tin over copper). Status: page cited; barrel width against the 3 mm tab UNVERIFIED.
+4.  [ ] **Kapton:** Adafruit 3057 page, date, price on file. Status: cited.
+5.  [ ] **DMG kit:** Delasco SPOT-TEST page, date, price on file. Status: cited; protocol in §4.
+6.  [x] **Stack arithmetic:** 2.63 mm at nominal on the chosen parts, with wall +0.3 checked. Status: done in §2.2 on the listed numbers.
+7.  [ ] **Internal-metal list** covers every metal WP1 and WP6 place inside the shell. Status: items 10–14 wait on WP6 part names.
+8.  [x] **316 statement:** 316/316L is not nickel-free and is not a skin-contact fallback (§3.4).
