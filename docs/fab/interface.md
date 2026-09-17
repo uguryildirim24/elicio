@@ -243,6 +243,16 @@ change in the table if Rolf keeps the in-line DNK pack.
 | Foam under the lid | 0.5 | mm | plan §5 |
 | WP8 pocket change if the DNK in-line pack is kept | Pocket length 16.0 → 18.4 along s (BL max 18 plus 0.4 leftover, same leftover the plan gave 15.6 in 16.0). BOARD_ZONE start moves from 18.3 to 20.7 unless BODY_ARC grows 2.4. Rib can stay 0.8 thick. | mm | DNK BL 17 ± 1; plan leftover 0.4 |
 
+Plan §5 prescribes the fold as a hand step: "PCM folded on the lateral face
+under Kapton". In thickness that leaves the pocket depth 6.0 minus the 0.5
+foam, 5.5, for the cell (T 5 on the DNK drawing, 5.2 plan maximum) plus the
+folded PCM and its Kapton: 0.5 at T 5, 0.3 at T 5.2. The DNK drawing gives
+no PCM board thickness, so that fold is UNVERIFIED. If WP8 instead
+lengthens the pocket 2.4 mm by growing BODY_ARC, TOTAL_CHORD grows by about
+the same and the M1 gate (`gate` = TOTAL_CHORD + 3 in `bte_fit_shell.py`;
+plan §3.3) rises with it;
+that is a shell change and re-runs plan §3.7.
+
 A custom fold of the DNK PCM onto the 10 mm face is not on the datasheet.
 That fold would be about 10 + PCM thick, which already uses the 10.8 mm
 pocket width and breaks the 10.4 mm envelope. Do not buy a cell on a
