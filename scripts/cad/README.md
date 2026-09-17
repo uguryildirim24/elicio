@@ -28,7 +28,7 @@ Put M1–M8 (and `SIDE`) in `scripts/cad/params/rolf.toml`. The overlay rules:
 - A key left out keeps its reference-ear default, and the build is marked REF.
 - CREASE_BOW is computed from M1 and M2 (arc–chord, clamped to 1–8) only when the file sets **both** M1 and M2 and does not set CREASE_BOW. Otherwise it stays 3.0.
 - HOOK_RADIUS follows M8: M8 + HOOK_DIA/2 + 0.75, which is the 13.5 plan §3.3 quotes at M8 = 11 (the plan's written "+ 1.0" gives 13.75 and fails its own `< M8 + 1` check).
-- Only SIDE, VARIANT, HOOK_PRELOAD, CREASE_BOW, HOOK_RADIUS and M1–M8 may be set. Any other key, an unknown key, or `MOCK_CONTACTS = false` fails before export.
+- Order 1: only SIDE, VARIANT, HOOK_PRELOAD, CREASE_BOW, HOOK_RADIUS and M1–M8 may be set. Any other key or an unknown key fails before export. `MOCK_CONTACTS = false` is Stage B (see below), not an order-1 overlay.
 - The script rejects M1 below TOTAL_CHORD + 3 for the bow it uses.
 
 Full order-1 set from the measurements:
@@ -114,3 +114,30 @@ The drawing is 2D in the body-frame `(u, s)` plane. It does not change the gauge
 ```
 
 Do not upload files to a vendor. WP3 draws from the STEP files. Purchases need Rolf's approval.
+
+## Stage B (provisional)
+
+WP8-prep. The Stage B path cuts CONTACT_HOLE, KEEPOUT_REF, WIRE_CHANNEL and CABLE_EXIT, and keeps the TE 31428 tab envelopes as air. It does not decide packing, contact sites, or the closure test. Those stay parameters.
+
+Write to a directory you name. The script refuses `docs/fab/cad/v1/` and `docs/fab/cad/v2/`.
+
+```bash
+.venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/stageb_provisional.toml --out /tmp/elicio-stageb/
+```
+
+Decided in this file (still marked provisional in the manifest):
+
+- `PACKING = C` (Q20 reading: BODY_WIDTH 20, board 19 × 15.5, pads from `placement.py`)
+- `MOCK_CONTACTS = false`
+- `TAB_HEIGHT = 2.0` (Q22)
+- contact positions = plan §3.3 defaults until WP7a
+
+Not decided:
+
+- Rolf's packing pick (Q20). A and B are switches: `--set PACKING=A` or `PACKING=B`.
+- Reference lug vs lid and pocket wall (Q21). The named check `Q21_REF_lug` is expected to fail and records the numbers. The build still writes files.
+- Contact coordinates (WP7a).
+- `CLOSURE_PASSED` (default false: no E1/E3/E5 until the order-1 closure test).
+- Cell pack thickness (Q18). The pocket check uses the plan envelope 5.2 × 10.4 × 15.6 with 0.5 mm foam on the lid face.
+
+The Stage B manifest keeps schema 1 and adds `stage`, `provisional`, `packing`, `closure_passed`, `contact_source`, and `stage_b`. Order 1 manifests omit those keys.
