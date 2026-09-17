@@ -1,0 +1,881 @@
+{
+  "checks": [
+    {
+      "detail": "VARIANT \u00d7 HOOK_PRELOAD must be {full,thin} \u00d7 {1.5,2.5}",
+      "name": "matrix",
+      "numbers": {
+        "HOOK_PRELOAD": 1.5,
+        "VARIANT": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "thickness follows VARIANT",
+      "name": "BODY_THICK",
+      "numbers": {
+        "BODY_THICK": 9.0,
+        "expected": 9.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "clamped bow is 1\u20138",
+      "name": "CREASE_BOW_clamp",
+      "numbers": {
+        "CREASE_BOW": 3.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "M1 must be at least TOTAL_CHORD + 3",
+      "name": "M1_gate",
+      "numbers": {
+        "M1": 52.0,
+        "TOTAL_CHORD": 47.900523407445874,
+        "gate": 50.900523407445874
+      },
+      "passed": true
+    },
+    {
+      "detail": "hook inner radius must be \u2264 M8 + 1",
+      "name": "HOOK_RADIUS",
+      "numbers": {
+        "HOOK_RADIUS": 13.5,
+        "M8": 11.0,
+        "inner": 11.75,
+        "limit": 12.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "enclosing walls \u2265 1.0",
+      "name": "WALL_MEDIAL",
+      "numbers": {
+        "WALL_MEDIAL": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "enclosing walls \u2265 1.0",
+      "name": "WALL_SIDE",
+      "numbers": {
+        "WALL_SIDE": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "enclosing walls \u2265 1.0",
+      "name": "WALL_END",
+      "numbers": {
+        "WALL_END": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "hook diameter \u2265 1.0",
+      "name": "HOOK_DIA",
+      "numbers": {
+        "HOOK_DIA": 3.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "tongue",
+      "name": "E1",
+      "numbers": {
+        "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "rib",
+      "name": "E2",
+      "numbers": {
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "nubs",
+      "name": "E3",
+      "numbers": {
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "coupon rib",
+      "name": "E4",
+      "numbers": {
+        "size": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "lip cantilever",
+      "name": "E5_lip",
+      "numbers": {
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "bump",
+      "name": "E5_bump",
+      "numbers": {
+        "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "physical opening at u=9.3 must be positive",
+      "name": "WIRE_CHANNEL_opening",
+      "numbers": {
+        "physical_opening": 0.9382694314928568,
+        "s_entry": 39.64373902907198
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_1",
+      "numbers": {
+        "CREASE_BOW": 1.0,
+        "physical_opening": 1.0891129737581813
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_3",
+      "numbers": {
+        "CREASE_BOW": 3.0,
+        "physical_opening": 0.9382694314928568
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_8",
+      "numbers": {
+        "CREASE_BOW": 8.0,
+        "physical_opening": 0.5372829739143715
+      },
+      "passed": true
+    },
+    {
+      "detail": "body_full_p15",
+      "name": "watertight",
+      "numbers": {
+        "bytes": 1733684.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "VARIANT \u00d7 HOOK_PRELOAD must be {full,thin} \u00d7 {1.5,2.5}",
+      "name": "matrix",
+      "numbers": {
+        "HOOK_PRELOAD": 1.5,
+        "VARIANT": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "thickness follows VARIANT",
+      "name": "BODY_THICK",
+      "numbers": {
+        "BODY_THICK": 7.0,
+        "expected": 7.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "clamped bow is 1\u20138",
+      "name": "CREASE_BOW_clamp",
+      "numbers": {
+        "CREASE_BOW": 3.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "M1 must be at least TOTAL_CHORD + 3",
+      "name": "M1_gate",
+      "numbers": {
+        "M1": 52.0,
+        "TOTAL_CHORD": 47.900523407445874,
+        "gate": 50.900523407445874
+      },
+      "passed": true
+    },
+    {
+      "detail": "hook inner radius must be \u2264 M8 + 1",
+      "name": "HOOK_RADIUS",
+      "numbers": {
+        "HOOK_RADIUS": 13.5,
+        "M8": 11.0,
+        "inner": 11.75,
+        "limit": 12.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "enclosing walls \u2265 1.0",
+      "name": "WALL_MEDIAL",
+      "numbers": {
+        "WALL_MEDIAL": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "enclosing walls \u2265 1.0",
+      "name": "WALL_SIDE",
+      "numbers": {
+        "WALL_SIDE": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "enclosing walls \u2265 1.0",
+      "name": "WALL_END",
+      "numbers": {
+        "WALL_END": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "hook diameter \u2265 1.0",
+      "name": "HOOK_DIA",
+      "numbers": {
+        "HOOK_DIA": 3.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "tongue",
+      "name": "E1",
+      "numbers": {
+        "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "rib",
+      "name": "E2",
+      "numbers": {
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "nubs",
+      "name": "E3",
+      "numbers": {
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "coupon rib",
+      "name": "E4",
+      "numbers": {
+        "size": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "lip cantilever",
+      "name": "E5_lip",
+      "numbers": {
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "bump",
+      "name": "E5_bump",
+      "numbers": {
+        "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "physical opening at u=9.3 must be positive",
+      "name": "WIRE_CHANNEL_opening",
+      "numbers": {
+        "physical_opening": 0.9382694314928568,
+        "s_entry": 39.64373902907198
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_1",
+      "numbers": {
+        "CREASE_BOW": 1.0,
+        "physical_opening": 1.0891129737581813
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_3",
+      "numbers": {
+        "CREASE_BOW": 3.0,
+        "physical_opening": 0.9382694314928568
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_8",
+      "numbers": {
+        "CREASE_BOW": 8.0,
+        "physical_opening": 0.5372829739143715
+      },
+      "passed": true
+    },
+    {
+      "detail": "body_thin_p15",
+      "name": "watertight",
+      "numbers": {
+        "bytes": 1561484.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "VARIANT \u00d7 HOOK_PRELOAD must be {full,thin} \u00d7 {1.5,2.5}",
+      "name": "matrix",
+      "numbers": {
+        "HOOK_PRELOAD": 2.5,
+        "VARIANT": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "thickness follows VARIANT",
+      "name": "BODY_THICK",
+      "numbers": {
+        "BODY_THICK": 9.0,
+        "expected": 9.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "clamped bow is 1\u20138",
+      "name": "CREASE_BOW_clamp",
+      "numbers": {
+        "CREASE_BOW": 3.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "M1 must be at least TOTAL_CHORD + 3",
+      "name": "M1_gate",
+      "numbers": {
+        "M1": 52.0,
+        "TOTAL_CHORD": 47.900523407445874,
+        "gate": 50.900523407445874
+      },
+      "passed": true
+    },
+    {
+      "detail": "hook inner radius must be \u2264 M8 + 1",
+      "name": "HOOK_RADIUS",
+      "numbers": {
+        "HOOK_RADIUS": 13.5,
+        "M8": 11.0,
+        "inner": 11.75,
+        "limit": 12.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "enclosing walls \u2265 1.0",
+      "name": "WALL_MEDIAL",
+      "numbers": {
+        "WALL_MEDIAL": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "enclosing walls \u2265 1.0",
+      "name": "WALL_SIDE",
+      "numbers": {
+        "WALL_SIDE": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "enclosing walls \u2265 1.0",
+      "name": "WALL_END",
+      "numbers": {
+        "WALL_END": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "hook diameter \u2265 1.0",
+      "name": "HOOK_DIA",
+      "numbers": {
+        "HOOK_DIA": 3.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "tongue",
+      "name": "E1",
+      "numbers": {
+        "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "rib",
+      "name": "E2",
+      "numbers": {
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "nubs",
+      "name": "E3",
+      "numbers": {
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "coupon rib",
+      "name": "E4",
+      "numbers": {
+        "size": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "lip cantilever",
+      "name": "E5_lip",
+      "numbers": {
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "bump",
+      "name": "E5_bump",
+      "numbers": {
+        "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "physical opening at u=9.3 must be positive",
+      "name": "WIRE_CHANNEL_opening",
+      "numbers": {
+        "physical_opening": 0.9382694314928568,
+        "s_entry": 39.64373902907198
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_1",
+      "numbers": {
+        "CREASE_BOW": 1.0,
+        "physical_opening": 1.0891129737581813
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_3",
+      "numbers": {
+        "CREASE_BOW": 3.0,
+        "physical_opening": 0.9382694314928568
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_8",
+      "numbers": {
+        "CREASE_BOW": 8.0,
+        "physical_opening": 0.5372829739143715
+      },
+      "passed": true
+    },
+    {
+      "detail": "body_full_p25",
+      "name": "watertight",
+      "numbers": {
+        "bytes": 1989184.0
+      },
+      "passed": true
+    }
+  ],
+  "chord_gate": {
+    "gate": 50.900523407445874,
+    "m1": 52.0,
+    "total_chord": 47.900523407445874
+  },
+  "commit": "6b125d7754985f6af419662e7f43ff622052274d",
+  "crease_bow": {
+    "clamped": 3.0,
+    "computed_from_m1_m2": 11.001411613371118,
+    "requested": 3.0
+  },
+  "defaults_used": [
+    "BODY_ARC",
+    "BODY_WIDTH",
+    "CLEAR_FIT",
+    "CREASE_BOW",
+    "FILLET_MEDIAL",
+    "HOOK_ANGLE",
+    "HOOK_DIA",
+    "HOOK_RADIUS",
+    "HOOK_ROOT_X",
+    "LID_EDGE",
+    "LID_THICK",
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7",
+    "M8",
+    "MOCK_CONTACTS",
+    "SIDE",
+    "WALL_END",
+    "WALL_MEDIAL",
+    "WALL_SIDE"
+  ],
+  "exceptions": {
+    "E1": {
+      "feature": "tongue",
+      "minimum": 0.4,
+      "note": "fitted",
+      "size": 0.5
+    },
+    "E2": {
+      "feature": "rib",
+      "minimum": 0.8,
+      "note": "locating only",
+      "size": 0.8000000000000007
+    },
+    "E3": {
+      "feature": "nubs",
+      "minimum": 0.6,
+      "size": 0.8
+    },
+    "E4": {
+      "feature": "coupon rib",
+      "minimum": 0.4,
+      "note": "measurement",
+      "size": 0.4
+    },
+    "E5": {
+      "feature": "lip cantilever / bump",
+      "minimum": {
+        "bump": 0.2,
+        "lip": 1.0
+      },
+      "note": "below JLC 1.5; fitted bump \u2265 0.2",
+      "size": {
+        "bump": 0.5,
+        "lip": 1.0
+      }
+    }
+  },
+  "files": {
+    "body_full_p15.3mf": {
+      "bytes": 452681,
+      "sha256": "4fd606f09983a1664746a8a8a168f5fc52be3b320e32aab17b870bcadf491170"
+    },
+    "body_full_p15.step": {
+      "bytes": 443429,
+      "sha256": "bef5c4e16381eae1f93a690c0eb3ea386f9150125d396d465285b9b09628a4a4"
+    },
+    "body_full_p15.stl": {
+      "bytes": 1733684,
+      "sha256": "7e2203944aa46675828fdd9e97b77b307c2110d3974d70de238423dff80c0f35"
+    },
+    "body_full_p25.3mf": {
+      "bytes": 520310,
+      "sha256": "9992dbbe3d1e32678c5e29d221ebc02cf6c44f09dc06364d3babf906a794408a"
+    },
+    "body_full_p25.step": {
+      "bytes": 444156,
+      "sha256": "d1c987d6fa32336b4f68f68c1001adef45365f9a2642d11648ef8bf35fa042c9"
+    },
+    "body_full_p25.stl": {
+      "bytes": 1989184,
+      "sha256": "e6a0f7d17a7e20a291e89df5619e199a46794e0a198b240f833e990c54346afd"
+    },
+    "body_thin_p15.3mf": {
+      "bytes": 409018,
+      "sha256": "a69ca3d024a67cdac982645bb649bc783cd78f259c1db9cff5c9d80d974780d5"
+    },
+    "body_thin_p15.step": {
+      "bytes": 387823,
+      "sha256": "ec11d853383eead446519bf748b90f77a3cb46a02f41facba8850006be607f81"
+    },
+    "body_thin_p15.stl": {
+      "bytes": 1561484,
+      "sha256": "824b54ac0d83ba6d90e17e1fd56136cc6a3ca2d8b50a663b6250a1b601e7ba37"
+    },
+    "coupon.3mf": {
+      "bytes": 19163,
+      "sha256": "ddfcb1d1ccd2714ea57090c6ebcacbf2678662ec3e52895ec3e3127d5bbb24a4"
+    },
+    "coupon.step": {
+      "bytes": 77867,
+      "sha256": "8e4500e82d1bf9faef98eea65cb61c4fe5fcf98228e41e29e94af0bcb5e8b63a"
+    },
+    "coupon.stl": {
+      "bytes": 85084,
+      "sha256": "b77d136ad61b2e339ce826e2f50ca664aac07ce66b8bd4878272e18b612dcee8"
+    },
+    "lid.3mf": {
+      "bytes": 238928,
+      "sha256": "49c3bf5d605a20fbfb3027e3ee0d21814a407bd420e1771c079e2e5802236de7"
+    },
+    "lid.step": {
+      "bytes": 1214824,
+      "sha256": "411b33912b3e8ebf56f7108dee96950d2d45aad39bc18d9e7df48a1077db671e"
+    },
+    "lid.stl": {
+      "bytes": 963284,
+      "sha256": "080a324f8f756912f6d81d4ac602978544152b5ee37eef0a024605c5baa24c28"
+    }
+  },
+  "fits": [
+    {
+      "adverse": null,
+      "nominal": 0.0,
+      "pair": "plate underside : recess floor",
+      "type": "seating"
+    },
+    {
+      "adverse": [
+        -0.4,
+        0.8
+      ],
+      "nominal": 0.2,
+      "pair": "lip inner face : top face, s",
+      "type": "compliant, one-sided"
+    },
+    {
+      "adverse": [
+        -0.4,
+        0.8
+      ],
+      "nominal": 0.2,
+      "pair": "bump tip : groove bottom, s",
+      "type": "compliant, one-sided"
+    },
+    {
+      "adverse": [
+        -0.3,
+        0.9
+      ],
+      "nominal": 0.3,
+      "pair": "bump engagement into groove, s",
+      "type": "retention"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "bump 0.6 : groove 1.0, y",
+      "type": "rigid, total"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "tongue 0.5 : slot 0.9, y",
+      "type": "rigid, total"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "tongue tip : slot end, s",
+      "type": "rigid, one-sided"
+    },
+    {
+      "adverse": [
+        0.0,
+        1.2
+      ],
+      "nominal": 0.6,
+      "pair": "web 0.8 : pocket 1.4, s",
+      "type": "rigid, total"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "web bottom : pocket floor, y",
+      "type": "rigid, one-sided"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "nub : side wall, u",
+      "type": "rigid, one-sided"
+    }
+  ],
+  "hash_rule": "SHA-256 of raw file bytes. STEP timestamp 2026-09-16T00:00:00Z. STL/3MF linear deflection 0.02 mm, angular deflection 5 deg. 3MF object UUID5 is elicio:cad:v1:<part>; remaining UUIDs are rewritten in appearance order and the zip date is pinned to 2026-09-16.",
+  "interference": {
+    "lid_body_overlap_mm3": 0.0,
+    "unintended_nominal_overlap_fail": false
+  },
+  "notes": {
+    "body_full_p15": {
+      "emboss": "ELICIO V1 R FULL P15 REF",
+      "fillets": [
+        "\u00a73.5 step 2 tip round: applied 1.60 (max valid), not 4.0",
+        "lip root fillet 0.50",
+        "\u00a73.5 step 9 hook joint fillet 2.0: no valid joint edges; union only"
+      ]
+    },
+    "body_full_p25": {
+      "emboss": "ELICIO V1 R FULL P25 REF",
+      "fillets": [
+        "\u00a73.5 step 2 tip round: applied 1.60 (max valid), not 4.0",
+        "lip root fillet 0.50",
+        "\u00a73.5 step 9 hook joint fillet 2.0: no valid joint edges; union only"
+      ]
+    },
+    "body_thin_p15": {
+      "emboss": "ELICIO V1 R THIN P15 REF",
+      "fillets": [
+        "\u00a73.5 step 2 tip round 4.0: no valid fillet; tail ends at width 10",
+        "lip root fillet 0.50",
+        "\u00a73.5 step 9 hook joint fillet 2.0: no valid joint edges; union only"
+      ]
+    }
+  },
+  "parameters": {
+    "BODY_ARC": 48.4,
+    "BODY_THICK": 9.0,
+    "BODY_WIDTH": 17.0,
+    "CLEAR_FIT": 0.4,
+    "CONTACT_2_S": 33.126206254801446,
+    "CONTACT_2_U": 10.395279120990946,
+    "CREASE_BOW": 3.0,
+    "CREASE_BOW_COMPUTED": 11.001411613371118,
+    "CREASE_BOW_REQUESTED": 3.0,
+    "FILLET_MEDIAL": 1.5,
+    "GLASSES_FLAT": 0.8,
+    "HOOK_ANGLE": 145.0,
+    "HOOK_DIA": 3.5,
+    "HOOK_PRELOAD": 1.5,
+    "HOOK_RADIUS": 13.5,
+    "HOOK_ROOT_X": 4.0,
+    "HOOK_ROOT_Y": 3.0,
+    "LID_EDGE": 0.8,
+    "LID_THICK": 1.0,
+    "LID_Y": 8.0,
+    "M1": 52.0,
+    "M2": 58.0,
+    "M3": 11.0,
+    "M4": 6.0,
+    "M5": 2.5,
+    "M6": 15.0,
+    "M7": 22.0,
+    "M8": 11.0,
+    "MOCK_CONTACTS": true,
+    "PATH_RADIUS": 97.10250594613626,
+    "SIDE": "right",
+    "THETA_DEG": 1.793625348966511,
+    "TOTAL_CHORD": 47.900523407445874,
+    "VARIANT": "full",
+    "WALL_END": 1.5,
+    "WALL_MEDIAL": 1.5,
+    "WALL_SIDE": 1.5
+  },
+  "parts": [
+    "body_full_p15",
+    "body_thin_p15",
+    "body_full_p25",
+    "lid",
+    "coupon"
+  ],
+  "quantities": {
+    "body_full_p15": 1,
+    "body_full_p25": 1,
+    "body_thin_p15": 1,
+    "coupon": 1,
+    "lid": 2
+  },
+  "ref_build": true,
+  "schema": 1,
+  "span": {
+    "M3": 11.0,
+    "pinna_displacement": 0.0,
+    "span": 10.35
+  },
+  "variant_preload_built": {
+    "body_full_p15": {
+      "HOOK_PRELOAD": 1.5,
+      "VARIANT": "full"
+    },
+    "body_full_p25": {
+      "HOOK_PRELOAD": 2.5,
+      "VARIANT": "full"
+    },
+    "body_thin_p15": {
+      "HOOK_PRELOAD": 1.5,
+      "VARIANT": "thin"
+    }
+  },
+  "wire_channel": {
+    "1.0": {
+      "end_distance": 2.697382270332185,
+      "end_inside": 1.0,
+      "physical_opening": 1.0891129737581813,
+      "s_entry": 39.444431136002066,
+      "s_opening": 1.0555688639979337,
+      "u": 9.3
+    },
+    "3.0": {
+      "end_distance": 2.8438853421996373,
+      "end_inside": 1.0,
+      "physical_opening": 0.9382694314928568,
+      "s_entry": 39.64373902907198,
+      "s_opening": 0.8562609709280196,
+      "u": 9.3
+    },
+    "8.0": {
+      "end_distance": 3.2322079006469013,
+      "end_inside": 1.0,
+      "physical_opening": 0.5372829739143715,
+      "s_entry": 40.07504885935971,
+      "s_opening": 0.4249511406402888,
+      "u": 9.3
+    },
+    "clamped": {
+      "end_distance": 2.8438853421996373,
+      "end_inside": 1.0,
+      "physical_opening": 0.9382694314928568,
+      "s_entry": 39.64373902907198,
+      "s_opening": 0.8562609709280196,
+      "u": 9.3
+    }
+  }
+}
