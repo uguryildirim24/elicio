@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T03:33:49-04:00",
+ "generated": "2026-09-17T04:51:33-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -58,7 +58,7 @@
    "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
    "tokens": {
     "done": "1",
-    "lane": "WP3",
+    "lane": "WP8-prep",
     "parent": "w1B:p1"
    },
    "title": "Lane W2 Instructions"
@@ -128,7 +128,7 @@
    "session_id": "ea20ccc0-04da-408f-a016-57766846ee99",
    "tokens": {
     "done": "1",
-    "lane": "WP9",
+    "lane": "WP9b",
     "parent": "w1B:p1"
    },
    "title": "Lane W9 Instructions"
@@ -151,55 +151,55 @@
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
-   "7caff1c Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
-   "1170b2a review(r3): verdict MERGE-AFTER-DECISION, gates, defects 1\u201318, decisions 20\u201323",
-   "8392a20 review(WP6b): cite C-31428 D4 as 8.788 max; 8.85 stays as the conservative barrel end",
-   "e87ca6d review(WP5b): working URLs for TME, Titanium Webshop, Fastenright, Westfield, Nichifu; 31428 is 8.788 max; mark unsourced passivation, certificate, RJX dk/k and Panduit numbers",
-   "635535a review(WP5b): plain-text math; stack at wall +0.3 and DIN 934 Kapton top; budget against plan \u00a77 lines; six Ti nuts; drop unsourced claims; reference tab vs TE 31428",
-   "7c973fe review(WP6b): say which 0402 counts are placed; give E's lateral height and its source"
+   "3122d44 Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
+   "7dec1b6 review(r4): verdict MERGE, gates, defects 1 to 19, decisions 24 to 27",
+   "99c074d review(WP9b): keep the history in open questions 3 and 4; date the L2 erratum",
+   "a3fa51d review(WP8-prep): emboss the Stage B lid V2, not V1",
+   "13ae9c6 review(WP8-prep): measure the Stage B checks on the solids; report a non-passing build",
+   "32d88e1 review(WP8-prep): refuse Stage B keys on order 1 and contacts placement did not search"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "7caff1c",
-    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
+    "head": "3122d44",
+    "subject": "Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
     "branch": "lane/w1",
-    "head": "7caff1c",
-    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
+    "head": "3122d44",
+    "subject": "Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "7caff1c",
-    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
+    "head": "3122d44",
+    "subject": "Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
-    "head": "7caff1c",
-    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
+    "head": "3122d44",
+    "subject": "Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w5",
     "branch": "lane/w5",
-    "head": "7caff1c",
-    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
+    "head": "3122d44",
+    "subject": "Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w9",
     "branch": "lane/w9",
-    "head": "7caff1c",
-    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
+    "head": "3122d44",
+    "subject": "Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
     "dirty": 0
    }
   ],
@@ -210,6 +210,7 @@
    "lane/w5",
    "lane/w9",
    "main",
+   "review/r4",
    "review/r3",
    "review/r2",
    "review/r1",
@@ -218,6 +219,9 @@
  },
  "files": {
   "briefs": [
+   "tasks/review-r4.md",
+   "tasks/WP9b-record.md",
+   "tasks/WP8-prep-stageb.md",
    "tasks/L-r3-sources.md",
    "tasks/review-r3.md",
    "tasks/WP5b-drawings.md",
@@ -226,12 +230,10 @@
    "tasks/review-r2.md",
    "tasks/WP7a-protocol.md",
    "tasks/WP6-packing.md",
-   "tasks/WP3-renders.md",
-   "tasks/phase1-common.md",
-   "tasks/review-r1.md",
-   "tasks/review-code-template.md"
+   "tasks/WP3-renders.md"
   ],
   "verdicts": [
+   "tasks/reviews/code-r4.md",
    "tasks/reviews/code-r3.md",
    "tasks/reviews/code-r2.md",
    "tasks/reviews/code-r1.md"

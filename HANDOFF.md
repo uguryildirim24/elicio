@@ -1,4 +1,4 @@
-# Elicio handoff — 2026-09-17 05:40 local
+# Elicio handoff — 2026-09-17 08:05 local
 
 Written by the coordinator in herdr pane `w1B:p1` for whoever coordinates
 next: a fresh pane, this pane after a compaction or a server restart, or
@@ -16,7 +16,7 @@ files approved by Rolf and ordered under the checkout gate (release state
 S0 in `docs/fab/plan.md` §9), then S1 once WP5, WP6 and WP7a close. Brief:
 `docs/fab/brief.md`. Spec: `docs/fab/plan.md`, signed off by GPT-6 Pro at
 `0c5d0eb`. Readings after each review: `docs/fab/open-questions.md`
-(Q1–Q23).
+(Q1–Q27).
 
 ## Authority
 
@@ -37,7 +37,9 @@ S0 in `docs/fab/plan.md` §9), then S1 once WP5, WP6 and WP7a close. Brief:
   3. Q6 nut metal (WP5b's table in `docs/fab/contacts.md` §8.2 has a
      plan-conforming zinc-plated steel row, brass, titanium), Q7 screw SKU,
      Q21 reference lug in the tail pocket, Q23 fold-and-solder for the 28 AWG
-     lead: all before order 2, none before order 1.
+     lead, Q25 E1 web over the reference pocket, Q27 a thin body cannot hold
+     the cell: all before order 2, none before order 1; Q21, Q25 and Q27
+     are best answered after the gauge has been worn.
   4. Q17 reference site: answered by wearing the gauge. Q18 cell: buy one
      501015 cell with the Stage A parts. Q19: accept the frozen protocol
      numbers or edit before Stage A data.
@@ -63,8 +65,14 @@ S0 in `docs/fab/plan.md` §9), then S1 once WP5, WP6 and WP7a close. Brief:
 | r3 | WP5b lug, nut and dome drawings in `docs/fab/contacts.md` §8 | MERGE-AFTER-DECISION (9 fixes) | `1170b2a` | `tasks/reviews/code-r3.md` |
 | r3 | WP6b packing options; only C closes; sheet `docs/fab/packing-options.md` | MERGE-AFTER-DECISION (9 fixes) | `1170b2a` | `tasks/reviews/code-r3.md` |
 | r3 | decisions Q20–Q23 | coordinator | `7caff1c` | `docs/fab/open-questions.md` |
+| r4 | WP9b design record after rounds 1 to 3, L2 erratum | MERGE (2 fixes) | `7dec1b6` | `tasks/reviews/code-r4.md` |
+| r4 | WP8-prep Stage B path in `bte_fit_shell.py`, provisional inputs, ten measured checks, no order 2 files | MERGE (17 fixes) | `7dec1b6` | `tasks/reviews/code-r4.md` |
+| r4 | decisions Q24–Q27 | coordinator | `3122d44` | `docs/fab/open-questions.md` |
 
-Round 3 gates at merge: 98 tests OK none skipped; option drawings,
+Round 4 gates at merge: 129 tests OK none skipped; order 1 solids, views
+and manifest byte-identical to before; the provisional Stage B build
+byte-identical twice, exit 3, failing only Q21 as it should. Round 3 gates
+at merge: 98 tests OK none skipped; option drawings,
 solids and renders byte-identical. Round 2 gates at merge: 83 tests OK none skipped; fifteen solids
 byte-identical twice and equal to the committed files; renders, drawing
 and placement drawing byte-identical; manifest validator passes and fails
@@ -72,71 +80,53 @@ on a removed key.
 
 ## In flight
 
-Round 4 runs two lanes that need none of Rolf's answers:
+No lane is working. All five lanes are idle at `main`, fast-forwarded,
+every report read and merged. Four rounds ran overnight; nothing left in
+the plan can be built without one of Rolf's answers.
 
-- **w2** (cursor `cursor-grok-4.6-xhigh`, `lane/w2`, `.worktrees/w2`):
-  brief `tasks/WP8-prep-stageb.md` (Stage B geometry path in
-  `bte_fit_shell.py` on provisional inputs: MOCK_CONTACTS false, packing
-  option parameter default C, real lug envelopes, every §3.3 Stage B check,
-  open item 4 containment; no files under `docs/fab/cad/v2/` (expected
-  absent), order 1 outputs byte-identical). Last told: "Round 4, package WP8-prep ... do
-  everything in it". Waiting for from the coordinator: nothing. Report
-  expected at `.reports/WP8-prep-report.md` (absent). When it lands: check
-  the tree, read the report, hold for w9.
-- **w9** (cursor, `lane/w9`, `.worktrees/w9`): brief `tasks/WP9b-record.md`
-  (design record subsection for rounds 1 to 3, open questions 3 and 4 with
-  status, one erratum line in `docs/fab/L2-vendors.md`). Last told: "Round
-  4, package WP9b ... do everything in it". Waiting for: nothing. Report
-  expected at `.reports/WP9b-report.md` (absent).
+- **w1** (cursor `cursor-grok-4.6-xhigh`, `lane/w1`): last WP6b. Next:
+  interface v3 with the placement search re-run (Q26) once Q20 is picked
+  and WP7a has sites.
+- **w2** (cursor, `lane/w2`): last WP8-prep. Next: WP8 proper, a parameter
+  set and a run on `scripts/cad/params/stageb_provisional.toml` once Q20,
+  Q21, Q24, Q25 and the WP7a sites are in; the README's Stage B section has
+  the command and the exit codes.
+- **w4** (cursor, `lane/w4`): last WP4. Next: sheet updates for order 2.
+- **w5** (agy `gemini-3.8-flash-high`, `lane/w5`): last WP5b. Next: WP7a
+  part 2 when the Stage A parts exist; purchase-time checks before S1.
+- **w9** (cursor, `lane/w9`): last WP9b. Next: the record at order 2.
 
-When both land: `.worktrees/review` on a new branch review/r4 (expected),
-`tasks/review-r4.md` (expected) from the template with both reports and the seams (order 1
-hashes untouched; the Stage B checks fail where they should, Q21
-especially; pads shared with `placement.py`, not copied; the record states
-each fact once), one fresh reviewer `rev4` on Opus 5 high, merge, open
-questions from 24, checkpoint.
-
-The other lanes, idle at `main`:
-
-- **w1** (cursor `cursor-grok-4.6-xhigh`, `lane/w1`): last package WP6b
-  (four passes; the coordinator's own wording error on the lug datum cost
-  one). Next candidate: interface v3 after Rolf picks Q20.
-- **w4** (cursor, `lane/w4`): last package WP4. Next candidate: sheet
-  updates when interface v3 changes the order 2 numbers.
-- **w5** (agy `gemini-3.8-flash-high`, `lane/w5`): last package WP5b. Next
-  candidate: WP7a part 2 when the Stage A parts exist; WP5 purchase-time
-  checks before S1.
-
-The build now waits on Rolf more than on lanes. What each of his answers
-starts: "I pick C" (or an alternative) → `tasks/WP8-shell-v2.md` (expected) on w2 from
-plan §9 row WP8, §3.3, Q18, Q20, Q21, Q22, plus interface v3 on w1, one
-round, one fresh reviewer. Renders approved and M1 measured → order 1 is
-his under `docs/fab/order1.md`; nothing for a lane. Stage A parts bought →
-WP7a part 2 on w5 from `docs/fab/montage.md` §2.
+What each of Rolf's answers starts (Q26 sequencing): "I pick C" (or an
+alternative) → nothing alone; with WP7a's sites →
+`tasks/WP6c-interface-v3.md` (expected) on w1, placement search on the real sites, then
+`tasks/WP8-shell-v2.md` (expected) on w2, one round each, fresh reviewer.
+Renders approved and M1 measured → order 1 is his under
+`docs/fab/order1.md`; nothing for a lane. Stage A parts bought → WP7a
+part 2 on w5 from `docs/fab/montage.md` §2. Gauge worn (plan §3.7) → Q17,
+Q21, Q25, Q27 and thickness answered together.
 
 ## Open
 
 Plan open items live in `plan.md` §10 and `docs/fab/open-questions.md`
-Q1–Q23 (Rolf's: Q6, Q7, Q12, Q17, Q18, Q19, Q20, Q21, Q23). Outside those:
+Q1–Q27 (Rolf's: Q6, Q7, Q12, Q17, Q18, Q19, Q20, Q21, Q23, Q25, Q27).
+Outside those:
 
 1. WP7a part 2 (bench montage, three coordinates) — open because Stage A
    parts are unbought; Rolf's purchase.
-2. WP8 Stage B shell (order 2 files) — open because it takes Rolf's
-   packing pick (Q20), the cell answer (Q18) and WP7a's coordinates.
+2. WP8 proper (order 2 files) — open because it takes Q20, the WP7a sites
+   and a placement re-run (Q26), then Q21, Q24, Q25 as inputs.
 3. Order 1 itself — open because it needs Rolf's render approval and his M1.
    The vault (`~/Documents/obsidian/rolfiersbox`, page
-   `Wiki/projects/Elicio.md`) has rounds 1 to 3 and his questions in its
+   `Wiki/projects/Elicio.md`) has rounds 1 to 4 and his questions in its
    Open questions form as of 2026-09-17.
-4. `docs/fab/L2-vendors.md` says no bureau prints conductive TPU, later
-   found wrong — open because nobody has corrected the lane report; low
-   priority, the plan does not use conductive TPU.
-5. Design record open questions 3 and 4 — being updated by WP9b this
-   round.
+4. Idle lane tabs w1, w2, w4, w5, w9 stay open with their agents — open
+   because closing them loses the Cursor and agy contexts; the start lines
+   below restart them if the server restarts.
 
 ## Next
 
-- Idle for the two DONE pushes (WP8-prep, WP9b); on the second, open review
-  round 4 as written under In flight.
+- Idle until Rolf's first answer arrives; the In flight section says which
+  package each answer starts.
 
 ## Traps
 
@@ -184,6 +174,10 @@ Q1–Q23 (Rolf's: Q6, Q7, Q12, Q17, Q18, Q19, Q20, Q21, Q23). Outside those:
 - A lane's "every number has a source" can be false (WP7a citations, WP5b
   dead URLs and page claims) → the reviewer checks quotes verbatim, with a
   read-only agy lane for live pages if needed.
+- CAD lanes write checks as constants or cut-then-probe tautologies
+  (rounds 1, 2 and 4) and fork the construction to keep hashes stable
+  (round 4) → every CAD brief says "measured on the built solid, one
+  construction path", and the reviewer builds and sections a part itself.
 - `sed -i ''` fails on non-ASCII patterns → edit with python.
 - A relative screenshot path lands in the repo root → absolute scratchpad paths.
 - Do not `cd` into worktrees from the coordinator shell → `git -C` with the
@@ -195,7 +189,7 @@ Q1–Q23 (Rolf's: Q6, Q7, Q12, Q17, Q18, Q19, Q20, Q21, Q23). Outside those:
 checkpoint with:  python3 ~/.claude/skills/save-state/state.py snapshot
 Do not hand-edit ids into it. -->
 
-## Herdr (generated 2026-09-17T03:33:49-04:00 by state.py, herdr 0.9.0, session `default`)
+## Herdr (generated 2026-09-17T04:51:33-04:00 by state.py, herdr 0.9.0, session `default`)
 Workspace `w1B` (elicio), 6 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
 Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl`.
 
@@ -203,10 +197,10 @@ Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/User
 | name | kind | status | pane | tab (label) | cwd | tokens | last title |
 |---|---|---|---|---|---|---|---|
 | w1 | cursor | done | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP6b | Lane W1 Instructions |
-| w2 | cursor | done | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP3 | Lane W2 Instructions |
+| w2 | cursor | done | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP8-prep | Lane W2 Instructions |
 | w4 | cursor | done | `w1B:pC` | `w1B:tC` (w4) | `/Users/rolfie/projects/elicio/.worktrees/w4` | done=1 lane=WP4 | Lane W4 Instructions |
 | w5 | agy | done | `w1B:pD` | `w1B:tD` (w5) | `/Users/rolfie/projects/elicio/.worktrees/w5` | done=1 lane=WP5b |  |
-| w9 | cursor | done | `w1B:pE` | `w1B:tE` (w9) | `/Users/rolfie/projects/elicio/.worktrees/w9` | done=1 lane=WP9 | Lane W9 Instructions |
+| w9 | cursor | done | `w1B:pE` | `w1B:tE` (w9) | `/Users/rolfie/projects/elicio/.worktrees/w9` | done=1 lane=WP9b | Lane W9 Instructions |
 
 Start lines as they run now (from `pane process-info`), for restarting a worker that is gone:
 
@@ -225,28 +219,28 @@ Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behi
 
 | worktree | branch | head | dirty files | last commit |
 |---|---|---|---|---|
-| `/Users/rolfie/projects/elicio` | `main` | 7caff1c | 0 | Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23 |
-| `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1` | 7caff1c | 0 | Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23 |
-| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 7caff1c | 0 | Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23 |
-| `/Users/rolfie/projects/elicio/.worktrees/w4` | `lane/w4` | 7caff1c | 0 | Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23 |
-| `/Users/rolfie/projects/elicio/.worktrees/w5` | `lane/w5` | 7caff1c | 0 | Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23 |
-| `/Users/rolfie/projects/elicio/.worktrees/w9` | `lane/w9` | 7caff1c | 0 | Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23 |
+| `/Users/rolfie/projects/elicio` | `main` | 3122d44 | 0 | Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27 |
+| `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1` | 3122d44 | 0 | Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27 |
+| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 3122d44 | 0 | Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27 |
+| `/Users/rolfie/projects/elicio/.worktrees/w4` | `lane/w4` | 3122d44 | 0 | Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27 |
+| `/Users/rolfie/projects/elicio/.worktrees/w5` | `lane/w5` | 3122d44 | 0 | Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27 |
+| `/Users/rolfie/projects/elicio/.worktrees/w9` | `lane/w9` | 3122d44 | 0 | Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27 |
 
 Last commits on the integration branch:
 
 ```
-7caff1c Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23
-1170b2a review(r3): verdict MERGE-AFTER-DECISION, gates, defects 1–18, decisions 20–23
-8392a20 review(WP6b): cite C-31428 D4 as 8.788 max; 8.85 stays as the conservative barrel end
-e87ca6d review(WP5b): working URLs for TME, Titanium Webshop, Fastenright, Westfield, Nichifu; 31428 is 8.788 max; mark unsourced passivation, certificate, RJX dk/k and Panduit numbers
-635535a review(WP5b): plain-text math; stack at wall +0.3 and DIN 934 Kapton top; budget against plan §7 lines; six Ti nuts; drop unsourced claims; reference tab vs TE 31428
-7c973fe review(WP6b): say which 0402 counts are placed; give E's lateral height and its source
+3122d44 Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27
+7dec1b6 review(r4): verdict MERGE, gates, defects 1 to 19, decisions 24 to 27
+99c074d review(WP9b): keep the history in open questions 3 and 4; date the L2 erratum
+a3fa51d review(WP8-prep): emboss the Stage B lid V2, not V1
+13ae9c6 review(WP8-prep): measure the Stage B checks on the solids; report a non-passing build
+32d88e1 review(WP8-prep): refuse Stage B keys on order 1 and contacts placement did not search
 ```
 
 ### Record files (newest first)
 - handoff: `HANDOFF.md`
-- briefs: `tasks/L-r3-sources.md`, `tasks/review-r3.md`, `tasks/WP5b-drawings.md`, `tasks/WP6b-packing-options.md`, `tasks/L-r2-datasheets.md`, `tasks/review-r2.md`, `tasks/WP7a-protocol.md`, `tasks/WP6-packing.md`, `tasks/WP3-renders.md`, `tasks/phase1-common.md`, `tasks/review-r1.md`, `tasks/review-code-template.md`
-- verdicts: `tasks/reviews/code-r3.md`, `tasks/reviews/code-r2.md`, `tasks/reviews/code-r1.md`
+- briefs: `tasks/review-r4.md`, `tasks/WP9b-record.md`, `tasks/WP8-prep-stageb.md`, `tasks/L-r3-sources.md`, `tasks/review-r3.md`, `tasks/WP5b-drawings.md`, `tasks/WP6b-packing-options.md`, `tasks/L-r2-datasheets.md`, `tasks/review-r2.md`, `tasks/WP7a-protocol.md`, `tasks/WP6-packing.md`, `tasks/WP3-renders.md`
+- verdicts: `tasks/reviews/code-r4.md`, `tasks/reviews/code-r3.md`, `tasks/reviews/code-r2.md`, `tasks/reviews/code-r1.md`
 
 ### Restore
 Run from the coordinator pane after a server restart, or from the fresh coordinator pane that takes over:
