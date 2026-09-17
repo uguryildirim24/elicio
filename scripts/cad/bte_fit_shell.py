@@ -254,6 +254,22 @@ STAGE_B_ONLY_KEYS = frozenset(
         "NUB_U",
     }
 )
+# Keys an overlay may set only with MOCK_CONTACTS = false. On order 1 they
+# fail: derived_params drops them, so the gauge would build the plan value.
+STAGE_B_OVERLAY_KEYS = frozenset(
+    {
+        "PACKING",
+        "CLOSURE_PASSED",
+        "TAB_HEIGHT",
+        "CONTACT_1_U",
+        "CONTACT_1_S",
+        "CONTACT_REF_U",
+        "CONTACT_REF_S",
+        "CABLE_EXIT_S",
+        "CONTACT_SOURCE",
+    }
+)
+PLACEMENT_CONTACT_TOL = 0.05  # placement.py rounds CONTACT_2 to (10.4, 33.1)
 PACKING_OPTIONS = frozenset({"A", "B", "C"})
 STAGE_B_CHECK_NAMES = frozenset(
     {
@@ -600,6 +616,14 @@ def apply_stage_b_packing(p: dict[str, Any]) -> None:
 def validate_overrides(base: Mapping[str, Any], override: Mapping[str, Any]) -> None:
     """Unknown keys and keys fixed for this release fail before export."""
     known = {canonical_key(k) for k in base} | OVERRIDABLE_KEYS
+    canon_over = {canonical_key(k): v for k, v in override.items()}
+    if bool(canon_over.get("MOCK_CONTACTS", True)):
+        stage_b = sorted(STAGE_B_OVERLAY_KEYS & set(canon_over))
+        if stage_b:
+            raise CheckFail(
+                f"{', '.join(stage_b)}: Stage B keys need MOCK_CONTACTS = false; "
+                "order 1 would ignore them and build the plan value"
+            )
     for key, value in override.items():
         canon = canonical_key(key)
         if canon not in known:
@@ -1132,6 +1156,26 @@ def cable_exit_pre_cad(params: Mapping[str, Any]) -> dict[str, float]:
 
 def run_stage_b_pre_cad_checks(params: Mapping[str, Any], record: Callable[..., None]) -> None:
     """Named Stage B checks that do not need a solid (plan §3.3, §5, Q21, Q22)."""
+    pl = load_placement()
+    c1 = contact_1_us(params)
+    c2 = (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))
+    drift = max(
+        math.hypot(c1[0] - pl.CONTACT_1[0], c1[1] - pl.CONTACT_1[1]),
+        math.hypot(c2[0] - pl.CONTACT_2[0], c2[1] - pl.CONTACT_2[1]),
+    )
+    # Pads, tab angles and the reference route come from placement.py, which
+    # searched them for its own contact sites. Other sites need a new search.
+    record(
+        "PLACEMENT_contacts",
+        drift <= PLACEMENT_CONTACT_TOL,
+        "signal contacts at the sites placement.py searched pads, tab angles and "
+        "the reference route for; new sites (WP7a) need a placement re-run first",
+        CONTACT_1_U=c1[0],
+        CONTACT_1_S=c1[1],
+        placement_CONTACT_1_U=float(pl.CONTACT_1[0]),
+        placement_CONTACT_1_S=float(pl.CONTACT_1[1]),
+        drift=round(drift, 4),
+    )
     wall = float(params["WALL_MEDIAL"])
     tab_h = tab_height(params)
     barrel_top = wall + BARREL_HEIGHT
