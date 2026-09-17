@@ -109,6 +109,9 @@ Q21, Q25, Q27 and thickness answered together.
 
 Plan open items live in `plan.md` §10 and `docs/fab/open-questions.md`
 Q1–Q27 (Rolf's: Q6, Q7, Q12, Q17, Q18, Q19, Q20, Q21, Q23, Q25, Q27).
+Rolf answers them on a plain-English page,
+https://claude.ai/artifact/5e9H1dC5CFHggtiaYtDDeA; his answers are the
+artifact's db doc `answers/rolf` (ArtifactData `get`), or pasted in chat.
 Outside those:
 
 1. WP7a part 2 (bench montage, three coordinates) — open because Stage A
