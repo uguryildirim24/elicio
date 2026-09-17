@@ -1,17 +1,32 @@
-# Provisional Stage B inputs. WP8-prep. Not an order-1 overlay.
-# Each value waits on an open question; WP8 proper replaces this file.
+# Provisional Stage B inputs (WP8-prep). Not an order 1 overlay, never an
+# order: build into a temp --out (the script refuses docs/fab/cad/v1/ and v2/).
+# WP8 proper replaces this file. What each value waits on:
 #
-# PACKING        Q20 — coordinator reading: C. Rolf has not picked.
-# MOCK_CONTACTS  plan §3.3 Stage B (false). Order 1 stays true.
-# CLOSURE_PASSED Q / plan §3.6 — E1/E3/E5 only if the order-1 closure test passed.
-# CONTACT_*      WP7a will replace plan §3.3 defaults.
-# TAB_HEIGHT     Q22 — plan erratum 2.0 (plan §3.3 wrote 1.5).
-# CONTACT_SOURCE label for the manifest; not a geometry number.
+# PACKING = "C"          Q20: Rolf's packing pick; C is the coordinator's reading.
+#                        Sets BODY_WIDTH 20, board 19 × 15.5 and the pads from placement.py.
+# MOCK_CONTACTS = false  Plan §3.3 Stage B. Order 1 stays true.
+# CLOSURE_PASSED = false Plan §3.6: E1/E3/E5 only if the order 1 closure test passes
+#                        (else interface item 6). True today also fails KEEPOUT_REF_air:
+#                        the E1 web sits in the reference pocket (review r4 decision 25).
+# TAB_HEIGHT = 2.0       Q22: plan erratum, the barrel is 1.96 (plan §3.3 wrote 1.5).
+# CABLE_EXIT_S = 35.0    Plan §3.3 says s 36, where the Ø2.0 exit cuts 0.99 mm³ out of the
+#                        inferior posterior corner pad (s 36.4–37.9). 35.0 is the nearest
+#                        clear site on the same wall (review r4 decision 24).
+# CONTACT_1_*, CONTACT_REF_*
+#                        Plan §3.3 defaults until WP7a part 2 (waits on Stage A parts);
+#                        the reference site also waits on the gauge wear (Q17). Other sites
+#                        fail PLACEMENT_contacts until placement.py is re-run for them.
+# CONTACT_SOURCE         Label for the manifest, not geometry.
+#
+# Not set here, still open: the reference lug in the pocket (Q21, recorded as a failing
+# check, the build exits 3), the cell pack (Q18, plan envelope 5.2 × 10.4 × 15.6 with
+# 0.5 foam on the lid face), the order 2 emboss (Q11, 0.4 deep over the battery zone).
 
 PACKING = "C"
 MOCK_CONTACTS = false
 CLOSURE_PASSED = false
 TAB_HEIGHT = 2.0
+CABLE_EXIT_S = 35.0
 CONTACT_SOURCE = "plan §3.3 defaults"
 CONTACT_1_U = 5.9
 CONTACT_1_S = 22.0
