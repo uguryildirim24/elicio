@@ -13,26 +13,35 @@ python3.13 -m venv .venv
 
 ## Build the reference set
 
-Writes the five order-1 files (STEP, STL, 3MF) and `manifest.json` under `docs/fab/cad/v1/`.
+Writes the five order-1 files (STEP, STL, 3MF) and `manifest.json` under `docs/fab/cad/v1/`. Every M1–M8 is a default, so the build and the lid emboss are marked REF.
 
 ```bash
-.venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/default.toml --out docs/fab/cad/v1/
+.venv/bin/python scripts/cad/bte_fit_shell.py --out docs/fab/cad/v1/
 ```
+
+Passing `--params scripts/cad/params/default.toml` gives the same build: `default.toml` is the reference, never an overlay.
 
 ## Build from Rolf's measurements
 
-Put M1–M8 in `scripts/cad/params/rolf.toml`. Missing keys keep the reference-ear default and mark the build REF. The script computes CREASE_BOW from M1 and M2 and clamps it to 1–8. It rejects M1 below TOTAL_CHORD + 3 before export.
+Put M1–M8 (and `SIDE`) in `scripts/cad/params/rolf.toml`. The overlay rules:
+
+- A key left out keeps its reference-ear default, and the build is marked REF.
+- CREASE_BOW is computed from M1 and M2 (arc–chord, clamped to 1–8) only when the file sets **both** M1 and M2 and does not set CREASE_BOW. Otherwise it stays 3.0.
+- HOOK_RADIUS follows M8: M8 + HOOK_DIA/2 + 0.75, which is the 13.5 plan §3.3 quotes at M8 = 11 (the plan's written "+ 1.0" gives 13.75 and fails its own `< M8 + 1` check).
+- Only SIDE, VARIANT, HOOK_PRELOAD, CREASE_BOW, HOOK_RADIUS and M1–M8 may be set. Any other key, an unknown key, or `MOCK_CONTACTS = false` fails before export.
+- The script rejects M1 below TOTAL_CHORD + 3 for the bow it uses.
+
+Full order-1 set from the measurements:
 
 ```bash
-.venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/rolf.toml --variant full --preload 1.5 --out docs/fab/cad/v1/
+.venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/rolf.toml --out docs/fab/cad/v1/
 ```
-
-The same command with `--variant thin` or `--preload 2.5` is in the allowed matrix. Any other variant or preload fails before export.
 
 ## Run the checks
 
 ```bash
-.venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/default.toml --checks-only
+.venv/bin/python scripts/cad/bte_fit_shell.py --checks-only
+.venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/rolf.toml --checks-only
 .venv/bin/python -m unittest tests.test_cad -v
 ```
 

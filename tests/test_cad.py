@@ -91,6 +91,67 @@ class CadCheckTests(unittest.TestCase):
         self.assertEqual(CAD.cli(["--checks-only"]), 0)
 
 
+class CadOverlayTests(unittest.TestCase):
+    def _params(self, argv: list[str]) -> dict:
+        args = CAD.parse_args(argv)
+        overrides, from_m = CAD.resolve_overrides(args)
+        params, _used = CAD.build_reference_params(
+            variant="full", preload=1.5, overrides=overrides, crease_bow_from_m=from_m
+        )
+        return params
+
+    def _overlay(self, text: str) -> Path:
+        handle = tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False)
+        handle.write(text)
+        handle.close()
+        self.addCleanup(Path(handle.name).unlink)
+        return Path(handle.name)
+
+    def test_default_toml_as_params_is_not_an_overlay(self) -> None:
+        args = CAD.parse_args(["--params", str(CAD.DEFAULT_PARAMS_PATH)])
+        overrides, from_m = CAD.resolve_overrides(args)
+        self.assertEqual(overrides, {})
+        self.assertFalse(from_m)
+
+    def test_empty_overlay_keeps_default_bow(self) -> None:
+        params = self._params(["--params", str(self._overlay("# nothing measured\n"))])
+        self.assertEqual(params["CREASE_BOW"], 3.0)
+
+    def test_overlay_with_m1_only_keeps_default_bow(self) -> None:
+        params = self._params(["--params", str(self._overlay("M1 = 53.0\n"))])
+        self.assertEqual(params["CREASE_BOW"], 3.0)
+
+    def test_overlay_with_m1_and_m2_computes_and_clamps_bow(self) -> None:
+        params = self._params(["--params", str(self._overlay("M1 = 52.0\nM2 = 58.0\n"))])
+        self.assertAlmostEqual(params["CREASE_BOW_COMPUTED"], 11.0014, places=3)
+        self.assertEqual(params["CREASE_BOW"], 8.0)
+
+    def test_overlay_crease_bow_wins_over_m1_m2(self) -> None:
+        text = "M1 = 52.0\nM2 = 58.0\nCREASE_BOW = 2.0\n"
+        params = self._params(["--params", str(self._overlay(text))])
+        self.assertEqual(params["CREASE_BOW"], 2.0)
+
+    def test_m8_drives_hook_radius(self) -> None:
+        params = self._params(["--set", "M8=13"])
+        self.assertAlmostEqual(params["HOOK_RADIUS"], 13.0 + 1.75 + 0.75)
+        self.assertEqual(CAD.cli(["--set", "M8=13", "--checks-only"]), 0)
+
+    def test_unknown_key_fails(self) -> None:
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.cli(["--set", "M9=12", "--checks-only"])
+        self.assertIn("M9", str(ctx.exception))
+
+    def test_fixed_geometry_key_fails(self) -> None:
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.cli(["--set", "BODY_WIDTH=15", "--checks-only"])
+        self.assertIn("BODY_WIDTH=15", str(ctx.exception))
+
+    def test_stage_b_contacts_fail_before_export(self) -> None:
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.cli(["--set", "MOCK_CONTACTS=false", "--checks-only"])
+        self.assertIn("MOCK_CONTACTS", str(ctx.exception))
+
+
 @unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
 class CadRegenTests(unittest.TestCase):
     def test_reference_regen_matches_committed_hashes(self) -> None:

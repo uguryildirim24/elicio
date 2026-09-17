@@ -1,6 +1,11 @@
 # Rolf's caliper numbers. Missing keys take scripts/cad/params/default.toml
 # and mark the build REF (plan §3.4).
 #
+# CREASE_BOW: with both M1 and M2 set here (and no CREASE_BOW line), the
+# script computes the bow from them and clamps it to 1–8. With either one
+# missing, the bow stays 3.0 from default.toml.
+# HOOK_RADIUS follows M8: M8 + HOOK_DIA/2 + 0.75 (13.5 at M8 = 11).
+#
 # Measure M1 first. The script rejects M1 below TOTAL_CHORD + 3.
 # M1 = 52.0
 # M2 = 58.0
