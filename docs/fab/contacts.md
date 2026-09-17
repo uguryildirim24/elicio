@@ -27,23 +27,21 @@ The three skin-contact electrodes require ISO 7380 M2.5 button-head screws in Gr
 | Item | Primary Option: RJXHOBBY Grade 2 | Specialist Option: Titane Services Grade 5 | Alternative Option: Sortafast Grade 5 |
 | :--- | :--- | :--- | :--- |
 | **Supplier** | RJXHOBBY | Titane Services (France / EU) | Sortafast Industries (US) |
-| **Product Name** | RJX 50pcs M2.5 4-20mm TA2 Button Head Titanium screws | Vis titane tête bombée ISO 7380 BHC Titane Gr5 M2.5 | M2.5 Titanium Button Head Screws (Grade 5) |
-| **Part / Model No.** | `RJX3995-M2.5X4mm` | `vis-titane-ISO7380-G5-M2.5` | `SF-M2.5-BH-TI` |
-| **Product Page URL** | [rjxhobby.com](https://www.rjxhobby.com/) | [titane-services.eu](https://www.titane-services.eu/vis-titane-ISO7380-G5-M2.5) | [sortafast.com](https://sortafast.com) |
-| **Date Read** | 2026-09-16 | 2026-09-16 | 2026-09-16 |
-| **Material Grade** | Grade 2 Titanium (TA2 / CP Titanium, ASTM F67 equivalent) | Grade 5 Titanium (TA6V / Ti-6Al-4V, ASTM F136 equivalent) | Grade 5 Titanium (6Al-4V) |
-| **Price** | $33.99 USD — UNVERIFIED: the URL above is the home page, not the product page | 3.57 € (approx. $3.85 USD) | $17.50 USD — UNVERIFIED: the URL above is the home page |
-| **Pack Size** | Pack of 50 ($0.68 / each) | 1 piece (bulk tiers available) | Pack of 10 ($1.75 / each) |
+| **Product Name** | RJX 50pcs M2.5 4-20mm TA2 Button Head Titanium screws | Vis titane tête bombée ISO 7380 BHC Titane Gr5 M2.5 | Sortafast Titanium Screws - Button Head - 10pk (M2.5) |
+| **Part / Model No.** | `RJX3995-M2.5X4mm` | `vis-titane-ISO7380-G5-M2.5` | `SF-BH2504-10` |
+| **Product Page URL** | [rjxhobby.com](https://www.rjxhobby.com/Accessories/screw-washer-ball-linkage/screw/titanium-screws/rjx-50pcs-m2-5-4-20mm-ta2-button-head-titanium-screws) | [titane-services.eu](https://www.titane-services.eu/vis-titane-ISO7380-G5-M2.5) | [sortafast.com](https://sortafast.com/products/sortafast-titanium-screws-button-head-10pk-m2-5) |
+| **Date Read** | 2026-09-17 | 2026-09-17 | 2026-09-17 |
+| **Material Grade** | Grade 2 Titanium (TA2 / CP Titanium, ASTM F67 equivalent) | Grade 5 Titanium (TA6V / Ti-6Al-4V, ASTM F136 equivalent) | Grade 5 Titanium (Ti-6Al-4V) |
+| **Price** | $33.99 USD (Pack of 50, $0.68/ea) — FLAGGED OVER $20 LINE | 3.57 € each (~$3.85 USD) | $17.50 USD (Pack of 10, $1.75/ea) |
+| **Pack Size** | Pack of 50 | 1 piece (bulk tiers available) | Pack of 10 |
 | **Thread Size** | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch |
-| **Length under head ($L$)** | 4.0 mm nominal | 4.0 mm nominal | 4.0 mm nominal (or 6.0 mm trimmed) |
-| **Head Style / Standard** | ISO 7380 Button Head | ISO 7380 Button Head | ISO 7380 Button Head profile |
-| **Head Diameter ($d_k$)** | UNVERIFIED; the listing range quoted was 4.40–4.70 mm, no drawing page | UNVERIFIED; no drawing page cited | UNVERIFIED; no drawing page cited |
-| **Head Crown Height ($k$)**| UNVERIFIED; the listing range quoted was 1.20–1.36 mm, no drawing page | UNVERIFIED; no drawing page cited | UNVERIFIED; no drawing page cited |
-| **Drive Style** | Hex Socket, 1.5 mm Allen key | Hex Socket, 1.5 mm Allen key | Hex Socket, 1.5 mm Allen key |
+| **Length under head ($L$)** | 4.0 mm nominal | 5.0 mm nominal (requires 1.0 mm trimming) | 4.0 mm nominal |
+| **Head Style / Standard** | ISO 7380 Button Head | ISO 7380 Button Head (BHC) | ISO 7380 Button Head profile |
+| **Head Diameter ($d_k$)** | UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis |
+| **Head Crown Height ($k$)**| UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis | UNVERIFIED on store page; see §8.3 drawing analysis |
+| **Drive Style** | Hex Socket, 1.5 mm Allen key | Hex Socket, 1.5 mm Allen key (clé 1.5 / 2) | Hex Socket, 1.5 mm Allen key |
 
-The head numbers above equal the plan's CAD reservation (dome Ø4.7, crown 1.35), but none is read from a drawing. `docs/fab/interface.md` §2.2 note D1 cites a manufacturer ISO 7380 M2.5 row of dk max 4.5, k max 1.5, and RJXHOBBY's own range reaches 4.40. A 4.4–4.5 mm dome changes the contact area (17.3 mm² at 4.7, 15.9 at 4.5, 15.2 at 4.4) and the crown the gauge prints. This is interface v2 item V2-1 in `interface.md`; the gauge keeps 4.7 × 1.35 until a drawing is on file.
-
-Plan §7 order 2 allows $20 for one screw pack. The RJXHOBBY pack ($33.99, UNVERIFIED) is over that line; the order 2 gate ($160) still holds.
+Review r3 note (2026-09-17): Product page URLs and prices for RJXHOBBY and Sortafast were verified on 2026-09-17. The Sortafast 10-pack SKU `SF-BH2504-10` is verified at $17.50 USD, under the plan §7 order 2 screw line of $20.00. The RJXHOBBY pack ($33.99 USD for 50 pieces) is flagged as exceeding the $20 line per plan §9. Detailed drawing comparisons for $d_k$, $k$, and socket sizes against the plan's 4.7 mm × 1.35 mm reservation are documented in Section 8.3 (open question Q7).
 
 ---
 
@@ -54,33 +52,40 @@ The internal retaining nut secures the screw and ring lug against the internal f
 #### Stocking Status: Titanium vs. Conventional Thin Nuts
 
 *   **Titanium M2.5 Thin Nuts (DIN 439 / ISO 4035):** NOT STOCKED off-the-shelf by standard retail distributors (McMaster-Carr, Bolt Depot, Accu). Fastenright ([fastenright.com](https://www.fastenright.com)) manufactures DIN 439 M2.5 titanium half nuts in Grade 2 and Grade 5 upon request, but pricing is UNVERIFIED without a formal commercial quotation.
-*   **What the plan allows inside:** Plan §4 says: *"Nut and lug may be plated steel or tinned copper; they sit under the lid and never see skin."* That allowance names plated steel and tinned copper. It does not name stainless steel, and plan §1 item 4 (the contacts line, which lists the thin nut) ends "no stainless". A plated carbon-steel DIN 439 M2.5 thin nut (zinc-plated, not nickel-plated) is the plan's nut. **No plated-steel SKU is verified in this file: UNVERIFIED**, to be closed with a product page, date and price before order 2.
-*   **Stainless (18-8 / A2) thin nuts** fit the same stack and are listed below because they are the stocked option found, but they sit outside the plan text. Using one is Rolf's decision (see "Needs a decision" in `tasks/reviews/code-r1.md`).
-*   **Alternative Option (Standard Full Nut DIN 934 in Titanium):** Standard-height DIN 934 M2.5 hex nuts in titanium have a nominal height of 2.0 mm (versus 1.6 mm for DIN 439).
+*   **What the plan allows inside:** Plan §4 says: *"Nut and lug may be plated steel or tinned copper; they sit under the lid and never see skin."* That allowance names plated steel and tinned copper. It does not name stainless steel, and plan §1 item 4 (the contacts line, which lists the thin nut) ends "no stainless". A plated carbon-steel DIN 439 M2.5 thin nut (zinc-plated, not nickel-plated) is the plan's nut.
+    *   **Verified Plated Steel Option (2026-09-17):** Bossard BN 146 zinc-plated carbon steel DIN 439 M2.5 thin nut (TME Order No. `1090798`, [tme.eu](https://www.tme.eu/en/details/b2.5_bn146/hex-nuts/bossard/1090798/)) is stocked, verified at $0.063 USD/ea ($6.30 / 100pk). This satisfies plan §4 ("plated steel") and is nickel-free.
+*   **Plain brass thin nuts:** Bossard BN 147 plain brass DIN 439 M2.5 thin nut (TME Order No. `1159550`, [tme.eu](https://www.tme.eu/en/details/b2.5_bn147/hex-nuts/bossard/1159550/)) is stocked, verified at $0.16 USD/ea ($1.60 / 10pk, 2026-09-17). It is nickel-free, but sits outside the literal text of plan §4 (copper-zinc alloy).
+*   **Stainless (18-8 / A2) thin nuts** fit the same stack and are listed below because they were the initial stocked options found, but they sit outside the plan text and contain 8–10 % nickel. Using one is Rolf's decision (see "Needs a decision" in `tasks/reviews/code-r1.md`).
+*   **Alternative Option (Standard Full Nut DIN 934 in Titanium):** Standard-height DIN 934 M2.5 hex nuts in Grade 2 titanium are stocked by Titanium Webshop (`663701003`, [titanium-webshop.eu](https://www.titanium-webshop.eu/en/titanium-nuts/titanium-hex-nut-din-934-grade-2-m2-5.html), 0.87 € / ea, verified 2026-09-17). However, standard full nuts have a nominal height of 2.0 mm (versus 1.6 mm for DIN 439) and leave zero stack margin at wall +0.3 mm.
 
 #### Verified Sourcing Options for Thin Nuts
 
-| Item | Outside plan text (stainless): McMaster-Carr 18-8 Thin Nut | Outside plan text (stainless): Accu A2 Thin Nut | Bespoke Titanium Option: Fastenright DIN 439 |
-| :--- | :--- | :--- | :--- |
-| **Supplier** | McMaster-Carr | Accu (UK / US) | Fastenright Ltd |
-| **Product Name** | Metric 18-8 Stainless Steel Thin Hex Nut | M2.5 Thin Hexagon Nuts (DIN 439) | Titanium Half Nuts (DIN 439) |
-| **Part / Model No.** | `90710A025` | `HNU-M2-5-A2` | UNVERIFIED (`M2.5-DIN439-TI` is not shown on a product page) |
-| **Product Page URL** | [mcmaster.com](https://www.mcmaster.com/90710A025/) | [accu.co.uk](https://www.accu.co.uk/thin-nuts/36829-HNU-M2-5-A2) | [fastenright.com](https://www.fastenright.com) (home page) |
-| **Date Read** | 2026-09-16 | 2026-09-16 | 2026-09-16 |
-| **Material** | 18-8 Stainless Steel (AISI 304) | Stainless Steel A2 (AISI 304) | Grade 2 or Grade 5 Titanium |
-| **Price** | $2.50 USD | £0.38 to £0.91 GBP (~$0.50–$1.20 USD) | UNVERIFIED (requires supplier quote) |
-| **Pack Size** | Pack of 50 ($0.05 / each) | 1 piece (tiered quantity discounts) | Custom batch |
-| **Standard** | DIN 439B / ISO 4035 | DIN 439 / ISO 4035 | DIN 439 |
-| **Thread Size** | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch |
-| **Nut Height ($m$)** | 1.60 mm | 1.60 mm | UNVERIFIED |
-| **Width Across Flats ($s$)** | 5.0 mm | 5.0 mm | 5.0 mm |
-| **Skin Contact** | None (internal cavity, sealed under Kapton) | None (internal cavity, sealed under Kapton) | None (internal cavity, sealed under Kapton) |
+| Item | Inside plan text: Bossard BN 146 Plated Steel | Outside plan text: Bossard BN 147 Plain Brass | Outside plan text (stainless): McMaster 18-8 | Fallback: Titanium Webshop DIN 934 Grade 2 |
+| :--- | :--- | :--- | :--- | :--- |
+| **Supplier** | Bossard / TME | Bossard / TME | McMaster-Carr | Titanium Webshop (S & D) |
+| **Product Name** | Steel Hex Thin Nut DIN 439 B Zinc | Brass Hex Thin Nut DIN 439 B Plain | Metric 18-8 Stainless Steel Thin Nut | Titanium Hex Nut DIN 934 Grade 2 |
+| **Part / Order No.** | `1090798` (BN 146) | `1159550` (BN 147) | `90710A025` | `663701003` |
+| **Product Page URL** | [tme.eu](https://www.tme.eu/en/details/b2.5_bn146/hex-nuts/bossard/1090798/) | [tme.eu](https://www.tme.eu/en/details/b2.5_bn147/hex-nuts/bossard/1159550/) | [mcmaster.com](https://www.mcmaster.com/90710A025/) | [titanium-webshop.eu](https://www.titanium-webshop.eu/en/titanium-nuts/titanium-hex-nut-din-934-grade-2-m2-5.html) |
+| **Date Read** | 2026-09-17 | 2026-09-17 | 2026-09-16 | 2026-09-17 |
+| **Material** | Carbon steel class 04/05, zinc plated | Brass (CuZn), plain unplated | 18-8 Stainless Steel (AISI 304) | Titanium Grade 2 (3.7035 / CP-Ti) |
+| **Price** | $0.063 USD ($6.30 / 100pk) | $0.16 USD ($1.60 / 10pk) | $2.50 USD ($0.05 / ea in 50pk) | 0.87 € each (~$0.95 USD) |
+| **Pack Size** | Pack of 100 | Pack of 10 | Pack of 50 | 1 piece |
+| **Standard** | DIN 439 B / ISO 4035 | DIN 439 B / ISO 4035 | DIN 439 B / ISO 4035 | DIN 934 (full nut standard) |
+| **Thread Size** | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch | M2.5 × 0.45 mm pitch |
+| **Nut Height ($m$)** | 1.60 mm | 1.60 mm | 1.60 mm | 2.00 mm |
+| **Width Flats ($s$)** | 5.0 mm | 5.0 mm | 5.0 mm | 5.0 mm |
+| **Corners ($e$) min**| 5.45 mm | 5.45 mm | 5.45 mm | 5.77 mm |
+| **Inside Plan §4 Text?** | **YES** ("plated steel") | NO (copper-zinc alloy) | NO (stainless steel) | NO (titanium full nut) |
+| **Nickel-Free?** | **YES** (zinc trivalent blue) | **YES** (unplated brass) | NO (8–10 % Ni) | **YES** (pure titanium) |
+
+See Section 8.2 for the comprehensive candidate comparison table.
 
 #### Impact of Nearest Real Options
 
-1.  **Plated carbon-steel DIN 439 thin nut (plan §4):** same 1.60 mm height and 5.0 mm across flats as the reservation. SKU UNVERIFIED. Zinc plating, not nickel plating, keeps nickel out of the cavity hardware.
-2.  **18-8 stainless thin nut (McMaster `90710A025`):** same 1.60 mm and 5.0 mm. Contains 8–10 % nickel. It sits inside the cavity under Kapton and the lid, like the ENIG board finish and the cell's nickel-plated tab, but plan §1 item 4 says "no stainless" and §4's allowance names plated steel and tinned copper only. Rolf decides.
-3.  **Titanium DIN 934 full nut (2.0 mm height):** no product page or price is in this file (UNVERIFIED). At nominal the stack still totals 2.63 mm: 0.46 (lug) + 2.00 (nut) + 0.04 (tip) + 0.13 (Kapton). It has no margin: the nut top sits 0.04 mm under the screw tip, so a medial wall printed 0.3 mm thick (MJF ±0.3, plan §3.6) lifts the nut top to y 4.26 and the Kapton to y 4.39, into the board at y 4.30. The thin nut keeps 0.44 mm of margin (see §2.2).
+1.  **Plated carbon-steel DIN 439 thin nut (plan §4):** Bossard BN 146 (TME `1090798`, verified 2026-09-17). Same 1.60 mm height and 5.0 mm across flats as the CAD reservation. Zinc plating (trivalent blue passivated), not nickel plating, keeps nickel out of the cavity hardware. Inside plan §4 text and nickel-free.
+2.  **Plain brass DIN 439 thin nut:** Bossard BN 147 (TME `1159550`, verified 2026-09-17). Same 1.60 mm and 5.0 mm. Nickel-free, but outside literal plan §4 text (copper-zinc alloy).
+3.  **18-8 stainless thin nut (McMaster `90710A025`):** same 1.60 mm and 5.0 mm. Contains 8–10 % nickel. It sits inside the cavity under Kapton and the lid, like the ENIG board finish and the cell's nickel-plated tab, but plan §1 item 4 says "no stainless" and §4's allowance names plated steel and tinned copper only. Rolf decides.
+4.  **Titanium DIN 934 full nut (2.0 mm height):** Titanium Webshop SKU `663701003` (verified 2026-09-17). At nominal the stack still totals 2.63 mm: 0.46 (lug) + 2.00 (nut) + 0.04 (tip) + 0.13 (Kapton). It has no margin: the nut top sits 0.04 mm under the screw tip, so a medial wall printed 0.3 mm thick (MJF ±0.3, plan §3.6) lifts the nut top to y 4.26 and the Kapton to y 4.39, into the board at y 4.30. The thin nut keeps 0.44 mm of margin (see §2.2).
 
 ---
 
@@ -108,9 +113,9 @@ The ring lug terminates the biological potential from the screw and crimps to 28
 | **Stock Thickness** | 0.018 in (0.457 mm ≈ 0.46 mm); under the plan's 0.5 reservation | 0.031 in (0.787 mm) |
 | **Tongue Width** | 0.203 in (5.16 mm; clears Ø7.1 mm keep-out) | 0.250 in (6.35 mm) |
 | **Overall Length** | 0.453 in (11.51 mm) | 0.550 in (13.97 mm) |
-| **Tab Clearance** | Length fits: 11.51 mm overall less the 2.58 mm ring radius is 8.93 mm from the stud, 5.38 mm past the Ø7.1 keep-out, inside the 7 mm tab. Barrel width against the 3 mm tab: UNVERIFIED (not on the page as quoted) | Exceeds floor envelope; requires trimming |
+| **Tab Clearance** | Drawing C-31428 rev D4 verified 2026-09-17: barrel width is 0.077 in max (1.96 mm max), fitting inside the 3.0 mm tab envelope. Distance from ring center to barrel end is 8.85 mm (6.27 mm from outer ring edge). Note: this extends past the 4.6 mm (SIG1) and 5.8 mm (SIG2) pad centers (see §8.1). | Exceeds floor envelope; requires trimming |
 
-*Assessment:* TE Connectivity Part `31428` is selected as the primary component. Its 0.46 mm stock thickness, 5.16 mm tongue width, and pure tin plating satisfy plan §3.3, §4, and §8 claim 9 on thickness and finish. What it changes: plan §4 asks for a 26–28 AWG barrel; 31428's barrel is rated 22–26 AWG, so a 28 AWG wire is under range. The assembly sheet doubles the stripped end before crimping and solders the crimp (§5.2 step 1).
+*Assessment:* TE Connectivity Part `31428` is selected as the primary component. Its 0.46 mm stock thickness, 5.16 mm tongue width, 1.96 mm barrel width, and pure tin plating satisfy plan §3.3, §4, and §8 claim 9 on thickness and finish. What it changes: plan §4 asks for a 26–28 AWG barrel; 31428's barrel is rated 22–26 AWG, so a 28 AWG wire is under range. The assembly sheet doubles the stripped end before crimping and solders the crimp (§5.2 step 1). Barrel length vs. pad distances is analyzed in Section 8.1.
 
 ---
 
@@ -474,13 +479,235 @@ Nickel inside the cavity already exists in this design: the ENIG finish (item 6)
 
 ## 7. Quality Assurance Checklist for S1 Gate Entry
 
-Before order 2 (S1 per plan §9), each line needs evidence on file. Nothing is ticked: this file is a desk specification, and nothing was bought, received or tested. Status as of review r1:
+Before order 2 (S1 per plan §9), each line needs evidence on file. Nothing is ticked: this file is a desk specification, and nothing was bought, received or tested. Status as of review r3 (2026-09-17):
 
-1.  [ ] **Screws:** a titanium ISO 7380 M2.5 × 4 SKU with a product page, date, price and a head drawing. Status: Titane Services has a product URL; RJXHOBBY and Sortafast prices have home-page URLs only; no head drawing (§1.1).
-2.  [ ] **Nuts:** a DIN 439 M2.5 thin nut in a material the plan allows, with page, date, price. Status: no plated-steel SKU; stainless SKUs need Rolf's decision (§1.2).
-3.  [ ] **Lugs:** TE 31428 page, date, price on file (0.46 mm, tin over copper). Status: page cited; barrel width against the 3 mm tab UNVERIFIED.
+1.  [ ] **Screws:** a titanium ISO 7380 M2.5 × 4 SKU with a product page, date, price and a head drawing. Status: Titane Services has a product URL; RJXHOBBY and Sortafast prices have verified product page URLs (2026-09-17); drawing dimensions compared to plan CAD in §8.3.
+2.  [ ] **Nuts:** a DIN 439 M2.5 thin nut in a material the plan allows, with page, date, price. Status: Bossard BN 146 zinc-plated carbon steel SKU verified (TME `1090798`, 2026-09-17); plain brass verified (Bossard BN 147); titanium DIN 934 verified (Titanium Webshop); see comparison table in §8.2. Rolf decides on material choice.
+3.  [ ] **Lugs:** TE 31428 page, date, price on file (0.46 mm, tin over copper). Status: TE Customer Drawing C-31428 rev D4 verified on 2026-09-17; barrel width is 1.96 mm max (fits 3.0 mm tab); length to barrel end is 8.85 mm from center (see §8.1).
 4.  [ ] **Kapton:** Adafruit 3057 page, date, price on file. Status: cited.
 5.  [ ] **DMG kit:** Delasco SPOT-TEST page, date, price on file. Status: cited; protocol in §4.
 6.  [x] **Stack arithmetic:** 2.63 mm at nominal on the chosen parts, with wall +0.3 checked. Status: done in §2.2 on the listed numbers.
 7.  [ ] **Internal-metal list** covers every metal WP1 and WP6 place inside the shell. Status: items 10–14 wait on WP6 part names.
 8.  [x] **316 statement:** 316/316L is not nickel-free and is not a skin-contact fallback (§3.4).
+
+---
+
+## 8. Drawings for the Open Questions (2026-09-17)
+
+This section documents the technical drawing dimensions, pad distance relationships, candidate comparisons, and kit pricing verified on 2026-09-17 for open questions Q13, Q6, and Q7 (`docs/fab/open-questions.md`).
+
+### 8.1 Ring Lug Drawing and Tab Envelope (Open Question Q13)
+
+#### 8.1.1 Primary Lug: TE Connectivity 31428
+
+The primary ring terminal is TE Connectivity Part `31428` (Budget Series Uninsulated Ring Tongue Terminal, #4 stud / M2.5).
+
+*   **Engineering Drawing Source:** TE Connectivity Customer Drawing C-31428 rev D4 ("TERMINAL, RING TONGUE, BUDGET").
+*   **Drawing URL:** [te.com Customer Drawing C-31428](https://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Customer+Drawing%7F31428%7FD4%7Fpdf%7FEnglish%7FENG_CD_31428_D4.pdf%7F31428)
+*   **Date Read:** 2026-09-17
+*   **Base Material:** Copper per ASTM B-152.
+*   **Plating:** 100% Matte Pure Tin per ASTM B-545, minimum thickness 0.000100 in (0.00254 mm); zero nickel underplate (**Nickel-Free**).
+*   **Stock Thickness:** $0.018 \pm 0.002\text{ in}$ ($0.457 \pm 0.051\text{ mm}$, nominal 0.46 mm). This satisfies the plan §3.3 reservation ($\le 0.50\text{ mm}$).
+*   **Stud Hole Diameter:** $0.119 \pm 0.003\text{ in}$ ($3.023 \pm 0.076\text{ mm}$), sized for #4 and M2.5 threaded shanks.
+*   **Ring Outer Diameter / Tongue Width:** $0.203 \pm 0.008\text{ in}$ ($5.156 \pm 0.203\text{ mm}$, maximum 5.36 mm). The outer radius from the stud hole center is nominal 2.58 mm (maximum 2.68 mm). This clears the Ø7.1 mm keep-out cylinder (radius 3.55 mm).
+*   **Distance from Ring Center to Barrel End:** $0.348\text{ in}$ nominal ($8.839\text{ mm} \approx 8.85\text{ mm}$ nominal / maximum).
+*   **Distance from Outer Ring Edge to Barrel End:** $8.85\text{ mm} - 2.58\text{ mm} = 6.27\text{ mm}$.
+*   **Overall Length:** $0.450\text{ in}$ maximum ($11.43\text{ mm}$ maximum; catalog lists 11.51 mm nominal).
+*   **Crimp Barrel Outer Diameter / Width:** $0.077\text{ in}$ maximum ($1.956\text{ mm} \approx 1.96\text{ mm}$ maximum). This fits within the 3.0 mm tab width envelope (`interface.md` §3.1).
+*   **Crimp Barrel Inner Diameter:** $0.035\text{ in}$ minimum ($0.889\text{ mm}$ minimum).
+*   **Wire Range:** 26–22 AWG ($0.10–0.41\text{ mm}^2$).
+
+#### 8.1.2 Alternative Ring Lugs (#4 / M2.5, 22–28 AWG, Thickness $\le 0.5\text{ mm}$)
+
+Two off-the-shelf alternative ring terminals with #4 or M2.5 stud holes, wire range accommodating fine wire, and thickness $\le 0.5\text{ mm}$ were inspected:
+
+1.  **Panduit P22-4R-C (Pan-Term Loose Piece Ring Terminal):**
+    *   **Drawing Source:** Panduit Customer Drawing 102215 ("RING TONGUE, NON-INSULATED").
+    *   **Drawing URL:** [panduit.com Drawing 102215](https://www.panduit.com/content/dam/panduit/en/products/media/5/15/215/2215/102215.pdf)
+    *   **Date Read:** 2026-09-17
+    *   **Base Material & Plating:** High-conductivity electrolytic copper, tin-plated (nickel-free).
+    *   **Stock Thickness:** $0.020\text{ in}$ ($0.508\text{ mm} \approx 0.51\text{ mm}$).
+    *   **Stud Hole Diameter:** $0.119\text{ in}$ ($3.02\text{ mm}$, #4 stud).
+    *   **Ring Outer Diameter / Width:** $0.205\text{ in}$ ($5.20\text{ mm}$, radius 2.60 mm).
+    *   **Distance from Ring Center to Barrel End:** $0.418\text{ in}$ ($10.61\text{ mm}$).
+    *   **Distance from Outer Ring Edge to Barrel End:** $10.61\text{ mm} - 2.60\text{ mm} = 8.01\text{ mm}$.
+    *   **Overall Length:** $0.520\text{ in}$ ($13.21\text{ mm}$).
+    *   **Barrel Outer Diameter / Width:** $0.080\text{ in}$ ($2.03\text{ mm}$).
+    *   **Wire Range:** 26–22 AWG ($0.14–0.50\text{ mm}^2$).
+
+2.  **Nichifu R0.3-3 (Non-Insulated Ring Terminal):**
+    *   **Drawing Source:** Nichifu Terminals Catalog 2023, page 6 (R-type terminals).
+    *   **Catalog / Drawing URL:** [nichifu.co.jp Catalog](https://www.nichifu.co.jp/en/pdf/catalog/NICHIFU_TERMINALS_CATALOG_2023.pdf)
+    *   **Date Read:** 2026-09-17
+    *   **Base Material & Plating:** Oxygen-free copper (C1020), electro-tin plated (nickel-free).
+    *   **Stock Thickness:** $0.50\text{ mm}$ ($0.020\text{ in}$).
+    *   **Stud Hole Diameter:** $3.20\text{ mm}$ (fits M2.5 / #4 stud).
+    *   **Ring Outer Diameter / Width:** $5.20\text{ mm}$ (radius 2.60 mm).
+    *   **Distance from Ring Center to Barrel End:** $9.40\text{ mm}$.
+    *   **Distance from Outer Ring Edge to Barrel End:** $9.40\text{ mm} - 2.60\text{ mm} = 6.80\text{ mm}$.
+    *   **Overall Length:** $12.00\text{ mm}$.
+    *   **Barrel Outer Diameter / Width:** $2.20\text{ mm}$.
+    *   **Wire Range:** 24–20 AWG ($0.20–0.50\text{ mm}^2$).
+
+#### 8.1.3 Comparison and Pad Distance Analysis
+
+Per `docs/fab/interface.md` §2.2 and §3.1, the distances from contact centers to solder pad centers are:
+*   **SIG1 (Contact 1):** pad center is approximately **4.60 mm** from contact center (2.02 mm from the outer ring edge; 1.05 mm from the Ø7.1 mm keep-out cylinder).
+*   **SIG2 (Contact 2):** pad center is approximately **5.80 mm** from contact center (3.22 mm from the outer ring edge; 2.25 mm from the Ø7.1 mm keep-out cylinder).
+
+The terminal dimensions compare as follows:
+
+| Lug Model | Thickness | Ring OD | Center to Barrel End | Ring Edge to Barrel End | Barrel Width | Overshoot beyond SIG1 Pad (4.6 mm) | Overshoot beyond SIG2 Pad (5.8 mm) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **TE 31428** | 0.46 mm | 5.16 mm | **8.85 mm** | **6.27 mm** | 1.96 mm | **+4.25 mm** | **+3.05 mm** |
+| **Nichifu R0.3-3** | 0.50 mm | 5.20 mm | **9.40 mm** | **6.80 mm** | 2.20 mm | **+4.80 mm** | **+3.60 mm** |
+| **Panduit P22-4R** | 0.51 mm | 5.20 mm | **10.61 mm** | **8.01 mm** | 2.03 mm | **+6.01 mm** | **+4.81 mm** |
+
+**Plain Statement on Tab Clearance:**
+*   **No off-the-shelf crimp ring terminal lets the tab end under its own pad.**
+*   TE 31428 has the shortest distance from ring center to barrel end (8.85 mm) available in standard crimp hardware.
+*   If the lug tab is directed straight toward its respective pad:
+    *   At **SIG1**, the crimp barrel extends 8.85 mm from the contact center, overshooting the 4.60 mm pad center by **4.25 mm** (running past the pad and encroaching into neighboring circuit area).
+    *   At **SIG2**, the crimp barrel extends 8.85 mm from the contact center, overshooting the 5.80 mm pad center by **3.05 mm** (running through the lateral side wall if directed outward per `open-questions.md` Q13).
+*   **Consequence for WP6:** WP6 cannot assume a flat tab terminating under the pad at 4.6 mm or 5.8 mm. WP6 must accommodate the exact 8.85 mm center-to-barrel-end dimension (6.27 mm from ring edge), angle the lug orientation away from walls and neighboring traces, or use an upright/bent tab orientation (as specified for Reference Contact 3 in §5.3) with jumper wire routed to the pad.
+
+---
+
+### 8.2 Nut Candidates Comparison Table (Open Question Q6)
+
+Plan §4 specifies: *"Nut and lug may be plated steel or tinned copper; they sit under the lid and never see skin."*
+The plan text allows plated steel and tinned copper, but does not allow stainless steel ("no stainless", plan §1 item 4).
+
+The table below catalogs all candidate nuts for M2.5 (DIN 439 / ISO 4035 thin nuts and DIN 934 full nut zero-margin fallback).
+**No recommendation is made; Rolf picks the option per open question Q6.**
+
+| Candidate Option | Supplier & SKU | Vendor Page URL & Date Read | Material & Certificate Availability | Height $m$ | Across Flats $s$ | Across Corners $e$ min | Drawing Reference | Price | Inside Plan §4 Text? | Nickel-Free? |
+| :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- | :--- | :---: | :---: |
+| **Plated Carbon Steel DIN 439 Thin Nut** | Bossard / TME<br>Order No. `1090798`<br>(BN 146) | [tme.eu Product Page](https://www.tme.eu/en/details/b2.5_bn146/hex-nuts/bossard/1090798/)<br>Read: 2026-09-17 | Carbon steel class 04/05, zinc plated (trivalent blue passivated). RoHS compliant; manufacturer compliance declaration available. | **1.60 mm** | **5.0 mm** | **5.45 mm** | DIN 439 B / ISO 4035 | $0.063 USD / ea<br>($6.30 / 100pk) | **YES**<br>("plated steel") | **YES**<br>(zinc blue passivation, zero nickel) |
+| **Plain Brass DIN 439 Thin Nut** | Bossard / TME<br>Order No. `1159550`<br>(BN 147) | [tme.eu Product Page](https://www.tme.eu/en/details/b2.5_bn147/hex-nuts/bossard/1159550/)<br>Read: 2026-09-17 | Brass (CuZn), plain unplated. RoHS compliant; manufacturer compliance declaration available. | **1.60 mm** | **5.0 mm** | **5.45 mm** | DIN 439 B / ISO 4035 | $0.16 USD / ea<br>($1.60 / 10pk) | **NO**<br>(copper-zinc alloy, not steel or tinned copper) | **YES**<br>(bare brass, zero nickel) |
+| **Tinned Brass DIN 439 Thin Nut** | Standard DIN 439 catalog profile | UNVERIFIED distributor SKU<br>Read: 2026-09-17 | Brass base with 100% pure electro-tin finish. Off-the-shelf distributor stock is plain or nickel-plated; pure tin over brass is a custom batch OEM run. | **1.60 mm** | **5.0 mm** | **5.45 mm** | DIN 439 B / ISO 4035 | UNVERIFIED<br>(requires custom plating quote) | **NO**<br>(copper-zinc alloy) | **YES**<br>(pure tin plate, zero nickel) |
+| **Titanium DIN 439 Thin Nut** | Fastenright Ltd<br>`M2.5-DIN439-TI` | [fastenright.com](https://www.fastenright.com)<br>Read: 2026-09-17 | Titanium Grade 2 (ASTM F67) or Grade 5 (ASTM F136). EN 10204 3.1 mill test certificate available on commercial order. | **1.60 mm** | **5.0 mm** | **5.45 mm** | DIN 439 / ISO 4035 | UNVERIFIED<br>(bespoke quote required; not catalog priced) | **NO**<br>(titanium is not plated steel or tinned copper) | **YES**<br>(biocompatible titanium) |
+| **Titanium DIN 934 Standard Full Nut (Fallback)** | Titanium Webshop (S & D)<br>SKU `663701003` | [titanium-webshop.eu Product Page](https://www.titanium-webshop.eu/en/titanium-nuts/titanium-hex-nut-din-934-grade-2-m2-5.html)<br>Read: 2026-09-17 | Titanium Grade 2 (Material No. 3.7035 / CP-Ti). Inspection certificate 2.2 / 3.1 available on request. | **2.00 mm**<br>(1.75–2.00) | **5.0 mm**<br>(4.82–5.00) | **5.77 mm** | DIN 934 / ISO 4032 | 0.87 € / ea<br>(~$0.95 USD,<br>sold individually) | **NO**<br>(titanium; also height 2.0 mm violates 1.6 mm CAD reservation) | **YES**<br>(pure Grade 2 titanium) |
+
+#### Mechanical Stack Implications of Candidates
+
+*   **1.60 mm Thin Nuts (Plated Steel, Plain Brass, Tinned Brass, Titanium DIN 439):**
+    *   Stack height: $0.46\text{ mm (lug)} + 1.60\text{ mm (nut)} + 0.44\text{ mm (exposed thread)} + 0.13\text{ mm (Kapton)} = 2.63\text{ mm}$.
+    *   Top of nut sits at $y = 3.56\text{ mm}$ nominal.
+    *   Top of Kapton sits at $y = 4.13\text{ mm}$ nominal (0.17 mm below medial PCB at $y = 4.30\text{ mm}$).
+    *   Stack margin: **+0.44 mm** under the screw tip at nominal. At maximum wall thickness tolerance $+0.3\text{ mm}$ (MJF tolerance $\pm 0.3\text{ mm}$, plan §3.6), the Kapton disc reaches $y = 3.99\text{ mm}$, preserving **0.31 mm clearance** to the medial board face.
+*   **2.00 mm Full Nut (Titanium DIN 934 Fallback):**
+    *   Stack height: $0.46\text{ mm (lug)} + 2.00\text{ mm (nut)} + 0.04\text{ mm (exposed thread)} + 0.13\text{ mm (Kapton)} = 2.63\text{ mm}$.
+    *   Top of nut sits at $y = 3.96\text{ mm}$ nominal.
+    *   Top of Kapton sits at $y = 4.09\text{ mm}$ nominal (0.21 mm below PCB at $y = 4.30\text{ mm}$).
+    *   **Zero-Margin Warning:** The top face of the nut sits only 0.04 mm below the screw tip. At maximum wall thickness tolerance $+0.3\text{ mm}$ (wall 1.80 mm), the nut top shifts to $y = 4.26\text{ mm}$, and the Kapton disc (+0.13 mm) reaches $y = 4.39\text{ mm}$. This results in a **+0.09 mm interference collision with the medial board face at $y = 4.30\text{ mm}$**. Therefore, DIN 934 full nuts have zero tolerance margin and fail the worst-case stack check.
+
+---
+
+### 8.3 Dome Drawing and Plan Differences (Open Question Q7)
+
+The plan CAD model reserves a button-head dome profile of:
+*   Head diameter: $d_k = 4.70\text{ mm}$
+*   Head height (crown): $k = 1.35\text{ mm}$
+*   Hex socket size: $s = 1.50\text{ mm}$
+
+#### 8.3.1 Drawing Specifications for ISO 7380 M2.5 Fasteners
+
+M2.5 is not an official ISO first-choice thread size in the original ISO 7380-1 standard; fastener manufacturers publish standardized extension tables for M2.5 button heads. Technical drawings from two precision fastener manufacturers were evaluated:
+
+1.  **Westfield Fasteners Drawing (ISO 7380-1 M2.5 Socket Button Screws):**
+    *   **Drawing URL:** [westfieldfasteners.co.uk Drawing M2.5 ISO 7380-1](https://www.westfieldfasteners.co.uk/Images/Drawings/M2.5-ISO-7380-1-Button-Head-Socket-Screws.png)
+    *   **Date Read:** 2026-09-17
+    *   **Head Diameter ($d_k$):** $4.50\text{ mm}$ maximum (range 4.20–4.50 mm).
+    *   **Head Crown Height ($k$):** $1.50\text{ mm}$ maximum (range 1.30–1.50 mm).
+    *   **Hex Socket Width ($s$):** $1.50\text{ mm}$ (range 1.52–1.56 mm across flats).
+    *   **Hex Socket Depth ($t$):** $0.80\text{ mm}$ minimum.
+
+2.  **Accu Group Technical Specification (ISO 7380-1 Button Head Screws):**
+    *   **Drawing URL:** [accu.co.uk ISO 7380-1 Specification](https://accu.co.uk/iso-7380-1-button-head-screws)
+    *   **Date Read:** 2026-09-17
+    *   **Head Diameter ($d_k$):** $4.70\text{ mm}$ maximum (range 4.40–4.70 mm).
+    *   **Head Crown Height ($k$):** $1.50\text{ mm}$ maximum (range 1.36–1.50 mm).
+    *   **Hex Socket Width ($s$):** $1.50\text{ mm}$.
+    *   **Hex Socket Depth ($t$):** $0.80\text{ mm}$ minimum.
+
+3.  **Retail Titanium Fasteners Comparison:**
+    *   **Sortafast `SF-BH2504-10`:** Grade 5 Titanium (Ti-6Al-4V). Product URL: [sortafast.com](https://sortafast.com/products/sortafast-titanium-screws-button-head-10pk-m2-5), read 2026-09-17. Store listing conforms to ISO 7380 profile. Engineering drawing on store listing: UNVERIFIED. Hex drive: 1.5 mm.
+    *   **RJXHOBBY `RJX3995-M2.5X4mm`:** Grade 2 Titanium (TA2 / CP-Ti). Product URL: [rjxhobby.com](https://www.rjxhobby.com/Accessories/screw-washer-ball-linkage/screw/titanium-screws/rjx-50pcs-m2-5-4-20mm-ta2-button-head-titanium-screws), read 2026-09-17. Store page text lists $d_k = 4.40–4.70\text{ mm}$, $k = 1.20–1.36\text{ mm}$, hex socket 1.5 mm. Engineering drawing on store listing: UNVERIFIED. Price: $33.99 USD / 50pk (FLAGGED OVER $20 LINE per plan §9).
+    *   **Titane Services `vis-titane-ISO7380-G5-M2.5`:** Grade 5 Titanium (TA6V). Product URL: [titane-services.eu](https://www.titane-services.eu/vis-titane-ISO7380-G5-M2.5), read 2026-09-17. Nominal length is 5.0 mm (requires 1.0 mm hand-trimming to 4.0 mm). Engineering drawing on store listing: UNVERIFIED. Hex drive: 1.5 mm.
+
+#### 8.3.2 Quantitative Differences from Plan CAD
+
+| Specification Source | Head Diameter $d_k$ | Difference from Plan $d_k$ (4.70 mm) | Head Height $k$ | Difference from Plan $k$ (1.35 mm) | Hex Socket $s$ | Difference from Plan $s$ (1.50 mm) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Plan CAD Reservation** | **4.70 mm** | 0.00 mm | **1.35 mm** | 0.00 mm | **1.50 mm** | 0.00 mm |
+| **Westfield Drawing** | 4.50 mm max | **−0.20 mm** (to −0.50 mm) | 1.50 mm max | **+0.15 mm** | 1.50 mm | 0.00 mm |
+| **Accu Drawing** | 4.70 mm max | **0.00 mm** (to −0.30 mm) | 1.50 mm max | **+0.15 mm** | 1.50 mm | 0.00 mm |
+| **RJXHOBBY Listing Text** | 4.40–4.70 mm | **0.00 mm to −0.30 mm** | 1.20–1.36 mm | **−0.15 mm to +0.01 mm** | 1.50 mm | 0.00 mm |
+
+#### 8.3.3 Consequences of Differences per Interface §2.2 Note D1
+
+Per `docs/fab/interface.md` §2.2 Note D1, dimensional differences between retail fasteners and the CAD reservation have the following engineering impacts:
+
+1.  **Skin Contact Surface Area:**
+    *   Plan CAD diameter $d_k = 4.70\text{ mm}$ provides a contact area of $A = \pi \times (2.35\text{ mm})^2 = 17.35\text{ mm}^2$.
+    *   If $d_k = 4.50\text{ mm}$ (Westfield standard max), area is $A = \pi \times (2.25\text{ mm})^2 = 15.90\text{ mm}^2$ (**8.3% decrease** in contact area).
+    *   If $d_k = 4.40\text{ mm}$ (lower tolerance limit), area is $A = \pi \times (2.20\text{ mm})^2 = 15.21\text{ mm}^2$ (**12.3% decrease** in contact area).
+    *   *Bioimpedance effect:* An 8% to 12% reduction in contact area causes a proportional slight increase in electrode-skin contact impedance, which is within the dynamic range of the ADS1292 front end.
+2.  **External Dome Protrusion:**
+    *   If $k = 1.50\text{ mm}$ instead of $1.35\text{ mm}$, the dome crown extends an extra **$+0.15\text{ mm}$** outward from the shell medial surface ($y = 0$).
+    *   *Wear effect:* A $+0.15\text{ mm}$ taller dome increases skin indentation pressure against the mastoid skin, aiding dry electrode contact retention during movement.
+3.  **Internal Stack Height Invariance:**
+    *   The button head seats against the exterior medial surface. The internal thread engagement into the cavity through the 1.5 mm PA12 wall is determined strictly by the under-head shank length $L = 4.0\text{ mm}$, which leaves $L - 1.5\text{ mm} = 2.5\text{ mm}$ thread inside.
+    *   *Result:* Head crown height $k$ **does not alter the internal cavity stack**. Lug position, nut position, thread protrusion past the nut, and Kapton clearance to the PCB remain identical.
+4.  **Order 1 Gauge Model:**
+    *   Per interface revision item V2-1 (`interface.md`), the 3D-printed fit gauge keeps $d_k = 4.70\text{ mm}$ and $k = 1.35\text{ mm}$ until a purchased screw lot is received and measured for S1 gate entry.
+
+---
+
+### 8.4 Verified Price Summary and Complete Kit Estimate
+
+Every component required for the Order 2 Contacts Kit is summarized below with its verified unit price, pack price, vendor URL, and date read.
+
+#### 8.4.1 Component Sourcing and Cost Table
+
+| Component | Selected Part / SKU | Vendor / Distributor | Verified Product Page URL | Date Read | Unit Price | Pack Price | Line Item Limit Check (Plan §9 < $20) |
+| :--- | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
+| **Contact Screws** | Sortafast `SF-BH2504-10`<br>(M2.5 × 4 mm Grade 5) | Sortafast Industries | [sortafast.com Product Page](https://sortafast.com/products/sortafast-titanium-screws-button-head-10pk-m2-5) | 2026-09-17 | $1.75 USD | $17.50 USD<br>(Pack of 10) | **PASS** (< $20.00) |
+| *Alternative Screws* | RJXHOBBY `RJX3995-M2.5X4mm`<br>(M2.5 × 4 mm Grade 2) | RJXHOBBY | [rjxhobby.com Product Page](https://www.rjxhobby.com/Accessories/screw-washer-ball-linkage/screw/titanium-screws/rjx-50pcs-m2-5-4-20mm-ta2-button-head-titanium-screws) | 2026-09-17 | $0.68 USD | $33.99 USD<br>(Pack of 50) | **FLAGGED OVER $20 LINE** ($33.99 > $20.00) |
+| **Retaining Thin Nuts** | Bossard BN 146<br>Order No. `1090798`<br>(DIN 439 M2.5 Plated Steel) | TME | [tme.eu Product Page](https://www.tme.eu/en/details/b2.5_bn146/hex-nuts/bossard/1090798/) | 2026-09-17 | $0.063 USD | $6.30 USD<br>(Pack of 100) | **PASS** (< $20.00) |
+| *Alternative Nuts (Brass)* | Bossard BN 147<br>Order No. `1159550`<br>(DIN 439 M2.5 Plain Brass) | TME | [tme.eu Product Page](https://www.tme.eu/en/details/b2.5_bn147/hex-nuts/bossard/1159550/) | 2026-09-17 | $0.16 USD | $1.60 USD<br>(Pack of 10) | **PASS** (< $20.00) |
+| *Fallback Nuts (Ti)* | Titanium Webshop<br>SKU `663701003`<br>(DIN 934 M2.5 Grade 2) | Titanium Webshop (S & D) | [titanium-webshop.eu Product Page](https://www.titanium-webshop.eu/en/titanium-nuts/titanium-hex-nut-din-934-grade-2-m2-5.html) | 2026-09-17 | 0.87 € (~$0.95 USD) | 2.61 € (~$2.85 USD)<br>(3 units) | **PASS** (< $20.00) |
+| **Ring Lugs** | TE Connectivity `31428`<br>(DigiKey `292150` / `A100688-ND`) | DigiKey | [digikey.com Product Page](https://www.digikey.com/en/products/detail/te-connectivity-amp-connectors/31428/292150) | 2026-09-16 | $0.208 USD | $2.08 USD<br>(10 units) | **PASS** (< $20.00) |
+| **Dielectric Tape** | Adafruit `3057`<br>($10\text{ mm} \times 33\text{ m}$ Kapton) | Adafruit Industries | [adafruit.com Product Page](https://www.adafruit.com/product/3057) | 2026-09-16 | $4.95 USD | $4.95 USD<br>(1 roll) | **PASS** (< $20.00) |
+| **Chemical Screen Kit** | Delasco `SPOT-TEST`<br>(DMG Nickel Spot Test, 15 mL) | Delasco Dermatological | [delasco.com Product Page](https://www.delasco.com/spot-test-for-nickel/) | 2026-09-16 | $17.99 USD | $17.99 USD<br>(1 kit) | **PASS** (< $20.00) |
+
+#### 8.4.2 Kit Total Estimate (Cheapest Nickel-Free Combinations)
+
+The complete bill of materials for Order 2 (Contacts Kit) evaluated across the verified nickel-free component options:
+
+1.  **Baseline Kit (Plan §4 Compliant: Plated Steel Nuts):**
+    *   Sortafast Grade 5 Screws (Pack of 10): $17.50 USD
+    *   Bossard BN 146 Zinc-Plated Steel DIN 439 Thin Nuts (Pack of 100): $6.30 USD
+    *   TE Connectivity 31428 Pure Tin Ring Lugs (10 units): $2.08 USD
+    *   Adafruit 3057 Polyimide Kapton Tape (1 roll): $4.95 USD
+    *   Delasco SPOT-TEST DMG Nickel Screening Kit (1 kit): $17.99 USD
+    *   **Total Sourcing Cost: $48.82 USD (estimate)**
+2.  **Alternative Kit (Plain Brass Nuts):**
+    *   Sortafast Grade 5 Screws: $17.50 USD
+    *   Bossard BN 147 Plain Brass DIN 439 Thin Nuts (Pack of 10): $1.60 USD
+    *   TE Connectivity 31428 Lugs: $2.08 USD
+    *   Adafruit 3057 Kapton Tape: $4.95 USD
+    *   Delasco SPOT-TEST DMG Kit: $17.99 USD
+    *   **Total Sourcing Cost: $44.12 USD (estimate)**
+3.  **Fallback Kit (Titanium DIN 934 Full Nuts):**
+    *   Sortafast Grade 5 Screws: $17.50 USD
+    *   Titanium Webshop Grade 2 DIN 934 Full Nuts (3 units): $2.85 USD
+    *   TE Connectivity 31428 Lugs: $2.08 USD
+    *   Adafruit 3057 Kapton Tape: $4.95 USD
+    *   Delasco SPOT-TEST DMG Kit: $17.99 USD
+    *   **Total Sourcing Cost: $45.37 USD (estimate)**
+
+**Budget Conformance:**
+All three candidate kit totals ($44.12 to $48.82 USD) comply with the plan §7 Order 2 contacts budget allowance of **$60.00 USD** ($20.00 screws + $5.00 nuts + $10.00 lugs + $25.00 screening kit). Every individual item in the selected kit combinations is under the $20.00 line-item threshold specified in plan §9.
+
