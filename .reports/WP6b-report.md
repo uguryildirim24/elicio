@@ -40,4 +40,4 @@ Rolf picks from `docs/fab/packing-options.md`: `I pick C` or `I pick B` or `I pi
 
 ## Final commit sha
 
-See the closing commit on `lane/w1` after this report is added.
+`45d0016` (packing options). This report commit follows it.
