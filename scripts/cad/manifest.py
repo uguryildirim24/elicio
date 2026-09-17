@@ -63,6 +63,20 @@ views_commit (str)
     Same 40-hex commit as ``commit`` (solids last-change). Artwork regen
     does not move ``commit``. ``unknown`` is allowed only if git is missing.
 
+Optional keys (WP8 Stage B). Present only when ``stage`` is ``B``:
+
+stage (str)
+    ``B``.
+provisional (bool)
+    Must be true for this generator.
+packing (str)
+    ``A``, ``B`` or ``C``.
+closure_passed (bool)
+contact_source (str)
+    Where CONTACT_1 / CONTACT_2 / CONTACT_REF were taken from.
+stage_b (object)
+    Named Stage B checks. Each value is ``{passed, detail, numbers}``.
+
 ``placement.svg`` (WP6's board placement drawing) sits beside these files
 but is not a view of the solids and is not in ``views``;
 ``tests/test_placement.py`` checks that it regenerates byte-identical.
@@ -254,6 +268,27 @@ def validate(payload: Any, *, path: str = "manifest") -> None:
         _fail(f"{path}.variant_preload_built", "must be an object")
     if "views" in payload:
         _validate_views(payload, path)
+    if payload.get("stage") == "B":
+        _validate_stage_b(payload, path)
+
+
+def _validate_stage_b(payload: dict[str, Any], path: str) -> None:
+    if payload.get("provisional") is not True:
+        _fail(f"{path}.provisional", "Stage B manifest must set provisional true")
+    packing = payload.get("packing")
+    if packing not in ("A", "B", "C"):
+        _fail(f"{path}.packing", "must be A, B or C")
+    if not isinstance(payload.get("closure_passed"), bool):
+        _fail(f"{path}.closure_passed", "must be a bool")
+    if not isinstance(payload.get("contact_source"), str) or not payload["contact_source"].strip():
+        _fail(f"{path}.contact_source", "must be a non-empty string")
+    stage_b = payload.get("stage_b")
+    if not isinstance(stage_b, dict) or not stage_b:
+        _fail(f"{path}.stage_b", "must be a non-empty object of named checks")
+    for name, row in stage_b.items():
+        _require_keys(row, ("passed", "detail", "numbers"), f"{path}.stage_b.{name}")
+        if not isinstance(row["passed"], bool):
+            _fail(f"{path}.stage_b.{name}.passed", "must be a bool")
 
 
 def _validate_views(payload: dict[str, Any], path: str) -> None:
