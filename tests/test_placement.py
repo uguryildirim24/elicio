@@ -63,21 +63,32 @@ class PlacementMathTests(unittest.TestCase):
                 self.assertAlmostEqual(a0, P.KEEPOUT_R)
                 self.assertAlmostEqual(a1, d + P.PAD_SIZE / 2.0)
                 self.assertLess(a1, P.LUG_A1)
+                self.assertLess(a1, P.KEEPOUT_R + P.TAB_LEN)
         a0, a1 = P.tab_span("SIG1", mode="literal")
         self.assertAlmostEqual(a1 - a0, P.LITERAL_TAB_LEN)
 
-    def test_real_lug_is_te_31428(self) -> None:
+    def test_real_lug_is_te_31428_from_keepout_edge(self) -> None:
         self.assertAlmostEqual(P.TAB_W, 1.96, places=2)
         self.assertAlmostEqual(P.TAB_LEN, 6.27, places=2)
-        self.assertAlmostEqual(P.RING_R, 2.58, places=2)
         a0, a1 = P.tab_span("SIG1")
-        self.assertAlmostEqual(a0, P.RING_R, places=2)
-        self.assertAlmostEqual(a1, P.LUG_A1, places=2)
-        self.assertEqual(P.TAB_DEG["SIG1"], 0.0)
-        self.assertEqual(P.TAB_DEG["SIG2"], 180.0)
-        _c, eu, es = P._tab_axes("SIG1")
-        self.assertAlmostEqual(eu, 1.0, places=6)
-        self.assertAlmostEqual(es, 0.0, places=6)
+        self.assertAlmostEqual(a0, P.KEEPOUT_R, places=2)
+        self.assertAlmostEqual(a1, P.KEEPOUT_R + P.TAB_LEN, places=2)
+        self.assertAlmostEqual(P.TAB_DEG["SIG1"], 25.0)
+        self.assertAlmostEqual(P.TAB_DEG["SIG2"], 290.0)
+
+    def test_tab_direction_search_finds_committed_angles(self) -> None:
+        sig1 = P.legal_tab_degrees("SIG1")
+        sig2 = P.legal_tab_degrees("SIG2")
+        self.assertNotIn(0.0, sig1)
+        self.assertNotIn(180.0, sig2)
+        self.assertIn(25.0, sig1)
+        self.assertIn(290.0, sig2)
+        self.assertTrue(P.tab_reasons("SIG1", 0.0))
+        found_a = P.search_tab_degrees("A")
+        found_c = P.search_tab_degrees("C")
+        self.assertEqual(found_a, P.TAB_DEG_BY_OPTION["A"])
+        self.assertEqual(found_c, P.TAB_DEG_BY_OPTION["C"])
+        self.assertLess(P.upright_signal_clear_mm(), 0.0)
 
     def test_upright_signal_tab_does_not_fit(self) -> None:
         self.assertLess(P.upright_signal_clear_mm(), 0.0)
@@ -89,11 +100,10 @@ class PlacementMathTests(unittest.TestCase):
         self.assertAlmostEqual(b.board_mm2, 237.5, places=1)
         self.assertAlmostEqual(b.free_literal_mm2, 69.36, places=1)
         self.assertAlmostEqual(b.free_tabs_to_pad_mm2, 82.97, places=1)
-        self.assertAlmostEqual(b.free_mm2, 79.32, places=1)
+        self.assertAlmostEqual(b.free_mm2, 75.67, places=1)
         self.assertGreater(b.free_without_tabs_mm2, b.free_mm2)
         self.assertNotAlmostEqual(b.free_mm2, b.free_tabs_to_pad_mm2, places=1)
         self.assertFalse(b.tqfp_fits)
-        self.assertTrue(b.vqfn_fits)
 
     def test_rf_distance_uses_reserved_module(self) -> None:
         b = P.budget()
@@ -137,16 +147,16 @@ class PlacementMathTests(unittest.TestCase):
     def test_conflict_checker_runs_for_every_option(self) -> None:
         seen = {option: P.layout_conflicts(option) for option in P.OPTION_NAMES}
         self.assertEqual(list(seen), list(P.OPTION_NAMES))
-        for option, conflicts in seen.items():
-            with self.subTest(option=option):
-                self.assertEqual(conflicts, [])
+        self.assertIn("ADS1292_RSM: no legal site", seen["A"])
+        self.assertIn("ADS1292_RSM: no legal site", seen["B"])
+        self.assertEqual(seen["C"], [])
+        self.assertIn("ADS1292_RSM: no legal site", seen["E"])
 
-    def test_option_a_places_named_pack_on_real_lug(self) -> None:
+    def test_option_a_does_not_place_vqfn_on_real_lug(self) -> None:
         parts = P.placed_parts("A")
-        self.assertEqual(sorted(parts), sorted(P.PART_TARGETS))
-        for pad in P.LEAD_PADS:
-            self.assertLessEqual(P.clamp_distance(pad, "A"), P.CLAMP_MAX_MM)
-        self.assertEqual(P.layout_conflicts("A"), [])
+        self.assertNotIn("ADS1292_RSM", parts)
+        self.assertIn("BAV199S_1", parts)
+        self.assertTrue(P.layout_conflicts("A"))
 
     def test_option_c_places_named_pack_and_all_0402s(self) -> None:
         parts = P.placed_parts("C")
@@ -172,8 +182,9 @@ class PlacementMathTests(unittest.TestCase):
         self.assertIn("packing-options.md", text)
         self.assertTrue(SHEET.is_file())
         sheet = SHEET.read_text(encoding="utf-8")
-        self.assertIn("I pick A", sheet)
-        self.assertIn("not a SKU", sheet)
+        self.assertIn("I pick C", sheet)
+        self.assertIn("not buildable with a crimp lug (WP5b)", sheet)
+        self.assertNotIn("wait for the lug drawing", sheet)
         self.assertIn("Packing is **not confirmed**", text)
 
 

@@ -39,7 +39,7 @@ edit those numbers in CAD without bumping this file.
 | 2 | 2026-09-17 | WP6 packing. Cell named (no published folded pack fits; pocket change for WP8). RF no-copper 12.4 × 3.8 traced. Lead pads frozen. Courtyards at max dims; packing confirmed with VQFN-32 and BAV199S, not a shell change. Flat-board sagitta and lid-underside constraint recorded. |
 | 2 | 2026-09-17 | Review r2. No shell or keep-out number changed. The reference wire route (§4) changed under the board; WP2's Stage B wire-envelope check is not built yet (MOCK_CONTACTS=false is refused), so it runs on this route when it is. Board-side corrections: lug-tab envelopes counted in the free mask; VQFN courtyard at the RSM body maximum (4.60); two BAV199S-Q (one package has two independent pairs, three lines need three); SOT-23 occupied area 3.3 × 2.9; reference wire rerouted round keep-out 2; RF distance at the reserved 15.8 module. Packing withdrawn to **not confirmed** (§8.2); lead pads not frozen (§4). |
 | 2 | 2026-09-17 | WP6b errata. Packing decision waits on `docs/fab/packing-options.md`. No dimension, pad, keep-out or route in this file changed. |
-| 2 | 2026-09-17 | WP6b errata (TE 31428). `packing-options.md` uses C-31428 rev D4 (tab 1.96 × 6.27 from the ring edge, angles free). Q13 short tabs are not a SKU. No dimension, pad, keep-out or route in this file changed. |
+| 2 | 2026-09-17 | WP6b errata (TE 31428, second pass). `packing-options.md` uses C-31428 rev D4: tab 1.96 × 6.27 from the Ø7.1 edge, direction from `search_tab_degrees`. Q13 short tabs are not buildable with a crimp lug (WP5b). No dimension, pad, keep-out or route in this file changed. |
 
 ## 1. Frames and path
 
