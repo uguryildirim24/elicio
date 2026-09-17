@@ -75,7 +75,14 @@ closure_passed (bool)
 contact_source (str)
     Where CONTACT_1 / CONTACT_2 / CONTACT_REF were taken from.
 stage_b (object)
-    Named Stage B checks. Each value is ``{passed, detail, numbers}``.
+    Named Stage B checks measured on the built solids. Each value is
+    ``{passed, detail, numbers, numbers_from, bodies}``: ``passed`` is true
+    only if it passed on every body, ``numbers`` come from ``numbers_from``
+    (``body_full_p15`` when built), ``bodies`` has each body's result.
+stage_b_failing (list of str)
+    Names in ``stage_b`` that did not pass (Q21_REF_lug until Rolf rules).
+stage_b_passed (bool)
+    True only when ``stage_b_failing`` is empty. The build exits 3 when false.
 
 ``placement.svg`` (WP6's board placement drawing) sits beside these files
 but is not a view of the solids and is not in ``views``;
@@ -272,6 +279,20 @@ def validate(payload: Any, *, path: str = "manifest") -> None:
         _validate_stage_b(payload, path)
 
 
+STAGE_B_CHECKS = (
+    "BOARD_underside_clear",
+    "CABLE_EXIT_cavity",
+    "CELL_envelope",
+    "CLOSURE_PASSED",
+    "CONTACT_HOLE_wall",
+    "KEEPOUT_REF_air",
+    "KEEPOUT_SIGNAL_air",
+    "Q21_REF_lug",
+    "REF_WIRE_envelope",
+    "TAB_envelope_air",
+)
+
+
 def _validate_stage_b(payload: dict[str, Any], path: str) -> None:
     if payload.get("provisional") is not True:
         _fail(f"{path}.provisional", "Stage B manifest must set provisional true")
@@ -285,10 +306,23 @@ def _validate_stage_b(payload: dict[str, Any], path: str) -> None:
     stage_b = payload.get("stage_b")
     if not isinstance(stage_b, dict) or not stage_b:
         _fail(f"{path}.stage_b", "must be a non-empty object of named checks")
+    for name in STAGE_B_CHECKS:
+        if name not in stage_b:
+            _fail(f"{path}.stage_b", f"missing check {name!r}")
     for name, row in stage_b.items():
-        _require_keys(row, ("passed", "detail", "numbers"), f"{path}.stage_b.{name}")
+        _require_keys(row, ("passed", "detail", "numbers", "bodies"), f"{path}.stage_b.{name}")
         if not isinstance(row["passed"], bool):
             _fail(f"{path}.stage_b.{name}.passed", "must be a bool")
+        bodies = row["bodies"]
+        if not isinstance(bodies, dict) or not bodies:
+            _fail(f"{path}.stage_b.{name}.bodies", "must be a non-empty object")
+        if row["passed"] != all(b.get("passed") is True for b in bodies.values()):
+            _fail(f"{path}.stage_b.{name}.passed", "must be true only if every body passed")
+    failing = sorted(name for name, row in stage_b.items() if not row["passed"])
+    if payload.get("stage_b_failing") != failing:
+        _fail(f"{path}.stage_b_failing", f"must list the failing checks {failing}")
+    if payload.get("stage_b_passed") is not (not failing):
+        _fail(f"{path}.stage_b_passed", "must be true exactly when no Stage B check failed")
 
 
 def _validate_views(payload: dict[str, Any], path: str) -> None:

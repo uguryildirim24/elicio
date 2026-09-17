@@ -44,7 +44,8 @@ Manifest schema (WP3 may extend this file; keep these keys):
     Body-frame gap from each KEEPOUT_SIGNAL Ø7.1 to the pads, rib, walls.
 ``checks`` (list)
     Each check name, pass/fail, and the numbers used. The export stops on
-    the first failure, so a written manifest lists passes only.
+    the first failure, so an order 1 manifest lists passes only. A Stage B
+    manifest can list Q21_REF_lug failing; ``stage_b_passed`` says so.
 ``files`` (object)
     Relative file name → ``{sha256, bytes}`` for the fifteen solids.
 ``views`` (object, optional)
@@ -97,6 +98,7 @@ try:
         Axis,
         Box,
         Circle,
+        Compound,
         Face,
         GeomType,
         Location,
@@ -291,6 +293,14 @@ TAB_HEIGHT_DEFAULT = 2.0  # Q22; plan §3.3 wrote 1.5
 BARREL_HEIGHT = 1.96  # TE 31428; board check quotes 3.46 = 1.5 + 1.96
 CELL_MAX = (5.2, 10.4, 15.6)  # y, u, s; plan §5
 FOAM_THICK = 0.5
+STAGE_B_NONFATAL = frozenset({"Q21_REF_lug"})  # recorded, build still writes (Q21)
+# Order 2 is two bodies and two lids (plan §7); preload is Rolf's after 3.7,
+# thin cannot hold the cell (LID_Y 6.0), the coupon is order 1's.
+STAGE_B_PARTS = ("body_full_p15", "body_full_p25", "lid")
+ENVELOPE_LIFT = 1e-3  # reserved-air solids start this far above the floor face
+HOLE_VOLUME_TOL = 0.02  # removed hole volume within 2 % of the wall disc
+BAND_NOISE_MM3 = 0.01
+ROUTE_STRAIGHT_DEG = 3.0
 STAGE_B_EMBOSS = 0.4  # Q11; gauge keeps 0.8
 STAGE_B_EMBOSS_S = 10.0  # battery zone, not over the module
 
@@ -1028,134 +1038,63 @@ def assert_override_matrix(overrides: Mapping[str, Any]) -> None:
 
 
 def q21_ref_lug_numbers(params: Mapping[str, Any]) -> dict[str, float]:
-    """TE 31428 upright in the Ø7.5 pocket (contacts.md §5.3, Q21)."""
+    """TE 31428 upright in the Ø7.5 pocket (contacts.md §5.3, Q21), plan numbers."""
     wall = float(params["WALL_MEDIAL"])
     lid_y = float(params["LID_Y"])
     pl = load_placement()
-    tab_len = float(pl.TAB_LEN)
-    lug_thick = float(pl.LUG_THICK)
-    ring_r = float(pl.RING_R)
-    barrel = float(pl.TAB_W)
-    lug_top_y = wall + tab_len + lug_thick
-    barrel_outer = ring_r + barrel
-    pocket_r = POCKET_DIA / 2.0
+    lug_top_y = wall + float(pl.TAB_LEN) + float(pl.LUG_THICK)
+    barrel_outer = float(pl.RING_R) + float(pl.TAB_W)
     return {
         "lug_top_y": round(lug_top_y, 4),
         "lid_y": lid_y,
         "barrel_outer": round(barrel_outer, 4),
-        "pocket_r": pocket_r,
-        "lug_thick": lug_thick,
-        "envelope_y": 1.5,
+        "pocket_r": POCKET_DIA / 2.0,
+        "lug_thick": float(pl.LUG_THICK),
     }
 
 
 def cell_pocket_clearances(params: Mapping[str, Any]) -> dict[str, float]:
-    """Cell 5.2 × 10.4 × 15.6 in the battery pocket; foam 0.5 on the lid face."""
-    pocket_y = BATTERY_Y[1] - BATTERY_Y[0]
-    pocket_u = BATTERY_U[1] - BATTERY_U[0]
-    pocket_s = BATTERY_S[1] - BATTERY_S[0]
+    """Cell 5.2 × 10.4 × 15.6 plus 0.5 foam against the plan pocket and LID_Y."""
+    wall = float(params["WALL_MEDIAL"])
+    top = min(BATTERY_Y[1], float(params["LID_Y"]))
     need_y = CELL_MAX[0] + FOAM_THICK
-    need_u = CELL_MAX[1]
-    need_s = CELL_MAX[2]
     return {
-        "pocket_y": round(pocket_y, 4),
-        "pocket_u": round(pocket_u, 4),
-        "pocket_s": round(pocket_s, 4),
+        "pocket_top_y": top,
         "need_y": round(need_y, 4),
-        "need_u": round(need_u, 4),
-        "need_s": round(need_s, 4),
-        "clear_y": round(pocket_y - need_y, 4),
-        "clear_u": round(pocket_u - need_u, 4),
-        "clear_s": round(pocket_s - need_s, 4),
-    }
-
-
-def ref_wire_containment(params: Mapping[str, Any]) -> dict[str, float]:
-    """Ø1.3 envelope at bend radius 3: pocket → channel → pad (open item 4)."""
-    pl = load_placement()
-    packing = str(params["PACKING"])
-    layout = pl.get_layout(packing)
-    route = layout.ref_wire
-    cu0, cu1 = cavity_u(params)
-    cs0, cs1 = cavity_s(params)
-    ws0, ws1 = wire_s_pair(params)
-    wire_r = float(pl.WIRE_OD) / 2.0
-    pad_u, pad_s = layout.lead_pads["REF"]
-    worst_cavity = math.inf
-    worst_battery = math.inf
-    worst_pad = math.inf
-    n = 24
-    for i in range(len(route) - 1):
-        (u0, s0), (u1, s1) = route[i], route[i + 1]
-        for k in range(n + 1):
-            t = k / n
-            u = u0 + (u1 - u0) * t
-            s = s0 + (s1 - s0) * t
-            in_channel = ws0 - wire_r <= s <= ws1 + wire_r and WIRE_U[0] - wire_r <= u <= WIRE_U[1] + wire_r
-            in_pocket = math.hypot(u - contact_ref_us(params)[0], s - contact_ref_us(params)[1]) <= POCKET_DIA / 2.0 + wire_r
-            in_cavity = (cu0 + wire_r <= u <= cu1 - wire_r and cs0 + wire_r <= s <= cs1 + wire_r)
-            if in_channel or in_pocket or in_cavity:
-                cavity_margin = 1.0
-            else:
-                cavity_margin = min(
-                    u - cu0, cu1 - u, s - cs0, cs1 - s, 0.0
-                ) - wire_r
-            worst_cavity = min(worst_cavity, cavity_margin)
-            bu0, bu1 = BATTERY_U
-            bs0, bs1 = BATTERY_S
-            du = 0.0 if bu0 <= u <= bu1 else min(abs(u - bu0), abs(u - bu1))
-            ds = 0.0 if bs0 <= s <= bs1 else min(abs(s - bs0), abs(s - bs1))
-            if bu0 <= u <= bu1 and bs0 <= s <= bs1:
-                batt_gap = -wire_r
-            else:
-                batt_gap = math.hypot(du, ds) - wire_r
-            worst_battery = min(worst_battery, batt_gap)
-            for (pu0, pu1, ps0, ps1) in (
-                (cu0, cu0 + PAD_SIZE, board_zone_s(params)[0], board_zone_s(params)[0] + PAD_SIZE),
-                (cu1 - PAD_SIZE, cu1, board_zone_s(params)[0], board_zone_s(params)[0] + PAD_SIZE),
-                (cu0, cu0 + PAD_SIZE, board_zone_s(params)[1] - PAD_SIZE, board_zone_s(params)[1]),
-                (cu1 - PAD_SIZE, cu1, board_zone_s(params)[1] - PAD_SIZE, board_zone_s(params)[1]),
-            ):
-                if pu0 <= u <= pu1 and ps0 <= s <= ps1:
-                    worst_pad = min(worst_pad, -wire_r)
-                else:
-                    dpu = 0.0 if pu0 <= u <= pu1 else min(abs(u - pu0), abs(u - pu1))
-                    dps = 0.0 if ps0 <= s <= ps1 else min(abs(s - ps0), abs(s - ps1))
-                    worst_pad = min(worst_pad, math.hypot(dpu, dps) - wire_r)
-    end = route[-1]
-    end_gap = math.hypot(end[0] - pad_u, end[1] - pad_s)
-    lid_y = float(params["LID_Y"])
-    wire_top = WIRE_Y[1]
-    return {
-        "cavity_margin": round(worst_cavity, 4),
-        "battery_gap": round(worst_battery, 4),
-        "charge_pad_gap": round(worst_pad, 4),
-        "lid_gap": round(lid_y - wire_top, 4),
-        "end_to_pad": round(end_gap, 4),
-        "wire_od": float(pl.WIRE_OD),
-        "bend_r": float(pl.BEND_R),
+        "clear_y": round(top - wall - need_y, 4),
+        "clear_u": round(BATTERY_U[1] - BATTERY_U[0] - CELL_MAX[1], 4),
+        "clear_s": round(BATTERY_S[1] - BATTERY_S[0] - CELL_MAX[2], 4),
     }
 
 
 def cable_exit_pre_cad(params: Mapping[str, Any]) -> dict[str, float]:
+    """Ø2.0 exit s and y ranges against the cavity, rib, battery and corner pads."""
     s_exit = cable_exit_s(params)
+    r = CABLE_EXIT_DIA / 2.0
     cs0, cs1 = cavity_s(params)
-    in_cavity_s = 1.0 if cs0 < s_exit < cs1 else 0.0
-    hits_battery = 1.0 if BATTERY_S[0] < s_exit < BATTERY_S[1] else 0.0
-    hits_rib = 1.0 if RIB_S[0] < s_exit < RIB_S[1] else 0.0
-    y_ok = 1.0 if float(params["WALL_MEDIAL"]) < CABLE_EXIT_Y < float(params["LID_Y"]) else 0.0
+    bs0, bs1 = board_zone_s(params)
+    ey0, ey1 = CABLE_EXIT_Y - r, CABLE_EXIT_Y + r
+    pad_s_gap = min(
+        s_exit - r - (bs0 + PAD_SIZE) if s_exit > bs0 else bs0 - (s_exit + r),
+        (bs1 - PAD_SIZE) - (s_exit + r) if s_exit < bs1 else s_exit - r - bs1,
+    )
+    pads_in_y = ey0 < PAD_Y[1] and ey1 > PAD_Y[0]
     return {
         "CABLE_EXIT_S": s_exit,
-        "in_cavity_s": in_cavity_s,
-        "hits_battery": hits_battery,
-        "hits_rib": hits_rib,
-        "y_ok": y_ok,
         "CABLE_EXIT_Y": CABLE_EXIT_Y,
+        "in_cavity_s": 1.0 if cs0 < s_exit - r and s_exit + r < cs1 else 0.0,
+        "board_side_of_rib": 1.0 if s_exit - r > RIB_S[1] else 0.0,
+        "y_ok": 1.0 if float(params["WALL_MEDIAL"]) < ey0 and ey1 < float(params["LID_Y"]) else 0.0,
+        "corner_pad_s_gap": round(pad_s_gap if pads_in_y else math.inf, 4),
     }
 
 
 def run_stage_b_pre_cad_checks(params: Mapping[str, Any], record: Callable[..., None]) -> None:
-    """Named Stage B checks that do not need a solid (plan §3.3, §5, Q21, Q22)."""
+    """Stage B fail-fast checks from the plan numbers, before any solid exists.
+
+    Names end in " pre-CAD". The named Stage B checks in the manifest are
+    measured on the built solids (``run_stage_b_solid_checks``).
+    """
     pl = load_placement()
     c1 = contact_1_us(params)
     c2 = (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))
@@ -1180,71 +1119,51 @@ def run_stage_b_pre_cad_checks(params: Mapping[str, Any], record: Callable[..., 
     tab_h = tab_height(params)
     barrel_top = wall + BARREL_HEIGHT
     envelope_top = wall + tab_h
-    stack_top = KEEPOUT_TOP_Y
-    board_y = BOARD_UNDERSIDE_Y
     record(
-        "BOARD_underside_clear",
-        board_y > stack_top + 1e-9
-        and board_y > barrel_top + 1e-9
-        and board_y > envelope_top + 1e-9,
-        "board underside at y 4.3 clears stack top 4.13 and both barrels 3.46",
-        stack_top=stack_top,
+        "BOARD_underside_clear pre-CAD",
+        BOARD_UNDERSIDE_Y > KEEPOUT_TOP_Y
+        and BOARD_UNDERSIDE_Y > barrel_top
+        and BOARD_UNDERSIDE_Y > envelope_top,
+        "board underside at y 4.3 clears stack top 4.13, barrels and tab envelopes",
+        stack_top=KEEPOUT_TOP_Y,
         barrel_top=round(barrel_top, 4),
         envelope_top=round(envelope_top, 4),
-        board_underside=board_y,
+        board_underside=BOARD_UNDERSIDE_Y,
         TAB_HEIGHT=tab_h,
     )
     cell = cell_pocket_clearances(params)
     record(
-        "CELL_envelope",
+        "CELL_envelope pre-CAD",
         cell["clear_y"] >= -1e-9 and cell["clear_u"] >= -1e-9 and cell["clear_s"] >= -1e-9,
-        "cell 5.2 × 10.4 × 15.6 fits the pocket with 0.5 foam on the lid face",
+        "cell 5.2 × 10.4 × 15.6 plus 0.5 foam fits the plan pocket under LID_Y",
         **cell,
-    )
-    wire = ref_wire_containment(params)
-    record(
-        "REF_WIRE_envelope",
-        wire["cavity_margin"] > 0.0
-        and wire["battery_gap"] > 0.0
-        and wire["charge_pad_gap"] > 0.0
-        and wire["lid_gap"] > 0.0,
-        "Ø1.3 envelope at bend radius 3 is in cavity air and clears battery, charge pads, lid",
-        **wire,
     )
     cable = cable_exit_pre_cad(params)
     record(
-        "CABLE_EXIT_cavity",
+        "CABLE_EXIT_cavity pre-CAD",
         cable["in_cavity_s"] == 1.0
-        and cable["hits_battery"] == 0.0
-        and cable["hits_rib"] == 0.0
-        and cable["y_ok"] == 1.0,
-        "CABLE_EXIT meets the cavity and nothing else",
+        and cable["board_side_of_rib"] == 1.0
+        and cable["y_ok"] == 1.0
+        and cable["corner_pad_s_gap"] > 0.0,
+        "Ø2.0 exit lies in the board zone between the corner pads, above the floor, below LID_Y",
         **cable,
-    )
-    q21 = q21_ref_lug_numbers(params)
-    record(
-        "Q21_REF_lug",
-        q21["lug_top_y"] < q21["lid_y"] - 1e-9 and q21["barrel_outer"] <= q21["pocket_r"] + 1e-9,
-        "reference lug collides with the lid or the pocket wall (Q21); not hidden",
-        fatal=False,
-        **q21,
-    )
-    record(
-        "CLOSURE_PASSED",
-        True,
-        "E1/E3/E5 omitted until the closure test passes"
-        if not lid_experiments(params)
-        else "E1/E3/E5 present (closure test passed)",
-        flag=1.0 if params.get("CLOSURE_PASSED") else 0.0,
     )
     gaps = keepout_clearances(params, make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"])))
     tab_min = min(gaps.get("TAB SIG1 min pad/rib gap", 1.0), gaps.get("TAB SIG2 min pad/rib gap", 1.0))
     record(
-        "TAB_envelope_air",
+        "TAB_envelope_air pre-CAD",
         tab_min > 0.0,
-        "tab envelopes 1.96 × 2.0 from Ø7.1 to 8.85: corner pads and rib outside",
+        "tab envelopes 1.96 wide from Ø7.1 to 8.85 miss the corner pads and rib (u, s)",
         min_gap=round(tab_min, 4),
         TAB_HEIGHT=tab_h,
+    )
+    q21 = q21_ref_lug_numbers(params)
+    record(
+        "Q21_REF_lug pre-CAD",
+        q21["lug_top_y"] < q21["lid_y"] and q21["barrel_outer"] <= q21["pocket_r"],
+        "reference lug upright against LID_Y and the Ø7.5 pocket (Q21); recorded, not fatal",
+        fatal=False,
+        **q21,
     )
 
 
@@ -1695,63 +1614,486 @@ def _tab_envelope_solid(
     return plane * Box(length, height, tab_w)
 
 
-def _cut_stage_b_contacts(
-    body: Shape,
-    path: PathGeom,
-    params: Mapping[str, Any],
-    path_solid: Callable[..., Shape],
-) -> Shape:
-    """Holes through the 1.5 wall, pocket, channel, cable exit, reserved-air stacks."""
-    wall = float(params["WALL_MEDIAL"])
-    lid_y = float(params["LID_Y"])
-    width = float(params["BODY_WIDTH"])
-    hole_r = CONTACT_HOLE / 2.0
-    hole_h = wall + 1.0
-    c1 = contact_1_us(params)
-    c2 = (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))
-    cref = contact_ref_us(params)
+def _as_compound(shape: Any) -> Shape:
+    """intersect() can return a ShapeList; boolean ops need one Shape."""
+    if isinstance(shape, Shape):
+        return shape
+    return Compound(list(shape.solids()) if hasattr(shape, "solids") else list(shape))
 
-    def cylinder_y(x: float, y0: float, z: float, radius: float, height: float) -> Shape:
-        plane = Plane(origin=Vector(x, y0, z), z_dir=Vector(0.0, 1.0, 0.0))
-        return Solid.make_cylinder(radius, height, plane)
 
-    for u, s in (c1, c2, cref):
-        origin = _vec(path, float(u), float(s), 0.0)
-        body = body.cut(cylinder_y(origin.X, -0.5, origin.Z, hole_r, hole_h))
-    pocket_c = _vec(path, cref[0], cref[1], 0.0)
-    body = body.cut(
-        cylinder_y(pocket_c.X, wall, pocket_c.Z, POCKET_DIA / 2.0, lid_y - wall + 0.2)
-    )
-    ws0, ws1 = wire_s_pair(params)
-    channel = path_solid(WIRE_U[0], WIRE_U[1], ws0, ws1, WIRE_Y[0], WIRE_Y[1])
-    body = body.cut(channel)
+def _y_cylinder(x: float, y0: float, z: float, radius: float, height: float) -> Shape:
+    plane = Plane(origin=Vector(x, y0, z), z_dir=Vector(0.0, 1.0, 0.0))
+    return Solid.make_cylinder(radius, height, plane)
+
+
+def _cable_exit_solid(path: PathGeom, params: Mapping[str, Any]) -> Shape:
+    """Ø2.0 along the in-plane normal through P(BODY_WIDTH, CABLE_EXIT_S, 3), ±3 mm."""
     s_exit = cable_exit_s(params)
-    exit_pt = _vec(path, width, s_exit, CABLE_EXIT_Y)
+    exit_pt = _vec(path, float(params["BODY_WIDTH"]), s_exit, CABLE_EXIT_Y)
     a = angle_at(path, s_exit)
     normal = Vector(math.cos(a), 0.0, math.sin(a))
     exit_plane = Plane(
         origin=Vector(exit_pt.X - 3.0 * normal.X, exit_pt.Y, exit_pt.Z - 3.0 * normal.Z),
         z_dir=normal,
     )
-    cable = Solid.make_cylinder(CABLE_EXIT_DIA / 2.0, 6.0, exit_plane)
-    body = body.cut(cable)
+    return Solid.make_cylinder(CABLE_EXIT_DIA / 2.0, 6.0, exit_plane)
 
+
+def _signal_sites(params: Mapping[str, Any]) -> tuple[tuple[str, tuple[float, float]], ...]:
+    return (
+        ("SIG1", contact_1_us(params)),
+        ("SIG2", (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))),
+    )
+
+
+def _keepout_signal_solid(path: PathGeom, params: Mapping[str, Any], site: tuple[float, float]) -> Shape:
+    """Reserved air: Ø7.1 from the floor top to the stack top 4.13 (not cut)."""
+    wall = float(params["WALL_MEDIAL"])
+    origin = _vec(path, float(site[0]), float(site[1]), 0.0)
+    y0 = wall + ENVELOPE_LIFT
+    return _y_cylinder(origin.X, y0, origin.Z, KEEPOUT_SIGNAL_DIA / 2.0, KEEPOUT_TOP_Y - y0)
+
+
+def _tab_solid(path: PathGeom, params: Mapping[str, Any], name: str, site: tuple[float, float]) -> Shape:
+    """Reserved air: TE 31428 flat tab, Ø7.1 edge to 8.85, TAB_HEIGHT tall (not cut)."""
     pl = load_placement()
-    packing = str(params["PACKING"])
-    tab_h = tab_height(params)
-    keep_r = float(pl.KEEPOUT_R)
-    a0, a1 = float(pl.KEEPOUT_R), float(pl.LUG_A1)
-    tab_w = float(pl.TAB_W)
-    for name, (cu, cs) in (("SIG1", c1), ("SIG2", c2)):
-        origin = _vec(path, float(cu), float(cs), 0.0)
-        keep = cylinder_y(origin.X, wall - 0.02, origin.Z, keep_r, KEEPOUT_TOP_Y - wall + 0.05)
-        body = body.cut(keep)
-        deg = float(params["TAB_DEG"][name])
-        tab = _tab_envelope_solid(
-            path, float(cu), float(cs), deg, a0, a1, tab_w, wall, wall + tab_h
+    wall = float(params["WALL_MEDIAL"])
+    return _tab_envelope_solid(
+        path,
+        float(site[0]),
+        float(site[1]),
+        float(params["TAB_DEG"][name]),
+        float(pl.KEEPOUT_R),
+        float(pl.LUG_A1),
+        float(pl.TAB_W),
+        wall + ENVELOPE_LIFT,
+        wall + tab_height(params),
+    )
+
+
+def _cut_stage_b_contacts(
+    body: Shape,
+    path: PathGeom,
+    params: Mapping[str, Any],
+    path_solid: Callable[..., Shape],
+) -> tuple[Shape, dict[str, Any]]:
+    """Plan §3.5 step 5 Stage B: pocket, holes, channel, cable exit.
+
+    Returns the cut body and what each cut removed, measured on the body
+    before that cut (the Stage B checks read it). Keep-out cylinders and tab
+    envelopes are reserved air: they are not cut, so nylon inside them shows
+    up as overlap instead of being carved away silently.
+    """
+    wall = float(params["WALL_MEDIAL"])
+    lid_y = float(params["LID_Y"])
+    thick = float(params["BODY_THICK"])
+    hole_r = CONTACT_HOLE / 2.0
+    cu0, cu1 = cavity_u(params)
+    cs0, cs1 = cavity_s(params)
+    cref = contact_ref_us(params)
+    measure: dict[str, Any] = {"hole_removed_mm3": {}}
+
+    pocket_c = _vec(path, cref[0], cref[1], 0.0)
+    pocket = _y_cylinder(pocket_c.X, wall, pocket_c.Z, POCKET_DIA / 2.0, lid_y - wall + 0.2)
+    measure["pocket_removed_mm3"] = round(_overlap_volume(body, pocket), 4)
+    body = body.cut(pocket)
+    # Hole tool: below the medial face to just above the floor top, so the
+    # removed volume is the wall disc and nothing else.
+    for name, (u, s) in (*_signal_sites(params), ("REF", cref)):
+        origin = _vec(path, float(u), float(s), 0.0)
+        hole = _y_cylinder(origin.X, -0.5, origin.Z, hole_r, wall + 0.5 + ENVELOPE_LIFT * 10.0)
+        measure["hole_removed_mm3"][name] = round(_overlap_volume(body, hole), 4)
+        body = body.cut(hole)
+    ws0, ws1 = wire_s_pair(params)
+    channel = path_solid(WIRE_U[0], WIRE_U[1], ws0, ws1, WIRE_Y[0], WIRE_Y[1])
+    body = body.cut(channel)
+    cable = _cable_exit_solid(path, params)
+    inside = path_solid(-1.0, cu1 - ENVELOPE_LIFT, cs0, cs1, 0.0, thick + 1.0)
+    measure["exit_removed_mm3"] = round(_overlap_volume(body, cable), 4)
+    measure["exit_nylon_in_cavity_mm3"] = round(_overlap_volume(cable, _as_compound(body.intersect(inside))), 4)
+    body = body.cut(cable)
+    return body, measure
+
+
+def _bisect(inside: Callable[[float], bool], lo: float, hi: float, tol: float = 1e-4) -> float:
+    """Boundary between lo and hi, where inside(lo) != inside(hi)."""
+    at_lo = inside(lo)
+    if inside(hi) == at_lo:
+        raise CheckFail(f"probe: no boundary between {lo} and {hi}")
+    while hi - lo > tol:
+        mid = (lo + hi) / 2.0
+        if inside(mid) == at_lo:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2.0
+
+
+def _inside_uys(solid: Solid, path: PathGeom, u: float, s: float, y: float) -> bool:
+    x, yy, z = p_xyz(path, u, s, y)
+    return bool(solid.is_inside(Vector(x, yy, z)))
+
+
+def _min_y_in(shape: Shape, tool: Shape) -> float | None:
+    common = shape.intersect(tool)
+    if common is None:
+        return None
+    solids = list(common.solids()) if hasattr(common, "solids") else []
+    if not solids or sum(float(s.volume) for s in solids) <= OVERLAP_NOISE_MM3:
+        return None
+    return min(float(s.bounding_box().min.Y) for s in solids)
+
+
+def _route_turn_slack(points: list[tuple[float, float]], bend_r: float) -> float:
+    """Smallest (segment length − the two tangent lengths a bend of radius
+    bend_r needs at its ends), in the body-frame XZ plane. A vertex that
+    turns less than ROUTE_STRAIGHT_DEG is not a bend: a constant-u run such
+    as the channel to s 37 is a radius-105 arc in XZ, about 1° per vertex."""
+    merged = [points[0]]
+    for i in range(1, len(points) - 1):
+        a = (points[i][0] - merged[-1][0], points[i][1] - merged[-1][1])
+        b = (points[i + 1][0] - points[i][0], points[i + 1][1] - points[i][1])
+        cos_t = (a[0] * b[0] + a[1] * b[1]) / (math.hypot(*a) * math.hypot(*b))
+        if math.degrees(math.acos(max(-1.0, min(1.0, cos_t)))) >= ROUTE_STRAIGHT_DEG:
+            merged.append(points[i])
+    points = merged + [points[-1]]
+    if len(points) < 2:
+        return math.inf
+    lengths = [math.dist(points[i], points[i + 1]) for i in range(len(points) - 1)]
+    tangents = [0.0] * len(points)
+    for i in range(1, len(points) - 1):
+        a = (points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1])
+        b = (points[i + 1][0] - points[i][0], points[i + 1][1] - points[i][1])
+        cos_t = (a[0] * b[0] + a[1] * b[1]) / (math.hypot(*a) * math.hypot(*b))
+        theta = math.acos(max(-1.0, min(1.0, cos_t)))
+        tangents[i] = bend_r * math.tan(theta / 2.0) if theta < math.pi - 1e-9 else math.inf
+    return min(lengths[i] - tangents[i] - tangents[i + 1] for i in range(len(lengths)))
+
+
+def run_stage_b_solid_checks(
+    body: Solid,
+    lid: Solid,
+    path: PathGeom,
+    params: Mapping[str, Any],
+    cuts: Mapping[str, Any],
+    *,
+    raise_on_fail: bool = True,
+) -> list[Check]:
+    """Stage B checks measured on the built body and seated lid (body frame).
+
+    Every named check is recorded. Afterwards every failing check except
+    Q21_REF_lug raises one CheckFail that lists each failure and its numbers.
+    ``cuts`` is what ``_cut_stage_b_contacts`` measured before each cut.
+    """
+    checks: list[Check] = []
+
+    def record(name: str, passed: bool, detail: str, **numbers: float) -> None:
+        checks.append(Check(name, bool(passed), detail, numbers))
+
+    noise = OVERLAP_NOISE_MM3
+    wall = float(params["WALL_MEDIAL"])
+    width = float(params["BODY_WIDTH"])
+    lid_y = float(params["LID_Y"])
+    cu0, cu1 = cavity_u(params)
+    cs0, _cs1 = cavity_s(params)
+    bs0, bs1 = board_zone_s(params)
+    cref = contact_ref_us(params)
+    pl = load_placement()
+
+    # Floor and wall faces, probed on the solid.
+    u_mid = (cu0 + cu1) / 2.0
+    s_batt = (cs0 + RIB_S[0]) / 2.0
+    floor_y = _bisect(lambda y: _inside_uys(body, path, u_mid, s_batt, y), 0.5, 2.5)
+
+    # CONTACT_HOLE_wall: each hole removed the floor disc and nothing else.
+    disc = math.pi * (CONTACT_HOLE / 2.0) ** 2 * wall
+    removed = dict(cuts["hole_removed_mm3"])
+    open_at = {
+        name: not _inside_uys(body, path, float(u), float(s), wall / 2.0)
+        for name, (u, s) in (*_signal_sites(params), ("REF", cref))
+    }
+    record(
+        "CONTACT_HOLE_wall",
+        all(abs(v - disc) <= HOLE_VOLUME_TOL * disc for v in removed.values())
+        and all(open_at.values()),
+        "each Ø2.9 hole removed the 1.5 medial wall disc only (removed volume = disc) and is open",
+        wall_disc_mm3=round(disc, 4),
+        **{f"removed_{k}_mm3": v for k, v in removed.items()},
+        **{f"open_{k}": 1.0 if v else 0.0 for k, v in open_at.items()},
+    )
+
+    # KEEPOUT_SIGNAL_air and TAB_envelope_air: reserved air, never cut.
+    keep = {}
+    tabs = {}
+    for name, site in _signal_sites(params):
+        k = _keepout_signal_solid(path, params, site)
+        keep[f"{name}_body_mm3"] = round(_overlap_volume(body, k), 4)
+        keep[f"{name}_lid_mm3"] = round(_overlap_volume(lid, k), 4)
+        tab = _tab_solid(path, params, name, site)
+        tabs[f"{name}_body_mm3"] = round(_overlap_volume(body, tab), 4)
+        tabs[f"{name}_lid_mm3"] = round(_overlap_volume(lid, tab), 4)
+    record(
+        "KEEPOUT_SIGNAL_air",
+        all(v <= noise for v in keep.values()),
+        "Ø7.1 keep-outs from the floor to 4.13 hold no nylon (body or lid)",
+        **keep,
+    )
+    record(
+        "TAB_envelope_air",
+        all(v <= noise for v in tabs.values()),
+        "TE 31428 tab envelopes 1.96 wide × TAB_HEIGHT, Ø7.1 edge to 8.85, hold no nylon",
+        TAB_HEIGHT=tab_height(params),
+        **tabs,
+    )
+
+    # KEEPOUT_REF_air: pocket air, lid out of it, a ≥ 1.0 wall band around it.
+    pocket_c = _vec(path, cref[0], cref[1], 0.0)
+    r_pocket = POCKET_DIA / 2.0
+    pocket = _y_cylinder(pocket_c.X, wall + ENVELOPE_LIFT, pocket_c.Z, r_pocket, lid_y - wall - 2 * ENVELOPE_LIFT)
+    band_missing = 0.0
+    for y0, y1 in ((wall, WIRE_Y[0]), (WIRE_Y[1], lid_y)):
+        y0, y1 = y0 + ENVELOPE_LIFT, y1 - ENVELOPE_LIFT
+        if y1 <= y0:
+            continue
+        ring = _y_cylinder(pocket_c.X, y0, pocket_c.Z, r_pocket + 1.0, y1 - y0).cut(
+            _y_cylinder(pocket_c.X, y0 - 0.1, pocket_c.Z, r_pocket, y1 - y0 + 0.2)
         )
-        body = body.cut(tab)
-    return body
+        band_missing += float(ring.volume) - _overlap_volume(body, ring)
+    ref = {
+        "pocket_body_mm3": round(_overlap_volume(body, pocket), 4),
+        "pocket_lid_mm3": round(_overlap_volume(lid, pocket), 4),
+        "wall_band_1mm_missing_mm3": round(band_missing, 4),
+        "pocket_removed_mm3": float(cuts["pocket_removed_mm3"]),
+    }
+    record(
+        "KEEPOUT_REF_air",
+        ref["pocket_body_mm3"] <= noise
+        and ref["pocket_lid_mm3"] <= noise
+        and ref["wall_band_1mm_missing_mm3"] <= BAND_NOISE_MM3,
+        "Ø7.5 pocket from the floor to LID_Y is air, the lid stays out, and nylon at least "
+        "1.0 thick surrounds it above and below the channel",
+        **ref,
+    )
+
+    # BOARD_underside_clear: pad tops against stack, barrels and envelopes.
+    pad_tops = []
+    for pu in (cu0 + PAD_SIZE / 2.0, cu1 - PAD_SIZE / 2.0):
+        for ps in (bs0 + PAD_SIZE / 2.0, bs1 - PAD_SIZE / 2.0):
+            pad_tops.append(_bisect(lambda y, pu=pu, ps=ps: _inside_uys(body, path, pu, ps, y), 2.5, 6.0))
+    board_y = min(pad_tops)
+    stack_top = max(SCREW_LENGTH, floor_y + STACK_LUG + STACK_NUT) + STACK_KAPTON
+    barrel_top = floor_y + BARREL_HEIGHT
+    envelope_top = floor_y + tab_height(params)
+    record(
+        "BOARD_underside_clear",
+        board_y > stack_top and board_y > barrel_top and board_y > envelope_top,
+        "board underside (lowest pad top) above the stack top, both barrels and the tab envelopes",
+        board_underside=round(board_y, 4),
+        floor_y=round(floor_y, 4),
+        stack_top=round(stack_top, 4),
+        barrel_top=round(barrel_top, 4),
+        envelope_top=round(envelope_top, 4),
+        TAB_HEIGHT=tab_height(params),
+    )
+
+    # REF_WIRE_envelope: Ø1.3 along the placement route at channel height.
+    layout = pl.get_layout(str(params["PACKING"]))
+    route = [(float(u), float(s)) for u, s in layout.ref_wire]
+    wire_r = float(pl.WIRE_OD) / 2.0
+    wire_y = (WIRE_Y[0] + WIRE_Y[1]) / 2.0
+    pts = [_vec(path, u, s, wire_y) for u, s in route]
+    wire: Shape | None = None
+    for i in range(len(pts) - 1):
+        seg = pts[i + 1] - pts[i]
+        piece = Solid.make_cylinder(wire_r, seg.length, Plane(origin=pts[i], z_dir=seg.normalized()))
+        wire = piece if wire is None else wire.fuse(piece)
+    for p in pts[1:-1]:
+        wire = wire.fuse(Solid.make_sphere(wire_r, Plane(origin=p)))
+    cell_box = _cell_box(path, params, floor_y)
+    others = {
+        "body_mm3": _overlap_volume(body, wire),
+        "lid_mm3": _overlap_volume(lid, wire),
+        "cell_envelope_mm3": _overlap_volume(cell_box, wire),
+    }
+    for name, site in _signal_sites(params):
+        others[f"keepout_{name}_mm3"] = _overlap_volume(_keepout_signal_solid(path, params, site), wire)
+        others[f"tab_{name}_mm3"] = _overlap_volume(_tab_solid(path, params, name, site), wire)
+    lid_under = min(
+        _bisect(lambda y, u=u, s=s: _inside_uys(lid, path, u, s, y), wire_y, lid_y + 0.5)
+        for u, s in route
+    )
+    slack = _route_turn_slack([(p.X, p.Z) for p in pts], float(pl.BEND_R))
+    wire_numbers = {k: round(v, 4) for k, v in others.items()}
+    record(
+        "REF_WIRE_envelope",
+        all(v <= noise for v in others.values())
+        and lid_under - (wire_y + wire_r) > 0.0
+        and slack >= 0.0,
+        "Ø1.3 wire at y 3.3 from the channel to the REF pad holds no nylon, misses the lid, "
+        "cell envelope, keep-outs and tabs, and each turn fits bend radius 3; charge pads "
+        "are not placed yet (board out of scope) and the pocket-to-channel turn is Q21",
+        wire_od=float(pl.WIRE_OD),
+        bend_r=float(pl.BEND_R),
+        bend_slack=round(slack, 4),
+        lid_gap=round(lid_under - (wire_y + wire_r), 4),
+        **wire_numbers,
+    )
+
+    # CABLE_EXIT_cavity: pierces the posterior wall into cavity air only.
+    s_exit = cable_exit_s(params)
+    pierced = not _inside_uys(body, path, (cu1 + width) / 2.0, s_exit, CABLE_EXIT_Y)
+    opens = not _inside_uys(body, path, cu1 - 0.3, s_exit, CABLE_EXIT_Y)
+    in_cavity_s = cs0 < s_exit - CABLE_EXIT_DIA / 2.0 and s_exit + CABLE_EXIT_DIA / 2.0 < cavity_s(params)[1]
+    off_battery = s_exit - CABLE_EXIT_DIA / 2.0 > RIB_S[1]
+    record(
+        "CABLE_EXIT_cavity",
+        pierced and opens and in_cavity_s and off_battery
+        and float(cuts["exit_nylon_in_cavity_mm3"]) <= noise,
+        "Ø2.0 exit pierces the posterior wall and meets cavity air only "
+        "(no pad, rib or battery pocket)",
+        CABLE_EXIT_S=s_exit,
+        nylon_in_cavity_mm3=float(cuts["exit_nylon_in_cavity_mm3"]),
+        removed_mm3=float(cuts["exit_removed_mm3"]),
+        pierced=1.0 if pierced else 0.0,
+        opens_into_cavity=1.0 if opens else 0.0,
+        board_side_of_rib=1.0 if off_battery else 0.0,
+    )
+
+    # CELL_envelope: 5.2 × 10.4 × 15.6 plus 0.5 foam, on the floor, centred
+    # in the plan pocket reservation, against body and seated lid.
+    s_mid, u_mid_b = (BATTERY_S[0] + BATTERY_S[1]) / 2.0, (BATTERY_U[0] + BATTERY_U[1]) / 2.0
+    need_y = CELL_MAX[0] + FOAM_THICK
+    cell_u = (u_mid_b - CELL_MAX[1] / 2.0, u_mid_b + CELL_MAX[1] / 2.0)
+    cell_s = (s_mid - CELL_MAX[2] / 2.0, s_mid + CELL_MAX[2] / 2.0)
+    end_wall_s = _bisect(lambda s: _inside_uys(body, path, u_mid_b, s, 3.0), 0.2, cell_s[0])
+    rib_s = _bisect(lambda s: _inside_uys(body, path, u_mid_b, s, 3.0), cell_s[1], RIB_S[1] - 0.1)
+    wall_u0 = _bisect(lambda u: _inside_uys(body, path, u, s_mid, 3.0), 0.2, cell_u[0])
+    wall_u1 = _bisect(lambda u: _inside_uys(body, path, u, s_mid, 3.0), cell_u[1], width - 0.2)
+    over_cell = path_solid_for(path, params)(cell_u[0], cell_u[1], cell_s[0], cell_s[1], floor_y + need_y, lid_y + 3.0)
+    lid_over_cell = _min_y_in(lid, over_cell)
+    cell = {
+        "body_mm3": round(_overlap_volume(body, cell_box), 4),
+        "lid_mm3": round(_overlap_volume(lid, cell_box), 4),
+        "floor_y": round(floor_y, 4),
+        "need_y": round(need_y, 4),
+        "clear_y_lid": round((lid_over_cell if lid_over_cell is not None else lid_y) - (floor_y + need_y), 4),
+        "clear_s_end_wall": round(cell_s[0] - end_wall_s, 4),
+        "clear_s_rib": round(rib_s - cell_s[1], 4),
+        "clear_u_anterior": round(cell_u[0] - wall_u0, 4),
+        "clear_u_posterior": round(wall_u1 - cell_u[1], 4),
+        "plan_pocket_clear_y": round(BATTERY_Y[1] - BATTERY_Y[0] - need_y, 4),
+        "plan_pocket_clear_u": round(BATTERY_U[1] - BATTERY_U[0] - CELL_MAX[1], 4),
+        "plan_pocket_clear_s": round(BATTERY_S[1] - BATTERY_S[0] - CELL_MAX[2], 4),
+    }
+    record(
+        "CELL_envelope",
+        cell["body_mm3"] <= noise
+        and cell["lid_mm3"] <= noise
+        and min(cell["clear_y_lid"], cell["clear_s_end_wall"], cell["clear_s_rib"],
+                cell["clear_u_anterior"], cell["clear_u_posterior"]) >= 0.0
+        and floor_y + need_y <= BATTERY_Y[1] + 1e-9,
+        "cell 5.2 × 10.4 × 15.6 plus 0.5 foam on the lid face (plan §5, Q18) sits in the pocket "
+        "clear of body, rib, walls and the seated lid with its emboss",
+        **cell,
+    )
+
+    # Q21_REF_lug: TE 31428 upright (contacts.md §5.3) against the measured
+    # lid underside over the pocket and the measured pocket radius.
+    lug_top_y = wall + float(pl.TAB_LEN) + float(pl.LUG_THICK)
+    barrel_outer = float(pl.RING_R) + float(pl.TAB_W)
+    lid_col = _y_cylinder(pocket_c.X, wall, pocket_c.Z, r_pocket, lid_y + 3.0 - wall)
+    lid_over_pocket = _min_y_in(lid, lid_col)
+    probe_y = (WIRE_Y[1] + lid_y) / 2.0
+    radii = []
+    for du, ds in ((1.0, 0.0), (-1.0, 0.0), (0.0, 1.0)):
+        radii.append(
+            _bisect(
+                lambda r, du=du, ds=ds: bool(
+                    body.is_inside(Vector(pocket_c.X, probe_y, pocket_c.Z) + _dir_us(path, cref, du, ds) * r)
+                ),
+                0.5,
+                r_pocket + 0.9,
+            )
+        )
+    pocket_r = min(radii)
+    lid_under_pocket = lid_over_pocket if lid_over_pocket is not None else math.inf
+    record(
+        "Q21_REF_lug",
+        lug_top_y < lid_under_pocket and barrel_outer <= pocket_r,
+        "reference lug upright (TE 31428) against the lid and the pocket wall (Q21); "
+        "recorded, not hidden, and does not stop the write",
+        lug_top_y=round(lug_top_y, 4),
+        lid_y=round(lid_under_pocket, 3),
+        lug_into_lid=round(lug_top_y - lid_under_pocket, 3),
+        barrel_outer=round(barrel_outer, 4),
+        pocket_r=round(pocket_r, 3),
+        barrel_into_wall=round(barrel_outer - pocket_r, 3),
+        lug_thick=float(pl.LUG_THICK),
+    )
+
+    # CLOSURE_PASSED: E1/E3/E5 present on the solids exactly when the flag is set.
+    flag = bool(params.get("CLOSURE_PASSED", False))
+    tongue_s = shift_tail_s(params, (LID_TONGUE_S[0] + LID_TONGUE_S[1]) / 2.0)
+    tongue_y = lid_y + (LID_TONGUE_Y_OFF[0] + LID_TONGUE_Y_OFF[1]) / 2.0
+    tongue_u = (TONGUE_SLOT_U[0] + TONGUE_SLOT_U[1]) / 2.0
+    nub_u = nub_u_pair(params)[0]
+    present = {
+        "tongue": _inside_uys(lid, path, tongue_u, tongue_s, tongue_y),
+        "slot": not _inside_uys(body, path, tongue_u, tongue_s, tongue_y),
+        "nub": _inside_uys(lid, path, (nub_u[0] + nub_u[1]) / 2.0, (NUB_S[0] + NUB_S[1]) / 2.0, lid_y - NUB / 2.0),
+        "lip": _inside_uys(lid, path, (LIP_U[0] + LIP_U[1]) / 2.0, (LIP_S[0] + LIP_S[1]) / 2.0, lid_y - 2.0),
+    }
+    record(
+        "CLOSURE_PASSED",
+        all(v == flag for v in present.values()),
+        "E1 tongue and slot, E3 nubs and E5 lip on the solids exactly when CLOSURE_PASSED "
+        "(plan §3.6: order 2 keeps them only if the order 1 closure test passed)",
+        flag=1.0 if flag else 0.0,
+        **{k: 1.0 if v else 0.0 for k, v in present.items()},
+    )
+
+    failing = [c for c in checks if not c.passed and c.name not in STAGE_B_NONFATAL]
+    if failing and raise_on_fail:
+        raise CheckFail(
+            "; ".join(
+                f"{c.name}: {c.detail} ("
+                + ", ".join(f"{k}={v}" for k, v in c.numbers.items())
+                + ")"
+                for c in failing
+            )
+        )
+    return checks
+
+
+def _dir_us(path: PathGeom, site: tuple[float, float], du: float, ds: float) -> Vector:
+    """Unit body-frame XZ vector along +u (du) or +s (ds) at a site."""
+    a = angle_at(path, float(site[1]))
+    radial = Vector(math.cos(a), 0.0, math.sin(a))
+    tangent = Vector(math.sin(a), 0.0, -math.cos(a))
+    return (radial * du + tangent * ds).normalized()
+
+
+def path_solid_for(path: PathGeom, params: Mapping[str, Any]) -> Callable[..., Shape]:
+    split = tail_s0(params)
+
+    def path_solid(u0, u1, s0, s1, y0, y1, **kwargs):
+        return _path_solid(path, u0, u1, s0, s1, y0, y1, split_s=split, **kwargs)
+
+    return path_solid
+
+
+def _cell_box(path: PathGeom, params: Mapping[str, Any], floor_y: float) -> Shape:
+    """Cell envelope plus 0.5 foam, centred in the plan pocket reservation."""
+    s_mid = (BATTERY_S[0] + BATTERY_S[1]) / 2.0
+    u_mid = (BATTERY_U[0] + BATTERY_U[1]) / 2.0
+    return path_solid_for(path, params)(
+        u_mid - CELL_MAX[1] / 2.0,
+        u_mid + CELL_MAX[1] / 2.0,
+        s_mid - CELL_MAX[2] / 2.0,
+        s_mid + CELL_MAX[2] / 2.0,
+        floor_y + ENVELOPE_LIFT,
+        floor_y + CELL_MAX[0] + FOAM_THICK,
+    )
 
 
 def build_body_and_lid(
@@ -1869,8 +2211,7 @@ def build_body_and_lid(
             cap = _cap_solid(path, float(u), float(s))
             body = body.fuse(cap)
     else:
-        body = _cut_stage_b_contacts(body, path, params, path_solid)
-        notes["q21_ref_lug"] = q21_ref_lug_numbers(params)
+        body, notes["stage_b_cuts"] = _cut_stage_b_contacts(body, path, params, path_solid)
 
     if experiments:
         groove = path_solid(
@@ -2287,6 +2628,7 @@ def write_manifest(
     overlap: float,
     defaults_used: list[str],
     params: Mapping[str, Any],
+    stage_b_rows: Mapping[str, Mapping[str, Check]] | None = None,
 ) -> Path:
     path = make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
     ws = wire_s_pair(params)
@@ -2395,17 +2737,37 @@ def write_manifest(
         payload["packing"] = params["PACKING"]
         payload["closure_passed"] = bool(params.get("CLOSURE_PASSED", False))
         payload["contact_source"] = str(params.get("CONTACT_SOURCE", "plan §3.3 defaults"))
+        rows_by_body = stage_b_rows or {}
+        bodies = sorted(rows_by_body)
+        lead = "body_full_p15" if "body_full_p15" in rows_by_body else (bodies[0] if bodies else None)
         payload["stage_b"] = {
-            c.name: {"passed": c.passed, "detail": c.detail, "numbers": c.numbers}
-            for c in checks
-            if c.name in STAGE_B_CHECK_NAMES
-        }
+            name: {
+                "passed": all(rows_by_body[b][name].passed for b in bodies),
+                "detail": rows_by_body[lead][name].detail,
+                "numbers": rows_by_body[lead][name].numbers,
+                "numbers_from": lead,
+                "bodies": {
+                    b: {
+                        "passed": rows_by_body[b][name].passed,
+                        "numbers": rows_by_body[b][name].numbers,
+                    }
+                    for b in bodies
+                },
+            }
+            for name in sorted(STAGE_B_CHECK_NAMES)
+        } if lead else {}
+        failing = stage_b_failing(rows_by_body)
+        payload["stage_b_failing"] = failing
+        payload["stage_b_passed"] = not failing
     dest = out_dir / "manifest.json"
     if dest.is_file():
         previous = json.loads(dest.read_text(encoding="utf-8"))
-        for key in ("views", "views_hash_rule", "views_commit"):
-            if key in previous:
-                payload[key] = previous[key]
+        # Views are pictures of the order 1 solids; a Stage B build never
+        # inherits them, and order 1 never inherits a Stage B folder's.
+        if previous.get("stage") == payload.get("stage"):
+            for key in ("views", "views_hash_rule", "views_commit"):
+                if key in previous:
+                    payload[key] = previous[key]
     dest.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return dest
 
@@ -2436,76 +2798,6 @@ def assert_stage_b_out_dir(out_dir: Path, params: Mapping[str, Any]) -> None:
         )
 
 
-def _point_inside(body: Solid, path: PathGeom, u: float, s: float, y: float) -> bool:
-    x, yy, z = p_xyz(path, u, s, y)
-    return bool(body.is_inside(Vector(x, yy, z)))
-
-
-def run_stage_b_solid_checks(
-    body: Solid,
-    lid: Solid,
-    path: PathGeom,
-    params: Mapping[str, Any],
-) -> list[Check]:
-    """Solid Stage B checks. Fail loudly except Q21 (already recorded)."""
-    checks: list[Check] = []
-
-    def record(name: str, passed: bool, detail: str, **numbers: float) -> None:
-        checks.append(Check(name, passed, detail, numbers))
-        if not passed:
-            num = ", ".join(f"{k}={v}" for k, v in numbers.items())
-            raise CheckFail(f"{name}: {detail} ({num})" if num else f"{name}: {detail}")
-
-    wall = float(params["WALL_MEDIAL"])
-    width = float(params["BODY_WIDTH"])
-    hole_r = CONTACT_HOLE / 2.0
-    c1 = contact_1_us(params)
-    c2 = (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))
-    cref = contact_ref_us(params)
-    pierced = True
-    ring = True
-    side_ant = True
-    side_post = True
-    for u, s in (c1, c2):
-        pierced = pierced and not _point_inside(body, path, u, s, wall / 2.0)
-        ring = ring and _point_inside(body, path, u, s + hole_r + 0.5, wall / 2.0)
-        side_ant = side_ant and _point_inside(body, path, 0.35, s, wall / 2.0)
-        side_post = side_post and _point_inside(body, path, width - 0.35, s, wall / 2.0)
-    record(
-        "CONTACT_HOLE_wall",
-        pierced and ring and side_ant and side_post,
-        "CONTACT_HOLE Ø2.9 through the 1.5 medial wall only",
-        u=c1[0],
-        s=c1[1],
-        pierced=1.0 if pierced else 0.0,
-        ring=1.0 if ring else 0.0,
-        side_ant=1.0 if side_ant else 0.0,
-        side_post=1.0 if side_post else 0.0,
-    )
-    keep_r = KEEPOUT_SIGNAL_DIA / 2.0
-    air_ok = True
-    sample_y = (wall + KEEPOUT_TOP_Y) / 2.0
-    for u, s in (c1, c2):
-        for du, ds in ((0.0, 0.0), (keep_r * 0.4, 0.0), (0.0, keep_r * 0.4)):
-            if _point_inside(body, path, u + du, s + ds, sample_y):
-                air_ok = False
-    record(
-        "KEEPOUT_SIGNAL_air",
-        air_ok,
-        "keep-out cylinders Ø7.1 are air; no nylon inside",
-        y=sample_y,
-    )
-    pocket_air = not _point_inside(body, path, cref[0], cref[1], wall + 1.0)
-    record(
-        "KEEPOUT_REF_air",
-        pocket_air,
-        "KEEPOUT_REF Ø7.5 pocket is air",
-        u=cref[0],
-        s=cref[1],
-    )
-    return checks
-
-
 def build_and_export(
     out_dir: Path,
     *,
@@ -2521,7 +2813,12 @@ def build_and_export(
         crease_bow_from_m=crease_bow_from_m,
     )
     assert_stage_b_out_dir(out_dir, probe)
-    wanted = parts or ORDER_PARTS
+    stage_b = not probe["MOCK_CONTACTS"]
+    wanted = parts or (STAGE_B_PARTS if stage_b else ORDER_PARTS)
+    if stage_b and not any(name.startswith("body_") for name in wanted):
+        raise CheckFail(
+            f"--parts {','.join(wanted)}: a Stage B build needs a body; the Stage B checks run on bodies"
+        )
     existing = out_dir / "manifest.json"
     if existing.is_file():
         # A subset build would rewrite the manifest and leave the other
@@ -2541,6 +2838,7 @@ def build_and_export(
     overlap = 0.0
     defaults_used: list[str] = []
     report_params: dict[str, Any] = {}
+    stage_b_rows: dict[str, dict[str, Check]] = {}
 
     jobs: list[tuple[str, str, float]] = []
     tag_to_preload = {"p15": 1.5, "p25": 2.5}
@@ -2603,8 +2901,17 @@ def build_and_export(
                 if not ok:
                     raise CheckFail(f"contact axes: {name} {contact} dome does not stand to −y")
                 all_checks.append(Check(f"contact axis −y: {contact}", True, name, {}))
-        elif name == "body_full_p15":
-            all_checks.extend(run_stage_b_solid_checks(body_bf, lid_bf, path, params))
+        else:
+            rows = run_stage_b_solid_checks(body_bf, lid_bf, path, params, notes["stage_b_cuts"])
+            missing = sorted(STAGE_B_CHECK_NAMES - {row.name for row in rows})
+            if missing:
+                # Round 1 decision 5: MOCK_CONTACTS = false builds only behind
+                # the Stage B checks. Nothing is exported without all of them.
+                raise CheckFail(
+                    f"MOCK_CONTACTS=false: Stage B checks missing on {name}: {', '.join(missing)}"
+                )
+            all_checks.extend(rows)
+            stage_b_rows[name] = {row.name: row for row in rows}
         all_checks.append(
             Check(
                 "exported lid seated on this body: interiors disjoint",
@@ -2673,8 +2980,22 @@ def build_and_export(
             overlap=overlap,
             defaults_used=defaults_used,
             params=report_params,
+            stage_b_rows=stage_b_rows if stage_b else None,
         )
-    return {"files": files, "overlap": overlap, "checks": all_checks}
+    failing = stage_b_failing(stage_b_rows) if stage_b else None
+    return {
+        "files": files,
+        "overlap": overlap,
+        "checks": all_checks,
+        "stage_b_passed": None if failing is None else not failing,
+        "stage_b_failing": failing,
+    }
+
+
+def stage_b_failing(stage_b_rows: Mapping[str, Mapping[str, Check]]) -> list[str]:
+    return sorted(
+        {name for rows in stage_b_rows.values() for name, row in rows.items() if not row.passed}
+    )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -2709,7 +3030,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--parts",
         default=None,
-        help="Comma list of parts (default: the five order-1 names)",
+        help=(
+            "Comma list of parts. Default: the five order-1 names; with "
+            "MOCK_CONTACTS=false, body_full_p15,body_full_p25,lid"
+        ),
     )
     return parser.parse_args(argv)
 
@@ -2783,7 +3107,7 @@ def cli(argv: list[str] | None = None) -> int:
             print(f"checks passed VARIANT={variant} HOOK_PRELOAD={preload}")
             return 0
         name = part_name("body", params)
-        parts = (name, "lid", "coupon")
+        parts = (name, "lid", "coupon") if params["MOCK_CONTACTS"] else (name, "lid")
         # Single-variant export still writes lid+coupon beside the body.
         result = build_and_export(
             args.out,
@@ -2792,7 +3116,7 @@ def cli(argv: list[str] | None = None) -> int:
             parts=parts if name in ORDER_PARTS else (name,),
         )
         print(json.dumps({"out": str(args.out), "files": list(result["files"])}, indent=2))
-        return 0
+        return _stage_b_exit(result)
 
     params, _used = build_reference_params(
         variant="full",
@@ -2812,6 +3136,22 @@ def cli(argv: list[str] | None = None) -> int:
         parts=wanted,
     )
     print(json.dumps({"out": str(args.out), "files": list(result["files"])}, indent=2))
+    return _stage_b_exit(result)
+
+
+STAGE_B_NOT_PASSED_EXIT = 3
+
+
+def _stage_b_exit(result: Mapping[str, Any]) -> int:
+    """0 for order 1 and for a Stage B build whose checks all pass. A Stage B
+    build with a recorded non-fatal failure (Q21) wrote its files and exits 3."""
+    if result.get("stage_b_passed") is False:
+        print(
+            "STAGE B NOT PASSED (files and manifest written, provisional): "
+            + ", ".join(result["stage_b_failing"]),
+            file=sys.stderr,
+        )
+        return STAGE_B_NOT_PASSED_EXIT
     return 0
 
 

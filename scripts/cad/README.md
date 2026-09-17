@@ -117,27 +117,52 @@ Do not upload files to a vendor. WP3 draws from the STEP files. Purchases need R
 
 ## Stage B (provisional)
 
-WP8-prep. The Stage B path cuts CONTACT_HOLE, KEEPOUT_REF, WIRE_CHANNEL and CABLE_EXIT, and keeps the TE 31428 tab envelopes as air. It does not decide packing, contact sites, or the closure test. Those stay parameters.
+WP8-prep. Nothing here is decided or ordered: the build is a parameter run for WP8, and its files go to a temp folder. No order 2 files exist.
 
-Write to a directory you name. The script refuses `docs/fab/cad/v1/` and `docs/fab/cad/v2/`.
+The Stage B path uses the same construction as the gauge (one `build_body_and_lid`: path, body, tail, fillets, recess, cavity, rib, pads, lid, hook, hook-in-cavity cut). Only the inputs and plan §3.5 step 5 change. Packing moves the width, arc, cavity, tail and board zone. Step 5 cuts the pocket, the three holes, WIRE_CHANNEL and CABLE_EXIT instead of fusing mock domes. E1/E3/E5 are built only with `CLOSURE_PASSED = true`. The keep-out cylinders and the TE 31428 tab envelopes are reserved air. They are never cut, so any nylon inside them shows up in a check.
+
+Write to a folder you name. The script refuses `docs/fab/cad/v1/` and `docs/fab/cad/v2/`.
 
 ```bash
 .venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/stageb_provisional.toml --out /tmp/elicio-stageb/
 ```
 
-Decided in this file (still marked provisional in the manifest):
+Without `--parts` a Stage B build writes `body_full_p15`, `body_full_p25` and `lid`. Plan §7 order 2 is two bodies and two lids. The preload is Rolf's pick after 3.7, and a thin body cannot hold the cell, so `CELL_envelope` fails on it. `--parts` takes any comma list with at least one body, because the checks run on bodies. The stale-part guard works as for order 1.
 
-- `PACKING = C` (Q20 reading: BODY_WIDTH 20, board 19 × 15.5, pads from `placement.py`)
+Exit codes: 0 when every Stage B check passes. 2 when a check fails, and nothing is written for that body. 3 when the files and manifest are written but the manifest says `stage_b_passed: false`. Today that is 3, because of Q21.
+
+Named checks, measured on each built body and its seated lid (manifest `stage_b`, each with numbers per body):
+
+| Check | Measured |
+|---|---|
+| `CONTACT_HOLE_wall` | each Ø2.9 hole removed exactly the 1.5 wall disc (9.91 mm³) and is open |
+| `KEEPOUT_SIGNAL_air` | nylon volume inside each Ø7.1 keep-out, floor to 4.13 |
+| `TAB_envelope_air` | nylon volume inside each tab envelope, 1.96 wide × `TAB_HEIGHT`, Ø7.1 edge to 8.85, at the placement angle |
+| `KEEPOUT_REF_air` | pocket air, lid volume inside the pocket, and a full 1.0 wall band around it |
+| `BOARD_underside_clear` | probed pad tops against the stack top, barrel tops and envelope tops above the probed floor |
+| `REF_WIRE_envelope` | a Ø1.3 wire along the placement route at y 3.3: overlap with body, lid, cell, keep-outs and tabs; lid gap; each turn at bend radius 3 |
+| `CABLE_EXIT_cavity` | nylon the exit removed inside the cavity (a pad or the rib), pierced wall, opening into the cavity, board side of the rib |
+| `CELL_envelope` | the 5.2 × 10.4 × 15.6 cell plus 0.5 foam on the probed floor against body and lid (with the emboss), and probed wall and rib clearances |
+| `Q21_REF_lug` | lug top 8.23 against the lid underside probed over the pocket, and barrel 4.54 against the probed pocket radius. Recorded; it does not stop the write |
+| `CLOSURE_PASSED` | tongue, slot, nubs and lip present on the solids exactly when the flag is set |
+
+`--checks-only` runs the plan-number versions of these ("... pre-CAD") and `PLACEMENT_contacts`. The measured versions need the build.
+
+Decided in the provisional file (each still provisional; the header says what each waits on):
+
+- `PACKING = C` (Q20 reading: BODY_WIDTH 20, board 19 × 15.5, pads and tab angles from `placement.py`)
 - `MOCK_CONTACTS = false`
 - `TAB_HEIGHT = 2.0` (Q22)
-- contact positions = plan §3.3 defaults until WP7a
+- `CABLE_EXIT_S = 35.0`: plan §3.3's s 36 cuts a corner pad (review r4 decision 24)
+- contact positions = plan §3.3 defaults until WP7a. Any other site fails `PLACEMENT_contacts` until `placement.py` is re-run for it.
 
 Not decided:
 
-- Rolf's packing pick (Q20). A and B are switches: `--set PACKING=A` or `PACKING=B`.
-- Reference lug vs lid and pocket wall (Q21). The named check `Q21_REF_lug` is expected to fail and records the numbers. The build still writes files.
-- Contact coordinates (WP7a).
-- `CLOSURE_PASSED` (default false: no E1/E3/E5 until the order-1 closure test).
-- Cell pack thickness (Q18). The pocket check uses the plan envelope 5.2 × 10.4 × 15.6 with 0.5 mm foam on the lid face.
+- Rolf's packing pick (Q20). A and B are switches: `--set PACKING=A` or `--set PACKING=B`.
+- The reference lug against the lid and the pocket wall (Q21). `Q21_REF_lug` fails and records the numbers.
+- Contact coordinates (WP7a) and the reference site (Q17).
+- `CLOSURE_PASSED` (default false). Set true today, it fails `KEEPOUT_REF_air`: the E1 web and tongue sit inside the reference pocket (review r4 decision 25).
+- The cell pack (Q18). The check uses the plan envelope with 0.5 foam on the lid face.
+- Stage B keys (`PACKING`, `CONTACT_*`, `CABLE_EXIT_S`, `TAB_HEIGHT`, `CLOSURE_PASSED`) fail on an order 1 overlay.
 
-The Stage B manifest keeps schema 1 and adds `stage`, `provisional`, `packing`, `closure_passed`, `contact_source`, and `stage_b`. Order 1 manifests omit those keys.
+The Stage B manifest keeps schema 1 and adds `stage`, `provisional`, `packing`, `closure_passed`, `contact_source`, `stage_b`, `stage_b_failing` and `stage_b_passed`. `manifest.py` validates them when `stage` is `B`. Order 1 manifests omit those keys, and a Stage B manifest never carries order 1 `views`.
