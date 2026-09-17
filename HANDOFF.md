@@ -99,8 +99,17 @@ on a removed key.
   `docs/fab/plan-v2.md` (turn 03 draft, `6552942`: XIAO dropped,
   medial-face USB-C port as the physical interlock, spring contacts on
   captive nuts, BQ25100 at 20 mA, 2000 SPS, gates G1–G8, allowances
-  $280–440). TURN plan-v2 04 sent ~20:10; Pro writes
-  `tasks/plan-v2/turns/04-pro.md` (expected) and pushes `DONE plan-v2-04`. A Pro turn can take an hour; it shows idle
+  $280–440). Turn 04 landed (`tasks/plan-v2/turns/04-pro.md`, findings 16–22, two
+  blockers: the medial port is no interlock, a nut gives no ±2 mm
+  workspace; `32cebc6`). Turn 05 (`tasks/plan-v2/turns/05-fable.md`,
+  `11c4dcc`) rewrote R7 as a proposed rule without an isolation claim
+  (battery-only, medial exclusion, 220 kΩ, hardware VBUS supply gate,
+  residual hazard named), made the nut a 3.0 mm brass standoff with
+  per-site arrays of spring-loaded pins, fixed charger TS/termination,
+  undervoltage, the frame contract, the first-load kit and a
+  whole-project ledger ($350–560 envelope). TURN plan-v2 06 sent ~21:30;
+  Pro writes `tasks/plan-v2/turns/06-pro.md` (expected) and pushes
+  `DONE plan-v2-06`, including the stop-rule assessment. A Pro turn can take an hour; it shows idle
   or working meanwhile; never re-prompt before the DONE. When it lands:
   commit its file (Pro cannot commit), write turn 03 (`03-fable.md`
   expected) answering every finding and revising `plan-v2.md`, prompt
@@ -111,8 +120,9 @@ on a removed key.
   coordinator follow-up at ~20:10 that runs as a second turn after its
   first DONE (drop C, corrected heights, interface I spring contacts on
   nut tops with a ±2 mm workspace, lids 6.0–9.0, harness and medial-face
-  receptacle envelopes). Expect TWO `DONE WP11` pushes; open no review
-  before the second. Writes `docs/fab/packing-v2.md` (expected). Its
+  receptacle envelopes). A second note (~21:30) redefines interface I per turn 05 (standoff
+  3.0, pin arrays, region per site, switch, recessed medial opening).
+  Expect THREE `DONE WP11` pushes; open no review before the third. Writes `docs/fab/packing-v2.md` (expected). Its
   table feeds turn 05 of the dialogue and D-1 (thin) for Rolf.
 - **w5** (agy, `lane/w5`): idle with WP10 unmerged at `832ef28`. It is
   reviewed together with WP11 by the round 5 reviewer (a fresh review
@@ -143,8 +153,8 @@ carries claims C1–C10 and decisions D-1–D-8 for the dialogue. Outside those:
 
 ## Next
 
-- Idle until `DONE plan-v2-04` (commit Pro's file, write turn 05) or the
-  second `DONE WP11` (read the report, fold its table into the next turn).
+- Idle until `DONE plan-v2-06` (commit Pro's file; if cosmetic, fix the
+  sentences and sign off; else write turn 07) or the third `DONE WP11`.
 
 ## Traps
 
