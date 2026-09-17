@@ -68,3 +68,11 @@ service), before you stop:
 
 Your turn must end with one of those pushes, including when the package
 fails. A lane that stops silently is the one failure nothing catches.
+
+## Open questions
+
+`docs/fab/open-questions.md` lists every question a round review raised,
+numbered, with the reading the build follows until Rolf rules. The plan
+stays the spec; where the two differ on a number, the open question says
+which reading the code and sheets use and why. Read it after the plan. Do
+not edit it; what your package raises goes in your report.
