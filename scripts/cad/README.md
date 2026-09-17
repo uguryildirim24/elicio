@@ -58,13 +58,18 @@ The lid emboss uses `fonts/LiberationSans-Regular.ttf` (SIL Open Font Licence 1.
 
 ## Renders and drawing
 
-Headless. No GUI. Matplotlib Agg shades the STL triangulation. pypdf pins PDF dates. PNG `tIME`/`tEXt` dates are rewritten. Run twice; the hashes must match.
+Headless. No GUI, no GPU. `render.py` rasterises the STL triangles with a z-buffer in numpy (one flat shade per triangle, outlines and creases from the depth and normal buffers) and lays the images out with matplotlib Agg. Every view is orthographic, head-on or edge-on, so the 10 mm bar is true in the plane of the view. The PDF embeds the shaded views as images; sections, tables and text are vector. pypdf pins PDF dates; PNG `tIME`/`tEXt` dates are rewritten. The corner stamp is the solids commit and its commit date. Run twice; the hashes must match.
 
 ```bash
 .venv/bin/python scripts/cad/render.py --out docs/fab/cad/v1/
+.venv/bin/python scripts/cad/render.py --out docs/fab/cad/v1/ --debug-png /tmp/elicio-draw   # also drawing_page.png, not hashed
 ```
 
 Writes `render_medial.png`, `render_lateral.png`, `drawing.pdf` and the `views` map in `manifest.json`. It does not rebuild solids and does not change hashes in `files`.
+
+The committed PNG and PDF hashes were produced with numpy 2.5.3, matplotlib 3.11.2, pypdf 6.19.0 and trimesh 5.1.0 on Python 3.13. Another build of those libraries can move the image bytes without any geometry change; regenerate and compare the pictures, not only the hashes, before committing new ones. `placement.svg` (WP6) is not in `views`; `tests/test_placement.py` checks it.
+
+After a commit that changes a solid, `commit` in the manifest still names the previous solids commit until you rebuild and commit the manifest (and renders) once more; the regen test fails in between on purpose.
 
 ## Validate the manifest
 
