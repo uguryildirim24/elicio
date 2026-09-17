@@ -1,0 +1,19 @@
+# Provisional Stage B inputs. WP8-prep. Not an order-1 overlay.
+# Each value waits on an open question; WP8 proper replaces this file.
+#
+# PACKING        Q20 — coordinator reading: C. Rolf has not picked.
+# MOCK_CONTACTS  plan §3.3 Stage B (false). Order 1 stays true.
+# CLOSURE_PASSED Q / plan §3.6 — E1/E3/E5 only if the order-1 closure test passed.
+# CONTACT_*      WP7a will replace plan §3.3 defaults.
+# TAB_HEIGHT     Q22 — plan erratum 2.0 (plan §3.3 wrote 1.5).
+# CONTACT_SOURCE label for the manifest; not a geometry number.
+
+PACKING = "C"
+MOCK_CONTACTS = false
+CLOSURE_PASSED = false
+TAB_HEIGHT = 2.0
+CONTACT_SOURCE = "plan §3.3 defaults"
+CONTACT_1_U = 5.9
+CONTACT_1_S = 22.0
+CONTACT_REF_U = 8.5
+CONTACT_REF_S = 43.0
