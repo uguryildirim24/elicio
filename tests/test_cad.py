@@ -221,6 +221,14 @@ class CadRegenTests(unittest.TestCase):
                     )
             self.assertTrue(all(check["passed"] for check in regenerated["checks"]))
 
+    def test_clamp_limits_build_one_solid(self) -> None:
+        for bow in (1.0, 8.0):
+            with self.subTest(bow=bow), tempfile.TemporaryDirectory() as temp_dir:
+                result = CAD.build_and_export(
+                    Path(temp_dir), overrides={"CREASE_BOW": bow}, parts=("body_full_p15",)
+                )
+                self.assertEqual(len(result["files"]), 3)
+
     def test_subset_build_refuses_to_leave_stale_parts(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             (Path(temp_dir) / "manifest.json").write_text(

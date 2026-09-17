@@ -1557,7 +1557,7 @@
     "m1": 52.0,
     "total_chord": 47.900523407445874
   },
-  "commit": "051a1868b182c8115913bcbfe9f198503eec8c60",
+  "commit": "c58cffb71024f0740a2f5e53db0077130ba4e987",
   "contact_stack": {
     "board_underside_y": 4.3,
     "keepout_top_y": 4.13,
