@@ -47,6 +47,18 @@ The reviewer numbered its decisions 20 to 23; these are Q20 to Q23.
 | Q22 | Signal lug barrel height: 1.96 mm across against the plan's 1.5 mm tab envelope; the barrel tops at y 3.46 under the board at 4.3 | Plan erratum: the flat-tab envelope height becomes 2.0 for WP8's keep-out solids; the placement already keeps parts and copper off the barrel strip, so option C does not change. Rolf may instead ask WP5 for a flatter barrel | plan erratum, coordinator; Rolf may override | decided |
 | Q23 | 28 AWG wire in TE 31428's 26 to 22 AWG barrel (carried from round 1) | Fold the strip and solder the crimp, as the assembly sheet says; acceptable for a bench prototype. WP5 keeps looking for a 28 AWG barrel of similar length at purchase time | Rolf accepts, or WP5 at purchase time | open, low |
 
+## Round 4 (review `tasks/reviews/code-r4.md`, merged 2026-09-17)
+
+The reviewer numbered its decisions 24 to 27; these are Q24 to Q27. None
+blocks the merge; all sit before WP8 proper (order 2).
+
+| # | Question | Reading the build follows | Closes it | Status |
+|---|---|---|---|---|
+| Q24 | CABLE_EXIT at plan §3.3's s 36 removes 0.99 mm³ of the inferior posterior board pad (s 36.4 to 37.9) in packings A and C | Plan erratum: CABLE_EXIT_S 35.0, which clears the pad by 0.4 mm; the provisional Stage B file already uses it. Rolf may prefer a smaller exit or inset pads | plan erratum, coordinator | decided |
+| Q25 | With CLOSURE_PASSED true, the lid's E1 web and tongue root sit 2.48 mm³ inside the Ø7.5 reference pocket and the body's web pocket and tongue slot break the 1.0 mm wall band around it | Order 2 without E1 (plan §3.6, interface item 6) unless the closure test passes and CONTACT_REF moves about 1 mm toward −s, which Q17 may require anyway. Decide after the gauge is worn, together with Q21 and Q17 | **Rolf**, with Q17 and Q21, after order 1 | open |
+| Q26 | WP7a's contact coordinates need the placement search re-run before WP8: pads, tab angles and the reference route were searched for the plan §3.3 sites, and the shell now refuses other sites | Sequencing: WP8 proper is WP7a sites → WP6's `search_tab_degrees` on those sites (interface v3) → the shell build. Recorded in HANDOFF.md | coordinator | decided |
+| Q27 | A thin Stage B body (LID_Y 6.0) cannot hold the cell: the cell plus foam tops out at 7.2 on the 1.5 floor | Order 2 builds full bodies only. If Rolf picks thin after plan §3.7 item 8, a thinner cell or a longer pocket (Q18's fallback) comes first | **Rolf**, with plan §3.7 item 8 and Q18 | open |
+
 ## For Rolf
 
 Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
@@ -58,7 +70,7 @@ Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
   order 2; add one 501015 cell to that order for Q18.
 - Q13 confirm the short lug tab, or keep 7 mm and the pads move.
 - Q20 pick the packing option from `docs/fab/packing-options.md` (only C closes); this closes Q15.
-- Q21 the reference lug in the tail pocket, before order 2.
+- Q21 the reference lug in the tail pocket, before order 2; Q25 (E1 over that pocket) and Q27 (a thin body cannot hold the cell) go with it once the gauge has been worn.
 - Q23 accept fold-and-solder for the 28 AWG lead in the 26 to 22 AWG barrel.
 - Q17 after wearing the gauge: is the reference mark on bone.
 - Q19 accept the frozen protocol numbers, or edit them before Stage A data.
