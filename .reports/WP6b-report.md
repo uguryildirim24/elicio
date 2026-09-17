@@ -40,4 +40,4 @@ Rolf picks from `docs/fab/packing-options.md`: `I pick C` or `I pick B` or `I pi
 
 ## Final commit sha
 
-`45d0016` (packing options). This report commit follows it.
+Packing work `45d0016`. Report on `lane/w1` HEAD after this file is committed.
