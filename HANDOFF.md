@@ -102,12 +102,12 @@ Q1–Q19 (Rolf's: Q6, Q12, Q13 confirm, Q15, Q17, Q18, Q19). Outside those:
    parts are unbought; Rolf's purchase.
 2. WP8 Stage B shell (order 2 files) — open because it takes Rolf's
    packing pick (Q15), the cell answer (Q18) and WP7a's coordinates.
-3. Wiki file-back of rounds 1 and 2 — open because the vault
-   (`~/Documents/obsidian/rolfiersbox`, page `Wiki/projects/Elicio.md`)
-   holds the plan as of 2026-09-16 and not Q1–Q19 or the order 1 status;
-   the coordinator does it in one `vault run` while round 3 runs.
-4. Order 1 itself — open because it needs Rolf's render approval and his M1.
-5. `docs/fab/L2-vendors.md` says no bureau prints conductive TPU, later
+3. Order 1 itself — open because it needs Rolf's render approval and his M1.
+   The vault (`~/Documents/obsidian/rolfiersbox`, page
+   `Wiki/projects/Elicio.md`) has rounds 1 and 2 and seven questions for
+   Rolf in its Open questions form as of 2026-09-17; round 3 is not filed
+   back yet.
+4. `docs/fab/L2-vendors.md` says no bureau prints conductive TPU, later
    found wrong — open because nobody has corrected the lane report; low
    priority, the plan does not use conductive TPU.
 
