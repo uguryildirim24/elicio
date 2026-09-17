@@ -32,9 +32,16 @@ Manifest schema (WP3 may extend this file; keep these keys):
 ``interference`` (object)
     CAD overlap volume of the seated lid and body, mm^3.
 ``span`` (object)
-    BODY_THICK + dome crown versus M3.
+    Per body: BODY_THICK + dome crown versus M3.
+``walls`` (object)
+    Each enclosing wall from the geometry; all ≥ 1.0.
+``contact_stack`` (object)
+    Reserved stack at nominal wall and at wall +0.3 (MJF tolerance).
+``keepout_clearance`` (object)
+    Body-frame gap from each KEEPOUT_SIGNAL Ø7.1 to the pads, rib, walls.
 ``checks`` (list)
-    Each check name, pass/fail, and the numbers used.
+    Each check name, pass/fail, and the numbers used. The export stops on
+    the first failure, so a written manifest lists passes only.
 ``files`` (object)
     Relative file name → ``{sha256, bytes}``.
 ``quantities`` (object)
@@ -512,104 +519,191 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+# Plan §3.6 fit table: (pair, type, nominal, adverse). The script derives
+# each nominal from the feature constants and fails if it drifts.
+PLAN_FITS = (
+    ("plate underside : recess floor", "seating", 0.0, None),
+    ("lip inner face : top face, s", "compliant, one-sided", 0.2, (-0.4, 0.8)),
+    ("bump tip : groove bottom, s", "compliant, one-sided", 0.2, (-0.4, 0.8)),
+    ("bump engagement into groove, s", "retention", 0.3, (-0.3, 0.9)),
+    ("bump 0.6 : groove 1.0, y", "rigid, total", 0.4, (-0.2, 1.0)),
+    ("tongue 0.5 : slot 0.9, y", "rigid, total", 0.4, (-0.2, 1.0)),
+    ("tongue tip : slot end, s", "rigid, one-sided", 0.4, (-0.2, 1.0)),
+    ("web 0.8 : pocket 1.4, s", "rigid, total", 0.6, (0.0, 1.2)),
+    ("web bottom : pocket floor, y", "rigid, one-sided", 0.4, (-0.2, 1.0)),
+    ("nub : side wall, u", "rigid, one-sided", 0.4, (-0.2, 1.0)),
+)
+PART_TOLERANCE = 0.3  # ±0.3 per part, plan §3.6; a pair moves by 2 × 0.3
+LID_TONGUE_Y_OFF = (-0.8, -0.3)
+LID_WEB_Y_OFF = (-0.8, 0.0)
+# Contact stack reservation, plan §3.3 CONTACT_STACK and §4.
+SCREW_LENGTH = 4.0
+STACK_LUG = 0.5
+STACK_NUT = 1.6
+STACK_KAPTON = 0.13
+KEEPOUT_SIGNAL_DIA = 7.1
+KEEPOUT_TOP_Y = 4.13
+BOARD_UNDERSIDE_Y = 4.3
+COUPON_RIB = (0.4, 3.0, 12.0)  # thickness, height above the plate, length
+
+
+def fit_nominals(params: Mapping[str, Any]) -> dict[str, float]:
+    """Nominal clearance of each §3.6 pair, from the feature constants."""
+    lip_y0_off = float(params["LID_THICK"]) - LIP_LENGTH  # lip bottom − LID_Y
+    bump_y = (lip_y0_off, lip_y0_off + BUMP_TALL)
+    tongue_u0 = (TONGUE_SLOT_U[0] + TONGUE_SLOT_U[1] - LID_TONGUE_WIDTH) / 2.0
+    return {
+        "plate underside : recess floor": 0.0,
+        "lip inner face : top face, s": 0.0 - LIP_S[1],
+        "bump tip : groove bottom, s": GROOVE_S[1] - (LIP_S[1] + BUMP_OUT),
+        "bump engagement into groove, s": (LIP_S[1] + BUMP_OUT) - GROOVE_S[0],
+        "bump 0.6 : groove 1.0, y": (GROOVE_Y_OFF[1] - GROOVE_Y_OFF[0]) - (bump_y[1] - bump_y[0]),
+        "tongue 0.5 : slot 0.9, y": (TONGUE_SLOT_Y_OFF[1] - TONGUE_SLOT_Y_OFF[0])
+        - (LID_TONGUE_Y_OFF[1] - LID_TONGUE_Y_OFF[0]),
+        "tongue tip : slot end, s": TONGUE_SLOT_S[1] - LID_TONGUE_S[1],
+        "web 0.8 : pocket 1.4, s": (WEB_POCKET_S[1] - WEB_POCKET_S[0]) - (LID_WEB_S[1] - LID_WEB_S[0]),
+        "web bottom : pocket floor, y": LID_WEB_Y_OFF[0] - WEB_POCKET_Y_OFF[0],
+        "nub : side wall, u": min(NUB_U[0][0] - CAVITY_U[0], CAVITY_U[1] - NUB_U[1][1]),
+        "_bump_inside_groove_y": min(bump_y[0] - GROOVE_Y_OFF[0], GROOVE_Y_OFF[1] - bump_y[1]),
+        "_tongue_inside_slot_u": min(tongue_u0 - TONGUE_SLOT_U[0], TONGUE_SLOT_U[1] - tongue_u0 - LID_TONGUE_WIDTH),
+    }
+
+
 def fit_table(params: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """§3.6 pairs. Numbers come from the parameter intervals."""
-    return [
-        {
-            "pair": "plate underside : recess floor",
-            "type": "seating",
-            "nominal": 0.0,
-            "adverse": None,
-        },
-        {
-            "pair": "lip inner face : top face, s",
-            "type": "compliant, one-sided",
-            "nominal": 0.2,
-            "adverse": [-0.4, 0.8],
-        },
-        {
-            "pair": "bump tip : groove bottom, s",
-            "type": "compliant, one-sided",
-            "nominal": 0.2,
-            "adverse": [-0.4, 0.8],
-        },
-        {
-            "pair": "bump engagement into groove, s",
-            "type": "retention",
-            "nominal": 0.3,
-            "adverse": [-0.3, 0.9],
-        },
-        {
-            "pair": "bump 0.6 : groove 1.0, y",
-            "type": "rigid, total",
-            "nominal": 0.4,
-            "adverse": [-0.2, 1.0],
-        },
-        {
-            "pair": "tongue 0.5 : slot 0.9, y",
-            "type": "rigid, total",
-            "nominal": 0.4,
-            "adverse": [-0.2, 1.0],
-        },
-        {
-            "pair": "tongue tip : slot end, s",
-            "type": "rigid, one-sided",
-            "nominal": 0.4,
-            "adverse": [-0.2, 1.0],
-        },
-        {
-            "pair": "web 0.8 : pocket 1.4, s",
-            "type": "rigid, total",
-            "nominal": 0.6,
-            "adverse": [0.0, 1.2],
-        },
-        {
-            "pair": "web bottom : pocket floor, y",
-            "type": "rigid, one-sided",
-            "nominal": 0.4,
-            "adverse": [-0.2, 1.0],
-        },
-        {
-            "pair": "nub : side wall, u",
-            "type": "rigid, one-sided",
-            "nominal": 0.4,
-            "adverse": [-0.2, 1.0],
-        },
-    ]
+    """§3.6 pairs with the nominal derived from geometry, adverse at ±0.3 per part."""
+    derived = fit_nominals(params)
+    rows = []
+    for pair, kind, _plan_nominal, plan_adverse in PLAN_FITS:
+        nominal = round(derived[pair], 6)
+        adverse = (
+            None
+            if plan_adverse is None
+            else [round(nominal - 2 * PART_TOLERANCE, 6), round(nominal + 2 * PART_TOLERANCE, 6)]
+        )
+        rows.append({"pair": pair, "type": kind, "nominal": nominal, "adverse": adverse})
+    return rows
+
+
+def wall_sizes(params: Mapping[str, Any]) -> dict[str, float]:
+    """Enclosing walls from the geometry, each held to ≥ 1.0 (plan §3.6)."""
+    lid_y = float(params["BODY_THICK"]) - float(params["LID_THICK"])
+    return {
+        "floor (WALL_MEDIAL)": float(params["WALL_MEDIAL"]),
+        "anterior side wall": CAVITY_U[0],
+        "posterior side wall": float(params["BODY_WIDTH"]) - CAVITY_U[1],
+        "top end wall": CAVITY_S[0],
+        "top end wall at LIP_GROOVE": CAVITY_S[0] - GROOVE_S[1],
+        "lip above TONGUE_SLOT": float(params["BODY_THICK"]) - (lid_y + TONGUE_SLOT_Y_OFF[1]),
+        "tail below TONGUE_SLOT": lid_y + TONGUE_SLOT_Y_OFF[0],
+        "tail below web pocket": lid_y + WEB_POCKET_Y_OFF[0],
+        "lid plate": float(params["LID_THICK"]),
+        "hook": float(params["HOOK_DIA"]),
+    }
 
 
 def exceptions_block(params: Mapping[str, Any]) -> dict[str, Any]:
+    """E1–E5 sizes from the feature constants; minima from plan §3.6."""
     return {
         "E1": {
             "feature": "tongue",
-            "size": 0.5,
+            "size": round(LID_TONGUE_Y_OFF[1] - LID_TONGUE_Y_OFF[0], 6),
+            "plan_size": 0.5,
             "minimum": 0.4,
-            "note": "fitted",
+            "note": "minimum fitted",
         },
         "E2": {
             "feature": "rib",
-            "size": RIB_S[1] - RIB_S[0],
+            "size": round(RIB_S[1] - RIB_S[0], 6),
+            "plan_size": 0.8,
             "minimum": 0.8,
             "note": "locating only",
         },
         "E3": {
             "feature": "nubs",
             "size": NUB,
+            "plan_size": 0.8,
             "minimum": 0.6,
         },
         "E4": {
             "feature": "coupon rib",
-            "size": 0.4,
+            "size": COUPON_RIB[0],
+            "plan_size": 0.4,
             "minimum": 0.4,
             "note": "measurement",
         },
         "E5": {
             "feature": "lip cantilever / bump",
-            "size": {"lip": 1.0, "bump": BUMP_OUT},
+            "size": {"lip": round(LIP_S[1] - LIP_S[0], 6), "bump": BUMP_OUT},
+            "plan_size": {"lip": 1.0, "bump": 0.5},
             "minimum": {"lip": 1.0, "bump": 0.2},
             "note": "below JLC 1.5; fitted bump ≥ 0.2",
         },
     }
+
+
+def contact_stack(params: Mapping[str, Any], wall_extra: float = 0.0) -> dict[str, float]:
+    """Stack above the floor. The screw tip sits at y = SCREW_LENGTH whatever
+    the wall; the nut top sits at wall + lug + nut. The higher one, plus
+    Kapton, is the stack top (plan §3.3 CONTACT_STACK, §4)."""
+    wall = float(params["WALL_MEDIAL"]) + wall_extra
+    nut_top = wall + STACK_LUG + STACK_NUT
+    metal_top = max(SCREW_LENGTH, nut_top)
+    return {
+        "wall": wall,
+        "lug": STACK_LUG,
+        "nut": STACK_NUT,
+        "tip_past_nut": SCREW_LENGTH - nut_top,
+        "kapton": STACK_KAPTON,
+        "height_above_floor": metal_top + STACK_KAPTON - wall,
+        "top_y": metal_top + STACK_KAPTON,
+    }
+
+
+def keepout_clearances(params: Mapping[str, Any], path: PathGeom) -> dict[str, float]:
+    """Body-frame gap from each KEEPOUT_SIGNAL cylinder to the pads, rib and
+    cavity walls (plan §3.3 CONTACT_1 note; interface v1 §6.1: 0.09 mm in
+    (u, s) at the superior low-u pad)."""
+    radius = KEEPOUT_SIGNAL_DIA / 2.0
+
+    def xz(u: float, s: float) -> tuple[float, float]:
+        x, _y, z = p_xyz(path, u, s, 0.0)
+        return x, z
+
+    def gap_to_patch(cu: float, cs: float, u0: float, u1: float, s0: float, s1: float) -> float:
+        cx, cz = xz(cu, cs)
+        best = math.inf
+        n = 60
+        for i in range(n + 1):
+            for u, s in (
+                (u0 + (u1 - u0) * i / n, s0),
+                (u0 + (u1 - u0) * i / n, s1),
+                (u0, s0 + (s1 - s0) * i / n),
+                (u1, s0 + (s1 - s0) * i / n),
+            ):
+                px, pz = xz(u, s)
+                best = min(best, math.hypot(px - cx, pz - cz))
+        return best - radius
+
+    contacts = {
+        "CONTACT_1": CONTACT_1,
+        "CONTACT_2": (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"])),
+    }
+    pads = {
+        "superior low-u pad": (CAVITY_U[0], CAVITY_U[0] + PAD_SIZE, BOARD_S[0], BOARD_S[0] + PAD_SIZE),
+        "superior high-u pad": (CAVITY_U[1] - PAD_SIZE, CAVITY_U[1], BOARD_S[0], BOARD_S[0] + PAD_SIZE),
+        "inferior low-u pad": (CAVITY_U[0], CAVITY_U[0] + PAD_SIZE, BOARD_S[1] - PAD_SIZE, BOARD_S[1]),
+        "inferior high-u pad": (CAVITY_U[1] - PAD_SIZE, CAVITY_U[1], BOARD_S[1] - PAD_SIZE, BOARD_S[1]),
+        "rib": (CAVITY_U[0], CAVITY_U[1], RIB_S[0], RIB_S[1]),
+    }
+    out: dict[str, float] = {}
+    for cname, (cu, cs) in contacts.items():
+        for pname, (u0, u1, s0, s1) in pads.items():
+            out[f"{cname} to {pname}"] = gap_to_patch(cu, cs, u0, u1, s0, s1)
+        # Walls: offset-path distance is exact in u; the end wall is a radial line.
+        out[f"{cname} to anterior wall"] = (cu - radius) - CAVITY_U[0]
+        out[f"{cname} to posterior wall"] = CAVITY_U[1] - (cu + radius)
+        out[f"{cname} to cavity end"] = gap_to_patch(cu, cs, CAVITY_U[0], CAVITY_U[1], CAVITY_S[1], CAVITY_S[1])
+    return out
 
 
 def assert_override_matrix(overrides: Mapping[str, Any]) -> None:
@@ -681,22 +775,64 @@ def run_pre_cad_checks(params: Mapping[str, Any]) -> list[Check]:
         M8=float(params["M8"]),
         limit=limit,
     )
-    for wall_name in ("WALL_MEDIAL", "WALL_SIDE", "WALL_END"):
-        value = float(params[wall_name])
-        record(wall_name, value + 1e-9 >= 1.0, "enclosing walls ≥ 1.0", **{wall_name: value})
+    for wall_name, value in wall_sizes(params).items():
+        record(
+            f"wall: {wall_name}",
+            value + 1e-9 >= 1.0,
+            "walls ≥ 1.0 (plan §3.6)",
+            size=round(value, 6),
+        )
+    for key, block in exceptions_block(params).items():
+        sizes = block["size"] if isinstance(block["size"], dict) else {"": block["size"]}
+        plans = block["plan_size"] if isinstance(block["plan_size"], dict) else {"": block["plan_size"]}
+        minima = block["minimum"] if isinstance(block["minimum"], dict) else {"": block["minimum"]}
+        for part, size in sizes.items():
+            name = f"{key}_{part}" if part else key
+            record(
+                name,
+                abs(size - plans[part]) < 1e-6 and size + 1e-9 >= minima[part],
+                f"{block['feature']} at its plan size and ≥ its minimum (plan §3.6)",
+                size=size,
+                plan_size=plans[part],
+                minimum=minima[part],
+            )
+    nominals = fit_nominals(params)
+    for pair, _kind, plan_nominal, _adverse in PLAN_FITS:
+        record(
+            f"fit: {pair}",
+            abs(nominals[pair] - plan_nominal) < 1e-6,
+            "nominal from geometry matches plan §3.6",
+            nominal=round(nominals[pair], 6),
+            plan=plan_nominal,
+        )
+    for inner in ("_bump_inside_groove_y", "_tongue_inside_slot_u"):
+        record(
+            f"fit: {inner.strip('_')}",
+            nominals[inner] > 0.0,
+            "mating feature sits inside its slot",
+            margin=round(nominals[inner], 6),
+        )
+    stack = contact_stack(params)
+    adverse = contact_stack(params, wall_extra=PART_TOLERANCE)
     record(
-        "HOOK_DIA",
-        float(params["HOOK_DIA"]) + 1e-9 >= 1.0,
-        "hook diameter ≥ 1.0",
-        HOOK_DIA=float(params["HOOK_DIA"]),
+        "CONTACT_STACK",
+        abs(stack["top_y"] - KEEPOUT_TOP_Y) < 1e-6
+        and stack["tip_past_nut"] >= 0.0
+        and adverse["top_y"] < BOARD_UNDERSIDE_Y,
+        "stack top at KEEPOUT_SIGNAL top 4.13, tip past the nut, below the board at wall +0.3",
+        top_y=round(stack["top_y"], 6),
+        tip_past_nut=round(stack["tip_past_nut"], 6),
+        top_y_wall_plus_0_3=round(adverse["top_y"], 6),
+        board_underside=BOARD_UNDERSIDE_Y,
     )
-    eblock = exceptions_block(params)
-    record("E1", eblock["E1"]["size"] + 1e-9 >= eblock["E1"]["minimum"], "tongue", size=0.5)
-    record("E2", eblock["E2"]["size"] + 1e-9 >= eblock["E2"]["minimum"], "rib", size=0.8)
-    record("E3", eblock["E3"]["size"] + 1e-9 >= eblock["E3"]["minimum"], "nubs", size=0.8)
-    record("E4", eblock["E4"]["size"] + 1e-9 >= eblock["E4"]["minimum"], "coupon rib", size=0.4)
-    record("E5_lip", 1.0 + 1e-9 >= 1.0, "lip cantilever", size=1.0)
-    record("E5_bump", BUMP_OUT + 1e-9 >= 0.2, "bump", size=BUMP_OUT)
+    path_now = make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
+    for name, gap in keepout_clearances(params, path_now).items():
+        record(
+            f"keep-out: {name}",
+            gap > 0.0,
+            "KEEPOUT_SIGNAL Ø7.1 clear of solid (body frame)",
+            gap=round(gap, 4),
+        )
     opening = wire_channel_opening(float(params["PATH_RADIUS"]))
     record(
         "WIRE_CHANNEL_opening",
@@ -1171,7 +1307,13 @@ def build_body_and_lid(
     tongue_u0 = (TONGUE_SLOT_U[0] + TONGUE_SLOT_U[1] - LID_TONGUE_WIDTH) / 2.0
     tongue_u1 = tongue_u0 + LID_TONGUE_WIDTH
     web = _path_solid(
-        path, tongue_u0, tongue_u1, LID_WEB_S[0], LID_WEB_S[1], lid_y - 0.8, lid_y
+        path,
+        tongue_u0,
+        tongue_u1,
+        LID_WEB_S[0],
+        LID_WEB_S[1],
+        lid_y + LID_WEB_Y_OFF[0],
+        lid_y + LID_WEB_Y_OFF[1],
     )
     tongue = _path_solid(
         path,
@@ -1179,8 +1321,8 @@ def build_body_and_lid(
         tongue_u1,
         LID_TONGUE_S[0],
         LID_TONGUE_S[1],
-        lid_y - 0.8,
-        lid_y - 0.3,
+        lid_y + LID_TONGUE_Y_OFF[0],
+        lid_y + LID_TONGUE_Y_OFF[1],
     )
     lid = lid.fuse(web).fuse(tongue)
     for u0, u1 in NUB_U:
@@ -1200,7 +1342,7 @@ def build_body_and_lid(
         lid = lid.fuse(letters)
         notes["emboss"] = label
     except Exception as exc:
-        notes["emboss"] = f"skipped: {exc}"
+        raise CheckFail(f"EMBOSS={label!r}: text did not build ({exc})") from exc
 
     body_solid = _one_solid(body, "body")
     lid_solid = _one_solid(lid, "lid")
@@ -1302,10 +1444,20 @@ def assemble_shell(
     return _one_solid(fused, "assembled_body"), _one_solid(lid_r, "assembled_lid")
 
 
-def contact_axes_ok(body: Solid, path: PathGeom, params: Mapping[str, Any]) -> bool:
-    """Caps/holes stand along −Y in the body frame (checked before rotate)."""
-    bbox = body.bounding_box()
-    return bbox.min.Y < -0.5  # mock caps protrude to −Y
+def contact_caps(body: Solid, path: PathGeom, params: Mapping[str, Any]) -> dict[str, bool]:
+    """Each mock dome stands along −y at its own P(u, s, 0): the point half a
+    crown below the face is solid, and a point just past the crown is air."""
+    out: dict[str, bool] = {}
+    for name, (u, s) in (
+        ("CONTACT_1", CONTACT_1),
+        ("CONTACT_2", (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))),
+        ("CONTACT_REF", CONTACT_REF),
+    ):
+        x, _y, z = p_xyz(path, float(u), float(s), 0.0)
+        inside = body.is_inside(Vector(x, -CONTACT_DOME_CROWN / 2.0, z))
+        beyond = body.is_inside(Vector(x, -CONTACT_DOME_CROWN - 0.1, z))
+        out[name] = bool(inside and not beyond)
+    return out
 
 
 def _normalize_3mf(path: Path, part: str) -> None:
@@ -1392,8 +1544,8 @@ def export_part(shape: Shape, dest: Path, part: str) -> dict[str, Any]:
 def stl_watertight(path: Path) -> bool:
     try:
         import trimesh
-    except ImportError:
-        return True
+    except ImportError as exc:
+        raise CheckFail("trimesh: not installed; STL watertight check cannot run") from exc
     # OCCT STL writers emit unwelded vertices. Merge them before the check.
     mesh = trimesh.load(path, force="mesh", process=True)
     return bool(getattr(mesh, "is_watertight", False))
@@ -1437,7 +1589,6 @@ def write_manifest(
         for bow in (1.0, 3.0, 8.0)
     }
     openings["clamped"] = wire_channel_opening(path.radius)
-    span = float(params["BODY_THICK"]) + CONTACT_DOME_CROWN
     payload = {
         "schema": 1,
         "hash_rule": (
@@ -1473,9 +1624,29 @@ def write_manifest(
             "unintended_nominal_overlap_fail": overlap > 0.05,
         },
         "span": {
-            "span": span,
-            "M3": params["M3"],
-            "pinna_displacement": max(0.0, span - float(params["M3"])),
+            name: {
+                "BODY_THICK": float(p["BODY_THICK"]),
+                "span": float(p["BODY_THICK"]) + CONTACT_DOME_CROWN,
+                "M3": float(p["M3"]),
+                "pinna_displacement": max(
+                    0.0, float(p["BODY_THICK"]) + CONTACT_DOME_CROWN - float(p["M3"])
+                ),
+            }
+            for name, p in params_by_part.items()
+            if name.startswith("body_")
+        },
+        "walls": {k: round(v, 6) for k, v in wall_sizes(params).items()},
+        "contact_stack": {
+            "nominal": {k: round(v, 6) for k, v in contact_stack(params).items()},
+            "wall_plus_0_3": {
+                k: round(v, 6)
+                for k, v in contact_stack(params, wall_extra=PART_TOLERANCE).items()
+            },
+            "keepout_top_y": KEEPOUT_TOP_Y,
+            "board_underside_y": BOARD_UNDERSIDE_Y,
+        },
+        "keepout_clearance": {
+            k: round(v, 4) for k, v in keepout_clearances(params, path).items()
         },
         "checks": [
             {
@@ -1559,9 +1730,15 @@ def build_and_export(
             raise CheckFail(
                 f"lid_body_overlap={overlap:.4f}: unintended nominal overlap"
             )
-        if params["MOCK_CONTACTS"] and not contact_axes_ok(body_bf, path, params):
-            raise CheckFail("contact axes: mock caps do not stand to −Y")
+        for contact, ok in contact_caps(body_bf, path, params).items():
+            if not ok:
+                raise CheckFail(f"contact axes: {name} {contact} dome does not stand to −y")
+            all_checks.append(Check(f"contact axis −y: {contact}", True, name, {}))
+        all_checks.append(
+            Check("lid/body interiors disjoint seated", True, name, {"overlap_mm3": overlap})
+        )
         assembled, lid_s = assemble_shell(body_bf, lid_bf, params, notes)
+        all_checks.append(Check("one connected solid", True, name, {}))
         exported = export_part(assembled, out_dir / name, name)
         files.update(exported)
         stl = out_dir / f"{name}.stl"
@@ -1588,17 +1765,21 @@ def build_and_export(
             _body, lid_bf, _path, notes = build_body_and_lid(params)
             _assembled, lid_shape = assemble_shell(_body, lid_bf, params, notes)
             notes_acc["lid"] = notes
+        all_checks.append(Check("one connected solid", True, "lid", {}))
         exported = export_part(lid_shape, out_dir / "lid", "lid")
         files.update(exported)
         if not stl_watertight(out_dir / "lid.stl"):
             raise CheckFail("lid: STL is not watertight")
+        all_checks.append(Check("watertight", True, "lid", {}))
 
     if "coupon" in wanted:
         coupon = build_coupon()
+        all_checks.append(Check("one connected solid", True, "coupon", {}))
         exported = export_part(coupon, out_dir / "coupon", "coupon")
         files.update(exported)
         if not stl_watertight(out_dir / "coupon.stl"):
             raise CheckFail("coupon: STL is not watertight")
+        all_checks.append(Check("watertight", True, "coupon", {}))
 
     if report_params:
         write_manifest(
