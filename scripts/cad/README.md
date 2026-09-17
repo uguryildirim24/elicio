@@ -54,7 +54,7 @@ The manifest `notes` record each of these per body:
 - Lip root fillet (§3.5 step 7): 0.2, not 0.5. Above the 0.2 lip-to-top-face gap the fillet overlaps the body's top edge when seated.
 - LID_EDGE 0.8 runs round the plate rim except the top edge at the lip end, which stays sharp so the lip keeps its full joint.
 
-The lid emboss uses the Arial font OCCT finds on this Mac. Another machine's font set can change the lid's bytes; regenerate hashes there before comparing.
+The lid emboss uses `fonts/LiberationSans-Regular.ttf` (SIL Open Font Licence 1.1, `fonts/OFL.txt`). It does not use Arial or any system font.
 
 ## Run the checks
 

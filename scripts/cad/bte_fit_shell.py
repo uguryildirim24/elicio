@@ -107,6 +107,7 @@ except ImportError:  # pragma: no cover - exercised by skip in tests
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[1]
 DEFAULT_PARAMS_PATH = SCRIPT_DIR / "params" / "default.toml"
+FONT_PATH = SCRIPT_DIR / "fonts" / "LiberationSans-Regular.ttf"
 STEP_TIMESTAMP = "2026-09-16T00:00:00Z"
 MESH_CHORD = 0.02
 MESH_ANGLE_RAD = math.radians(5.0)
@@ -1354,16 +1355,21 @@ def build_body_and_lid(
 
     label = emboss_label(params, list(params.get("_defaults_used", [])))
     try:
+        if not FONT_PATH.is_file():
+            raise CheckFail(f"emboss font missing: {FONT_PATH}")
         mid = _vec(path, width / 2.0, 28.0, lid_y)
         plane = Plane(
             origin=Vector(mid.X, lid_y, mid.Z),
             x_dir=Vector(0, 0, -1),
             y_dir=Vector(1, 0, 0),
         )
-        text = plane * Text(label, font_size=1.4, font="Arial")
+        text = plane * Text(label, font_size=1.4, font_path=str(FONT_PATH))
         letters = extrude(text, amount=EMBOSS)
         lid = lid.fuse(letters)
         notes["emboss"] = label
+        notes["emboss_font"] = FONT_PATH.name
+    except CheckFail:
+        raise
     except Exception as exc:
         raise CheckFail(f"EMBOSS={label!r}: text did not build ({exc})") from exc
 
