@@ -209,6 +209,13 @@ Budget discipline for the covert channels, using the existing floors:
 
 ## Fabrication without a 3D printer
 
+Superseded in part on 2026-09-16 by "Fabrication plan, 2026-09-16"
+below. Of the three routes recorded here, outsourced printing survived
+and is now JLCPCB (HP MJF PA12-HP), not a conductive-TPU bureau.
+Stainless contacts became titanium; conductive TPU remains available
+from Palmiga and is not chosen for Stage B. Hand-shaped PCL is dropped.
+The rest of this section is the 2026-08-13 record.
+
 Recorded 2026-08-13: the owner does not own a 3D printer. This changes
 nothing before Stage B, and Stage A is entirely unaffected because it is
 breadboard, modules, and gelled electrodes with no fabricated part in it.
@@ -241,6 +248,95 @@ a barometric channel.
 No printer purchase is warranted yet. Revisit only if Stage B proves the
 channel and contact geometry turns into a real iteration bottleneck.
 
+## Fabrication plan, 2026-09-16
+
+**The Stage B shell is a scripted nylon part, printed by JLCPCB.** CAD
+lives in build123d, headless, exporting native STEP from
+`scripts/cad/bte_fit_shell.py`. The print is JLC3DP HP MJF PA12-HP,
+natural grey, duties prepaid. Skin contacts are three titanium ISO 7380
+M2.5 button heads (4.7 mm domes), rigid through a 1.5 mm wall. The first
+order is a provisional passive fit gauge for Rolf's ear, not the
+electronics. Wear and purchase sit on release states S0 to S4. Nothing
+here buys anything: agents do not purchase, upload, quote, or contact a
+vendor. Purchases stay Rolf's explicit approval.
+
+`docs/fab/plan.md` is the Phase 1 contract (revision 5, signed off by
+GPT-6 Pro at commit `0c5d0eb`). The review record is `tasks/plan/turns/`.
+
+Skin side is PA12 and titanium. Cleaning is a 70 % isopropanol wipe
+after each wear. The pod runs on battery only: no connector, no port;
+charging is off the ear with the lid removed. Each contact reaches the
+board only through its own lead, series resistor, and clamp.
+
+### Conflicts resolved
+
+Each item below is one decision from the plan's §2, with the reason.
+
+1. **Battery.** The cell is a 501015, 50 mAh. Seven hours of streaming
+   covers a session. A 30 mm 100 mAh cell forces stacking past 10 mm,
+   and 110 mAh was a pricing box, not a fit.
+2. **Envelope.** The body is 48.4 × 17.0 × 9.0 mm plus hook, derived in
+   the plan's §5. L4's 16 × 9.5 mm islands cannot carry the 15.5 × 10.5
+   mm module; L2's box was for quoting; L1 assumed no contact hardware.
+   Thickness 9.0 mm is a design value until WP6 confirms packing.
+3. **Contact metal.** Titanium only. The brief and this record require
+   nickel-free skin contacts; 316L is 10–14 % nickel, and gold flash over
+   nickel wears through. Changing requirement 5 is Rolf's, outside the
+   plan.
+4. **Contact size.** ISO 7380 M2.5, 4.7 mm dome. Other sizes are an
+   interface v2 change. Over 4.7 mm the exploratory pressure is 17–23
+   kPa; every millimetre of nut keep-out costs body length.
+5. **Conductive TPU.** Titanium is primary. Palmiga still prints
+   conductive TPU on request; it is a conditional alternative, not the
+   Stage B contact. Titanium wins on assembly, small area, and no third
+   supplier.
+6. **Lid closure.** An external snap lip at the top, a tongue with web
+   at the tail tip, and two nubs. Nothing sits inside the cavity. Tape
+   is the passive fallback. The first lid is the snap test article.
+7. **Gauge material.** MJF PA12, same as order 2. The gauge spends hours
+   on skin, so resin is out.
+8. **Montage.** Signal pair at 22° off the body axis, 12 mm pitch;
+   reference on the tail over the mastoid surface. WP7a fixes positions.
+   A 17 mm face cannot hold a horizontal pair, and the mastoid tip sits
+   beyond any behind-the-ear body.
+9. **Contact count.** Three. Clench is three to five times a flex on the
+   same pair, so five contacts are not required for confirmation.
+10. **Suspension.** Rigid mount, hook preload 1.5 mm. A floating stud
+    plus foam does not fit under the board. Force is measured at the
+    active gate.
+11. **Ear capture.** A generic shell from caliper numbers M1–M8, each
+    with a default; defaults only give a provisional gauge. An impression
+    waits for Stage C. The gauge costs about $40 and tests the real ear.
+12. **Shipping.** Standard DDP for order 1, DHL for order 2. Order 1 is
+    not on the critical path.
+13. **Shells and PCB.** Separate parcels. They are different tariff
+    lines.
+14. **Hook.** PA12, one piece with the body. One material; preload is
+    measured in WP4.
+15. **Gasket.** None. This is a prototype.
+16. **Charging.** No port. Pads sit inside the closed cavity; the lid
+    comes off to charge. Pad placement is not a mechanical interlock.
+17. **Short ears.** This release rejects M1 below the chord gate (about
+    51 mm). A second hook-tip branch needs its own schedule and closure;
+    it is an interface v2 item, not a silent shrink.
+
+Order 1 is the provisional gauge set, allowance $30–44 with standard
+shipping. Order 2 is two Stage B bodies, verified titanium hardware, and
+a nickel test kit, allowance about $130, after the §9 gates.
+
+### Release states
+
+| State | Allowed | Entry requires |
+| --- | --- | --- |
+| S0 gauge | Passive wear per the plan's §3.7 | Rolf's approval of the renders; order 1 checkout gate |
+| S1 order 2 | Purchase of shells and hardware | WP5 verified spec; interface v2 accepted; WP7a coordinates and frozen protocol; §3.7 re-run for any changed input; closure test result |
+| S2 assembled | Bench only | Reviewed schematic with three separately protected paths; assembled inspection; battery-powered leakage and continuity check; DMG screen |
+| S3 validation wear | Only the sessions WP7a prescribes, at most 4 h per day | S2 pass; protocol unchanged since S1 |
+| S4 routine use | Daily wear; decoder mapping promotion per this record | All WP7a criteria pass, including three days and background activities |
+
+Fail at S3 returns to S2. Changed contacts, coordinates, or shell void
+the affected S0 and S3 observations.
+
 ## Open questions
 
 1. ~~Does the owner's voluntary auricular control include each ear
@@ -251,8 +347,16 @@ channel and contact geometry turns into a real iteration bottleneck.
    distinctions the owner can produce.
 2. Can the owner produce a tensor tympani rumble at all? Stage C answers
    this with the pressure sensor if self-testing stays inconclusive.
-3. Exact microcontroller and ADC for Stage B (the bench stage is
-   deliberately module-based and forgiving).
-4. Dry-electrode contact geometry behind the ear, where skin curvature
+3. ~~Exact microcontroller and ADC for Stage B (the bench stage is
+   deliberately module-based and forgiving).~~ Pointed 2026-09-16: L4
+   (`docs/fab/L4-pod.md`) picks the Raytac MDBT50Q-1MV2 (nRF52840) for
+   the custom board and the TI ADS1292 as the front-end ADC. Envelope,
+   keep-outs, and packing live in the interface (`docs/fab/interface.md`,
+   WP1 then WP6). The board itself stays out of the shell plan.
+4. ~~Dry-electrode contact geometry behind the ear, where skin curvature
    is tighter than the forearm geometries in the cited papers. Constrained
-   by the fabrication route chosen below.
+   by the fabrication route chosen below.~~ Answered 2026-09-16 by the
+   fabrication plan §3.3 and §4: three ISO 7380 M2.5 titanium button
+   heads (4.7 mm domes), pair at 22° off the body axis at 12 mm pitch,
+   reference in the tail over the mastoid surface. Final coordinates
+   wait on the WP7a montage test.
