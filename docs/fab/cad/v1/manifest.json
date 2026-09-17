@@ -48,82 +48,387 @@
       "passed": true
     },
     {
-      "detail": "enclosing walls \u2265 1.0",
-      "name": "WALL_MEDIAL",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: floor (WALL_MEDIAL)",
       "numbers": {
-        "WALL_MEDIAL": 1.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "enclosing walls \u2265 1.0",
-      "name": "WALL_SIDE",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: anterior side wall",
       "numbers": {
-        "WALL_SIDE": 1.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "enclosing walls \u2265 1.0",
-      "name": "WALL_END",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: posterior side wall",
       "numbers": {
-        "WALL_END": 1.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "hook diameter \u2265 1.0",
-      "name": "HOOK_DIA",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: top end wall",
       "numbers": {
-        "HOOK_DIA": 3.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "tongue",
-      "name": "E1",
-      "numbers": {
-        "size": 0.5
-      },
-      "passed": true
-    },
-    {
-      "detail": "rib",
-      "name": "E2",
-      "numbers": {
-        "size": 0.8
-      },
-      "passed": true
-    },
-    {
-      "detail": "nubs",
-      "name": "E3",
-      "numbers": {
-        "size": 0.8
-      },
-      "passed": true
-    },
-    {
-      "detail": "coupon rib",
-      "name": "E4",
-      "numbers": {
-        "size": 0.4
-      },
-      "passed": true
-    },
-    {
-      "detail": "lip cantilever",
-      "name": "E5_lip",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: top end wall at LIP_GROOVE",
       "numbers": {
         "size": 1.0
       },
       "passed": true
     },
     {
-      "detail": "bump",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: lip above TONGUE_SLOT",
+      "numbers": {
+        "size": 1.1
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: tail below TONGUE_SLOT",
+      "numbers": {
+        "size": 7.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: tail below web pocket",
+      "numbers": {
+        "size": 6.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: lid plate",
+      "numbers": {
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: hook",
+      "numbers": {
+        "size": 3.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "tongue at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E1",
+      "numbers": {
+        "minimum": 0.4,
+        "plan_size": 0.5,
+        "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "rib at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E2",
+      "numbers": {
+        "minimum": 0.8,
+        "plan_size": 0.8,
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "nubs at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E3",
+      "numbers": {
+        "minimum": 0.6,
+        "plan_size": 0.8,
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "coupon rib at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E4",
+      "numbers": {
+        "minimum": 0.4,
+        "plan_size": 0.4,
+        "size": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "lip cantilever / bump at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E5_lip",
+      "numbers": {
+        "minimum": 1.0,
+        "plan_size": 1.0,
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "lip cantilever / bump at its plan size and \u2265 its minimum (plan \u00a73.6)",
       "name": "E5_bump",
       "numbers": {
+        "minimum": 0.2,
+        "plan_size": 0.5,
         "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: plate underside : recess floor",
+      "numbers": {
+        "nominal": 0.0,
+        "plan": 0.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: lip inner face : top face, s",
+      "numbers": {
+        "nominal": 0.2,
+        "plan": 0.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: bump tip : groove bottom, s",
+      "numbers": {
+        "nominal": 0.2,
+        "plan": 0.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: bump engagement into groove, s",
+      "numbers": {
+        "nominal": 0.3,
+        "plan": 0.3
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: bump 0.6 : groove 1.0, y",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: tongue 0.5 : slot 0.9, y",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: tongue tip : slot end, s",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: web 0.8 : pocket 1.4, s",
+      "numbers": {
+        "nominal": 0.6,
+        "plan": 0.6
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: web bottom : pocket floor, y",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: nub : side wall, u",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "mating feature sits inside its slot",
+      "name": "fit: bump_inside_groove_y",
+      "numbers": {
+        "margin": 0.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "mating feature sits inside its slot",
+      "name": "fit: tongue_inside_slot_u",
+      "numbers": {
+        "margin": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "stack top at KEEPOUT_SIGNAL top 4.13, tip past the nut, below the board at wall +0.3",
+      "name": "CONTACT_STACK",
+      "numbers": {
+        "board_underside": 4.3,
+        "tip_past_nut": 0.4,
+        "top_y": 4.13,
+        "top_y_wall_plus_0_3": 4.13
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to superior low-u pad",
+      "numbers": {
+        "gap": 0.1517
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to superior high-u pad",
+      "numbers": {
+        "gap": 4.9048
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to inferior low-u pad",
+      "numbers": {
+        "gap": 11.7715
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to inferior high-u pad",
+      "numbers": {
+        "gap": 14.2495
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to rib",
+      "numbers": {
+        "gap": 0.3754
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to anterior wall",
+      "numbers": {
+        "gap": 0.85
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to posterior wall",
+      "numbers": {
+        "gap": 6.05
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to cavity end",
+      "numbers": {
+        "gap": 13.5548
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to superior low-u pad",
+      "numbers": {
+        "gap": 12.4826
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to superior high-u pad",
+      "numbers": {
+        "gap": 11.8638
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to inferior low-u pad",
+      "numbers": {
+        "gap": 4.6305
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to inferior high-u pad",
+      "numbers": {
+        "gap": 1.6045
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to rib",
+      "numbers": {
+        "gap": 12.7998
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to anterior wall",
+      "numbers": {
+        "gap": 5.3453
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to posterior wall",
+      "numbers": {
+        "gap": 1.5547
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to cavity end",
+      "numbers": {
+        "gap": 2.0656
       },
       "passed": true
     },
@@ -161,6 +466,38 @@
         "CREASE_BOW": 8.0,
         "physical_opening": 0.5372829739143715
       },
+      "passed": true
+    },
+    {
+      "detail": "body_full_p15",
+      "name": "contact axis \u2212y: CONTACT_1",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_full_p15",
+      "name": "contact axis \u2212y: CONTACT_2",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_full_p15",
+      "name": "contact axis \u2212y: CONTACT_REF",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_full_p15",
+      "name": "lid/body interiors disjoint seated",
+      "numbers": {
+        "overlap_mm3": 0.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "body_full_p15",
+      "name": "one connected solid",
+      "numbers": {},
       "passed": true
     },
     {
@@ -219,82 +556,387 @@
       "passed": true
     },
     {
-      "detail": "enclosing walls \u2265 1.0",
-      "name": "WALL_MEDIAL",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: floor (WALL_MEDIAL)",
       "numbers": {
-        "WALL_MEDIAL": 1.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "enclosing walls \u2265 1.0",
-      "name": "WALL_SIDE",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: anterior side wall",
       "numbers": {
-        "WALL_SIDE": 1.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "enclosing walls \u2265 1.0",
-      "name": "WALL_END",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: posterior side wall",
       "numbers": {
-        "WALL_END": 1.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "hook diameter \u2265 1.0",
-      "name": "HOOK_DIA",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: top end wall",
       "numbers": {
-        "HOOK_DIA": 3.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "tongue",
-      "name": "E1",
-      "numbers": {
-        "size": 0.5
-      },
-      "passed": true
-    },
-    {
-      "detail": "rib",
-      "name": "E2",
-      "numbers": {
-        "size": 0.8
-      },
-      "passed": true
-    },
-    {
-      "detail": "nubs",
-      "name": "E3",
-      "numbers": {
-        "size": 0.8
-      },
-      "passed": true
-    },
-    {
-      "detail": "coupon rib",
-      "name": "E4",
-      "numbers": {
-        "size": 0.4
-      },
-      "passed": true
-    },
-    {
-      "detail": "lip cantilever",
-      "name": "E5_lip",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: top end wall at LIP_GROOVE",
       "numbers": {
         "size": 1.0
       },
       "passed": true
     },
     {
-      "detail": "bump",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: lip above TONGUE_SLOT",
+      "numbers": {
+        "size": 1.1
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: tail below TONGUE_SLOT",
+      "numbers": {
+        "size": 5.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: tail below web pocket",
+      "numbers": {
+        "size": 4.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: lid plate",
+      "numbers": {
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: hook",
+      "numbers": {
+        "size": 3.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "tongue at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E1",
+      "numbers": {
+        "minimum": 0.4,
+        "plan_size": 0.5,
+        "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "rib at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E2",
+      "numbers": {
+        "minimum": 0.8,
+        "plan_size": 0.8,
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "nubs at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E3",
+      "numbers": {
+        "minimum": 0.6,
+        "plan_size": 0.8,
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "coupon rib at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E4",
+      "numbers": {
+        "minimum": 0.4,
+        "plan_size": 0.4,
+        "size": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "lip cantilever / bump at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E5_lip",
+      "numbers": {
+        "minimum": 1.0,
+        "plan_size": 1.0,
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "lip cantilever / bump at its plan size and \u2265 its minimum (plan \u00a73.6)",
       "name": "E5_bump",
       "numbers": {
+        "minimum": 0.2,
+        "plan_size": 0.5,
         "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: plate underside : recess floor",
+      "numbers": {
+        "nominal": 0.0,
+        "plan": 0.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: lip inner face : top face, s",
+      "numbers": {
+        "nominal": 0.2,
+        "plan": 0.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: bump tip : groove bottom, s",
+      "numbers": {
+        "nominal": 0.2,
+        "plan": 0.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: bump engagement into groove, s",
+      "numbers": {
+        "nominal": 0.3,
+        "plan": 0.3
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: bump 0.6 : groove 1.0, y",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: tongue 0.5 : slot 0.9, y",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: tongue tip : slot end, s",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: web 0.8 : pocket 1.4, s",
+      "numbers": {
+        "nominal": 0.6,
+        "plan": 0.6
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: web bottom : pocket floor, y",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: nub : side wall, u",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "mating feature sits inside its slot",
+      "name": "fit: bump_inside_groove_y",
+      "numbers": {
+        "margin": 0.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "mating feature sits inside its slot",
+      "name": "fit: tongue_inside_slot_u",
+      "numbers": {
+        "margin": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "stack top at KEEPOUT_SIGNAL top 4.13, tip past the nut, below the board at wall +0.3",
+      "name": "CONTACT_STACK",
+      "numbers": {
+        "board_underside": 4.3,
+        "tip_past_nut": 0.4,
+        "top_y": 4.13,
+        "top_y_wall_plus_0_3": 4.13
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to superior low-u pad",
+      "numbers": {
+        "gap": 0.1517
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to superior high-u pad",
+      "numbers": {
+        "gap": 4.9048
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to inferior low-u pad",
+      "numbers": {
+        "gap": 11.7715
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to inferior high-u pad",
+      "numbers": {
+        "gap": 14.2495
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to rib",
+      "numbers": {
+        "gap": 0.3754
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to anterior wall",
+      "numbers": {
+        "gap": 0.85
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to posterior wall",
+      "numbers": {
+        "gap": 6.05
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to cavity end",
+      "numbers": {
+        "gap": 13.5548
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to superior low-u pad",
+      "numbers": {
+        "gap": 12.4826
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to superior high-u pad",
+      "numbers": {
+        "gap": 11.8638
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to inferior low-u pad",
+      "numbers": {
+        "gap": 4.6305
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to inferior high-u pad",
+      "numbers": {
+        "gap": 1.6045
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to rib",
+      "numbers": {
+        "gap": 12.7998
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to anterior wall",
+      "numbers": {
+        "gap": 5.3453
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to posterior wall",
+      "numbers": {
+        "gap": 1.5547
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to cavity end",
+      "numbers": {
+        "gap": 2.0656
       },
       "passed": true
     },
@@ -332,6 +974,38 @@
         "CREASE_BOW": 8.0,
         "physical_opening": 0.5372829739143715
       },
+      "passed": true
+    },
+    {
+      "detail": "body_thin_p15",
+      "name": "contact axis \u2212y: CONTACT_1",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_thin_p15",
+      "name": "contact axis \u2212y: CONTACT_2",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_thin_p15",
+      "name": "contact axis \u2212y: CONTACT_REF",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_thin_p15",
+      "name": "lid/body interiors disjoint seated",
+      "numbers": {
+        "overlap_mm3": 0.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "body_thin_p15",
+      "name": "one connected solid",
+      "numbers": {},
       "passed": true
     },
     {
@@ -390,82 +1064,387 @@
       "passed": true
     },
     {
-      "detail": "enclosing walls \u2265 1.0",
-      "name": "WALL_MEDIAL",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: floor (WALL_MEDIAL)",
       "numbers": {
-        "WALL_MEDIAL": 1.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "enclosing walls \u2265 1.0",
-      "name": "WALL_SIDE",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: anterior side wall",
       "numbers": {
-        "WALL_SIDE": 1.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "enclosing walls \u2265 1.0",
-      "name": "WALL_END",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: posterior side wall",
       "numbers": {
-        "WALL_END": 1.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "hook diameter \u2265 1.0",
-      "name": "HOOK_DIA",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: top end wall",
       "numbers": {
-        "HOOK_DIA": 3.5
+        "size": 1.5
       },
       "passed": true
     },
     {
-      "detail": "tongue",
-      "name": "E1",
-      "numbers": {
-        "size": 0.5
-      },
-      "passed": true
-    },
-    {
-      "detail": "rib",
-      "name": "E2",
-      "numbers": {
-        "size": 0.8
-      },
-      "passed": true
-    },
-    {
-      "detail": "nubs",
-      "name": "E3",
-      "numbers": {
-        "size": 0.8
-      },
-      "passed": true
-    },
-    {
-      "detail": "coupon rib",
-      "name": "E4",
-      "numbers": {
-        "size": 0.4
-      },
-      "passed": true
-    },
-    {
-      "detail": "lip cantilever",
-      "name": "E5_lip",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: top end wall at LIP_GROOVE",
       "numbers": {
         "size": 1.0
       },
       "passed": true
     },
     {
-      "detail": "bump",
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: lip above TONGUE_SLOT",
+      "numbers": {
+        "size": 1.1
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: tail below TONGUE_SLOT",
+      "numbers": {
+        "size": 7.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: tail below web pocket",
+      "numbers": {
+        "size": 6.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: lid plate",
+      "numbers": {
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: hook",
+      "numbers": {
+        "size": 3.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "tongue at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E1",
+      "numbers": {
+        "minimum": 0.4,
+        "plan_size": 0.5,
+        "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "rib at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E2",
+      "numbers": {
+        "minimum": 0.8,
+        "plan_size": 0.8,
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "nubs at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E3",
+      "numbers": {
+        "minimum": 0.6,
+        "plan_size": 0.8,
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "coupon rib at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E4",
+      "numbers": {
+        "minimum": 0.4,
+        "plan_size": 0.4,
+        "size": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "lip cantilever / bump at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E5_lip",
+      "numbers": {
+        "minimum": 1.0,
+        "plan_size": 1.0,
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "lip cantilever / bump at its plan size and \u2265 its minimum (plan \u00a73.6)",
       "name": "E5_bump",
       "numbers": {
+        "minimum": 0.2,
+        "plan_size": 0.5,
         "size": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: plate underside : recess floor",
+      "numbers": {
+        "nominal": 0.0,
+        "plan": 0.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: lip inner face : top face, s",
+      "numbers": {
+        "nominal": 0.2,
+        "plan": 0.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: bump tip : groove bottom, s",
+      "numbers": {
+        "nominal": 0.2,
+        "plan": 0.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: bump engagement into groove, s",
+      "numbers": {
+        "nominal": 0.3,
+        "plan": 0.3
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: bump 0.6 : groove 1.0, y",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: tongue 0.5 : slot 0.9, y",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: tongue tip : slot end, s",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: web 0.8 : pocket 1.4, s",
+      "numbers": {
+        "nominal": 0.6,
+        "plan": 0.6
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: web bottom : pocket floor, y",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: nub : side wall, u",
+      "numbers": {
+        "nominal": 0.4,
+        "plan": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "mating feature sits inside its slot",
+      "name": "fit: bump_inside_groove_y",
+      "numbers": {
+        "margin": 0.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "mating feature sits inside its slot",
+      "name": "fit: tongue_inside_slot_u",
+      "numbers": {
+        "margin": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "stack top at KEEPOUT_SIGNAL top 4.13, tip past the nut, below the board at wall +0.3",
+      "name": "CONTACT_STACK",
+      "numbers": {
+        "board_underside": 4.3,
+        "tip_past_nut": 0.4,
+        "top_y": 4.13,
+        "top_y_wall_plus_0_3": 4.13
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to superior low-u pad",
+      "numbers": {
+        "gap": 0.1517
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to superior high-u pad",
+      "numbers": {
+        "gap": 4.9048
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to inferior low-u pad",
+      "numbers": {
+        "gap": 11.7715
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to inferior high-u pad",
+      "numbers": {
+        "gap": 14.2495
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to rib",
+      "numbers": {
+        "gap": 0.3754
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to anterior wall",
+      "numbers": {
+        "gap": 0.85
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to posterior wall",
+      "numbers": {
+        "gap": 6.05
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to cavity end",
+      "numbers": {
+        "gap": 13.5548
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to superior low-u pad",
+      "numbers": {
+        "gap": 12.4826
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to superior high-u pad",
+      "numbers": {
+        "gap": 11.8638
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to inferior low-u pad",
+      "numbers": {
+        "gap": 4.6305
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to inferior high-u pad",
+      "numbers": {
+        "gap": 1.6045
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to rib",
+      "numbers": {
+        "gap": 12.7998
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to anterior wall",
+      "numbers": {
+        "gap": 5.3453
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to posterior wall",
+      "numbers": {
+        "gap": 1.5547
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to cavity end",
+      "numbers": {
+        "gap": 2.0656
       },
       "passed": true
     },
@@ -507,10 +1486,66 @@
     },
     {
       "detail": "body_full_p25",
+      "name": "contact axis \u2212y: CONTACT_1",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_full_p25",
+      "name": "contact axis \u2212y: CONTACT_2",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_full_p25",
+      "name": "contact axis \u2212y: CONTACT_REF",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_full_p25",
+      "name": "lid/body interiors disjoint seated",
+      "numbers": {
+        "overlap_mm3": 0.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "body_full_p25",
+      "name": "one connected solid",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_full_p25",
       "name": "watertight",
       "numbers": {
         "bytes": 1989184.0
       },
+      "passed": true
+    },
+    {
+      "detail": "lid",
+      "name": "one connected solid",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "lid",
+      "name": "watertight",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "coupon",
+      "name": "one connected solid",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "coupon",
+      "name": "watertight",
+      "numbers": {},
       "passed": true
     }
   ],
@@ -519,7 +1554,29 @@
     "m1": 52.0,
     "total_chord": 47.900523407445874
   },
-  "commit": "1fd8463726fd02224a78acad3cac9ff12b6e22af",
+  "commit": "09c0fbbdab5c62b165460f1630c7c8ad6bf64d81",
+  "contact_stack": {
+    "board_underside_y": 4.3,
+    "keepout_top_y": 4.13,
+    "nominal": {
+      "height_above_floor": 2.63,
+      "kapton": 0.13,
+      "lug": 0.5,
+      "nut": 1.6,
+      "tip_past_nut": 0.4,
+      "top_y": 4.13,
+      "wall": 1.5
+    },
+    "wall_plus_0_3": {
+      "height_above_floor": 2.33,
+      "kapton": 0.13,
+      "lug": 0.5,
+      "nut": 1.6,
+      "tip_past_nut": 0.1,
+      "top_y": 4.13,
+      "wall": 1.8
+    }
+  },
   "crease_bow": {
     "clamped": 3.0,
     "computed_from_m1_m2": 11.001411613371118,
@@ -554,24 +1611,28 @@
     "E1": {
       "feature": "tongue",
       "minimum": 0.4,
-      "note": "fitted",
+      "note": "minimum fitted",
+      "plan_size": 0.5,
       "size": 0.5
     },
     "E2": {
       "feature": "rib",
       "minimum": 0.8,
       "note": "locating only",
-      "size": 0.8000000000000007
+      "plan_size": 0.8,
+      "size": 0.8
     },
     "E3": {
       "feature": "nubs",
       "minimum": 0.6,
+      "plan_size": 0.8,
       "size": 0.8
     },
     "E4": {
       "feature": "coupon rib",
       "minimum": 0.4,
       "note": "measurement",
+      "plan_size": 0.4,
       "size": 0.4
     },
     "E5": {
@@ -581,6 +1642,10 @@
         "lip": 1.0
       },
       "note": "below JLC 1.5; fitted bump \u2265 0.2",
+      "plan_size": {
+        "bump": 0.5,
+        "lip": 1.0
+      },
       "size": {
         "bump": 0.5,
         "lip": 1.0
@@ -743,6 +1808,24 @@
     "lid_body_overlap_mm3": 0.0,
     "unintended_nominal_overlap_fail": false
   },
+  "keepout_clearance": {
+    "CONTACT_1 to anterior wall": 0.85,
+    "CONTACT_1 to cavity end": 13.5548,
+    "CONTACT_1 to inferior high-u pad": 14.2495,
+    "CONTACT_1 to inferior low-u pad": 11.7715,
+    "CONTACT_1 to posterior wall": 6.05,
+    "CONTACT_1 to rib": 0.3754,
+    "CONTACT_1 to superior high-u pad": 4.9048,
+    "CONTACT_1 to superior low-u pad": 0.1517,
+    "CONTACT_2 to anterior wall": 5.3453,
+    "CONTACT_2 to cavity end": 2.0656,
+    "CONTACT_2 to inferior high-u pad": 1.6045,
+    "CONTACT_2 to inferior low-u pad": 4.6305,
+    "CONTACT_2 to posterior wall": 1.5547,
+    "CONTACT_2 to rib": 12.7998,
+    "CONTACT_2 to superior high-u pad": 11.8638,
+    "CONTACT_2 to superior low-u pad": 12.4826
+  },
   "notes": {
     "body_full_p15": {
       "emboss": "ELICIO V1 R FULL P15 REF",
@@ -825,9 +1908,24 @@
   "ref_build": true,
   "schema": 1,
   "span": {
-    "M3": 11.0,
-    "pinna_displacement": 0.0,
-    "span": 10.35
+    "body_full_p15": {
+      "BODY_THICK": 9.0,
+      "M3": 11.0,
+      "pinna_displacement": 0.0,
+      "span": 10.35
+    },
+    "body_full_p25": {
+      "BODY_THICK": 9.0,
+      "M3": 11.0,
+      "pinna_displacement": 0.0,
+      "span": 10.35
+    },
+    "body_thin_p15": {
+      "BODY_THICK": 7.0,
+      "M3": 11.0,
+      "pinna_displacement": 0.0,
+      "span": 8.35
+    }
   },
   "variant_preload_built": {
     "body_full_p15": {
@@ -842,6 +1940,18 @@
       "HOOK_PRELOAD": 1.5,
       "VARIANT": "thin"
     }
+  },
+  "walls": {
+    "anterior side wall": 1.5,
+    "floor (WALL_MEDIAL)": 1.5,
+    "hook": 3.5,
+    "lid plate": 1.0,
+    "lip above TONGUE_SLOT": 1.1,
+    "posterior side wall": 1.5,
+    "tail below TONGUE_SLOT": 7.0,
+    "tail below web pocket": 6.8,
+    "top end wall": 1.5,
+    "top end wall at LIP_GROOVE": 1.0
   },
   "wire_channel": {
     "1.0": {

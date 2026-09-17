@@ -90,6 +90,44 @@ class CadCheckTests(unittest.TestCase):
     def test_reference_checks_pass(self) -> None:
         self.assertEqual(CAD.cli(["--checks-only"]), 0)
 
+    def test_plan_named_checks_are_present(self) -> None:
+        params, _used = CAD.build_reference_params(variant="full", preload=1.5)
+        names = {check.name for check in CAD.run_pre_cad_checks(params)}
+        for expected in (
+            "matrix",
+            "M1_gate",
+            "HOOK_RADIUS",
+            "CONTACT_STACK",
+            "keep-out: CONTACT_1 to superior low-u pad",
+            "fit: tongue 0.5 : slot 0.9, y",
+            "wall: top end wall at LIP_GROOVE",
+            "E1",
+            "E5_bump",
+            "WIRE_CHANNEL_opening",
+        ):
+            self.assertIn(expected, names)
+
+    def test_pad_keepout_gap_is_positive_at_supported_bows(self) -> None:
+        for bow in (1.0, 3.0, 8.0):
+            with self.subTest(bow=bow):
+                params, _used = CAD.build_reference_params(
+                    variant="full", preload=1.5, overrides={"CREASE_BOW": bow}
+                )
+                path = CAD.make_path(48.4, bow)
+                gaps = CAD.keepout_clearances(params, path)
+                self.assertGreater(gaps["CONTACT_1 to superior low-u pad"], 0.09)
+
+    def test_fit_drift_fails(self) -> None:
+        params, _used = CAD.build_reference_params(variant="full", preload=1.5)
+        original = CAD.LIP_S
+        CAD.LIP_S = (-1.2, -0.1)
+        try:
+            with self.assertRaises(CAD.CheckFail) as ctx:
+                CAD.run_pre_cad_checks(params)
+        finally:
+            CAD.LIP_S = original
+        self.assertIn("E5_lip", str(ctx.exception))
+
 
 class CadOverlayTests(unittest.TestCase):
     def _params(self, argv: list[str]) -> dict:
