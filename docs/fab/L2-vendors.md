@@ -1,6 +1,6 @@
 # L2: Manufacturing Services for a One-Off Skin-Contact Shell
 
-Erratum, 2026-09-16: the finding that no bureau prints conductive TPU was superseded the same day (Palmiga prints it; plan §2 row 5). The plan does not use conductive TPU.
+Erratum, 2026-09-17: the finding that no bureau prints conductive TPU was superseded on 2026-09-16, the day this report was written (Palmiga prints it; plan §2 row 5). The plan does not use conductive TPU.
 
 **Author:** Antigravity Research Lane L2  
 **Date:** 2026-09-16  
