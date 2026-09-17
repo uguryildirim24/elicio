@@ -488,8 +488,9 @@
     },
     {
       "detail": "body_full_p15",
-      "name": "lid/body interiors disjoint seated",
+      "name": "exported lid seated on this body: interiors disjoint",
       "numbers": {
+        "LID_Y": 8.0,
         "overlap_mm3": 0.0
       },
       "passed": true
@@ -504,7 +505,7 @@
       "detail": "body_full_p15",
       "name": "watertight",
       "numbers": {
-        "bytes": 1733684.0
+        "bytes": 2156584.0
       },
       "passed": true
     },
@@ -996,8 +997,9 @@
     },
     {
       "detail": "body_thin_p15",
-      "name": "lid/body interiors disjoint seated",
+      "name": "exported lid seated on this body: interiors disjoint",
       "numbers": {
+        "LID_Y": 6.0,
         "overlap_mm3": 0.0
       },
       "passed": true
@@ -1012,7 +1014,7 @@
       "detail": "body_thin_p15",
       "name": "watertight",
       "numbers": {
-        "bytes": 1561484.0
+        "bytes": 2193284.0
       },
       "passed": true
     },
@@ -1504,8 +1506,9 @@
     },
     {
       "detail": "body_full_p25",
-      "name": "lid/body interiors disjoint seated",
+      "name": "exported lid seated on this body: interiors disjoint",
       "numbers": {
+        "LID_Y": 8.0,
         "overlap_mm3": 0.0
       },
       "passed": true
@@ -1520,7 +1523,7 @@
       "detail": "body_full_p25",
       "name": "watertight",
       "numbers": {
-        "bytes": 1989184.0
+        "bytes": 2405984.0
       },
       "passed": true
     },
@@ -1554,7 +1557,7 @@
     "m1": 52.0,
     "total_chord": 47.900523407445874
   },
-  "commit": "09c0fbbdab5c62b165460f1630c7c8ad6bf64d81",
+  "commit": "4beaaa3780ebb33976ec047cb38e4375e6a7cfba",
   "contact_stack": {
     "board_underside_y": 4.3,
     "keepout_top_y": 4.13,
@@ -1654,64 +1657,64 @@
   },
   "files": {
     "body_full_p15.3mf": {
-      "bytes": 452681,
-      "sha256": "4fd606f09983a1664746a8a8a168f5fc52be3b320e32aab17b870bcadf491170"
+      "bytes": 564697,
+      "sha256": "b16fe674ee29a71639939b64305db05068f41404aeffbf04d360f778a3c1f47b"
     },
     "body_full_p15.step": {
-      "bytes": 443429,
-      "sha256": "bef5c4e16381eae1f93a690c0eb3ea386f9150125d396d465285b9b09628a4a4"
+      "bytes": 460133,
+      "sha256": "e4c90892894a4f8532934d4bd93111df25a87475cc671286ecd0a750fde34055"
     },
     "body_full_p15.stl": {
-      "bytes": 1733684,
-      "sha256": "7e2203944aa46675828fdd9e97b77b307c2110d3974d70de238423dff80c0f35"
+      "bytes": 2156584,
+      "sha256": "98c827db31b5decd8f1c1566db1d0d9d4849820d0bc854faec3be6476d92cf6e"
     },
     "body_full_p25.3mf": {
-      "bytes": 520310,
-      "sha256": "9992dbbe3d1e32678c5e29d221ebc02cf6c44f09dc06364d3babf906a794408a"
+      "bytes": 629770,
+      "sha256": "3d3b007a2be7982b7d4f24adc3c9bb0685486f0886b149d636764307605cb4fb"
     },
     "body_full_p25.step": {
-      "bytes": 444156,
-      "sha256": "d1c987d6fa32336b4f68f68c1001adef45365f9a2642d11648ef8bf35fa042c9"
+      "bytes": 458688,
+      "sha256": "9083eb2dc319ceb02700422789c596e867799ac665bfbd687ceb93d868e8585b"
     },
     "body_full_p25.stl": {
-      "bytes": 1989184,
-      "sha256": "e6a0f7d17a7e20a291e89df5619e199a46794e0a198b240f833e990c54346afd"
+      "bytes": 2405984,
+      "sha256": "2f924326f1540a283632a3b68bcb5016499ff4df655c1088571c32acf16718e8"
     },
     "body_thin_p15.3mf": {
-      "bytes": 409018,
-      "sha256": "a69ca3d024a67cdac982645bb649bc783cd78f259c1db9cff5c9d80d974780d5"
+      "bytes": 573722,
+      "sha256": "538ea4a916a8241c9873800a48184d7e0fd3adda0836794771272da6b4e3a998"
     },
     "body_thin_p15.step": {
-      "bytes": 387823,
-      "sha256": "ec11d853383eead446519bf748b90f77a3cb46a02f41facba8850006be607f81"
+      "bytes": 472248,
+      "sha256": "d4aac001cf156b3f7decb1d9dec1fe193b931ec3457408561b45b6174d6454b0"
     },
     "body_thin_p15.stl": {
-      "bytes": 1561484,
-      "sha256": "824b54ac0d83ba6d90e17e1fd56136cc6a3ca2d8b50a663b6250a1b601e7ba37"
+      "bytes": 2193284,
+      "sha256": "270d4a9847ea37f1ea9700f4e10cfaf85698fe335084196a3f04a13901231c20"
     },
     "coupon.3mf": {
-      "bytes": 19163,
-      "sha256": "ddfcb1d1ccd2714ea57090c6ebcacbf2678662ec3e52895ec3e3127d5bbb24a4"
+      "bytes": 18144,
+      "sha256": "adf84d5a5d9dc5baf0ae3bfc4d98332eed162951e98fb309e798d1846ea57881"
     },
     "coupon.step": {
-      "bytes": 77867,
-      "sha256": "8e4500e82d1bf9faef98eea65cb61c4fe5fcf98228e41e29e94af0bcb5e8b63a"
+      "bytes": 69195,
+      "sha256": "82689ab88a991b5229da18eda8e384572da01f803cd9cdb6863cfef854a1d79c"
     },
     "coupon.stl": {
-      "bytes": 85084,
-      "sha256": "b77d136ad61b2e339ce826e2f50ca664aac07ce66b8bd4878272e18b612dcee8"
+      "bytes": 84684,
+      "sha256": "f615c9cfa88ae2281b1e8d3002c5273d9fca8d94ff494671d11d3d5472608eeb"
     },
     "lid.3mf": {
-      "bytes": 238928,
-      "sha256": "49c3bf5d605a20fbfb3027e3ee0d21814a407bd420e1771c079e2e5802236de7"
+      "bytes": 358843,
+      "sha256": "7c7f14a25df963fed7f497e7d32347f086d59c54b83b5f747b96cca8944dfff2"
     },
     "lid.step": {
-      "bytes": 1214824,
-      "sha256": "411b33912b3e8ebf56f7108dee96950d2d45aad39bc18d9e7df48a1077db671e"
+      "bytes": 1254327,
+      "sha256": "e023ea443280891238c7aa917b61d90954192d9e0ba0b48ad5035c14258d7a6d"
     },
     "lid.stl": {
-      "bytes": 963284,
-      "sha256": "080a324f8f756912f6d81d4ac602978544152b5ee37eef0a024605c5baa24c28"
+      "bytes": 1419784,
+      "sha256": "c4b8322e230f27d9bd34e018f91d6f331752e7409d7ea5bbcfc60646f4aa145a"
     }
   },
   "fits": [
@@ -1830,26 +1833,35 @@
     "body_full_p15": {
       "emboss": "ELICIO V1 R FULL P15 REF",
       "fillets": [
-        "\u00a73.5 step 2 tip round: applied 1.60 (max valid), not 4.0",
-        "lip root fillet 0.50",
-        "\u00a73.5 step 9 hook joint fillet 2.0: no valid joint edges; union only"
-      ]
+        "\u00a73.5 step 2 tip round 4.0 applied",
+        "FILLET_MEDIAL 1.5 applied",
+        "LID_EDGE (plate rim except the lip end) 0.8 applied",
+        "lip root fillet 0.2 applied",
+        "\u00a73.5 step 9 hook joint fillet 2.0: largest that builds is 1.50"
+      ],
+      "hook_stub_in_cavity_removed_mm3": 4.5814
     },
     "body_full_p25": {
       "emboss": "ELICIO V1 R FULL P25 REF",
       "fillets": [
-        "\u00a73.5 step 2 tip round: applied 1.60 (max valid), not 4.0",
-        "lip root fillet 0.50",
-        "\u00a73.5 step 9 hook joint fillet 2.0: no valid joint edges; union only"
-      ]
+        "\u00a73.5 step 2 tip round 4.0 applied",
+        "FILLET_MEDIAL 1.5 applied",
+        "LID_EDGE (plate rim except the lip end) 0.8 applied",
+        "lip root fillet 0.2 applied",
+        "\u00a73.5 step 9 hook joint fillet 2.0: largest that builds is 1.75"
+      ],
+      "hook_stub_in_cavity_removed_mm3": 4.0268
     },
     "body_thin_p15": {
       "emboss": "ELICIO V1 R THIN P15 REF",
       "fillets": [
-        "\u00a73.5 step 2 tip round 4.0: no valid fillet; tail ends at width 10",
-        "lip root fillet 0.50",
-        "\u00a73.5 step 9 hook joint fillet 2.0: no valid joint edges; union only"
-      ]
+        "\u00a73.5 step 2 tip round 4.0 applied",
+        "FILLET_MEDIAL 1.5 applied",
+        "LID_EDGE (plate rim except the lip end) 0.8 applied",
+        "lip root fillet 0.2 applied",
+        "\u00a73.5 step 9 hook joint fillet 2.0: largest that builds is 1.75"
+      ],
+      "hook_stub_in_cavity_removed_mm3": 4.5814
     }
   },
   "parameters": {

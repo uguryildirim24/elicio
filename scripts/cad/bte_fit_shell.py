@@ -79,6 +79,7 @@ try:
         Box,
         Circle,
         Face,
+        GeomType,
         Location,
         Mesher,
         Plane,
@@ -167,7 +168,7 @@ GLASSES_FLAT_DEPTH = 0.8
 GLASSES_FLAT_ANGLES = (30.0, 120.0)
 JOINT_FILLET = 2.0
 HOOK_CLEARANCE = 0.75
-LIP_ROOT_FILLET = 0.5
+LIP_ROOT_FILLET = 0.2  # plan §3.5 step 7 says 0.5; see the lip root note
 EMBOSS = 0.8
 COUPON_XY = 12.0
 COUPON_Z = 3.0
@@ -998,21 +999,43 @@ def _one_solid(shape: Shape, name: str) -> Solid:
     return solid
 
 
+FILLET_STEP = 0.25
+OVERLAP_NOISE_MM3 = 0.005
+
+
 def _try_fillet(shape: Shape, edges: list, radius: float) -> tuple[Shape, float | None]:
-    """Return (shape, applied_radius). applied_radius is None on skip."""
+    """Return (shape, applied_radius); None when no radius builds.
+
+    Tries the requested radius first, then steps down by 0.25 mm. OCCT's
+    max_fillet search throws on these shapes, so it is not used: it made the
+    original script skip fillets that build at full size (LID_EDGE 0.8).
+    """
     if not edges:
         return shape, None
-    try:
-        maximum = float(shape.max_fillet(edges, tolerance=0.05, max_iterations=12))
-    except Exception:
-        maximum = 0.0
-    use = min(radius, maximum) if maximum > 0.05 else 0.0
-    if use < 0.05:
+    steps = [radius]
+    step = radius - FILLET_STEP
+    while step >= FILLET_STEP - 1e-9:
+        steps.append(round(step, 6))
+        step -= FILLET_STEP
+    solids = list(shape.solids())
+    if len(solids) != 1:
         return shape, None
-    try:
-        return fillet(edges, use), use
-    except Exception:
-        return shape, None
+    for use in steps:
+        try:
+            result = solids[0].fillet(use, edges)
+        except Exception:
+            continue
+        if result.is_valid and len(result.solids()) == 1:
+            return result, use
+    return shape, None
+
+
+def _fillet_note(label: str, wanted: float, applied: float | None) -> str:
+    if applied is None:
+        return f"{label} {wanted}: no radius builds; left sharp"
+    if applied + 1e-6 < wanted:
+        return f"{label} {wanted}: largest that builds is {applied:.2f}"
+    return f"{label} {wanted} applied"
 
 
 def _overlap_volume(a: Shape, b: Shape) -> float:
@@ -1068,8 +1091,13 @@ def build_coupon() -> Shape:
         - Pos(0.0, 4.0) * Rectangle(6.0, 0.4)
     )
     plate = extrude(sketch.faces()[0], amount=COUPON_Z)
-    rib = extrude(Rectangle(COUPON_XY, 3.0).faces()[0], amount=0.4)
-    rib = rib.locate(Location((0.0, 0.0, COUPON_Z - 0.2)))
+    # E4 rib: a standing fin 0.4 thick × 3 tall × 12 long on the top face,
+    # between the hole row and the slots. It was a 12 × 3 plate 0.4 thick
+    # lying flat, 0.2 proud of the top, which measures no thin feature.
+    thick, tall, length = COUPON_RIB
+    rib = Box(length, thick, tall + 0.2).locate(
+        Location((0.0, -0.5, COUPON_Z + tall / 2.0 - 0.1))
+    )
     return _one_solid(plate.fuse(rib), "coupon")
 
 
@@ -1087,55 +1115,40 @@ def build_body_and_lid(
     fillet_r = float(params["FILLET_MEDIAL"])
     tail_end = float(params["BODY_ARC"])
 
-    main = _path_solid(
-        path, 0.0, width, 0.0, TAIL_S0, 0.0, thick, round_medial=True, fillet_r=fillet_r
-    )
+    main = _path_solid(path, 0.0, width, 0.0, TAIL_S0, 0.0, thick)
 
     def tail_u(s: float) -> tuple[float, float]:
         return _tail_u(s, width)
 
-    tail = _loft_s(
-        path,
-        TAIL_S0,
-        tail_end,
-        tail_u,
-        0.0,
-        thick,
-        round_medial=True,
-        fillet_r=fillet_r,
-        step=1.5,
-    )
+    # Body and tail are built sharp and fused. The two plan-view tip corners
+    # take TIP_ROUND first, then FILLET_MEDIAL runs along the whole medial
+    # outline except the top end. Filleting the tip after the medial fillet
+    # capped it at 1.6 (full) and failed on thin; fusing two separately
+    # filleted pieces left a 0.03 mm² sliver face the 3MF mesher rejects.
+    tail: Shape = _loft_s(path, TAIL_S0, tail_end, tail_u, 0.0, thick, step=1.5)
     body: Shape = main.fuse(tail)
-    # Tip round 4.0 on the two mostly-vertical side edges at the tail end.
     tip = _vec(path, width / 2.0, tail_end, thick / 2.0)
     vertical = []
     for edge in body.edges():
-        p0 = Vector(edge @ 0)
-        p1 = Vector(edge @ 1)
-        delta = p1 - p0
-        if delta.length < 5.0:
-            continue
-        if abs(delta.Y) < 0.7 * delta.length:
+        delta = Vector(edge @ 1) - Vector(edge @ 0)
+        if delta.length < 0.5 * thick or abs(delta.Y) < 0.7 * delta.length:
             continue
         center = edge.center()
         if abs(center.Z - tip.Z) < 4.0 and abs(center.X - tip.X) < 8.0:
             vertical.append(edge)
-    if len(vertical) >= 2:
-        body, applied = _try_fillet(body, vertical[:2], TIP_ROUND)
-        if applied is None:
-            notes["fillets"].append(
-                "§3.5 step 2 tip round 4.0: no valid fillet; tail ends at width 10"
-            )
-        elif applied + 1e-6 < TIP_ROUND:
-            notes["fillets"].append(
-                f"§3.5 step 2 tip round: applied {applied:.2f} (max valid), not 4.0"
-            )
-        else:
-            notes["fillets"].append("tip round 4.0 applied")
-    else:
-        notes["fillets"].append(
-            "§3.5 step 2 tip round 4.0: no vertical tip edges; tail loft only"
-        )
+    if len(vertical) != 2:
+        raise CheckFail(f"TIP_ROUND: expected 2 tip corner edges, found {len(vertical)}")
+    body, applied = _try_fillet(body, vertical, TIP_ROUND)
+    notes["fillets"].append(_fillet_note("§3.5 step 2 tip round", TIP_ROUND, applied))
+    medial = [
+        e
+        for e in body.edges()
+        if abs(e.center().Y) < 1e-6 and _approx_s(path, e.center()) > 0.2
+    ]
+    body, applied = _try_fillet(body, medial, fillet_r)
+    notes["fillets"].append(_fillet_note("FILLET_MEDIAL", fillet_r, applied))
+    if applied is None or applied + 1e-6 < fillet_r:
+        raise CheckFail(f"FILLET_MEDIAL={fillet_r}: medial outline fillet did not build")
 
     # Lid recess: remove y > LID_Y over s 0–46.8, keep lip zone full thickness.
     recess = _path_solid(
@@ -1263,18 +1276,21 @@ def build_body_and_lid(
     )
     lid: Shape = plate_main.fuse(plate_tail)
     try:
+        # The top edge at the lip end (s = −0.2) stays sharp: rounded, it
+        # would leave the lip joined to the plate by 0.2 mm of end face.
         rim = [
             e
             for e in lid.edges()
             if abs(e.center().Y - (lid_y + lid_thick)) < 0.15
             and e.length > 2.0
+            and abs(_approx_s(path, e.center()) - LID_PLATE_S[0]) > 0.05
         ]
-        if rim:
-            lid, applied = _try_fillet(lid, rim, float(params["LID_EDGE"]))
-            if applied:
-                notes["fillets"].append(f"lid edge {applied:.2f}")
-    except Exception:
-        notes["fillets"].append("lid edge fillet skipped")
+        lid, applied = _try_fillet(lid, rim, float(params["LID_EDGE"]))
+        notes["fillets"].append(
+            _fillet_note("LID_EDGE (plate rim except the lip end)", float(params["LID_EDGE"]), applied)
+        )
+    except Exception as exc:
+        raise CheckFail(f"LID_EDGE: rim fillet failed ({exc})") from exc
 
     lip_y0 = lid_y + lid_thick - LIP_LENGTH
     lip = _path_solid(path, LIP_U[0], LIP_U[1], LIP_S[0], LIP_S[1], lip_y0, lid_y + lid_thick)
@@ -1290,19 +1306,25 @@ def build_body_and_lid(
     )
     lid = lid.fuse(bump)
     try:
+        # The root is the concave edge where the lip's inner face meets the
+        # plate underside (s = −0.2, y = LID_Y). Plan §3.5 step 7 asks 0.5;
+        # a radius above the 0.2 lip-to-top-face gap overlaps the body's
+        # top edge when seated (0.045 mm³ at 0.5), so LIP_ROOT_FILLET is 0.2.
         root_edges = [
             e
             for e in lid.edges()
-            if abs(e.center().Y - (lid_y + lid_thick)) < 0.4
-            and LIP_S[0] - 0.3 < _approx_s(path, e.center()) < LIP_S[1] + 0.3
-            and LIP_U[0] - 0.5 < _approx_u(path, e.center()) < LIP_U[1] + 0.5
+            if abs(e.center().Y - lid_y) < 0.05
+            and abs(_approx_s(path, e.center()) - LIP_S[1]) < 0.05
+            and LIP_U[0] - 0.1 < _approx_u(path, e.center()) < LIP_U[1] + 0.1
         ]
-        filleted_root, applied = _try_fillet(lid, root_edges, LIP_ROOT_FILLET)
-        if applied:
-            lid = filleted_root
-            notes["fillets"].append(f"lip root fillet {applied:.2f}")
-    except Exception:
-        notes["fillets"].append("lip root fillet skipped")
+        if len(root_edges) != 1:
+            raise CheckFail(f"lip root: expected 1 root edge, found {len(root_edges)}")
+        lid, applied = _try_fillet(lid, root_edges, LIP_ROOT_FILLET)
+        notes["fillets"].append(_fillet_note("lip root fillet", LIP_ROOT_FILLET, applied))
+    except CheckFail:
+        raise
+    except Exception as exc:
+        raise CheckFail(f"lip root fillet failed ({exc})") from exc
 
     tongue_u0 = (TONGUE_SLOT_U[0] + TONGUE_SLOT_U[1] - LID_TONGUE_WIDTH) / 2.0
     tongue_u1 = tongue_u0 + LID_TONGUE_WIDTH
@@ -1411,6 +1433,23 @@ def assemble_shell(
     body_r = body.rotate(Axis.X, theta)
     lid_r = lid.rotate(Axis.X, theta)
     hook = build_hook(params)
+    # The −5° embedded start reaches past the 1.5 mm end wall into the
+    # cavity and the battery pocket (4.6 mm³ at the defaults). Plan §2 row 6
+    # keeps the cavity clear, so the stub is cut back to the cavity wall.
+    path = make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
+    cavity = _path_solid(
+        path,
+        CAVITY_U[0],
+        CAVITY_U[1],
+        CAVITY_S[0],
+        RIB_S[0],
+        float(params["WALL_MEDIAL"]),
+        float(params["BODY_THICK"]) + 1.0,
+    ).rotate(Axis.X, theta)
+    stub = _overlap_volume(hook, cavity)
+    notes["hook_stub_in_cavity_removed_mm3"] = round(stub, 4)
+    if stub > 0.0:
+        hook = _first_solid(hook.cut(cavity), "hook")
     fused = body_r.fuse(hook)
     hook_r = float(params["HOOK_RADIUS"])
     hook_dia = float(params["HOOK_DIA"])
@@ -1420,24 +1459,22 @@ def assemble_shell(
     def on_hook_tube(point: Vector) -> bool:
         radial = math.hypot(point.X - center.X, point.Z - center.Z)
         dist = math.hypot(radial - hook_r, point.Y - root.Y)
-        return abs(dist - hook_dia / 2.0) < 0.25
+        return abs(dist - hook_dia / 2.0) < 0.02
 
+    # The joint is the loop where the tube leaves the top face: every point
+    # on the tube surface, within a tube diameter of O, and not a circle
+    # (circles are the tube's own section edges).
     joint = [
         e
         for e in fused.edges()
-        if on_hook_tube(e.center()) and (e.center() - root).length < 10.0
+        if e.geom_type != GeomType.CIRCLE
+        and all(on_hook_tube(Vector(e @ t)) for t in (0.0, 0.25, 0.5, 0.75, 1.0))
+        and (e.center() - root).length < hook_dia
     ]
+    if not joint:
+        raise CheckFail("hook joint: no tube-to-top-face edge found")
     fused, applied = _try_fillet(fused, joint, JOINT_FILLET)
-    if applied is None:
-        notes["fillets"].append(
-            "§3.5 step 9 hook joint fillet 2.0: no valid joint edges; union only"
-        )
-    elif applied + 1e-6 < JOINT_FILLET:
-        notes["fillets"].append(
-            f"§3.5 step 9 hook joint fillet: applied {applied:.2f} (max valid), not 2.0"
-        )
-    else:
-        notes["fillets"].append("hook joint fillet 2.0")
+    notes["fillets"].append(_fillet_note("§3.5 step 9 hook joint fillet", JOINT_FILLET, applied))
     if params["SIDE"] == "left":
         fused = fused.mirror(Plane.YZ)
         lid_r = lid_r.mirror(Plane.YZ)
@@ -1621,7 +1658,7 @@ def write_manifest(
         "fits": fit_table(params),
         "interference": {
             "lid_body_overlap_mm3": overlap,
-            "unintended_nominal_overlap_fail": overlap > 0.05,
+            "unintended_nominal_overlap_fail": overlap > OVERLAP_NOISE_MM3,
         },
         "span": {
             name: {
@@ -1711,6 +1748,22 @@ def build_and_export(
         jobs.append((name, variant, tag_to_preload[tag]))
 
     lid_shape: Shape | None = None
+    reference_lid: tuple[Solid, float] | None = None
+
+    def exported_lid_in_body_frame() -> tuple[Solid, float]:
+        """The one lid file is the full-body p15 lid (plan §3.6 lists one)."""
+        nonlocal reference_lid
+        if reference_lid is None:
+            ref_params, _ = build_reference_params(
+                variant="full",
+                preload=1.5,
+                overrides=overrides,
+                crease_bow_from_m=crease_bow_from_m,
+            )
+            _b, ref_lid, _p, _n = build_body_and_lid(ref_params)
+            reference_lid = (ref_lid, float(ref_params["LID_Y"]))
+        return reference_lid
+
     for name, variant, preload in jobs:
         params, used = build_reference_params(
             variant=variant,
@@ -1725,20 +1778,38 @@ def build_and_export(
         all_checks.extend(checks)
         body_bf, lid_bf, path, notes = build_body_and_lid(params)
         notes_acc[name] = notes
-        overlap = max(overlap, _overlap_volume(body_bf, lid_bf))
-        if overlap > 0.05:
+        if name == "body_full_p15" and reference_lid is None:
+            reference_lid = (lid_bf, float(params["LID_Y"]))
+        ref_lid, ref_lid_y = exported_lid_in_body_frame()
+        # Lid features are placed relative to LID_Y, so the one exported lid
+        # seats on every body at that body's LID_Y. Check it there.
+        seated = ref_lid.moved(Location((0.0, float(params["LID_Y"]) - ref_lid_y, 0.0)))
+        part_overlap = _overlap_volume(body_bf, seated)
+        overlap = max(overlap, part_overlap)
+        if part_overlap > OVERLAP_NOISE_MM3:
             raise CheckFail(
-                f"lid_body_overlap={overlap:.4f}: unintended nominal overlap"
+                f"lid_body_overlap={part_overlap:.4f} mm³ on {name}: unintended nominal overlap"
             )
         for contact, ok in contact_caps(body_bf, path, params).items():
             if not ok:
                 raise CheckFail(f"contact axes: {name} {contact} dome does not stand to −y")
             all_checks.append(Check(f"contact axis −y: {contact}", True, name, {}))
         all_checks.append(
-            Check("lid/body interiors disjoint seated", True, name, {"overlap_mm3": overlap})
+            Check(
+                "exported lid seated on this body: interiors disjoint",
+                True,
+                name,
+                {"overlap_mm3": part_overlap, "LID_Y": float(params["LID_Y"])},
+            )
         )
         assembled, lid_s = assemble_shell(body_bf, lid_bf, params, notes)
         all_checks.append(Check("one connected solid", True, name, {}))
+        with_hook = _overlap_volume(assembled, lid_s)
+        if with_hook > OVERLAP_NOISE_MM3:
+            raise CheckFail(
+                f"lid_body_overlap={with_hook:.4f} mm³ on {name} with the hook: unintended overlap"
+            )
+        overlap = max(overlap, with_hook)
         exported = export_part(assembled, out_dir / name, name)
         files.update(exported)
         stl = out_dir / f"{name}.stl"
