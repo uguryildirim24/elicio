@@ -19,7 +19,8 @@ Manifest schema (WP3 may extend this file; keep these keys):
 ``ref_build`` (bool)
     True when any of M1–M8 used a default.
 ``crease_bow`` (object)
-    ``requested``, ``computed_from_m1_m2``, ``clamped`` (always 1–8).
+    ``source``, ``requested``, ``computed_from_m1_m2`` (always reported),
+    ``clamped`` (always 1–8; the value the build used).
 ``chord_gate`` (object)
     ``total_chord``, ``gate`` (TOTAL_CHORD + 3), ``m1``.
 ``wire_channel`` (object)
@@ -1609,6 +1610,7 @@ def build_reference_params(
         used.remove("HOOK_PRELOAD")
     derived = derived_params(merged, crease_bow_from_m=crease_bow_from_m)
     derived["_defaults_used"] = used
+    derived["_crease_bow_from_m"] = crease_bow_from_m
     return derived, used
 
 
@@ -1647,6 +1649,11 @@ def write_manifest(
         "defaults_used": sorted(defaults_used),
         "ref_build": any(k in defaults_used for k in REFERENCE_M_KEYS),
         "crease_bow": {
+            "source": (
+                "computed from M1 and M2"
+                if params.get("_crease_bow_from_m")
+                else "CREASE_BOW parameter (M1 and M2 not both measured)"
+            ),
             "requested": params["CREASE_BOW_REQUESTED"],
             "computed_from_m1_m2": params["CREASE_BOW_COMPUTED"],
             "clamped": params["CREASE_BOW"],
