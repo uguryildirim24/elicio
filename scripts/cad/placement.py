@@ -4,6 +4,10 @@
 2D drawing in the body-frame (u, s) plane. Headless matplotlib, Agg,
 deterministic SVG. Does not edit CAD solids or ``manifest.json``.
 
+The layout is a candidate. ``layout_conflicts()`` lists every rule it
+breaks, and the drawing prints that list; an empty list is the only
+state that confirms packing (interface §8).
+
 Coupon-to-parameter mapping (plan §10 open item 2; interface §12 V2-2).
 The coupon itself is built in ``bte_fit_shell.py`` ``build_coupon``. Axes
 are x and y across the top face from its centre; the rib stands on the
@@ -30,6 +34,7 @@ Run::
 from __future__ import annotations
 
 import argparse
+import functools
 import hashlib
 import importlib.util
 import io
@@ -77,6 +82,7 @@ ANTENNA_WID = 12.4  # Spec K p.9 "No ground pad" width
 MODULE_L = 15.5
 MODULE_W = 10.5
 MODULE_L_MAX = 15.7  # 15.5 + 0.2 Spec K p.7
+MODULE_L_RESERVED = 15.8  # plan §5 reserved maximum
 CELL_BODY_MAX = (5.2, 10.4, 15.6)  # thick, wide, long; plan §5
 DNK_CELL = (5.0, 10.0, 15.0)
 DNK_BL_MAX = 18.0  # 17 ± 1 in-line PCM
@@ -89,37 +95,69 @@ CHANNEL_U = (7.7, 9.3)
 CHANNEL_S = (38.2, 40.5)
 CLAMP_MAX_MM = 10.0
 BATTERY_RF_MIN = 5.0
+# Signal lug tab envelope, interface §3.1: "3 × 7 × 1.5; from the cylinder
+# toward pad". Drawn from the Ø7.1 edge along the contact-to-pad line. The
+# copper-free margin (plan §5) goes around the keep-out and the tab.
+TAB_W = 3.0
+TAB_LEN = 7.0
 KEEPOUT_TOP_Y = 4.13
 BOARD_UNDERSIDE_Y = 4.3
 PAD_Y = (1.5, 4.3)
 
 # Courtyards at maximum dimensions (IPC-7351B Nominal unless named).
 # SOT-23 / SOT-363 use the vendor reflow "occupied area".
-VQFN_CY = (4.50, 4.50)  # 4.00 body + 2 × 0.25
+VQFN_CY = (4.60, 4.60)  # RSM 4.10 body max + 2 × 0.25
 TQFP_CY = (7.60, 7.60)  # 7.10 lead span max + 2 × 0.25
-SOT23_CY = (3.30, 3.00)  # Nexperia BAV199 Fig. 9 occupied
+SOT23_CY = (3.30, 2.90)  # Nexperia BAV199 Fig. 9 occupied
 ARRAY_CY = (2.65, 2.35)  # Nexperia BAV199S-Q Fig. 8 occupied
 BQ_CY = (2.10, 1.40)  # 1.60 × 0.90 + 2 × 0.25
 LDO_CY = (1.50, 1.50)  # TLV713 X2SON 1.00 × 1.00 + 2 × 0.25
 R0402_CY = (1.80, 0.90)  # IPC-7351B small-chip Nominal
 N_0402 = 25
+# BAV199S-Q is two independent series pairs (pins 1-6-2 and 4-3-5); each
+# protected line needs its own pair, so three lines need two arrays.
+PAIRS_PER_ARRAY = 2
+N_ARRAYS = 2
+N_LINES = 3
 
-# Frozen lead pads (interface v2). SIG1 moved +0.1 mm in s so a 1.0 × 1.0
-# pad stays outside keep-out 1 plus 0.5 mm.
+# Lead pads (interface v2). SIG1 moved +0.1 mm in s so a 1.0 × 1.0 pad
+# stays outside keep-out 1 plus 0.5 mm. Not frozen: see layout_conflicts().
 LEAD_PADS: dict[str, tuple[float, float]] = {
     "SIG1": (5.9, 26.6),
     "SIG2": (5.5, 30.0),
     "REF": (4.0, 29.0),
 }
-
-# Confirmed packing (named non-shell change: VQFN-32 and one BAV199S array).
-# Lower-left corners in (u, s).
-PLACED: dict[str, tuple[float, float, float, float]] = {
-    "ADS1292_RSM": (10.00, 18.90, *VQFN_CY),
-    "BAV199S": (4.20, 27.10, *ARRAY_CY),
-    "BQ25100": (10.10, 23.50, *BQ_CY),
-    "TLV713": (12.40, 23.50, *LDO_CY),
+PAD_CONTACT: dict[str, tuple[float, float] | None] = {
+    "SIG1": CONTACT_1,
+    "SIG2": CONTACT_2,
+    "REF": None,
 }
+
+# Candidate layout, not a confirmed packing. placed_parts() puts each part,
+# in this order, at the legal site whose centre is nearest the target (u, s):
+# inside the free mask, clear of the pads and of parts already placed.
+PART_TARGETS: dict[str, tuple[tuple[float, float], tuple[float, float]]] = {
+    "ADS1292_RSM": (VQFN_CY, (12.3, 21.2)),
+    "BAV199S_1": (ARRAY_CY, (5.7, 28.3)),
+    "BAV199S_2": (ARRAY_CY, (4.0, 29.0)),
+    "BQ25100": (BQ_CY, (11.3, 24.2)),
+    "TLV713": (LDO_CY, (13.1, 24.2)),
+}
+ARRAY_LINES: dict[str, tuple[str, ...]] = {
+    "BAV199S_1": ("SIG1", "SIG2"),
+    "BAV199S_2": ("REF",),
+}
+LINE_ARRAY = {pad: name for name, pads in ARRAY_LINES.items() for pad in pads}
+
+# Reference wire centre-line: pocket, WIRE_CHANNEL, Kapton wrap at s 37,
+# then round the low-u side of keep-out 2 to the REF pad.
+REF_WIRE: tuple[tuple[float, float], ...] = (
+    (8.5, 40.5),
+    (8.5, 38.2),
+    (8.5, 37.0),
+    (5.0, 34.6),
+    (4.0, 29.0),
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,9 +169,12 @@ class Budget:
     keepout2_margin_mm2: float
     antenna_mm2: float
     keepout2_union_antenna_mm2: float
+    tabs_margin_mm2: float
     rim_mm2: float
     blocked_mm2: float
     free_mm2: float
+    free_without_tabs_mm2: float
+    free_tabs_to_pad_mm2: float
     largest_u: float
     largest_s: float
     largest_mm2: float
@@ -142,10 +183,13 @@ class Budget:
     required_as_drawn_mm2: float
     required_named_mm2: float
     spare_named_mm2: float
+    clamp_pairs: int
     sagitta_mm: float
     y_clear_mm: float
     battery_to_module_hook_mm: float
     battery_to_module_rib_mm: float
+    battery_to_module_hook_nominal_mm: float
+    battery_to_antenna_hook_mm: float
     rf_keepout2_overlap: bool
 
 
@@ -175,6 +219,56 @@ def _punch_rect(
     return mask & ~((uu >= ua) & (uu <= ub) & (ss >= sa) & (ss <= sb))
 
 
+def tab_span(pad: str, length: float | None = TAB_LEN) -> tuple[float, float]:
+    """Start and end of a signal lug tab along its contact-to-pad axis.
+
+    ``length=None`` is the short reading: the tab ends under its own pad.
+    """
+    c = PAD_CONTACT[pad]
+    assert c is not None
+    pu, ps = LEAD_PADS[pad]
+    if length is None:
+        return KEEPOUT_R, math.hypot(pu - c[0], ps - c[1])
+    return KEEPOUT_R, KEEPOUT_R + length
+
+
+def _tab_axes(pad: str) -> tuple[tuple[float, float], float, float]:
+    c = PAD_CONTACT[pad]
+    assert c is not None
+    pu, ps = LEAD_PADS[pad]
+    d = math.hypot(pu - c[0], ps - c[1])
+    return c, (pu - c[0]) / d, (ps - c[1]) / d
+
+
+def point_tab_gap(pad: str, u: float, s: float, length: float | None = TAB_LEN) -> float:
+    """Distance from (u, s) to the tab rectangle of ``pad``'s contact; 0 inside."""
+    (cu, cs), eu, es = _tab_axes(pad)
+    a0, a1 = tab_span(pad, length)
+    along = (u - cu) * eu + (s - cs) * es
+    across = -(u - cu) * es + (s - cs) * eu
+    da = max(a0 - along, 0.0, along - a1)
+    dc = max(abs(across) - TAB_W / 2.0, 0.0)
+    return math.hypot(da, dc)
+
+
+def tab_corners(pad: str, length: float | None = TAB_LEN) -> list[tuple[float, float]]:
+    (cu, cs), eu, es = _tab_axes(pad)
+    a0, a1 = tab_span(pad, length)
+    h = TAB_W / 2.0
+    return [
+        (cu + a * eu - c * es, cs + a * es + c * eu)
+        for a, c in ((a0, -h), (a1, -h), (a1, h), (a0, h))
+    ]
+
+
+def _tab_mask(uu: np.ndarray, ss: np.ndarray, pad: str, margin: float, length: float | None) -> np.ndarray:
+    (cu, cs), eu, es = _tab_axes(pad)
+    a0, a1 = tab_span(pad, length)
+    along = (uu - cu) * eu + (ss - cs) * es
+    across = -(uu - cu) * es + (ss - cs) * eu
+    return (along >= a0 - margin) & (along <= a1 + margin) & (np.abs(across) <= TAB_W / 2.0 + margin)
+
+
 def antenna_rect() -> tuple[float, float, float, float]:
     """Return (u0, u1, s0, s1) of the no-copper zone on the board."""
     u0, u1 = BOARD_U
@@ -185,11 +279,11 @@ def antenna_rect() -> tuple[float, float, float, float]:
     return (max(u0, mid - half), min(u1, mid + half), s0, s1)
 
 
-def module_rect() -> tuple[float, float, float, float]:
-    """Nominal module on the board, antenna at the inferior edge."""
+def module_rect(length: float = MODULE_L) -> tuple[float, float, float, float]:
+    """Module on the board, antenna at the inferior edge (nominal by default)."""
     u0, u1 = BOARD_U
     s1 = BOARD_S[1]
-    s0 = s1 - MODULE_L
+    s0 = s1 - length
     mid = 0.5 * (u0 + u1)
     half = MODULE_W / 2.0
     return (mid - half, mid + half, s0, s1)
@@ -210,11 +304,16 @@ def chord_gap_at(distance_from_mid: float, chord: float = BOARD_LEN, radius: flo
     return math.sqrt(radius * radius - x * x) - (radius - h)
 
 
-def board_free_mask() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def board_free_mask(
+    tabs: bool = True, tab_length: float | None = TAB_LEN
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     u, s, uu, ss = _mesh()
     free = np.ones(uu.shape, dtype=bool)
     free = _punch_circle(free, uu, ss, CONTACT_1[0], CONTACT_1[1], KEEPOUT_R + COPPER_FREE)
     free = _punch_circle(free, uu, ss, CONTACT_2[0], CONTACT_2[1], KEEPOUT_R + COPPER_FREE)
+    if tabs:
+        for pad in ("SIG1", "SIG2"):
+            free &= ~_tab_mask(uu, ss, pad, COPPER_FREE, tab_length)
     au0, au1, as0, as1 = antenna_rect()
     free = _punch_rect(free, uu, ss, au0, au1, as0, as1)
     u0, u1 = BOARD_U
@@ -250,6 +349,13 @@ def _largest_rect(free: np.ndarray) -> tuple[float, float, float]:
     return wu, hs, wu * hs
 
 
+def _integral(free: np.ndarray) -> np.ndarray:
+    ns, nu = free.shape
+    z = np.zeros((ns + 1, nu + 1), dtype=np.int32)
+    z[1:, 1:] = free.astype(np.int32).cumsum(0).cumsum(1)
+    return z
+
+
 def _fits_rect(free: np.ndarray, wu: float, ws: float) -> bool:
     du = RASTER_PITCH
     ku = int(round(wu / du))
@@ -257,19 +363,9 @@ def _fits_rect(free: np.ndarray, wu: float, ws: float) -> bool:
     ns, nu = free.shape
     if ku < 1 or ks < 1 or ku > nu or ks > ns:
         return False
-    img = free.astype(np.int32)
-    cs = img.cumsum(0).cumsum(1)
-    z = np.zeros((ns + 1, nu + 1), dtype=np.int32)
-    z[1:, 1:] = cs
-    need = ks * ku
-    for r in range(ks, ns + 1):
-        row = z[r]
-        prev = z[r - ks]
-        for c in range(ku, nu + 1):
-            tot = row[c] - prev[c] - row[c - ku] + prev[c - ku]
-            if tot == need:
-                return True
-    return False
+    z = _integral(free)
+    tot = z[ks:, ku:] - z[:-ks, ku:] - z[ks:, :-ku] + z[:-ks, :-ku]
+    return bool((tot == ks * ku).any())
 
 
 def _courtyard_in_free(free: np.ndarray, u: np.ndarray, s: np.ndarray, x: float, y: float, wu: float, ws: float) -> bool:
@@ -278,24 +374,78 @@ def _courtyard_in_free(free: np.ndarray, u: np.ndarray, s: np.ndarray, x: float,
     j0 = int(round((y - BOARD_S[0]) / du))
     i1 = int(round((x + wu - BOARD_U[0]) / du))
     j1 = int(round((y + ws - BOARD_S[0]) / du))
-    i0 = max(0, i0)
-    j0 = max(0, j0)
-    i1 = min(free.shape[1], i1)
-    j1 = min(free.shape[0], j1)
-    if i1 <= i0 or j1 <= j0:
+    if i0 < 0 or j0 < 0 or i1 > free.shape[1] or j1 > free.shape[0] or i1 <= i0 or j1 <= j0:
         return False
     return bool(free[j0:j1, i0:i1].all())
 
 
+def _boxes_overlap(a: tuple[float, float, float, float], b: tuple[float, float, float, float]) -> bool:
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    return not (ax + aw <= bx or bx + bw <= ax or ay + ah <= by or by + bh <= ay)
+
+
+def pad_box(name: str) -> tuple[float, float, float, float]:
+    pu, ps = LEAD_PADS[name]
+    return (pu - PAD_SIZE / 2.0, ps - PAD_SIZE / 2.0, PAD_SIZE, PAD_SIZE)
+
+
+@functools.cache
+def placed_parts() -> dict[str, tuple[float, float, float, float]]:
+    """Greedy candidate layout; a part with no legal site is left out.
+
+    An array must also sit within CLAMP_MAX_MM of every pad it clamps.
+    """
+    _u, _s, _uu, free = board_free_mask()
+    z = _integral(free)
+    taken = [pad_box(p) for p in LEAD_PADS]
+    step = 0.05
+    out: dict[str, tuple[float, float, float, float]] = {}
+    for name, ((wu, ws), (tu, ts)) in PART_TARGETS.items():
+        pads = ARRAY_LINES.get(name, ())
+        ku = int(round(wu / RASTER_PITCH))
+        ks = int(round(ws / RASTER_PITCH))
+        best: tuple[float, float, float] | None = None
+        nu = int((BOARD_U[1] - BOARD_U[0] - wu) / step) + 1
+        ns = int((BOARD_S[1] - BOARD_S[0] - ws) / step) + 1
+        for j in range(ns):
+            y = round(BOARD_S[0] + j * step, 4)
+            for i in range(nu):
+                x = round(BOARD_U[0] + i * step, 4)
+                cu, cs = x + wu / 2.0, y + ws / 2.0
+                cost = math.hypot(cu - tu, cs - ts)
+                if best is not None and cost >= best[0]:
+                    continue
+                if any(math.hypot(LEAD_PADS[p][0] - cu, LEAD_PADS[p][1] - cs) > CLAMP_MAX_MM for p in pads):
+                    continue
+                i0 = int(round((x - BOARD_U[0]) / RASTER_PITCH))
+                j0 = int(round((y - BOARD_S[0]) / RASTER_PITCH))
+                if i0 + ku > free.shape[1] or j0 + ks > free.shape[0]:
+                    continue
+                if z[j0 + ks, i0 + ku] - z[j0, i0 + ku] - z[j0 + ks, i0] + z[j0, i0] != ks * ku:
+                    continue
+                if any(_boxes_overlap((x, y, wu, ws), t) for t in taken):
+                    continue
+                best = (cost, x, y)
+        if best is not None:
+            out[name] = (best[1], best[2], wu, ws)
+            taken.append(out[name])
+    return out
+
+
 def budget() -> Budget:
     u, s, uu, free = board_free_mask()
-    board = np.ones(free.shape, dtype=bool)
+    _, _, _, free_no_tabs = board_free_mask(tabs=False)
+    _, _, _, free_short = board_free_mask(tab_length=None)
     _, _, uu, ss = _mesh()
     board = np.ones(uu.shape, dtype=bool)
     k1 = _punch_circle(board, uu, ss, CONTACT_1[0], CONTACT_1[1], KEEPOUT_R)
     k1m = _punch_circle(board, uu, ss, CONTACT_1[0], CONTACT_1[1], KEEPOUT_R + COPPER_FREE)
     k2 = _punch_circle(board, uu, ss, CONTACT_2[0], CONTACT_2[1], KEEPOUT_R)
     k2m = _punch_circle(board, uu, ss, CONTACT_2[0], CONTACT_2[1], KEEPOUT_R + COPPER_FREE)
+    tabs = np.zeros(uu.shape, dtype=bool)
+    for pad in ("SIG1", "SIG2"):
+        tabs |= _tab_mask(uu, ss, pad, COPPER_FREE, TAB_LEN)
     au0, au1, as0, as1 = antenna_rect()
     ant = _punch_rect(board, uu, ss, au0, au1, as0, as1)
     u0, u1 = BOARD_U
@@ -311,15 +461,15 @@ def budget() -> Budget:
     as_drawn = TQFP_CY[0] * TQFP_CY[1] + 3 * SOT23_CY[0] * SOT23_CY[1] + BQ_CY[0] * BQ_CY[1] + LDO_CY[0] * LDO_CY[1] + N_0402 * R0402_CY[0] * R0402_CY[1]
     named = (
         VQFN_CY[0] * VQFN_CY[1]
-        + ARRAY_CY[0] * ARRAY_CY[1]
+        + N_ARRAYS * ARRAY_CY[0] * ARRAY_CY[1]
         + BQ_CY[0] * BQ_CY[1]
         + LDO_CY[0] * LDO_CY[1]
         + N_0402 * R0402_CY[0] * R0402_CY[1]
     )
     free_mm2 = _area(free)
-    mu0, mu1, ms0, ms1 = module_rect()
     cell_hook_end = BATTERY_S[0] + CELL_BODY_MAX[2]
     cell_rib_end = BATTERY_S[1]
+    mr = module_rect(MODULE_L_RESERVED)[2]
     return Budget(
         board_mm2=board_mm2,
         keepout1_mm2=board_mm2 - _area(k1),
@@ -328,9 +478,12 @@ def budget() -> Budget:
         keepout2_margin_mm2=board_mm2 - _area(k2m),
         antenna_mm2=board_mm2 - _area(ant),
         keepout2_union_antenna_mm2=board_mm2 - _area(k2m & ant),
+        tabs_margin_mm2=_area(tabs),
         rim_mm2=board_mm2 - _area(rim),
         blocked_mm2=board_mm2 - free_mm2,
         free_mm2=free_mm2,
+        free_without_tabs_mm2=_area(free_no_tabs),
+        free_tabs_to_pad_mm2=_area(free_short),
         largest_u=lu,
         largest_s=ls,
         largest_mm2=la,
@@ -339,22 +492,25 @@ def budget() -> Budget:
         required_as_drawn_mm2=as_drawn,
         required_named_mm2=named,
         spare_named_mm2=free_mm2 - named,
+        clamp_pairs=N_ARRAYS * PAIRS_PER_ARRAY,
         sagitta_mm=sagitta_mm(),
         y_clear_mm=BOARD_UNDERSIDE_Y - KEEPOUT_TOP_Y,
-        battery_to_module_hook_mm=ms0 - cell_hook_end,
-        battery_to_module_rib_mm=ms0 - cell_rib_end,
+        battery_to_module_hook_mm=mr - cell_hook_end,
+        battery_to_module_rib_mm=mr - cell_rib_end,
+        battery_to_module_hook_nominal_mm=module_rect()[2] - cell_hook_end,
+        battery_to_antenna_hook_mm=as0 - cell_hook_end,
         rf_keepout2_overlap=as0 < CONTACT_2[1] + KEEPOUT_R,
     )
 
 
 def pad_keepout_gap(name: str) -> float:
+    """Gap from the pad square to each keep-out circle plus 0.5, minimum."""
     u, s = LEAD_PADS[name]
-    c = CONTACT_1 if name == "SIG1" else CONTACT_2 if name == "SIG2" else None
-    if c is None:
-        d1 = math.hypot(u - CONTACT_1[0], s - CONTACT_1[1]) - KEEPOUT_R - COPPER_FREE - PAD_SIZE / 2.0
-        d2 = math.hypot(u - CONTACT_2[0], s - CONTACT_2[1]) - KEEPOUT_R - COPPER_FREE - PAD_SIZE / 2.0
-        return min(d1, d2)
-    return math.hypot(u - c[0], s - c[1]) - KEEPOUT_R - COPPER_FREE - PAD_SIZE / 2.0
+    gaps = [
+        math.hypot(u - c[0], s - c[1]) - KEEPOUT_R - COPPER_FREE - PAD_SIZE / 2.0
+        for c in (CONTACT_1, CONTACT_2)
+    ]
+    return min(gaps)
 
 
 def pad_in_antenna(name: str) -> bool:
@@ -364,30 +520,121 @@ def pad_in_antenna(name: str) -> bool:
     return not (u + half < au0 or u - half > au1 or s + half < as0 or s - half > as1)
 
 
-def clamp_distance(pad: str, part: str = "BAV199S") -> float:
+def clamp_distance(pad: str) -> float:
+    """Pad centre to the centre of the array that clamps it; inf if unplaced."""
+    sites = placed_parts()
+    name = LINE_ARRAY[pad]
+    if name not in sites:
+        return math.inf
+    x, y, wu, ws = sites[name]
     pu, ps = LEAD_PADS[pad]
-    x, y, wu, ws = PLACED[part]
-    cu, cs = x + wu / 2.0, y + ws / 2.0
-    return math.hypot(pu - cu, ps - cs)
+    return math.hypot(pu - (x + wu / 2.0), ps - (y + ws / 2.0))
 
 
-def _boxes_overlap(a: tuple[float, float, float, float], b: tuple[float, float, float, float]) -> bool:
-    ax, ay, aw, ah = a
-    bx, by, bw, bh = b
-    return not (ax + aw <= bx or bx + bw <= ax or ay + ah <= by or by + bh <= ay)
+def _segment_point_gap(a: tuple[float, float], b: tuple[float, float], p: tuple[float, float]) -> float:
+    ax, ay = a
+    bx, by = b
+    px, py = p
+    dx, dy = bx - ax, by - ay
+    t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)
+    t = min(1.0, max(0.0, t))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 
 
-def occupied_boxes() -> list[tuple[float, float, float, float]]:
-    boxes = list(PLACED.values())
-    for pu, ps in LEAD_PADS.values():
-        boxes.append((pu - PAD_SIZE / 2.0, ps - PAD_SIZE / 2.0, PAD_SIZE, PAD_SIZE))
-    return boxes
+def wire_keepout_gap() -> float:
+    """Wire surface to the nearest signal keep-out circle, in (u, s)."""
+    return min(
+        _segment_point_gap(a, b, c) - WIRE_OD / 2.0 - KEEPOUT_R
+        for a, b in zip(REF_WIRE, REF_WIRE[1:])
+        for c in (CONTACT_1, CONTACT_2)
+    )
+
+
+def wire_tab_gap(pad: str, samples: int = 400) -> float:
+    """Wire surface to a signal lug tab rectangle, sampled along the wire."""
+    best = math.inf
+    for a, b in zip(REF_WIRE, REF_WIRE[1:]):
+        for k in range(samples + 1):
+            t = k / samples
+            u = a[0] + t * (b[0] - a[0])
+            s = a[1] + t * (b[1] - a[1])
+            best = min(best, point_tab_gap(pad, u, s) - WIRE_OD / 2.0)
+    return best
+
+
+def _box_tab_gap(pad: str, box: tuple[float, float, float, float]) -> float:
+    """Smallest gap from a box to a tab rectangle; ≤ 0 when they touch."""
+    x, y, wu, ws = box
+    corners_box = [(x, y), (x + wu, y), (x + wu, y + ws), (x, y + ws)]
+    if any(point_tab_gap(pad, cu, cs) == 0.0 for cu, cs in corners_box):
+        return 0.0
+    tab = tab_corners(pad)
+    if any(x <= tu <= x + wu and y <= ts <= y + ws for tu, ts in tab):
+        return 0.0
+    gaps = []
+    for i in range(4):
+        a, b = tab[i], tab[(i + 1) % 4]
+        for p in corners_box:
+            gaps.append(_segment_point_gap(a, b, p))
+        for j in range(4):
+            gaps.append(_segment_point_gap(corners_box[j], corners_box[(j + 1) % 4], a))
+    return min(gaps)
+
+
+def layout_conflicts() -> list[str]:
+    """Every rule the candidate layout breaks, as short sentences."""
+    out: list[str] = []
+    b = budget()
+    u, s, _uu, free = board_free_mask()
+    parts = placed_parts()
+    if b.clamp_pairs < N_LINES:
+        out.append(f"{b.clamp_pairs} clamp pairs for {N_LINES} lines")
+    for name in PART_TARGETS:
+        if name not in parts:
+            out.append(f"{name}: no legal site")
+    if b.spare_named_mm2 < 0:
+        out.append(f"named pack {b.required_named_mm2:.2f} mm² > free {b.free_mm2:.2f} mm²")
+    for name, box in parts.items():
+        if not _courtyard_in_free(free, u, s, *box):
+            out.append(f"{name} courtyard outside the free mask")
+    names = list(parts)
+    for i, a in enumerate(names):
+        for c in names[i + 1 :]:
+            if _boxes_overlap(parts[a], parts[c]):
+                out.append(f"{a} overlaps {c}")
+        for pad in LEAD_PADS:
+            if _boxes_overlap(parts[a], pad_box(pad)):
+                out.append(f"{a} overlaps pad {pad}")
+    for pad in LEAD_PADS:
+        if pad_keepout_gap(pad) < 0:
+            out.append(f"pad {pad} inside a keep-out + 0.5")
+        if pad_in_antenna(pad):
+            out.append(f"pad {pad} in the RF zone")
+        for other in ("SIG1", "SIG2"):
+            if other == pad:
+                continue
+            if _box_tab_gap(other, pad_box(pad)) < COPPER_FREE:
+                out.append(f"pad {pad} within 0.5 of the {other} lug tab")
+        if LINE_ARRAY[pad] in parts and clamp_distance(pad) > CLAMP_MAX_MM:
+            out.append(f"pad {pad} more than {CLAMP_MAX_MM:.0f} mm from its clamp")
+    for pad in ("SIG1", "SIG2"):
+        us = [c[0] for c in tab_corners(pad)]
+        if min(us) < CAVITY_U[0] or max(us) > CAVITY_U[1]:
+            out.append(f"{pad} lug tab reaches a side wall (u {min(us):.2f}–{max(us):.2f})")
+    if wire_keepout_gap() < 0:
+        out.append(f"reference wire enters a keep-out ({wire_keepout_gap():.2f})")
+    for pad in ("SIG1", "SIG2"):
+        if wire_tab_gap(pad) < 0:
+            out.append(f"reference wire crosses the {pad} lug tab")
+    if b.battery_to_module_hook_mm < BATTERY_RF_MIN:
+        out.append(f"cell to reserved module {b.battery_to_module_hook_mm:.2f} < {BATTERY_RF_MIN:.0f} mm")
+    return out
 
 
 def place_0402s(n: int = N_0402) -> list[tuple[float, float]]:
-    """Greedy 0402 courtyards in the free mask, away from ICs and pads."""
+    """Greedy medial 0402 courtyards in the free mask, clear of parts and pads."""
     u, s, _uu, free = board_free_mask()
-    taken = occupied_boxes()
+    taken = list(placed_parts().values()) + [pad_box(p) for p in LEAD_PADS]
     sites: list[tuple[float, float]] = []
     r_w, r_h = R0402_CY
     y = BOARD_S[0] + RIM
@@ -406,16 +653,6 @@ def place_0402s(n: int = N_0402) -> list[tuple[float, float]]:
             else:
                 x += 0.10
         y += r_h
-    if len(sites) < n:
-        # One or two 0402 on the lateral face over the VQFN courtyard
-        # (two-sided; VQFN is medial ≤ 1.2 mm; 0402 body ~0.50 mm; the
-        # module starts at s 22.1 so the superior end of that courtyard
-        # is free of the module).
-        x0, y0, wu, ws = PLACED["ADS1292_RSM"]
-        for xx, yy in ((x0 + 0.10, y0 + 0.10), (x0 + 0.10 + r_w, y0 + 0.10)):
-            if len(sites) >= n:
-                break
-            sites.append((xx, yy))
     return sites
 
 
@@ -535,7 +772,7 @@ def render_svg() -> bytes:
         hatch="///",
         label="RF no-copper 12.4×3.8",
     )
-    mu0, mu1, ms0, ms1 = module_rect()
+    mu0, mu1, ms0, ms1 = module_rect(MODULE_L_RESERVED)
     add_rect(
         mu0,
         ms0,
@@ -545,7 +782,7 @@ def render_svg() -> bytes:
         edgecolor="#0b3d0b",
         linewidth=0.9,
         linestyle="-.",
-        label="module 15.5×10.5",
+        label="module reserved 15.8 long",
     )
 
     for (uc, sc), name in ((CONTACT_1, "K1"), (CONTACT_2, "K2")):
@@ -593,21 +830,41 @@ def render_svg() -> bytes:
             label="corner pad 1.5×1.5" if i == 0 else None,
         )
 
+    # signal lug tabs 3 × 7 from the Ø7.1 edge toward their pads (interface §3.1)
+    from matplotlib.patches import Polygon
+
+    for i, pad in enumerate(("SIG1", "SIG2")):
+        ax.add_patch(
+            Polygon(
+                tab_corners(pad),
+                closed=True,
+                facecolor="#e07070",
+                edgecolor="#7a1010",
+                alpha=0.35,
+                hatch="\\\\",
+                linewidth=0.5,
+                label="lug tab 3×7 (+0.5 in the mask)" if i == 0 else None,
+            )
+        )
+
+    parts = placed_parts()
     colors = {
         "ADS1292_RSM": "#6b4c9a",
-        "BAV199S": "#c45c26",
+        "BAV199S_1": "#c45c26",
+        "BAV199S_2": "#c45c26",
         "BQ25100": "#2a6f97",
         "TLV713": "#2a6f97",
     }
+    labels = {
+        "ADS1292_RSM": "ADS1292 VQFN-32 4.60²",
+        "BAV199S_1": "BAV199S-Q 2.65×2.35",
+        "BAV199S_2": "BAV199S-Q 2.65×2.35",
+        "BQ25100": "BQ25100 2.10×1.40",
+        "TLV713": "TLV713 1.50²",
+    }
     labels_done: set[str] = set()
-    for name, (x, y, wu, ws) in PLACED.items():
-        key = name.split("_")[0]
-        lab = {
-            "ADS1292": "ADS1292 VQFN-32 4.50²",
-            "BAV199S": "BAV199S SOT-363 2.65×2.35",
-            "BQ25100": "BQ25100 2.10×1.40",
-            "TLV713": "TLV713 1.50²",
-        }[key]
+    for name, (x, y, wu, ws) in parts.items():
+        lab = labels[name]
         add_rect(
             x,
             y,
@@ -622,23 +879,20 @@ def render_svg() -> bytes:
         labels_done.add(lab)
         ax.text(x + 0.08, y + 0.12, name.replace("_", "\n"), fontsize=5, color="white")
 
-    # 25 × 0402 at IPC-7351 small-chip Nominal courtyards.
-    # Sites on the VQFN courtyard are two-sided (lateral, over the AFE).
+    # 0402 courtyards at IPC-7351 small-chip Nominal, medial, greedy
     r_w, r_h = R0402_CY
-    vqfn = PLACED["ADS1292_RSM"]
-    for i, (x, y) in enumerate(place_0402s()):
-        two_sided = _boxes_overlap((x, y, r_w, r_h), vqfn)
+    sites_0402 = place_0402s()
+    for i, (x, y) in enumerate(sites_0402):
         add_rect(
             x,
             y,
             r_w,
             r_h,
-            facecolor="#8a6d9a" if two_sided else "#888",
+            facecolor="#888",
             edgecolor="#222",
             linewidth=0.3,
             alpha=0.7,
-            hatch=".." if two_sided else None,
-            label="0402 courtyard 1.80×0.90" if i == 0 else ("0402 two-sided" if two_sided and i == 24 else None),
+            label="0402 courtyard 1.80×0.90" if i == 0 else None,
         )
 
     for name, (pu, ps) in LEAD_PADS.items():
@@ -652,21 +906,28 @@ def render_svg() -> bytes:
             linewidth=0.7,
             label="lead pad 1.0×1.0" if name == "SIG1" else None,
         )
-        ax.text(pu + 0.55, ps - 0.15, name, fontsize=6, color="#111")
+        ax.text(pu - 1.9, ps - 0.15, name, fontsize=6, color="#111")
 
-    x, y, wu, ws = PLACED["BAV199S"]
-    cu, cs = x + wu / 2.0, y + ws / 2.0
     for pad in LEAD_PADS:
+        arr = LINE_ARRAY[pad]
+        if arr not in parts:
+            continue
+        x, y, wu, ws = parts[arr]
+        cu, cs = x + wu / 2.0, y + ws / 2.0
         pu, ps = LEAD_PADS[pad]
         ax.plot([pu, cu], [ps, cs], color="#c45c26", linewidth=0.6, linestyle=":")
-        d = math.hypot(pu - cu, ps - cs)
-        ax.text((pu + cu) / 2.0, (ps + cs) / 2.0, f"{d:.1f}", fontsize=5, color="#8a3b10")
+        ax.text((pu + cu) / 2.0, (ps + cs) / 2.0, f"{clamp_distance(pad):.1f}", fontsize=5, color="#8a3b10")
 
-    # reference wire: pocket → channel → wrap at s 37 → pad, Ø1.3, bend 3 mm
+    # reference wire: pocket → channel → wrap at s 37 → round keep-out 2 → pad
+    ax.plot(
+        [p[0] for p in REF_WIRE],
+        [p[1] for p in REF_WIRE],
+        color="#d4a017",
+        linewidth=WIRE_OD * 2.2,
+        solid_capstyle="round",
+        label="ref wire Ø1.3",
+    )
     ch_u = 0.5 * (CHANNEL_U[0] + CHANNEL_U[1])
-    path_u = [ch_u, ch_u, ch_u, 4.0]
-    path_s = [CHANNEL_S[1], CHANNEL_S[0], WRAP_S, LEAD_PADS["REF"][1]]
-    ax.plot(path_u, path_s, color="#d4a017", linewidth=WIRE_OD * 2.2, solid_capstyle="round", label="ref wire Ø1.3")
     ax.plot(ch_u, WRAP_S, "s", color="#c9a227", markersize=6, label="Kapton wrap s 37")
     add_rect(
         CHANNEL_U[0],
@@ -678,45 +939,52 @@ def render_svg() -> bytes:
         linewidth=0.8,
         label="WIRE_CHANNEL",
     )
-    bend = Circle((ch_u, WRAP_S), BEND_R, fill=False, edgecolor="#d4a017", linestyle=":", linewidth=0.5)
-    ax.add_patch(bend)
 
-    # 5 mm battery–module marker
+    # cell body end (packed to the hook) to the reserved module
+    cell_hook = BATTERY_S[0] + CELL_BODY_MAX[2]
     ax.annotate(
         "",
         xy=(8.5, ms0),
-        xytext=(8.5, cell_hook := BATTERY_S[0] + CELL_BODY_MAX[2]),
+        xytext=(8.5, cell_hook),
         arrowprops=dict(arrowstyle="<->", color="#8a6d00", lw=0.7),
     )
     ax.text(8.7, 0.5 * (ms0 + cell_hook), f"{b.battery_to_module_hook_mm:.1f} mm", fontsize=6, color="#8a6d00")
 
-    # numbers box
+    conflicts = layout_conflicts()
     lines = [
         f"board {b.board_mm2:.1f} mm²",
         f"keep-out 1 + 0.5   {b.keepout1_margin_mm2:.2f}",
         f"keep-out 2 ∪ RF    {b.keepout2_union_antenna_mm2:.2f}",
+        f"lug tabs + 0.5     {b.tabs_margin_mm2:.2f}",
         f"rim 0.25           {b.rim_mm2:.2f}",
         f"free               {b.free_mm2:.2f}",
+        f"  without tabs     {b.free_without_tabs_mm2:.2f}",
+        f"  tabs end at pad  {b.free_tabs_to_pad_mm2:.2f}",
         f"largest empty rect {b.largest_u:.2f} × {b.largest_s:.2f}",
         f"TQFP-32 7.60² fit? {b.tqfp_fits}",
-        f"VQFN-32 4.50² fit? {b.vqfn_fits}",
+        f"VQFN-32 4.60² fit? {b.vqfn_fits}",
         f"required named     {b.required_named_mm2:.2f}",
         f"spare named        {b.spare_named_mm2:.2f}",
+        f"0402 placed        {len(sites_0402)} of {N_0402}",
+        f"clamp pairs        {b.clamp_pairs} for {N_LINES} lines",
         f"sagitta 19 mm chord {b.sagitta_mm:.3f}",
         f"Y clear 4.3−4.13   {b.y_clear_mm:.2f}",
-        f"cell→module (hook) {b.battery_to_module_hook_mm:.2f}",
-        f"cell→module (rib)  {b.battery_to_module_rib_mm:.2f}",
+        f"cell→module 15.8 (hook) {b.battery_to_module_hook_mm:.2f}",
+        f"cell→module 15.8 (rib)  {b.battery_to_module_rib_mm:.2f}",
+        f"cell→antenna zone (hook) {b.battery_to_antenna_hook_mm:.2f}",
         f"RF overlaps K2     {b.rf_keepout2_overlap}",
-        "result: VQFN-32 + BAV199S; no shell change",
+        "result: NOT confirmed" if conflicts else "result: no conflicts",
     ]
+    lines += [f"✗ {c}" for c in conflicts]
     ax.text(
         17.6,
         47.5,
         "Packing at max courtyards\n" + "\n".join(lines),
-        fontsize=6.5,
+        fontsize=5.6,
         family="DejaVu Sans",
         va="top",
         ha="left",
+        wrap=False,
         bbox=dict(boxstyle="round,pad=0.35", facecolor="white", edgecolor="0.4"),
     )
     ax.legend(loc="lower right", fontsize=5.5, framealpha=0.92)
