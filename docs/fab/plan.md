@@ -1,32 +1,30 @@
 # Elicio earpiece — fabrication plan
 
 Phase 0 synthesis and Phase 1 specification for the Stage B behind-the-ear
-shell. Revision 4, turn 07, 2026-09-16; author `fable`, reviewer `pro`.
-Lane reports are evidence, not law; §2 picks and says why. Nothing here
-buys anything.
+shell. Revision 5, turn 09, 2026-09-16; author `fable`, reviewer `pro`,
+signed off at turn 08. Nothing here buys anything.
 
-**For Rolf, in short.** A Python-scripted nylon shell from eight caliper
+**For Rolf, in short.** A scripted nylon shell from eight caliper
 numbers, printed by JLCPCB, duties prepaid. Order 1 is a passive fit gauge,
-about $40, for your ear, not the electronics. Measure M1 (ear root
-length) first; the gate is about 51 mm, computed by the script. Three
-titanium domes, no stainless. Nothing is ordered until you approve the
-renders.
+about $40, for your ear, not the electronics. Measure M1 first; the gate is
+about 51 mm. Titanium domes, no stainless. Nothing is ordered until you
+approve the renders.
 
 ## 1. Decision summary
 
 1. Tool: build123d, headless, native STEP; `scripts/cad/bte_fit_shell.py`.
-2. Geometry: no scan, no impression; a generic shell from L1's M1–M7 plus
-   M8 (helix rise), each with a default; defaults only gives a provisional
-   gauge. One layout: tail reference, M1 ≥ chord + 3 (50.9–51.3).
+2. Geometry: no scan, no impression; a generic shell from M1–M8, each with
+   a default; defaults only gives a provisional gauge. One layout: tail
+   reference, M1 ≥ chord + 3 (50.9–51.3).
 3. Vendor: JLC3DP, HP MJF PA12-HP, natural grey, DDP. Resin never touches
    skin.
 4. Contacts: three titanium ISO 7380 M2.5 button heads (4.7 mm domes),
    rigid through a 1.5 mm wall, ring lug and thin nut inside; hook preload
-   clamps. No stainless fallback.
-5. Envelope: cavity 36.7 × 14.0 × 6.5 mm; battery (501015, 50 mAh) at the
-   top, a 19 × 12.5 mm board zone below it over the two signal contacts;
-   reference in a 10.2 mm tail. Body arc 48.4 (chord 47.9) × 17.0 × 9.0 mm
-   plus hook; 7.0 mm thin gauge. Design values pending WP6.
+   clamps; no stainless.
+5. Envelope: cavity 36.7 × 14.0 × 6.5 mm: battery (501015, 50 mAh) above
+   a 19 × 12.5 mm board zone over the two signal contacts; reference in a
+   10.2 mm tail. Body arc 48.4 (chord 47.9) × 17.0 × 9.0 mm plus hook; 7.0
+   thin gauge; pending WP6.
 6. Order 1: gauge set, provisional, allowance $30–44 standard shipping.
 7. Order 2: two Stage B bodies, verified titanium hardware, nickel test
    kit, allowance about $130, after the §9 gates.
@@ -61,8 +59,7 @@ renders.
 - build123d 0.7+ under `uv` (`uv add build123d trimesh`).
 - Script `scripts/cad/bte_fit_shell.py`; defaults in
   `scripts/cad/params/default.toml`; Rolf's numbers in
-  `scripts/cad/params/rolf.toml` override key by key; a missing key takes
-  the default, listed as `default` in the manifest.
+  `scripts/cad/params/rolf.toml` override key by key (missing keys per 3.4).
 - `uv run scripts/cad/bte_fit_shell.py --params rolf.toml --variant full
   --preload 1.5 --out docs/fab/cad/v1/`. Outputs are committed.
 - Millimetres. Right ear built; `SIDE=left` mirrors every output across
@@ -71,14 +68,12 @@ renders.
 ### 3.2 Frames and path
 
 Shell frame: origin O at the hook root on the body's top face; X
-posterior, Y lateral, Z superior; hook and final assembly live here; skull
-at Y = 0 with the hook on the ear.
+posterior, Y lateral, Z superior; skull at Y = 0 with the hook on the ear.
 
 Body frame: the shell frame rotated about X through O by −θ,
 θ = atan(HOOK_PRELOAD / TOTAL_CHORD), 1.79° at defaults, so the tail tip
-sits HOOK_PRELOAD medial of Y = 0. Everything but the hook is built here
-(medial face y = 0, contact axes −y), then moved into the shell frame as
-one group, lid included.
+sits HOOK_PRELOAD medial of Y = 0. All but the hook is built here (medial face y = 0, contact axes −y),
+then moved into the shell frame as one group, lid included.
 
 Path: a circular arc in the body frame's XZ plane through O, bowing
 posteriorly by CREASE_BOW at mid-length, arc length BODY_ARC; the script
@@ -86,13 +81,13 @@ solves the chord (R = C²/8b + b/2, arc = 4R·atan(2b/C)), 47.9 at defaults.
 `s`: arc length from O, 0 to BODY_ARC, extended 2 mm before O for
 negative-s features; `u`: posterior offset along the in-plane normal; `y`:
 lateral height. `P(u, s, y)` maps to body-frame points for every
-placement. TOTAL_CHORD (O to tail tip, 47.9) is what M1 is compared with.
+placement.
 
 ### 3.3 Parameters (defaults are the reference-ear build)
 
 Matrix: VARIANT ∈ {full, thin} × HOOK_PRELOAD ∈ {1.5, 2.5}, tail
 reference, M2.5 hardware; anything else fails before export. Full-body
-numbers; thin follows from BODY_THICK.
+numbers; thin from BODY_THICK.
 
 | Parameter | Default | Unit | From | Note |
 |---|---|---|---|---|
@@ -120,7 +115,7 @@ numbers; thin follows from BODY_THICK.
 | CONTACT_PITCH | 12.0 | mm | – | L3 12–15 |
 | PAIR_ANGLE | 22 | deg | – | contact 2 = contact 1 + pitch × (sin, +cos): u 10.4, s 33.1 |
 | CONTACT_REF | u 8.5, s 43.0 | mm | M6 recorded | pocket Ø7.5 from LID_Y down to y 1.5; end wall 1.05 to the cavity |
-| WIRE_CHANNEL | u 7.7–9.3, y 2.5–4.1, s 38.2–40.5 | mm | – | through the end wall into the pocket; overlaps the circle ≥ 1.1 across its width (circle edge at s 39.34); floor and 1.0 of wall below and beside kept |
+| WIRE_CHANNEL | u 7.7–9.3, y 2.5–4.1, s 38.2–40.5 | mm | – | into the pocket through the end wall; physical opening at the u 9.3 edge 0.94 at bow 3 (circle entry s 39.64), 1.09 at bow 1, 0.54 at bow 8, end section inside the circle; the script reports it; floor and 1.0 wall kept |
 | LEAD_PADS | medial side of the board, outside keep-outs + 0.5 and the antenna zone; suggested (u, s) 5.9/26.5, 5.5/30.0, 4.0/29.0 | mm | – | reference wire 15 mm, all ≤ 40; final positions in interface v2 |
 | CABLE_EXIT | Ø2.0 through the posterior side wall at s 36, y 3 | mm | – | tethered bring-up; plugged in Stage B |
 | HOOK_ROOT | X 4.0, Y = M4/2 (3.0), Z 0 | mm | M4 | on the top face, shell frame |
@@ -142,21 +137,21 @@ numbers; thin follows from BODY_THICK.
 Reference-ear defaults for any key left out: M1 52, M2 58, M3 11,
 M4 6.0, M5 2.5, M6 15, M7 22, M8 11.
 
-Checks the script prints, fail on any: generation matrix; one connected
-solid per part; walls ≥ 1.0 except E1–E5 at their own minimum (3.6); body
-and lid interiors disjoint when seated at nominal; keep-outs, lug-tab
-envelopes, the wire channel, and a Ø1.3 wire envelope swept at 3 mm bend
-radius from each terminal to its pad contain only air (body frame, after
-placement through P), and the channel overlaps the pocket (Stage B only); contact axes −y; STLs watertight; regeneration
-identical; TOTAL_CHORD > M1 − 3 (50.9 at a 3 mm bow, 51.3 at 1 mm; the
-sheet quotes the computed gate); HOOK_RADIUS − HOOK_DIA/2 < M8 + 1.
+Script checks, fail on any: matrix; one connected solid per part; walls
+≥ 1.0 except E1–E5 at their minima (3.6); body and lid interiors disjoint
+seated at nominal; keep-outs, lug-tab envelopes, wire channel, and a Ø1.3
+wire envelope swept at 3 mm bend radius from each terminal to its pad
+contain only air (body frame, after placement through P), channel opening
+into the pocket reported (Stage B only); contact axes −y; STLs watertight;
+regeneration identical; TOTAL_CHORD > M1 − 3 (50.9 at bow 3, 51.3 at bow
+1; the sheet quotes the computed gate); HOOK_RADIUS − HOOK_DIA/2 < M8 + 1.
 Reported: adverse fits per 3.6; SPAN = BODY_THICK + crown = 10.35 versus
-M3 as pinna displacement.
+M3, pinna displacement.
 
 ### 3.4 Caliper protocol for Rolf
 
-Digital caliper and string, ten minutes. Any key left out takes the
-reference value; the build is marked REF.
+Digital caliper and string, ten minutes. A key left out takes the
+reference value and marks the build REF.
 
 | No. | Measure | How | Typical | Feeds |
 |---|---|---|---|---|
@@ -180,16 +175,14 @@ reference value; the build is marked REF.
    outline; the lip zone s 46.8–48.4 keeps full thickness.
 4. Cavity: sweep the rectangle (u 1.5–15.5, y 1.5–BODY_THICK) along
    s 1.5–38.2 and subtract; add the rib and four pads; the battery pocket is
-   above the rib. Flat parts see the plan-view bow (0.32 over 16 mm, 0.46
-   over 19), absorbed by width clearance.
+   above the rib. Width clearance absorbs the plan-view bow (0.32 over 16 mm, 0.46 over
+   19).
 5. Contacts. If MOCK_CONTACTS: at P(5.9, 22.0, 0), P(10.4, 33.1, 0),
    P(8.5, 43.0, 0) add spherical caps Ø4.7 × 1.35 standing to −y; nothing
    else. Else: cut Ø2.9 through the wall at each; the reference pocket Ø7.5
-   from LID_Y down to y 1.5 at P(8.5, 43.0); WIRE_CHANNEL through the end
-   wall into the pocket, floor intact; CABLE_EXIT.
-6. Body-side lid features: LIP_GROOVE 0.5 into the top face; TONGUE_SLOT
-   under the 1.1 mm lip at the tip; web pocket (floor LID_Y − 1.2) open
-   above it.
+   from LID_Y down to y 1.5 at P(8.5, 43.0); WIRE_CHANNEL; CABLE_EXIT.
+6. Body-side lid features per 3.3: LIP_GROOVE, TONGUE_SLOT under the 1.1
+   lip, web pocket open above it.
 7. Lid: plate y LID_Y to LID_Y + 1.0 over s −0.2 to 46.4, the body's plan
    outline inset CLEAR_FIT, edge fillet 0.8. Lip, web, tongue, nubs per 3.3:
    lip from the plate's top edge at s −1.2 to −0.2, bump toward +s, root
@@ -201,22 +194,19 @@ reference value; the build is marked REF.
    +Z, increasing toward −X, −5° to HOOK_ANGLE. If M5 > 0, cut GLASSES_FLAT
    off the lateral-superior side over 30°–120°.
 9. Assembly: rotate body group and lid into the shell frame by −θ about X
-   through O; union hook and body; fillet the joint 2.0. Left: mirror all
-   outputs across X = 0.
+   through O; union hook and body; fillet the joint 2.0. Left: mirror across X = 0.
 10. Checks per 3.3; export; write `manifest.json` (parameters, defaults
     used, exceptions, fit report, commit, hashes, quantities).
 
-Closing: top end raised, slide +s so the tongue enters under the lip,
-lower the top; the bump snaps into the groove. Opening: fingernail under
-the lip, pull −s, lift, slide −s.
+Closing: slide +s so the tongue enters under the lip, lower the top, the
+bump snaps into the groove; opening reverses it, fingernail under the lip.
 
 ### 3.6 Print rules, acceptance policy, outputs
 
-JLC3DP MJF PA12-HP rules, checked by `pro` 2026-09-16
-(jlc3dp.com/help/article/pa12-hp-nylon, 2026-07-30;
-jlc3dp.com/help/article/3d-printing-design-guideline, 2026-08-24): ±0.3 mm
-under 100 mm; wall 1 mm; 1.5 mm recommended for protrusions, locating
-features, snaps, fasteners; emboss 0.8; clearance 0.2–0.4.
+Print rules (§8 row 5; jlc3dp.com/help/article/pa12-hp-nylon, 2026-07-30,
+and /3d-printing-design-guideline, 2026-08-24, checked by `pro`): ±0.3
+under 100 mm; wall 1; 1.5 for protrusions, locating features, snaps;
+emboss 0.8; clearance 0.2–0.4.
 
 One policy. Walls (enclosing, floor, end walls, lip zone, tail, hook)
 ≥ 1.0, a fail. Experimental exceptions, each with its own minimum, in the manifest and
@@ -224,11 +214,11 @@ drawing: E1 tongue 0.5 (≥ 0.4 fitted); E2 rib 0.8 (locating only); E3
 nubs 0.8 (≥ 0.6); E4 coupon rib 0.4 (measurement); E5 lip cantilever 1.0,
 bump 0.5 (≥ 0.2 fitted), deliberately below JLC's 1.5. Order 1 uses all
 five; order 2 keeps E1, E3, E5 only if the order 1 lid passes the closure
-test, else interface v2 replaces the closure. Fits: the table below, ±0.3
-per part; rigid pairs keep adverse interference within 0.2, compliant pairs
-carry a deflection budget, seating faces are zero by intent. Removal by
-hand only from the lid parts named, never the body. Final acceptance is 3.7
-item 7. Any unintended nominal overlap fails.
+test (else interface item 6). Fits: the table below, ±0.3 per part; rigid
+pairs keep adverse interference within 0.2, compliant pairs carry a
+deflection budget, seating faces are zero by intent. Hand removal only from
+the lid parts named. Final acceptance is 3.7 item 7. Unintended nominal
+overlap fails.
 
 | Pair (lid : body) | Type | Nominal | Adverse | Removal, minimum | Reject |
 |---|---|---|---|---|---|
@@ -243,9 +233,9 @@ item 7. Any unintended nominal overlap fails.
 | web bottom : pocket floor, y | rigid, one-sided | 0.4 | −0.2 to +1.0 | web ≤ 0.2 | web bottoms before the plate seats |
 | nub : side wall, u | rigid, one-sided | 0.4 | −0.2 to +1.0 | nub ≤ 0.2, nub ≥ 0.6 | nubs bind |
 
-Closure test article: first lid on the first full body, ten cycles, then
-retained through 3.7 item 2 weighted. The coupon (12 × 12 × 3; holes Ø1.7,
-2.9, 3.4; slots 0.9, 0.4; rib 0.4) measures the process only and feeds
+Closure test article: the first lid on the first full body (3.7 item 7).
+The coupon (12 × 12 × 3; holes Ø1.7,
+2.9, 3.4; slots 0.9, 0.4; rib 0.4) measures the process and feeds
 interface v2. Lip fails: two wraps of paper medical tape at s 10 and s 40 for the
 remaining items, recorded.
 
@@ -257,30 +247,29 @@ bodies ×1 each, lid ×2, coupon ×1; six parts, five files.
 
 ### 3.7 Passive fit acceptance
 
-The gauge checks ear, comfort, covertness, and closure, not electronics
-fit (WP6) or dry-contact signal (WP7). About 4 g in the cavity (two M6
-nuts). Order: full/1.5, thin/1.5, full/2.5.
+Checks ear, comfort, covertness, closure; not electronics fit (WP6) or
+signal (WP7). About 4 g in the cavity (two M6 nuts). Order: full/1.5,
+thin/1.5, full/2.5.
 
 1. On and off one-handed in under five seconds, no pulling the ear.
 2. Stays put through ten head shakes, five hard clenches, three yawns, one
    flight of stairs.
-3. Wear 15 minutes, inspect the skin; then one hour; then four hours.
-   Remove at once on pain, numbness, or skin reaction; record it. A red mark
-   lasting over 15 minutes after removal fails that variant.
-4. Photos: front, side, back, with and without glasses. Front: nothing
-   visible. Side: no more than a hearing aid. Back: his call.
+3. Wear 15 minutes, one hour, four hours, inspecting the skin each time;
+   remove at once on pain, numbness, or skin reaction and record it; a red
+   mark over 15 minutes after removal fails that variant.
+4. Photos: front, side, back, with and without glasses; front nothing
+   visible, side no more than a hearing aid, back his call.
 5. Paper strip under each dome pinched with the head left, right, chin
    down.
 6. Glasses on and off ten times; no lift.
 7. Closure: lid on and off ten times; lip, web, tongue, nubs intact;
    retained through item 2 weighted. Fail: tape fallback, recorded.
-8. Thickness and preload he accepts; observations, not biocompatibility
+8. Accepted thickness and preload; observations, not biocompatibility
    evidence.
 9. Mark dome positions on the skin, photograph; input to WP7a.
 
 ## 4. Contacts specification
 
-Three contacts: two signal on the medial face, one reference on the tail.
 Final positions from WP7a.
 
 | Item | Spec |
@@ -293,21 +282,19 @@ Final positions from WP7a.
 | Cleaning | 70 % isopropanol wipe after each wear; nothing on the skin side but titanium and nylon |
 
 Sourcing by specification; WP5 verifies part numbers on live pages before
-any purchase. L3's McMaster-Carr 93625A110 is an M8 stainless locknut
-(turn 02, finding 11), struck. Routes, UNVERIFIED: McMaster-Carr titanium
-screws; ISO 7380 GR5 M2.5 from titanium fastener vendors. Kit:
-dimethylglyoxime spot test (Nickel Alert, nonickel.com, $24.99, unavailable
-2026-09-16; WP5 finds a substitute).
+any purchase (routes, UNVERIFIED: McMaster-Carr titanium screws; ISO 7380
+GR5 M2.5 titanium vendors). L3's McMaster-Carr 93625A110 is an M8
+stainless locknut, struck. Kit: DMG spot test per §7; WP5 substitutes
+while Nickel Alert is unavailable.
 
 Nickel evidence: (1) supplier material statement for the SKU or lot; (2)
-DMG swab on every dome on receipt and after two weeks of wear, a reject
-screen only (Thyssen 2010, turn 02, finding 8). Other metal stays inside the closed cavity.
+DMG swab on every dome at receipt and after two weeks, a reject screen only
+(Thyssen 2010). Other metal stays inside the closed cavity.
 
 ## 5. Electronics envelope handoff and packing budget
 
-The board is out of scope. WP6 draws the placement at maximum part
-dimensions and confirms or raises interface v2; until then 9.0 mm is a
-design value.
+Board out of scope. WP6 draws the placement at maximum part dimensions
+and confirms or raises interface v2; until then 9.0 mm is a design value.
 
 | Feature | Reserved |
 |---|---|
@@ -318,39 +305,35 @@ design value.
 | Lateral side | Raytac MDBT50Q-1MV2 15.8 × 10.8 × 2.3 max, antenna end at the inferior board edge, ≥ 5 mm from the battery; 4.3 + 1.0 + 2.3 = 7.6 under a lid at 8.0 |
 | Medial side | components ≤ 1.2 tall; keep-outs Ø7.1 plus lug tabs plus 0.5 copper-free margin at contacts 1 and 2; the antenna no-copper zone overlaps keep-out 2; three lead pads at the §3.3 positions |
 | Packing budget | 237 mm² minus keep-out 1 on board (49), minus keep-out 2 ∪ antenna zone (≈ 68), minus rim (≈ 15): ≈ 105 available. Required at max dims: ADS1292 TQFP-32 7 × 7 (49), three SOT-23 clamps (30), charger and LDO (7), about 25 passives 0402 (25): ≈ 111. Feasible only with tighter courtyards or a diode array; WP6 decides |
-| Reference route | tail pocket Ø7.5 with the terminal's tab bent upward inside it → WIRE_CHANNEL (u 7.7–9.3, y 2.5–4.1, s 38.2–40.5) overlapping the pocket ≥ 1.1 → under the board at y 2.5–4.1 → pad (4.0, 29.0); wire Ø1.3, 15 mm, bend radius 3; one Kapton wrap to the floor at s 37; clear of battery, charge pads, lid; final route in interface v2 |
+| Reference route | tail pocket, tab bent upward inside → WIRE_CHANNEL (3.3) → under the board at y 2.5–4.1 → pad (4.0, 29.0); wire Ø1.3, 15 mm, bend radius 3; one Kapton wrap to the floor at s 37; clear of battery, charge pads, lid; final route in interface v2 |
 | Insulation | pre-resistor conductors: the three stacks under Kapton, signal lug tabs on the floor, the reference tab upright in its pocket, silicone leads; board medial side solder-masked except the three pads |
 | Debug and charge | charge pads on the board inside the cavity, reached with the lid off; Ø2 exit in the posterior side wall for tethered bring-up, plugged in Stage B |
 
-If WP6 cannot pack the medial side: smaller protection parts, +3.5 mm
-board zone (raises the M1 gate), or +3 mm width; Rolf chooses.
+Packing escalation: §10 interface item 1; Rolf chooses.
 
 ## 6. Skin, safety, hygiene
 
-Material: HP states its MJF PA12 meets USP Class I–VI and FDA intact-skin
-guidance on preliminary testing of representative printed parts (hp.com
-materials page, checked by `pro` 2026-09-16). That covers the powder, not JLC's finishing or dye: order 1 is natural
-grey; black only with a process statement. Skin side: PA12 and titanium.
+Material: HP's MJF PA12 statement (USP Class I–VI, FDA intact-skin
+guidance, preliminary testing; §8 row 6) covers the powder, not JLC's
+finishing or dye: order 1 is natural grey; black only with a process
+statement. Skin side: PA12 and titanium.
 Cleaning: 70 % isopropanol, air dry; no acetone.
 
-Battery-only: no connector, no port. Charging is off the ear, lid
-removed; "never charge while worn" is procedural, on the assembly sheet;
-no shell feature enforces it. Tethered bring-up: side exit, laptop on
-battery, plug back before wear.
+Battery-only: no connector, no port; charging off the ear, lid removed.
+"Never charge while worn" is procedural, on the assembly sheet. Tethered
+bring-up: side exit, laptop on battery, plug back before wear.
 
 Series protection: each contact reaches the board only through its own
 lead, resistor, and clamp; no pre-resistor conductor touches the battery,
 charge pads, or other copper. The shell reserves the Kapton discs, tab,
 channel, and wire envelopes, the solder-mask rule, and the §5 route.
-Active wear per §9: reviewed schematic, assembled inspection,
-battery-powered leakage and continuity check; no mains meter on the body.
+No mains meter on the body; active wear per §9.
 
 ## 7. Orders
 
-Planning allowances dated 2026-09-16, not quotes. JLC3DP ranges: L2 §1.1;
-DDP policy: jlcpcb.com/help/article/us-tariff-policy-faq (2026-09-09,
-verified by `pro`); the 40 % rate and shipping ranges are L2's, UNVERIFIED.
-No line exceeds $200.
+Allowances dated 2026-09-16, not quotes; sources and status in §8 (DDP
+FAQ: jlcpcb.com/help/article/us-tariff-policy-faq, 2026-09-09). No line
+exceeds $200.
 
 ### Order 1: fit gauge, provisional
 
@@ -365,10 +348,10 @@ No line exceeds $200.
 Rolf, after approving both renders: upload the five files at
 jlcpcb.com/3d-printing, each MJF, PA12-HP, natural, quantities per the
 manifest; DFM wall warnings go back to WP2; ship DDP to Massachusetts.
-Checkout gate, stop on any miss: parts and finish match the manifest; a
-DDP or tariff line shown; delivered total shown, at most $55 standard or
-$75 DHL; delivery date shown. Record order number and total
-in `docs/fab/orders.md`.
+Checkout gate, stop on any miss: parts and finish per manifest; DDP or
+tariff line shown; delivered total at most $55 standard or $75 DHL;
+delivery date shown. Record order number and total in
+`docs/fab/orders.md`.
 
 ### Order 2: Stage B shell and hardware
 
@@ -407,8 +390,8 @@ Placed only at S1 (§9).
 
 ## 9. Phase 1 work packages and release states
 
-One worker each, one to three days, in order. WP1 precedes production
-geometry; WP2 and WP3 deliver the order 1 files.
+One worker each, one to three days, in order; WP2 and WP3 deliver the
+order 1 files.
 
 | WP | Owns | Outputs | Acceptance |
 |---|---|---|---|
@@ -434,29 +417,49 @@ Release states:
 | S4 routine use | daily wear; decoder mapping promotion per the design record | all 7a criteria pass, including three days and background activities |
 
 Fail at S3: rework, return to S2; changed contacts, coordinates, or shell
-void the affected S0 and S3 observations. Any change to contact
-coordinates, stacks, cell, board outline, closure, or thickness bumps the
-interface version, re-runs WP2's checks, and repeats any 3.7 item whose
-input changed.
+void the affected S0 and S3 observations. Any interface change bumps the
+version, re-runs WP2's checks, and repeats the affected 3.7 items.
 
 ## 10. Open items, interface decisions, Open for Rolf
 
-Open items (carried): (1) CREASE_BOW formula, clamp, and report, WP2; (2)
-coupon-to-parameter mapping, WP2; (3) manifest schema and hash rule, WP3.
+Disagreements: none; findings 1–23 all accepted. Pro's earlier "do not
+order" notes are superseded by the turn 08 sign-off, which covers the
+provisional-gauge-first sequence with its gates, not an active device's fit
+or safety.
+
+Open items (carried; package; closing check): (1) CREASE_BOW formula,
+clamp, report; WP2; manifest shows the clamped value. (2)
+Coupon-to-parameter mapping; WP2; in the interface v2 note. (3) Manifest
+schema and hash rule; WP3; `manifest.json` validates. (4) Finding 23:
+body-frame circle entry and physical opening of WIRE_CHANNEL per supported
+bow; WP2 geometry report; every opening positive, Stage B containment
+checks pass.
 
 Interface v2 decisions (cross-package): (1) medial-side packing: fits,
 +3.5 mm length, or +3 mm width (WP6); (2) cell identity and maximum
-dimensions (WP6); (3) measured hook stiffness, HOOK_DIA if outside 0.5–1.5 N (WP4
-measures, WP6 decides); (4) a short-ear branch (own path, end wall,
-reference site, route, closure); (5)
-contact size other than M2.5; (6) closure replacement if the lip fails;
-(7) lead route and pad positions.
+dimensions (WP6); (3) measured hook stiffness, HOOK_DIA if outside
+0.5–1.5 N (WP4 measures, WP6 decides); (4) a short-ear branch (own path,
+end wall, reference site, route, closure); (5) contact size other than
+M2.5; (6) closure replacement if the lip fails; (7) lead route and pads.
 
-Open for Rolf: (1) measure M1 first; below the computed gate (about 51)
-this release stops and returns with item 4 above; (2) the other seven
-measurements, or "defaults" for a REF gauge; (3) which ear first (default
-right); (4) approve the renders, then order 1 under the checkout gate; (5)
-after 3.7, thickness, preload, and the back view; (6) WP6 escalation: longer, wider, or a smaller front end; (7)
-black nylon only with a finishing statement; (8) buy the Stage A parts
+Open for Rolf, your decisions only: (1) measure M1 first; below the
+computed gate (about 51) this release stops, see interface item 4; (2) the
+other seven measurements, or "defaults" for a REF gauge; (3) which ear
+first (default right); (4) approve the renders, then order 1 under the
+checkout gate; (5) after 3.7, thickness, preload, back view; (6) WP6
+escalation: longer, wider, or a smaller front end; (7) black nylon only
+with a finishing statement; (8) buy the Stage A parts
 (`docs/STAGE_A_PARTS.md`), gating 7a and order 2; (9) the nickel-free
-requirement is his, outside this plan.
+requirement, outside this plan; (10) an ear impression or scan, unused
+here, if the gauge fails twice.
+
+Pro's notes to you, turns 02–08, with where the plan answers them: passive
+fit first, gauge labelled provisional (§1, 3.7); nickel-free, battery-only,
+no charging while worn unchanged (§6); the short-ear layout stays unbuilt while unsupported measurements are
+rejected (the M1 gate); titanium
+hardware passes WP5 before any active-contact order (S1); a failed snap uses the tape fallback for passive observations only, never
+qualifying the closure for an active pod (3.6, interface item 6); decide ear length by
+the computed chord gate, not a rounded 51 (3.3, 3.4); the upright reference tab and wire transition checked as installed
+geometry, not from stack height (§5, S1); controlled wear is S3 after S2, routine use S4
+after the frozen protocol (§9); next: WP1–WP3, then render approval and the
+order 1 gate.
