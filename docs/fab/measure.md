@@ -12,18 +12,19 @@ Ear (write `right` or `left`): ________
 If this line is blank, the build is the right ear.
 
 **Defaults, if you measure M1 only.** M2 = 58, M3 = 11, M4 = 6.0, M5 = 2.5,
-M6 = 15, M7 = 22, M8 = 11. CREASE_BOW stays 3.0 mm. SIDE stays right unless
-you wrote `left`. The CAD run is marked REF.
+M6 = 15, M7 = 22, M8 = 11. CREASE_BOW stays 3.0 mm, so the gate is 50.91 mm.
+SIDE stays right unless you wrote `left`. The CAD run is marked REF.
+
+**How the bow is set.** The script computes CREASE_BOW from M1 and M2 only
+when you give it both. If M2 is blank, the bow stays 3.0 mm.
 
 ---
 
 ## M1 — ear root length (do this first)
 
-**Stop rule.** The shell chord is TOTAL_CHORD. The CAD script must reject
-the build if M1 is below TOTAL_CHORD + 3 mm. That is the chord gate. At the
-default 3 mm bow the gate is 50.9 mm. If M1 is below 50.9 mm, stop. Do not
-measure M2–M8. This release does not build a shorter shell (plan §10 item 1
-and interface item 4).
+**Gate.** The shell chord is TOTAL_CHORD. The CAD script rejects the build
+if M1 is below TOTAL_CHORD + 3 mm. TOTAL_CHORD depends on the bow, and the
+bow comes from M1 and M2, so the gate is read after M2.
 
 **Formula** (plan §3.2–§3.3). BODY_ARC is 48.4 mm. CREASE_BOW is `b` mm.
 TOTAL_CHORD is the chord `C` of that arc:
@@ -32,18 +33,22 @@ TOTAL_CHORD is the chord `C` of that arc:
 - `BODY_ARC = 4R · atan(2b / C) = 48.4`
 - gate = TOTAL_CHORD + 3
 
-You do not need the script. Read the gate from this table. Default bow is
-the middle column.
+The script's gate at the three reference bows, and the smallest caliper
+reading (0.01 mm) that passes:
 
 | CREASE_BOW (mm) | 1 | 3 | 8 |
 |---|---:|---:|---:|
-| M1 gate (mm) | 51.3 | 50.9 | 47.7 |
+| TOTAL_CHORD (mm) | 48.34 | 47.90 | 44.67 |
+| Script gate (mm) | 51.345 | 50.901 | 47.673 |
+| M1 must be at least (mm) | 51.35 | 50.91 | 47.68 |
 
-Bow 1 is the tight gate (TOTAL_CHORD 48.3 mm). Bow 3 is the default
-(TOTAL_CHORD 47.9 mm). Bow 8 is the loose gate (TOTAL_CHORD 44.7 mm). If
-you later measure M2, the script sets bow from M1 and M2 and clamps it to
-1–8 mm. If that bow is not 3 mm, read the matching column. If M1 is then
-below that gate, the build stops.
+**Stop rule, after M1.**
+
+- M1 is 51.35 or more: you pass at every bow. Go on to M2.
+- M1 is below 47.68: stop. Do not measure M2–M8. This release does not
+  build a shorter shell (plan §10, Open for Rolf item 1, and interface
+  item 4).
+- M1 is between: measure M2 next, then read the gate in the M2 step.
 
 **Tool.** Digital caliper, outside jaws. No string.
 
@@ -60,7 +65,7 @@ not along the groove.
 
 **Write M1.** ________ mm
 
-If M1 is below 50.9 mm, stop here.
+If M1 is below 47.68 mm, stop here.
 
 ---
 
@@ -81,6 +86,27 @@ Measure the marked length with the caliper.
 
 **Write M2.** ________ mm
 
+**Gate, if M1 was below 51.35.** Subtract: M2 − M1 = ________ mm. Find the
+largest row not above your difference. If M1 is below that row's number,
+stop: this release does not build for your ear.
+
+| M2 − M1 (mm) | Bow the script uses (mm) | M1 must be at least (mm) |
+|---:|---:|---:|
+| M2 not measured | 3.0 | 50.91 |
+| 0 or less | 1.0 | 51.35 |
+| 0.25 | 2.1 | 51.16 |
+| 0.5 | 3.0 | 50.91 |
+| 1.0 | 4.2 | 50.40 |
+| 1.5 | 5.2 | 49.88 |
+| 2.0 | 6.0 | 49.35 |
+| 2.5 | 6.7 | 48.80 |
+| 3.0 | 7.4 | 48.25 |
+| 3.5 or more | 8.0 | 47.68 |
+
+The rows are computed at M1 = 47.7, which gives the highest gate for each
+difference, so the table never passes an ear the script rejects. The
+script's own check decides.
+
 ---
 
 ## M3 — sulcus clearance
@@ -90,10 +116,11 @@ Measure the marked length with the caliper.
 **Landmark.** Mid-height of the ear. Skull in the crease, out to the helix
 rim.
 
-**Picture.** At mid-height of the ear, the helix stands off the skull.
-Seat the caliper beam on the skull in the crease. Run the depth rod out
-until it touches the inner face of the helix rim. Do not press the ear
-flat.
+**Picture.** At mid-height of the ear, the rim of the ear stands off the
+head. Hold the caliper behind the ear, pointing at the head. Rest the end
+of the beam on the edge of the rim. Open the caliper so the depth rod slides
+past the rim into the groove until it touches the head. Read the caliper.
+Do not press the ear flat.
 
 **Typical range.** 8–14 mm.
 
@@ -110,9 +137,11 @@ flat.
 **Landmark.** The cartilage bridge at the top attachment, where the hook
 will sit.
 
-**Picture.** At the top of the ear, a thin cartilage ridge joins the helix
-to the skull. Put the jaws across that ridge, front to back. Close until
-the jaws touch. Do not squeeze.
+**Picture.** At the top of the ear, a thin cartilage ridge joins the ear
+to the head; the hook sits over it. Put one jaw in the top of the groove
+behind the ear, against the head. Put the other jaw on the outer face of
+the ear at the same point. The jaws close sideways, head to outside, not
+front to back. Close until the jaws touch. Do not squeeze.
 
 **Typical range.** 4.5–7.5 mm.
 
@@ -192,7 +221,7 @@ highest rim point. The line is straight up.
 
 **Typical range.** 8–14 mm.
 
-**Feeds.** HOOK_RADIUS.
+**Feeds.** HOOK_RADIUS = M8 + 2.5 mm (13.5 at the default 11).
 
 **Write M8.** ________ mm
 
@@ -201,7 +230,8 @@ highest rim point. The line is straight up.
 ## Copy line
 
 Give this block to the CAD run (`scripts/cad/params/rolf.toml`). Blank
-keys take the reference values above and mark REF.
+keys take the reference values above and mark REF. The bow is computed only
+if both M1 and M2 are filled in.
 
 ```
 SIDE    ________     (right or left; blank = right)
