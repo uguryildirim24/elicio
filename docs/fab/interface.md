@@ -231,7 +231,7 @@ change in the table if Rolf keeps the in-line DNK pack.
 | Feature | Value | Unit | From |
 |---|---|---|---|
 | Class | 501015, 50 mAh, 3.7 V | – | plan §1, §5; L4 §1.4 |
-| Named SKU | DNK 501015 (fpbattery drawing, file A/FP1015-12293, page 2) | – | https://www.fpbattery.com/wp-content/uploads/2024/06/fpbattery-501015-3.7V-50mAh-Lithium-Polymer-Battery-Specification.pdf, read 2026-09-17. Drawing date on the cell art: 2022-12-10 |
+| Named SKU | DNK 501015 (fpbattery drawing, file A/FP1015-12293, page 2) | – | https://www.fpbattery.com/wp-content/uploads/2024/06/fpbattery-501015-3.7V-50mAh-Lithium-Polymer-Battery-Specification.pdf, read 2026-09-17. Drawing date on the cell art: 2022-12-10. The drawing is marked "PRELIMINARY", so its dimensions need the vendor's released drawing before a cell is bought |
 | Cell body (drawing) | T 5, W 10, L 15 | mm | same page |
 | Pack as drawn | PCM in-line; BL 17 ± 1, so 16–18 long × 10 wide × 5 thick | mm | same page, items BL, W, T |
 | Folded pack ≤ 5.2 × 10.4 × 15.6 | **No published SKU** | mm | DNK in-line BL max 18. JP501015 cell 5.0 × 10 × 15 Max with "PCB: customized" and no folded envelope (https://www.jx-battery.com/consumer-electronic-battery/li-polymer-battery/headset-battery-li-polymer-battery-jp501015.html, read 2026-09-17) |
