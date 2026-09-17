@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T00:31:17-04:00",
+ "generated": "2026-09-17T01:37:57-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -36,7 +36,7 @@
    "session_id": "791832d5-f944-40f4-80ec-82deb5c4efca",
    "tokens": {
     "done": "1",
-    "lane": "WP1",
+    "lane": "WP6",
     "parent": "w1B:p1"
    },
    "title": "Lane W1 Instructions"
@@ -49,7 +49,7 @@
    ],
    "name": "w2",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pB",
    "tab_id": "w1B:tB",
    "tab_label": "w2",
@@ -58,7 +58,7 @@
    "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
    "tokens": {
     "done": "1",
-    "lane": "WP2",
+    "lane": "WP3",
     "parent": "w1B:p1"
    },
    "title": "Lane W2 Instructions"
@@ -106,7 +106,7 @@
    "session_id": "18235bfb-f5b8-4365-9383-d66c69251f4b",
    "tokens": {
     "done": "1",
-    "lane": "WP5",
+    "lane": "WP7a",
     "parent": "w1B:p1"
    },
    "title": null
@@ -139,7 +139,7 @@
   {
    "workspace_id": "w16",
    "label": "flyonenomics",
-   "status": "working"
+   "status": "done"
   },
   {
    "workspace_id": "w1D",
@@ -151,71 +151,76 @@
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
-   "1450581 Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
-   "9838573 Round 1: record the reviewer's twelve decisions as open questions",
-   "121ccb3 review(r1): verdict MERGE-AFTER-DECISION, gates, defects and decisions",
-   "6caa0ed review(WP2): say in the manifest where the bow came from",
-   "42e51d5 review(WP9): drop an added reason from row 9 and reopen question 3",
-   "6e92eee review(WP1): align the ISO 4032 note and dome note with \u00a72.3 and \u00a712"
+   "9b264a5 Phase 1 round 3: briefs for WP6 round 3 (packing decision sheet) and WP5 part 2 (lug, nut, dome drawings)",
+   "c704145 Round 2: record the reviewer's decisions 13 to 19 as open questions Q13 to Q19",
+   "443a178 review: round 2 verdict, MERGE-AFTER-DECISION",
+   "7bc9f24 review(WP6): note the DNK 501015 drawing is marked PRELIMINARY",
+   "0bad5af review(WP6): cell fold thickness against the pocket, and what a longer pocket moves",
+   "93ab908 review(WP6): lug tabs in the free mask, two clamp arrays, packing not confirmed"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "1450581",
-    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "head": "9b264a5",
+    "subject": "Phase 1 round 3: briefs for WP6 round 3 (packing decision sheet) and WP5 part 2 (lug, nut, dome drawings)",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
     "branch": "lane/w1",
-    "head": "1450581",
-    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "head": "9b264a5",
+    "subject": "Phase 1 round 3: briefs for WP6 round 3 (packing decision sheet) and WP5 part 2 (lug, nut, dome drawings)",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "1450581",
-    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "head": "c704145",
+    "subject": "Round 2: record the reviewer's decisions 13 to 19 as open questions Q13 to Q19",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
-    "head": "1450581",
-    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "head": "c704145",
+    "subject": "Round 2: record the reviewer's decisions 13 to 19 as open questions Q13 to Q19",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w5",
     "branch": "lane/w5",
-    "head": "1450581",
-    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "head": "9b264a5",
+    "subject": "Phase 1 round 3: briefs for WP6 round 3 (packing decision sheet) and WP5 part 2 (lug, nut, dome drawings)",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w9",
     "branch": "lane/w9",
-    "head": "1450581",
-    "subject": "Phase 1 round 2: briefs for WP3 (renders, drawing), WP6 (packing, interface v2), WP7a part 1 (frozen protocol)",
+    "head": "c704145",
+    "subject": "Round 2: record the reviewer's decisions 13 to 19 as open questions Q13 to Q19",
     "dirty": 0
    }
   ],
   "branches": [
    "lane/w1",
+   "lane/w5",
+   "main",
    "lane/w2",
    "lane/w4",
-   "lane/w5",
    "lane/w9",
-   "main",
+   "review/r2",
    "review/r1",
    "claude/project-overview-8qnnbq"
   ]
  },
  "files": {
   "briefs": [
+   "tasks/WP5b-drawings.md",
+   "tasks/WP6b-packing-options.md",
+   "tasks/L-r2-datasheets.md",
+   "tasks/review-r2.md",
    "tasks/WP7a-protocol.md",
    "tasks/WP6-packing.md",
    "tasks/WP3-renders.md",
@@ -223,17 +228,16 @@
    "tasks/review-r1.md",
    "tasks/review-code-template.md",
    "tasks/WP9-record.md",
-   "tasks/WP5-contacts.md",
-   "tasks/WP4-sheets.md",
-   "tasks/WP2-gauge.md",
-   "tasks/WP1-interface.md",
-   "tasks/L4-pod.md"
+   "tasks/WP5-contacts.md"
   ],
   "verdicts": [
+   "tasks/reviews/code-r2.md",
    "tasks/reviews/code-r1.md"
   ],
   "reports": [],
-  "handoff": []
+  "handoff": [
+   "HANDOFF.md"
+  ]
  },
  "repo": "/Users/rolfie/projects/elicio",
  "sidecar": "/Users/rolfie/projects/elicio/HANDOFF.json"
