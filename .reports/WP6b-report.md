@@ -1,20 +1,21 @@
-# WP6b report — packing options under Q13
+# WP6b report — packing options on the TE 31428 lug
 
-Lane `w1`, branch `lane/w1`, package WP6b.
+Lane `w1`, branch `lane/w1`, package WP6b. Mid-package update after WP5b `f5ae1e4` on `lane/w5`.
 
 ## What was built
 
-- `scripts/cad/placement.py --option A|B|C|E`. A is the default. It writes `docs/fab/cad/v1/placement.svg`. A also writes `placement_A.svg` (byte-identical). B, C and E write `placement_B.svg`, `placement_C.svg`, `placement_E.svg`.
-- Q13 tab: width 3 mm, length from the Ø7.1 edge to the far edge of its own pad. The mask adds 0.5 mm. SIG1 length 1.55 mm. SIG2 length 2.75 mm.
-- Q14: cell-to-module 4.70 mm is not a packing fail. The antenna-to-cell distance is 16.70 mm on A/C/E.
-- Option A (plan shell): free 82.97 mm² vs required 79.30. Area closes. Sites do not. VQFN-32 and the two arrays share one 4.55 mm corridor. `layout_conflicts("A")` is `BAV199S_1: no legal site` and `BAV199S_2: no legal site`.
-- Option B (BODY_ARC +3.5 mm): all named parts sit. Conflicts empty. TOTAL_CHORD 47.90 → 51.43. M1 gate 50.90 → 54.43. 0402s 17 of 25.
-- Option C (BODY_WIDTH +3 mm): all named parts sit. All 25 of the 0402s sit. Conflicts empty. TOTAL_CHORD and M1 gate do not move.
-- Option E (two-sided): array height 1.2 mm would fit (lid gap 2.7 mm; 2.2 mm under the foam strip). The only lateral hole outside the module is 11.48 mm from SIG2. Conflicts same as A.
-- `docs/fab/packing-options.md`: one table, one recommendation (C), one answer line.
-- `docs/fab/interface.md`: version stays 2. One errata row. §12 V2-4 points at the sheet. Pads in §4 stay.
+- `scripts/cad/placement.py --option A|B|C|E`. Working tabs are TE 31428 (C-31428 rev D4): width 1.96 mm, 6.27 mm from the ring edge (8.85 mm from the centre). SIG1 at 0° (+u). SIG2 at 180° (−u). Both **flat**. The Q13 short-tab mask stays as `mode="q13"` for budget and tests only.
+- Upright on SIG1 and SIG2 does not fit: keep-out air 2.63 mm, lug 6.73 mm. Reference stays upright in the tail pocket (contacts.md §5.3).
+- Option A (plan shell): `layout_conflicts("A")` is empty. VQFN-32 at (9.90, 23.50). Arrays at (4.50, 27.10) and (7.15, 26.75). Clamp 1.68 / 1.76 / 4.60 mm. Free 79.32 mm² vs required 79.30. 0402s 7 of 25.
+- Option B: empty conflicts. TOTAL_CHORD 47.90 → 51.43. M1 gate 50.90 → 54.43. 0402s 11 of 25.
+- Option C: empty conflicts. All 25 of the 0402s sit. TOTAL_CHORD and M1 gate do not move.
+- Option E: empty conflicts. ICs sit on the medial face. Two extra 0402s on the lateral face. Two-sided assembly is not required for the named pack.
+- Q13 short tab (3 mm, far pad edge) is kept as one sheet row, marked **not a SKU**. No crimp lug ends under its pad (overshoot SIG1 4.25 mm, SIG2 3.05 mm).
+- `docs/fab/packing-options.md`: Q13 row plus A/B/C/E on the real lug. Recommendation **A**.
+- `docs/fab/interface.md`: version stays 2. Second WP6b errata row. §12 V2-4 points at the sheet. Pads in §4 stay.
+- Drawings: `placement.svg` = `placement_A.svg`, plus B, C, E.
 
-CAD solids and `manifest.json` were not edited.
+CAD solids and `manifest.json` were not edited. `plan.md`, `open-questions.md`, `contacts.md`, and `montage.md` were not edited.
 
 ## Plan §9 acceptance
 
@@ -22,22 +23,22 @@ WP6: "confirmed, or v2 with the escalation for Rolf".
 
 | Item | Command | Result |
 |---|---|---|
-| Full suite | `.venv/bin/python -m unittest discover -s tests -v` | 89 tests OK |
+| Full suite | `.venv/bin/python -m unittest discover -s tests -v` | 92 tests OK |
 | Drawings twice | `placement.py --option A\|B\|C\|E --out …` then regen tests | A/B/C/E regenerate byte-identical. `placement.svg` equals `placement_A.svg` |
-| Escalation sheet | `docs/fab/packing-options.md` | A does not close. B and C close. Recommend C. |
+| Escalation sheet | `docs/fab/packing-options.md` | Q13 is not a SKU. A, B, C and E close on TE 31428. Recommend A. |
 
-Packing is not confirmed. Interface v2 waits on Rolf.
+Packing is not confirmed until Rolf picks. Interface v2 waits on Rolf.
 
 ## What was not done
 
 - No CAD solid change (WP8 after Rolf picks).
 - Pads in interface §4 were not moved.
-- Option E was not closed by moving pads: a SIG2 move that reaches the lateral hole cuts the VQFN corridor with its tab.
+- Signal tabs were not bent upright (height does not allow it).
 
 ## Needs a decision
 
-Rolf picks from `docs/fab/packing-options.md`: `I pick C` or `I pick B` or `I pick E` or `keep A; wait for the lug drawing`. Recommendation: C.
+Rolf picks from `docs/fab/packing-options.md`: `I pick A` or `I pick C` or `I pick B` or `I pick E`. Recommendation: **A**. Pick C only if you need all 25 of the 0402 courtyards.
 
 ## Final commit sha
 
-Packing work `45d0016`. Report on `lane/w1` HEAD after this file is committed.
+Packing work on `lane/w1` HEAD after this file is committed.

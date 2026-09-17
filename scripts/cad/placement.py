@@ -4,9 +4,12 @@
 2D drawing in the body-frame (u, s) plane. Headless matplotlib, Agg,
 deterministic SVG. Does not edit CAD solids or ``manifest.json``.
 
-``--option A`` (default) is the plan shell under Q13 (tab to the far
-edge of its pad, plus 0.5 in the mask). B lengthens BODY_ARC 3.5 mm.
+``--option A`` (default) is the plan shell with the TE 31428 lug
+(contacts.md §8.1, C-31428 rev D4). B lengthens BODY_ARC 3.5 mm.
 C widens BODY_WIDTH 3 mm. E keeps the shell and uses the lateral face.
+
+Q13 short tabs (end under the pad, 3 mm wide) stay as a budget mask
+only. No crimp ring lug ends under its pad. See packing-options.md.
 
 ``layout_conflicts(option)`` lists every rule that option breaks. An
 empty list is the only state that confirms that option. Packing of the
@@ -46,7 +49,7 @@ import io
 import math
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -105,12 +108,21 @@ CHANNEL_U = (7.7, 9.3)
 CHANNEL_S = (38.2, 40.5)
 CLAMP_MAX_MM = 10.0
 BATTERY_RF_MIN = 5.0
-# Signal lug tab envelope, interface §3.1: "3 × 7 × 1.5; from the cylinder
-# toward pad". Q13 (open-questions.md): the tab ends under its own pad.
-# Length is Ø7.1 edge to the far edge of that pad; the 0.5 copper-free
-# margin is added in the mask, not to this copper length.
-TAB_W = 3.0
-TAB_LEN = 7.0
+# TE Connectivity 31428, Customer Drawing C-31428 rev D4, date read
+# 2026-09-17 (contacts.md §8.1). Ring OD 5.16 → radius 2.58. Barrel end
+# 8.85 from the ring centre, 6.27 from the outer ring edge. Barrel width
+# 1.96 max. Stock 0.46 nominal. The tab need not point at its pad; the
+# wire does that. Q13 short tabs (3 mm, far pad edge) are not a SKU.
+RING_OD = 5.16
+RING_R = RING_OD / 2.0
+LUG_A1 = 8.85
+TAB_W = 1.96
+TAB_LEN = 6.27  # LUG_A1 - RING_R, from the outer ring edge
+LUG_THICK = 0.46
+TAB_W_Q13 = 3.0
+LITERAL_TAB_LEN = 7.0
+SKIN_Y = 1.5
+TAB_MODES = ("real", "q13", "literal")
 KEEPOUT_TOP_Y = 4.13
 BOARD_UNDERSIDE_Y = 4.3
 BOARD_TOP_Y = 5.3  # underside 4.3 + core 1.0; plan §5
@@ -169,10 +181,11 @@ ARRAY_LINES: dict[str, tuple[str, ...]] = {
 }
 LINE_ARRAY = {pad: name for name, pads in ARRAY_LINES.items() for pad in pads}
 
-# Q13 wire: pocket → channel → wrap at s 37 → low-u of keep-out 2 and
-# the short SIG2 tab → REF pad. The r2 via (5.0, 34.6) crossed the short
-# SIG2 tab.
-REF_WIRE: tuple[tuple[float, float], ...] = (
+# Reference wire: pocket → channel → wrap at s 37 → REF pad. The path
+# is chosen with the tab angles so the Ø1.3 jacket misses both barrels.
+# Low-u hugs keep-out 2 on the posterior side. High-u goes round K2 on
+# the inferior / high-u side when SIG2's barrel occupies low-u.
+REF_WIRE_LOW_U: tuple[tuple[float, float], ...] = (
     (8.5, 40.5),
     (8.5, 38.2),
     (8.5, 37.0),
@@ -180,6 +193,20 @@ REF_WIRE: tuple[tuple[float, float], ...] = (
     (2.8, 29.0),
     (4.0, 29.0),
 )
+REF_WIRE_HIGH_U: tuple[tuple[float, float], ...] = (
+    (8.5, 40.5),
+    (8.5, 38.2),
+    (8.5, 37.0),
+    (10.4, 37.50),
+    (14.80, 37.50),
+    (14.80, 26.4),
+    (4.0, 26.4),
+    (4.0, 29.0),
+)
+# SIG1 0° (+u, out of the pad cluster). SIG2 180° (−u, out of the VQFN
+# corridor). packing-options.md records the pair after the angle search.
+TAB_DEG: dict[str, float] = {"SIG1": 0.0, "SIG2": 180.0}
+REF_WIRE = REF_WIRE_HIGH_U
 
 
 @dataclass(frozen=True, slots=True)
@@ -198,6 +225,7 @@ class Layout:
     two_sided: bool
     lead_pads: Mapping[str, tuple[float, float]]
     ref_wire: tuple[tuple[float, float], ...]
+    tab_deg: Mapping[str, float]
     give_up: str
 
 
@@ -261,6 +289,7 @@ def chord_from_arc_bow(arc: float, bow: float = CREASE_BOW) -> tuple[float, floa
 def _build_options() -> dict[str, Layout]:
     pads = dict(LEAD_PADS)
     wire = REF_WIRE
+    deg = dict(TAB_DEG)
     a = Layout(
         option="A",
         board_len=BOARD_LEN,
@@ -276,7 +305,8 @@ def _build_options() -> dict[str, Layout]:
         two_sided=False,
         lead_pads=pads,
         ref_wire=wire,
-        give_up="nothing on the shell; the medial face does not close",
+        tab_deg=deg,
+        give_up="nothing on the shell",
     )
     b_s1 = BOARD_S[1] + OPTION_B_DS
     b = Layout(
@@ -294,6 +324,7 @@ def _build_options() -> dict[str, Layout]:
         two_sided=False,
         lead_pads=pads,
         ref_wire=wire,
+        tab_deg=deg,
         give_up="3.5 mm of length behind the ear; M1 gate moves",
     )
     c_u1 = BOARD_U[1] + OPTION_C_DU
@@ -312,6 +343,7 @@ def _build_options() -> dict[str, Layout]:
         two_sided=False,
         lead_pads=pads,
         ref_wire=wire,
+        tab_deg=deg,
         give_up="3 mm of width in the crease",
     )
     e = Layout(
@@ -329,6 +361,7 @@ def _build_options() -> dict[str, Layout]:
         two_sided=True,
         lead_pads=pads,
         ref_wire=wire,
+        tab_deg=deg,
         give_up="a two-sided assembly; plan §5 listed only the module on the lateral face",
     )
     return {"A": a, "B": b, "C": c, "E": e}
@@ -382,46 +415,63 @@ def _punch_rect(
     return mask & ~((uu >= ua) & (uu <= ub) & (ss >= sa) & (ss <= sb))
 
 
-def tab_span(pad: str, length: float | None = None, option: str = "A") -> tuple[float, float]:
-    """Start and end of a signal lug tab along its contact-to-pad axis.
+def tab_width(mode: str = "real") -> float:
+    if mode not in TAB_MODES:
+        raise ValueError(f"mode must be one of {TAB_MODES}, got {mode!r}")
+    return TAB_W if mode == "real" else TAB_W_Q13
 
-    ``length=None`` is Q13: the tab ends at the far edge of its own pad.
-    ``length=TAB_LEN`` is the 7 mm literal reading (review r2).
+
+def tab_span(pad: str, option: str = "A", *, mode: str = "real") -> tuple[float, float]:
+    """Start and end of a signal lug tab along its axis, from the contact centre.
+
+    ``mode="real"`` is TE 31428: ring radius 2.58 to barrel end 8.85.
+    ``mode="q13"`` is the short-tab reading: Ø7.1 edge to the far pad edge.
+    ``mode="literal"`` is the r2 7 mm envelope from the Ø7.1 edge.
     """
+    if mode not in TAB_MODES:
+        raise ValueError(f"mode must be one of {TAB_MODES}, got {mode!r}")
+    if mode == "real":
+        return RING_R, LUG_A1
+    if mode == "literal":
+        return KEEPOUT_R, KEEPOUT_R + LITERAL_TAB_LEN
     lay = get_layout(option)
     c = PAD_CONTACT[pad]
     assert c is not None
     pu, ps = lay.lead_pads[pad]
     d = math.hypot(pu - c[0], ps - c[1])
-    if length is None:
-        return KEEPOUT_R, d + PAD_SIZE / 2.0
-    return KEEPOUT_R, KEEPOUT_R + length
+    return KEEPOUT_R, d + PAD_SIZE / 2.0
 
 
-def _tab_axes(pad: str, option: str = "A") -> tuple[tuple[float, float], float, float]:
-    lay = get_layout(option)
+def _tab_axes(pad: str, option: str = "A", *, mode: str = "real") -> tuple[tuple[float, float], float, float]:
     c = PAD_CONTACT[pad]
     assert c is not None
+    if mode == "real":
+        deg = get_layout(option).tab_deg[pad]
+        rad = math.radians(deg)
+        return c, math.cos(rad), math.sin(rad)
+    lay = get_layout(option)
     pu, ps = lay.lead_pads[pad]
     d = math.hypot(pu - c[0], ps - c[1])
     return c, (pu - c[0]) / d, (ps - c[1]) / d
 
 
-def point_tab_gap(pad: str, u: float, s: float, length: float | None = None, option: str = "A") -> float:
+def point_tab_gap(
+    pad: str, u: float, s: float, option: str = "A", *, mode: str = "real"
+) -> float:
     """Distance from (u, s) to the tab rectangle of ``pad``'s contact; 0 inside."""
-    (cu, cs), eu, es = _tab_axes(pad, option)
-    a0, a1 = tab_span(pad, length, option)
+    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode)
+    a0, a1 = tab_span(pad, option, mode=mode)
     along = (u - cu) * eu + (s - cs) * es
     across = -(u - cu) * es + (s - cs) * eu
     da = max(a0 - along, 0.0, along - a1)
-    dc = max(abs(across) - TAB_W / 2.0, 0.0)
+    dc = max(abs(across) - tab_width(mode) / 2.0, 0.0)
     return math.hypot(da, dc)
 
 
-def tab_corners(pad: str, length: float | None = None, option: str = "A") -> list[tuple[float, float]]:
-    (cu, cs), eu, es = _tab_axes(pad, option)
-    a0, a1 = tab_span(pad, length, option)
-    h = TAB_W / 2.0
+def tab_corners(pad: str, option: str = "A", *, mode: str = "real") -> list[tuple[float, float]]:
+    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode)
+    a0, a1 = tab_span(pad, option, mode=mode)
+    h = tab_width(mode) / 2.0
     return [
         (cu + a * eu - c * es, cs + a * es + c * eu)
         for a, c in ((a0, -h), (a1, -h), (a1, h), (a0, h))
@@ -429,13 +479,50 @@ def tab_corners(pad: str, length: float | None = None, option: str = "A") -> lis
 
 
 def _tab_mask(
-    uu: np.ndarray, ss: np.ndarray, pad: str, margin: float, length: float | None, option: str = "A"
+    uu: np.ndarray,
+    ss: np.ndarray,
+    pad: str,
+    margin: float,
+    option: str = "A",
+    *,
+    mode: str = "real",
 ) -> np.ndarray:
-    (cu, cs), eu, es = _tab_axes(pad, option)
-    a0, a1 = tab_span(pad, length, option)
+    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode)
+    a0, a1 = tab_span(pad, option, mode=mode)
     along = (uu - cu) * eu + (ss - cs) * es
     across = -(uu - cu) * es + (ss - cs) * eu
-    return (along >= a0 - margin) & (along <= a1 + margin) & (np.abs(across) <= TAB_W / 2.0 + margin)
+    half = tab_width(mode) / 2.0 + margin
+    return (along >= a0 - margin) & (along <= a1 + margin) & (np.abs(across) <= half)
+
+
+def upright_signal_clear_mm() -> float:
+    """Air above the skin in the signal keep-out, minus the upright lug.
+
+    Ring stock 0.46 plus barrel 6.27. Keep-out top is 4.13. The board
+    underside is 4.3. Both are short of 6.73, so SIG1 and SIG2 stay flat.
+    Reference uses the tail pocket (contacts.md §5.3), not this cylinder.
+    """
+    have = KEEPOUT_TOP_Y - SKIN_Y
+    need = LUG_THICK + TAB_LEN
+    return have - need
+
+
+def bind_layout(
+    option: str,
+    *,
+    tab_deg: Mapping[str, float] | None = None,
+    ref_wire: tuple[tuple[float, float], ...] | None = None,
+) -> Layout:
+    """Swap tab angles or the reference wire on a live option (search / tests)."""
+    key = option.upper()
+    current = OPTIONS[key]
+    OPTIONS[key] = replace(
+        current,
+        tab_deg=dict(tab_deg) if tab_deg is not None else current.tab_deg,
+        ref_wire=ref_wire if ref_wire is not None else current.ref_wire,
+    )
+    placed_layout.cache_clear()
+    return OPTIONS[key]
 
 
 def antenna_rect(option: str = "A") -> tuple[float, float, float, float]:
@@ -477,11 +564,12 @@ def chord_gap_at(distance_from_mid: float, chord: float = BOARD_LEN, radius: flo
 
 def board_free_mask(
     tabs: bool = True,
-    tab_length: float | None = None,
     option: str = "A",
     punch_module: bool = False,
+    *,
+    mode: str = "real",
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Copper-free mask on one face. Default tab length is Q13 (far pad edge)."""
+    """Copper-free mask on one face. Default tabs are TE 31428 (real)."""
     lay = get_layout(option)
     u, s, uu, ss = _mesh(option)
     free = np.ones(uu.shape, dtype=bool)
@@ -489,7 +577,7 @@ def board_free_mask(
     free = _punch_circle(free, uu, ss, CONTACT_2[0], CONTACT_2[1], KEEPOUT_R + COPPER_FREE)
     if tabs:
         for pad in ("SIG1", "SIG2"):
-            free &= ~_tab_mask(uu, ss, pad, COPPER_FREE, tab_length, option)
+            free &= ~_tab_mask(uu, ss, pad, COPPER_FREE, option, mode=mode)
     au0, au1, as0, as1 = antenna_rect(option)
     free = _punch_rect(free, uu, ss, au0, au1, as0, as1)
     u0, u1 = lay.board_u
@@ -672,8 +760,8 @@ def budget(option: str = "A") -> Budget:
     lay = get_layout(option)
     u, s, uu, free = board_free_mask(option=option)
     _, _, _, free_no_tabs = board_free_mask(tabs=False, option=option)
-    _, _, _, free_q13 = board_free_mask(tab_length=None, option=option)
-    _, _, _, free_lit = board_free_mask(tab_length=TAB_LEN, option=option)
+    _, _, _, free_q13 = board_free_mask(mode="q13", option=option)
+    _, _, _, free_lit = board_free_mask(mode="literal", option=option)
     _, _, _, free_lat = board_free_mask(option=option, punch_module=True)
     _, _, _, ss = _mesh(option)
     board = np.ones(uu.shape, dtype=bool)
@@ -683,7 +771,7 @@ def budget(option: str = "A") -> Budget:
     k2m = _punch_circle(board, uu, ss, CONTACT_2[0], CONTACT_2[1], KEEPOUT_R + COPPER_FREE)
     tabs = np.zeros(uu.shape, dtype=bool)
     for pad in ("SIG1", "SIG2"):
-        tabs |= _tab_mask(uu, ss, pad, COPPER_FREE, None, option)
+        tabs |= _tab_mask(uu, ss, pad, COPPER_FREE, option, mode="real")
     au0, au1, as0, as1 = antenna_rect(option)
     ant = _punch_rect(board, uu, ss, au0, au1, as0, as1)
     u0, u1 = lay.board_u
@@ -810,7 +898,7 @@ def wire_tab_gap(pad: str, samples: int = 400, option: str = "A") -> float:
             t = k / samples
             u = a[0] + t * (b[0] - a[0])
             s = a[1] + t * (b[1] - a[1])
-            best = min(best, point_tab_gap(pad, u, s, None, option) - WIRE_OD / 2.0)
+            best = min(best, point_tab_gap(pad, u, s, option) - WIRE_OD / 2.0)
     return best
 
 
@@ -818,9 +906,9 @@ def _box_tab_gap(pad: str, box: tuple[float, float, float, float], option: str =
     """Smallest gap from a box to a tab rectangle; ≤ 0 when they touch."""
     x, y, wu, ws = box
     corners_box = [(x, y), (x + wu, y), (x + wu, y + ws), (x, y + ws)]
-    if any(point_tab_gap(pad, cu, cs, None, option) == 0.0 for cu, cs in corners_box):
+    if any(point_tab_gap(pad, cu, cs, option) == 0.0 for cu, cs in corners_box):
         return 0.0
-    tab = tab_corners(pad, None, option)
+    tab = tab_corners(pad, option)
     if any(x <= tu <= x + wu and y <= ts <= y + ws for tu, ts in tab):
         return 0.0
     gaps = []
@@ -831,6 +919,37 @@ def _box_tab_gap(pad: str, box: tuple[float, float, float, float], option: str =
         for j in range(4):
             gaps.append(_segment_point_gap(corners_box[j], corners_box[(j + 1) % 4], a))
     return min(gaps)
+
+
+def tab_tab_gap(option: str = "A") -> float:
+    """Smallest gap between the two signal barrels; 0 if they overlap."""
+    a = tab_corners("SIG1", option)
+    b = tab_corners("SIG2", option)
+    if any(point_tab_gap("SIG2", u, s, option) == 0.0 for u, s in a):
+        return 0.0
+    if any(point_tab_gap("SIG1", u, s, option) == 0.0 for u, s in b):
+        return 0.0
+    gaps = []
+    for i in range(4):
+        p, q = a[i], a[(i + 1) % 4]
+        for r in b:
+            gaps.append(_segment_point_gap(p, q, r))
+        p, q = b[i], b[(i + 1) % 4]
+        for r in a:
+            gaps.append(_segment_point_gap(p, q, r))
+    return min(gaps)
+
+
+def corner_pad_boxes(option: str = "A") -> list[tuple[float, float, float, float]]:
+    lay = get_layout(option)
+    zu0, zu1 = lay.board_zone_u
+    zs0, zs1 = lay.board_zone_s
+    return [
+        (zu0, zs0, CORNER_PAD, CORNER_PAD),
+        (zu1 - CORNER_PAD, zs0, CORNER_PAD, CORNER_PAD),
+        (zu0, zs1 - CORNER_PAD, CORNER_PAD, CORNER_PAD),
+        (zu1 - CORNER_PAD, zs1 - CORNER_PAD, CORNER_PAD, CORNER_PAD),
+    ]
 
 
 def layout_conflicts(option: str = "A") -> list[str]:
@@ -878,9 +997,19 @@ def layout_conflicts(option: str = "A") -> list[str]:
         if LINE_ARRAY[pad] in parts and clamp_distance(pad, option) > CLAMP_MAX_MM:
             out.append(f"pad {pad} more than {CLAMP_MAX_MM:.0f} mm from its clamp")
     for pad in ("SIG1", "SIG2"):
-        us = [c[0] for c in tab_corners(pad, None, option)]
+        us = [c[0] for c in tab_corners(pad, option)]
+        ss = [c[1] for c in tab_corners(pad, option)]
         if min(us) < lay.cavity_u[0] or max(us) > lay.cavity_u[1]:
             out.append(f"{pad} lug tab reaches a side wall (u {min(us):.2f}–{max(us):.2f})")
+        if min(ss) < lay.cavity_s[0] or max(ss) > lay.cavity_s[1]:
+            out.append(f"{pad} lug tab reaches an end wall (s {min(ss):.2f}–{max(ss):.2f})")
+        if min(ss) < BATTERY_S[1]:
+            out.append(f"{pad} lug tab enters the battery pocket")
+        for i, box in enumerate(corner_pad_boxes(option)):
+            if _box_tab_gap(pad, box, option) <= 0.0:
+                out.append(f"{pad} lug tab hits corner pad {i}")
+    if tab_tab_gap(option) < COPPER_FREE:
+        out.append(f"signal lug tabs within 0.5 of each other ({tab_tab_gap(option):.2f})")
     if wire_keepout_gap(option) < 0:
         out.append(f"reference wire enters a keep-out ({wire_keepout_gap(option):.2f})")
     for pad in ("SIG1", "SIG2"):
@@ -1116,14 +1245,14 @@ def render_svg(option: str = "A") -> bytes:
     for i, pad in enumerate(("SIG1", "SIG2")):
         ax.add_patch(
             Polygon(
-                tab_corners(pad, None, option),
+                tab_corners(pad, option),
                 closed=True,
                 facecolor="#e07070",
                 edgecolor="#7a1010",
                 alpha=0.35,
                 hatch="\\\\",
                 linewidth=0.5,
-                label="Q13 lug tab (far pad edge +0.5)" if i == 0 else None,
+                label="TE 31428 barrel 1.96×6.27" if i == 0 else None,
             )
         )
 
@@ -1244,12 +1373,16 @@ def render_svg(option: str = "A") -> bytes:
         f"board {b.board_mm2:.1f} mm²  {lay.board_len:g}×{lay.board_wid:g}",
         f"keep-out 1 + 0.5   {b.keepout1_margin_mm2:.2f}",
         f"keep-out 2 ∪ RF    {b.keepout2_union_antenna_mm2:.2f}",
-        f"Q13 tabs + 0.5     {b.tabs_margin_mm2:.2f}",
+        f"TE 31428 tabs+0.5  {b.tabs_margin_mm2:.2f}",
         f"rim 0.25           {b.rim_mm2:.2f}",
-        f"free (Q13)         {b.free_mm2:.2f}",
+        f"free (real lug)    {b.free_mm2:.2f}",
+        f"  Q13 short        {b.free_tabs_to_pad_mm2:.2f}",
         f"  7 mm tabs        {b.free_literal_mm2:.2f}",
         f"  without tabs     {b.free_without_tabs_mm2:.2f}",
         f"  lateral (E)      {b.lateral_free_mm2:.2f}",
+        f"SIG1 tab           {lay.tab_deg['SIG1']:.0f} deg (0=+u)",
+        f"SIG2 tab           {lay.tab_deg['SIG2']:.0f} deg",
+        f"upright SIG air    {upright_signal_clear_mm():.2f} (flat)",
         f"largest empty rect {b.largest_u:.2f} × {b.largest_s:.2f}",
         f"TQFP-32 7.60² fit? {b.tqfp_fits}",
         f"VQFN-32 4.60² fit? {b.vqfn_fits}",
