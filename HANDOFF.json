@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T01:37:57-04:00",
+ "generated": "2026-09-17T03:33:49-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -27,7 +27,7 @@
    ],
    "name": "w1",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pA",
    "tab_id": "w1B:tA",
    "tab_label": "w1",
@@ -36,7 +36,7 @@
    "session_id": "791832d5-f944-40f4-80ec-82deb5c4efca",
    "tokens": {
     "done": "1",
-    "lane": "WP6",
+    "lane": "WP6b",
     "parent": "w1B:p1"
    },
    "title": "Lane W1 Instructions"
@@ -97,7 +97,7 @@
    ],
    "name": "w5",
    "kind": "agy",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pD",
    "tab_id": "w1B:tD",
    "tab_label": "w5",
@@ -106,7 +106,7 @@
    "session_id": "18235bfb-f5b8-4365-9383-d66c69251f4b",
    "tokens": {
     "done": "1",
-    "lane": "WP7a",
+    "lane": "WP5b",
     "parent": "w1B:p1"
    },
    "title": null
@@ -151,65 +151,66 @@
   "repo": "/home/user/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
-   "9b264a5 Phase 1 round 3: briefs for WP6 round 3 (packing decision sheet) and WP5 part 2 (lug, nut, dome drawings)",
-   "c704145 Round 2: record the reviewer's decisions 13 to 19 as open questions Q13 to Q19",
-   "443a178 review: round 2 verdict, MERGE-AFTER-DECISION",
-   "7bc9f24 review(WP6): note the DNK 501015 drawing is marked PRELIMINARY",
-   "0bad5af review(WP6): cell fold thickness against the pocket, and what a longer pocket moves",
-   "93ab908 review(WP6): lug tabs in the free mask, two clamp arrays, packing not confirmed"
+   "7caff1c Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
+   "1170b2a review(r3): verdict MERGE-AFTER-DECISION, gates, defects 1\u201318, decisions 20\u201323",
+   "8392a20 review(WP6b): cite C-31428 D4 as 8.788 max; 8.85 stays as the conservative barrel end",
+   "e87ca6d review(WP5b): working URLs for TME, Titanium Webshop, Fastenright, Westfield, Nichifu; 31428 is 8.788 max; mark unsourced passivation, certificate, RJX dk/k and Panduit numbers",
+   "635535a review(WP5b): plain-text math; stack at wall +0.3 and DIN 934 Kapton top; budget against plan \u00a77 lines; six Ti nuts; drop unsourced claims; reference tab vs TE 31428",
+   "7c973fe review(WP6b): say which 0402 counts are placed; give E's lateral height and its source"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/home/user/projects/elicio",
     "branch": "main",
-    "head": "9b264a5",
-    "subject": "Phase 1 round 3: briefs for WP6 round 3 (packing decision sheet) and WP5 part 2 (lug, nut, dome drawings)",
+    "head": "7caff1c",
+    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w1",
     "branch": "lane/w1",
-    "head": "9b264a5",
-    "subject": "Phase 1 round 3: briefs for WP6 round 3 (packing decision sheet) and WP5 part 2 (lug, nut, dome drawings)",
+    "head": "7caff1c",
+    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "c704145",
-    "subject": "Round 2: record the reviewer's decisions 13 to 19 as open questions Q13 to Q19",
+    "head": "7caff1c",
+    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
-    "head": "c704145",
-    "subject": "Round 2: record the reviewer's decisions 13 to 19 as open questions Q13 to Q19",
+    "head": "7caff1c",
+    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w5",
     "branch": "lane/w5",
-    "head": "9b264a5",
-    "subject": "Phase 1 round 3: briefs for WP6 round 3 (packing decision sheet) and WP5 part 2 (lug, nut, dome drawings)",
+    "head": "7caff1c",
+    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w9",
     "branch": "lane/w9",
-    "head": "c704145",
-    "subject": "Round 2: record the reviewer's decisions 13 to 19 as open questions Q13 to Q19",
+    "head": "7caff1c",
+    "subject": "Round 3: record the reviewer's decisions 20 to 23 as open questions Q20 to Q23",
     "dirty": 0
    }
   ],
   "branches": [
    "lane/w1",
-   "lane/w5",
-   "main",
    "lane/w2",
    "lane/w4",
+   "lane/w5",
    "lane/w9",
+   "main",
+   "review/r3",
    "review/r2",
    "review/r1",
    "claude/project-overview-8qnnbq"
@@ -217,6 +218,8 @@
  },
  "files": {
   "briefs": [
+   "tasks/L-r3-sources.md",
+   "tasks/review-r3.md",
    "tasks/WP5b-drawings.md",
    "tasks/WP6b-packing-options.md",
    "tasks/L-r2-datasheets.md",
@@ -226,11 +229,10 @@
    "tasks/WP3-renders.md",
    "tasks/phase1-common.md",
    "tasks/review-r1.md",
-   "tasks/review-code-template.md",
-   "tasks/WP9-record.md",
-   "tasks/WP5-contacts.md"
+   "tasks/review-code-template.md"
   ],
   "verdicts": [
+   "tasks/reviews/code-r3.md",
    "tasks/reviews/code-r2.md",
    "tasks/reviews/code-r1.md"
   ],
