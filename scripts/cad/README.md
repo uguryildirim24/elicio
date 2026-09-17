@@ -165,4 +165,4 @@ Not decided:
 - The cell pack (Q18). The check uses the plan envelope with 0.5 foam on the lid face.
 - Stage B keys (`PACKING`, `CONTACT_*`, `CABLE_EXIT_S`, `TAB_HEIGHT`, `CLOSURE_PASSED`) fail on an order 1 overlay.
 
-The Stage B manifest keeps schema 1 and adds `stage`, `provisional`, `packing`, `closure_passed`, `contact_source`, `stage_b`, `stage_b_failing` and `stage_b_passed`. `manifest.py` validates them when `stage` is `B`. Order 1 manifests omit those keys, and a Stage B manifest never carries order 1 `views`.
+The Stage B manifest keeps schema 1 and adds `stage`, `provisional`, `packing`, `closure_passed`, `contact_source`, `stage_b`, `stage_b_failing` and `stage_b_passed`. `manifest.py` validates them when `stage` is `B`. Order 1 manifests omit those keys, and a Stage B manifest never carries order 1 `views`. The Stage B lid is embossed `ELICIO V2 …`, 0.4 deep over the battery zone (Q11), so it cannot be mistaken for an order 1 lid.
