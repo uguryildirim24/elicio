@@ -1,4 +1,4 @@
-# Elicio handoff — 2026-09-17 05:10 local
+# Elicio handoff — 2026-09-17 05:40 local
 
 Written by the coordinator in herdr pane `w1B:p1` for whoever coordinates
 next: a fresh pane, this pane after a compaction or a server restart, or
@@ -72,21 +72,40 @@ on a removed key.
 
 ## In flight
 
-No lane is working. All five lanes are idle at `main`, fast-forwarded,
-their reports read and merged:
+Round 4 runs two lanes that need none of Rolf's answers:
+
+- **w2** (cursor `cursor-grok-4.6-xhigh`, `lane/w2`, `.worktrees/w2`):
+  brief `tasks/WP8-prep-stageb.md` (Stage B geometry path in
+  `bte_fit_shell.py` on provisional inputs: MOCK_CONTACTS false, packing
+  option parameter default C, real lug envelopes, every §3.3 Stage B check,
+  open item 4 containment; no files under `docs/fab/cad/v2/`, order 1
+  outputs byte-identical). Last told: "Round 4, package WP8-prep ... do
+  everything in it". Waiting for from the coordinator: nothing. Report
+  expected at `.reports/WP8-prep-report.md` (absent). When it lands: check
+  the tree, read the report, hold for w9.
+- **w9** (cursor, `lane/w9`, `.worktrees/w9`): brief `tasks/WP9b-record.md`
+  (design record subsection for rounds 1 to 3, open questions 3 and 4 with
+  status, one erratum line in `docs/fab/L2-vendors.md`). Last told: "Round
+  4, package WP9b ... do everything in it". Waiting for: nothing. Report
+  expected at `.reports/WP9b-report.md` (absent).
+
+When both land: `.worktrees/review` on `review/r4`, `tasks/review-r4.md`
+(expected) from the template with both reports and the seams (order 1
+hashes untouched; the Stage B checks fail where they should, Q21
+especially; pads shared with `placement.py`, not copied; the record states
+each fact once), one fresh reviewer `rev4` on Opus 5 high, merge, open
+questions from 24, checkpoint.
+
+The other lanes, idle at `main`:
 
 - **w1** (cursor `cursor-grok-4.6-xhigh`, `lane/w1`): last package WP6b
   (four passes; the coordinator's own wording error on the lug datum cost
   one). Next candidate: interface v3 after Rolf picks Q20.
-- **w2** (cursor, `lane/w2`): last package WP3. Holds the CAD context; next
-  candidate WP8 (Stage B shell, order 2 files) once Q20 is answered.
 - **w4** (cursor, `lane/w4`): last package WP4. Next candidate: sheet
   updates when interface v3 changes the order 2 numbers.
 - **w5** (agy `gemini-3.8-flash-high`, `lane/w5`): last package WP5b. Next
   candidate: WP7a part 2 when the Stage A parts exist; WP5 purchase-time
   checks before S1.
-- **w9** (cursor, `lane/w9`): last package WP9. Next candidate: design
-  record update bundled with WP8.
 
 The build now waits on Rolf more than on lanes. What each of his answers
 starts: "I pick C" (or an alternative) → `tasks/WP8-shell-v2.md` (expected) on w2 from
@@ -111,13 +130,13 @@ Q1–Q23 (Rolf's: Q6, Q7, Q12, Q17, Q18, Q19, Q20, Q21, Q23). Outside those:
 4. `docs/fab/L2-vendors.md` says no bureau prints conductive TPU, later
    found wrong — open because nobody has corrected the lane report; low
    priority, the plan does not use conductive TPU.
-5. Design record open questions 3 and 4 still say "until WP6" — open
-   because the update belongs with WP8's record change; bundle it there.
+5. Design record open questions 3 and 4 — being updated by WP9b this
+   round.
 
 ## Next
 
-- Idle until Rolf's first answer arrives; the In flight table says which
-  package each answer starts (Q20 → WP8 and interface v3, one round).
+- Idle for the two DONE pushes (WP8-prep, WP9b); on the second, open review
+  round 4 as written under In flight.
 
 ## Traps
 
