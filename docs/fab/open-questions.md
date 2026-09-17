@@ -70,6 +70,8 @@ blocks the merge; all sit before WP8 proper (order 2).
 | Q32 | The thin body cannot close with the 501015 cell (Q27) and Rolf picked thin | A thinner cell, 3.2 mm or less with its protection circuit, is a plan v2 requirement; WP10 finds the candidates. If none is stocked, plan v2 says so and the thin body carries a longer, lower pocket | WP10; plan v2 | open |
 | Q33 | Budget: no number given | Plan v2 designs to the minimum order set and quotes an estimated total per order with pages; a ceiling is asked on the sheet | Rolf on the sheet | open, **Rolf** |
 | Q34 | M1 and the other measurements are blank on the sheet | Nothing prints before M1. Plan v2 keeps the chord gate and the measurement table; the paper template checks them | Rolf on the sheet | open, **Rolf** |
+| Q35 | "this will come put together right?": Rolf expects a finished device; no vendor assembles a printed shell, a board, screws and a cell into one piece | Plan v2 rule: final assembly by Rolf with a small screwdriver only. No soldering, no glue, no crimping. The contact screws press onto board pads (spring fingers or pogo pins over the nut ends), the cell has a plug, the lid snaps, firmware loads over USB by drag and drop. This favours a Seeed XIAO carrier over a bare module | plan v2 | decided, coordinator's reading |
+| Q36 | "do we actually have to get it from china?": JLC3DP and JLCPCB are in China; the plan chose them on price and speed for quantity one | No. Plan v2 quotes JLC and one non-China alternative per order (print: Craftcloud, Sculpteo, i.materialise or Xometry; assembled board: Aisler or Eurocircuits in Europe, MacroFab or Screaming Circuits in the US) with prices from pages. JLC stays the default until Rolf says "not China". His country is needed for shipping and duties and is asked | Rolf in chat | open, **Rolf** |
 
 ## For Rolf
 
@@ -89,3 +91,4 @@ Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
 - Q33 a budget ceiling for board, shell and small parts together.
 - Q34 M1 and the other measurements; nothing prints before M1.
 - Q30 what "prettier" means: look, colour, a reference photo or link.
+- Q36 China or not, and which country he is in.
