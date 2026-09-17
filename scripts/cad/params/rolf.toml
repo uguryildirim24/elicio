@@ -1,0 +1,13 @@
+# Rolf's caliper numbers. Missing keys take scripts/cad/params/default.toml
+# and mark the build REF (plan §3.4).
+#
+# Measure M1 first. The script rejects M1 below TOTAL_CHORD + 3.
+# M1 = 52.0
+# M2 = 58.0
+# M3 = 11.0
+# M4 = 6.0
+# M5 = 2.5
+# M6 = 15.0
+# M7 = 22.0
+# M8 = 11.0
+# SIDE = "right"
