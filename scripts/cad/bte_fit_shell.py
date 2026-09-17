@@ -1461,49 +1461,10 @@ def _path_solid(
     *,
     round_medial: bool = False,
     fillet_r: float = 1.5,
+    split_s: float = TAIL_S0,
 ) -> Shape:
-    def const_u(_s: float) -> tuple[float, float]:
-        return u0, u1
-
-    if s1 <= TAIL_S0 + 1e-9:
-        sketch = _section(
-            path, s0, u0, u1, y0, y1, round_medial=round_medial, fillet_r=fillet_r
-        )
-        return _revolve_s(path, sketch, s0, s1)
-    if s0 >= TAIL_S0 - 1e-9:
-        return _loft_s(
-            path,
-            s0,
-            s1,
-            const_u,
-            y0,
-            y1,
-            round_medial=round_medial,
-            fillet_r=fillet_r,
-        )
-    return _path_solid(
-        path, u0, u1, s0, TAIL_S0, y0, y1, round_medial=round_medial, fillet_r=fillet_r
-    ).fuse(
-        _path_solid(
-            path, u0, u1, TAIL_S0, s1, y0, y1, round_medial=round_medial, fillet_r=fillet_r
-        )
-    )
-
-
-def _path_solid_split(
-    path: PathGeom,
-    u0: float,
-    u1: float,
-    s0: float,
-    s1: float,
-    y0: float,
-    y1: float,
-    split_s: float,
-    *,
-    round_medial: bool = False,
-    fillet_r: float = 1.5,
-) -> Shape:
-    """Like _path_solid when the tail starts at split_s (packing B)."""
+    """Revolved along the body arc up to ``split_s`` (the tail start: 38.2,
+    or 41.7 for packing B), lofted past it."""
     def const_u(_s: float) -> tuple[float, float]:
         return u0, u1
 
@@ -1523,38 +1484,28 @@ def _path_solid_split(
             round_medial=round_medial,
             fillet_r=fillet_r,
         )
-    return _path_solid_split(
-        path, u0, u1, s0, split_s, y0, y1, split_s, round_medial=round_medial, fillet_r=fillet_r
+    return _path_solid(
+        path, u0, u1, s0, split_s, y0, y1, round_medial=round_medial, fillet_r=fillet_r, split_s=split_s
     ).fuse(
-        _path_solid_split(
-            path, u0, u1, split_s, s1, y0, y1, split_s, round_medial=round_medial, fillet_r=fillet_r
+        _path_solid(
+            path, u0, u1, split_s, s1, y0, y1, round_medial=round_medial, fillet_r=fillet_r, split_s=split_s
         )
     )
 
 
-def _tail_width(s: float, body_width: float) -> float:
-    t = (s - TAIL_S0) / (48.4 - TAIL_S0)
-    t = min(1.0, max(0.0, t))
-    return body_width + (TAIL_TIP_WIDTH - body_width) * t
-
-
-def _tail_width_split(s: float, body_width: float, split_s: float, tail_end: float) -> float:
+def _tail_width(
+    s: float, body_width: float, split_s: float = TAIL_S0, tail_end: float = 48.4
+) -> float:
     span = tail_end - split_s
     t = (s - split_s) / span if abs(span) > 1e-9 else 1.0
     t = min(1.0, max(0.0, t))
     return body_width + (TAIL_TIP_WIDTH - body_width) * t
 
 
-def _tail_u(s: float, body_width: float) -> tuple[float, float]:
-    width = _tail_width(s, body_width)
-    center = body_width / 2.0
-    return center - width / 2.0, center + width / 2.0
-
-
-def _tail_u_split(
-    s: float, body_width: float, split_s: float, tail_end: float
+def _tail_u(
+    s: float, body_width: float, split_s: float = TAIL_S0, tail_end: float = 48.4
 ) -> tuple[float, float]:
-    width = _tail_width_split(s, body_width, split_s, tail_end)
+    width = _tail_width(s, body_width, split_s, tail_end)
     center = body_width / 2.0
     return center - width / 2.0, center + width / 2.0
 
@@ -1759,288 +1710,18 @@ def _cut_stage_b_contacts(
     return body
 
 
-def _build_gauge_body_and_lid(
-    params: Mapping[str, Any],
-) -> tuple[Solid, Solid, PathGeom, dict[str, Any]]:
-    """Return (body in body frame, lid in body frame, path, notes)."""
-    _require_cad()
-    notes: dict[str, Any] = {"fillets": []}
-    path = make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
-    width = float(params["BODY_WIDTH"])
-    thick = float(params["BODY_THICK"])
-    lid_y = float(params["LID_Y"])
-    wall = float(params["WALL_MEDIAL"])
-    fillet_r = float(params["FILLET_MEDIAL"])
-    tail_end = float(params["BODY_ARC"])
-
-    main = _path_solid(path, 0.0, width, 0.0, TAIL_S0, 0.0, thick)
-
-    def tail_u(s: float) -> tuple[float, float]:
-        return _tail_u(s, width)
-
-    # Body and tail are built sharp and fused. The two plan-view tip corners
-    # take TIP_ROUND first, then FILLET_MEDIAL runs along the whole medial
-    # outline except the top end. Filleting the tip after the medial fillet
-    # capped it at 1.6 (full) and failed on thin; fusing two separately
-    # filleted pieces left a 0.03 mm² sliver face the 3MF mesher rejects.
-    tail: Shape = _loft_s(path, TAIL_S0, tail_end, tail_u, 0.0, thick, step=1.5)
-    body: Shape = main.fuse(tail)
-    tip = _vec(path, width / 2.0, tail_end, thick / 2.0)
-    vertical = []
-    for edge in body.edges():
-        delta = Vector(edge @ 1) - Vector(edge @ 0)
-        if delta.length < 0.5 * thick or abs(delta.Y) < 0.7 * delta.length:
-            continue
-        center = edge.center()
-        if abs(center.Z - tip.Z) < 4.0 and abs(center.X - tip.X) < 8.0:
-            vertical.append(edge)
-    if len(vertical) != 2:
-        raise CheckFail(f"TIP_ROUND: expected 2 tip corner edges, found {len(vertical)}")
-    body, applied = _try_fillet(body, vertical, TIP_ROUND)
-    notes["fillets"].append(_fillet_note("§3.5 step 2 tip round", TIP_ROUND, applied))
-    medial = [
-        e
-        for e in body.edges()
-        if abs(e.center().Y) < 1e-6 and _approx_s(path, e.center()) > 0.2
-    ]
-    body, applied = _try_fillet(body, medial, fillet_r)
-    notes["fillets"].append(_fillet_note("FILLET_MEDIAL", fillet_r, applied))
-    if applied is None or applied + 1e-6 < fillet_r:
-        raise CheckFail(f"FILLET_MEDIAL={fillet_r}: medial outline fillet did not build")
-
-    # Lid recess: remove y > LID_Y over s 0–46.8, keep lip zone full thickness.
-    recess = _path_solid(
-        path,
-        -1.0,
-        width + 1.0,
-        0.0,
-        LID_RECESS_S1,
-        lid_y,
-        thick + 4.0,
-    )
-    body = body.cut(recess)
-
-    cavity = _path_solid(
-        path,
-        CAVITY_U[0],
-        CAVITY_U[1],
-        CAVITY_S[0],
-        CAVITY_S[1],
-        wall,
-        thick + 1.0,
-    )
-    body = body.cut(cavity)
-
-    rib = _path_solid(path, CAVITY_U[0], CAVITY_U[1], RIB_S[0], RIB_S[1], RIB_Y[0], RIB_Y[1])
-    body = body.fuse(rib)
-    pad_u = (
-        (CAVITY_U[0], CAVITY_U[0] + PAD_SIZE),
-        (CAVITY_U[1] - PAD_SIZE, CAVITY_U[1]),
-    )
-    pad_s = (
-        (BOARD_S[0], BOARD_S[0] + PAD_SIZE),
-        (BOARD_S[1] - PAD_SIZE, BOARD_S[1]),
-    )
-    for u0, u1 in pad_u:
-        for s0, s1 in pad_s:
-            pad = _path_solid(path, u0, u1, s0, s1, PAD_Y[0], PAD_Y[1])
-            body = body.fuse(pad)
-
-    if params["MOCK_CONTACTS"]:
-        for u, s in (CONTACT_1, (params["CONTACT_2_U"], params["CONTACT_2_S"]), CONTACT_REF):
-            cap = _cap_solid(path, float(u), float(s))
-            body = body.fuse(cap)
-    else:
-        hole_r = CONTACT_HOLE / 2.0
-        for u, s in (CONTACT_1, (params["CONTACT_2_U"], params["CONTACT_2_S"]), CONTACT_REF):
-            origin = _vec(path, float(u), float(s), 0.0)
-            hole = Solid.make_cylinder(hole_r, thick + 4.0).locate(
-                Location((origin.X, -1.0, origin.Z))
-            )
-            body = body.cut(hole)
-        pocket_c = _vec(path, CONTACT_REF[0], CONTACT_REF[1], 0.0)
-        pocket = Solid.make_cylinder(POCKET_DIA / 2.0, lid_y - wall + 0.2).locate(
-            Location((pocket_c.X, wall, pocket_c.Z))
-        )
-        body = body.cut(pocket)
-        channel = _path_solid(
-            path, WIRE_U[0], WIRE_U[1], WIRE_S[0], WIRE_S[1], WIRE_Y[0], WIRE_Y[1]
-        )
-        body = body.cut(channel)
-        # CABLE_EXIT through the posterior side wall at s 36, y 3.
-        exit_pt = _vec(path, width, CABLE_EXIT_S, CABLE_EXIT_Y)
-        a = angle_at(path, CABLE_EXIT_S)
-        normal = Vector(math.cos(a), 0.0, math.sin(a))
-        exit_axis = Axis(exit_pt, normal)
-        cable = Solid.make_cylinder(CABLE_EXIT_DIA / 2.0, 6.0, exit_axis)
-        body = body.cut(cable.move(Location((-3.0 * normal.X, 0.0, -3.0 * normal.Z))))
-
-    groove = _path_solid(
-        path,
-        GROOVE_U[0],
-        GROOVE_U[1],
-        GROOVE_S[0],
-        GROOVE_S[1],
-        lid_y + GROOVE_Y_OFF[0],
-        lid_y + GROOVE_Y_OFF[1],
-    )
-    body = body.cut(groove)
-    slot = _path_solid(
-        path,
-        TONGUE_SLOT_U[0],
-        TONGUE_SLOT_U[1],
-        TONGUE_SLOT_S[0],
-        TONGUE_SLOT_S[1],
-        lid_y + TONGUE_SLOT_Y_OFF[0],
-        lid_y + TONGUE_SLOT_Y_OFF[1],
-    )
-    body = body.cut(slot)
-    web_pocket = _path_solid(
-        path,
-        TONGUE_SLOT_U[0],
-        TONGUE_SLOT_U[1],
-        WEB_POCKET_S[0],
-        WEB_POCKET_S[1],
-        lid_y + WEB_POCKET_Y_OFF[0],
-        lid_y + WEB_POCKET_Y_OFF[1],
-    )
-    body = body.cut(web_pocket)
-
-    # Lid plate: plan outline inset CLEAR_FIT, s -0.2 to 46.4.
-    clear = float(params["CLEAR_FIT"])
-    lid_thick = float(params["LID_THICK"])
-    plate_main = _path_solid(
-        path,
-        clear,
-        width - clear,
-        LID_PLATE_S[0],
-        TAIL_S0,
-        lid_y,
-        lid_y + lid_thick,
-    )
-
-    def lid_u(s: float) -> tuple[float, float]:
-        u0, u1 = _tail_u(s, width)
-        return u0 + clear, u1 - clear
-
-    plate_tail = _loft_s(
-        path,
-        TAIL_S0,
-        LID_PLATE_S[1],
-        lid_u,
-        lid_y,
-        lid_y + lid_thick,
-        step=1.5,
-    )
-    lid: Shape = plate_main.fuse(plate_tail)
-    try:
-        # The top edge at the lip end (s = −0.2) stays sharp: rounded, it
-        # would leave the lip joined to the plate by 0.2 mm of end face.
-        rim = [
-            e
-            for e in lid.edges()
-            if abs(e.center().Y - (lid_y + lid_thick)) < 0.15
-            and e.length > 2.0
-            and abs(_approx_s(path, e.center()) - LID_PLATE_S[0]) > 0.05
-        ]
-        lid, applied = _try_fillet(lid, rim, float(params["LID_EDGE"]))
-        notes["fillets"].append(
-            _fillet_note("LID_EDGE (plate rim except the lip end)", float(params["LID_EDGE"]), applied)
-        )
-    except Exception as exc:
-        raise CheckFail(f"LID_EDGE: rim fillet failed ({exc})") from exc
-
-    lip_y0 = lid_y + lid_thick - LIP_LENGTH
-    lip = _path_solid(path, LIP_U[0], LIP_U[1], LIP_S[0], LIP_S[1], lip_y0, lid_y + lid_thick)
-    lid = lid.fuse(lip)
-    bump = _path_solid(
-        path,
-        LIP_U[0],
-        LIP_U[1],
-        LIP_S[1],
-        LIP_S[1] + BUMP_OUT,
-        lip_y0,
-        lip_y0 + BUMP_TALL,
-    )
-    lid = lid.fuse(bump)
-    try:
-        # The root is the concave edge where the lip's inner face meets the
-        # plate underside (s = −0.2, y = LID_Y). Plan §3.5 step 7 asks 0.5;
-        # a radius above the 0.2 lip-to-top-face gap overlaps the body's
-        # top edge when seated (0.045 mm³ at 0.5), so LIP_ROOT_FILLET is 0.2.
-        root_edges = [
-            e
-            for e in lid.edges()
-            if abs(e.center().Y - lid_y) < 0.05
-            and abs(_approx_s(path, e.center()) - LIP_S[1]) < 0.05
-            and LIP_U[0] - 0.1 < _approx_u(path, e.center()) < LIP_U[1] + 0.1
-        ]
-        if len(root_edges) != 1:
-            raise CheckFail(f"lip root: expected 1 root edge, found {len(root_edges)}")
-        lid, applied = _try_fillet(lid, root_edges, LIP_ROOT_FILLET)
-        notes["fillets"].append(_fillet_note("lip root fillet", LIP_ROOT_FILLET, applied))
-    except CheckFail:
-        raise
-    except Exception as exc:
-        raise CheckFail(f"lip root fillet failed ({exc})") from exc
-
-    tongue_u0 = (TONGUE_SLOT_U[0] + TONGUE_SLOT_U[1] - LID_TONGUE_WIDTH) / 2.0
-    tongue_u1 = tongue_u0 + LID_TONGUE_WIDTH
-    web = _path_solid(
-        path,
-        tongue_u0,
-        tongue_u1,
-        LID_WEB_S[0],
-        LID_WEB_S[1],
-        lid_y + LID_WEB_Y_OFF[0],
-        lid_y + LID_WEB_Y_OFF[1],
-    )
-    tongue = _path_solid(
-        path,
-        tongue_u0,
-        tongue_u1,
-        LID_TONGUE_S[0],
-        LID_TONGUE_S[1],
-        lid_y + LID_TONGUE_Y_OFF[0],
-        lid_y + LID_TONGUE_Y_OFF[1],
-    )
-    lid = lid.fuse(web).fuse(tongue)
-    for u0, u1 in NUB_U:
-        nub = _path_solid(path, u0, u1, NUB_S[0], NUB_S[1], lid_y - NUB, lid_y)
-        lid = lid.fuse(nub)
-
-    label = emboss_label(params, list(params.get("_defaults_used", [])))
-    try:
-        if not FONT_PATH.is_file():
-            raise CheckFail(f"emboss font missing: {FONT_PATH}")
-        mid = _vec(path, width / 2.0, 28.0, lid_y)
-        plane = Plane(
-            origin=Vector(mid.X, lid_y, mid.Z),
-            x_dir=Vector(0, 0, -1),
-            y_dir=Vector(1, 0, 0),
-        )
-        text = plane * Text(label, font_size=1.4, font_path=str(FONT_PATH))
-        letters = extrude(text, amount=EMBOSS)
-        lid = lid.fuse(letters)
-        notes["emboss"] = label
-        notes["emboss_font"] = FONT_PATH.name
-    except CheckFail:
-        raise
-    except Exception as exc:
-        raise CheckFail(f"EMBOSS={label!r}: text did not build ({exc})") from exc
-
-    body_solid = _one_solid(body, "body")
-    lid_solid = _one_solid(lid, "lid")
-    return body_solid, lid_solid, path, notes
-
-
 def build_body_and_lid(
     params: Mapping[str, Any],
 ) -> tuple[Solid, Solid, PathGeom, dict[str, Any]]:
-    """Return (body in body frame, lid in body frame, path, notes)."""
-    _require_cad()
-    if params["MOCK_CONTACTS"]:
-        return _build_gauge_body_and_lid(params)
+    """Return (body in body frame, lid in body frame, path, notes).
+
+    One construction path (plan §3.5) for the order 1 gauge and Stage B.
+    Stage B changes only inputs (packing moves the width, arc, cavity, tail
+    and board zone) and step 5 (holes, pocket, channel, cable exit instead
+    of mock domes); E1/E3/E5 follow ``lid_experiments``. With the order 1
+    parameters every input equals the plan constant, so the order 1 solids
+    are the same operations on the same numbers.
+    """
     _require_cad()
     notes: dict[str, Any] = {"fillets": []}
     path = make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
@@ -2063,16 +1744,12 @@ def build_body_and_lid(
     experiments = lid_experiments(params)
 
     def path_solid(u0, u1, s0, s1, y0, y1, **kwargs):
-        if abs(split - TAIL_S0) < 1e-9:
-            return _path_solid(path, u0, u1, s0, s1, y0, y1, **kwargs)
-        return _path_solid_split(path, u0, u1, s0, s1, y0, y1, split, **kwargs)
-
-    main = path_solid(0.0, width, 0.0, split, 0.0, thick)
+        return _path_solid(path, u0, u1, s0, s1, y0, y1, split_s=split, **kwargs)
 
     def tail_u(s: float) -> tuple[float, float]:
-        if abs(split - TAIL_S0) < 1e-9 and abs(tail_end - 48.4) < 1e-9:
-            return _tail_u(s, width)
-        return _tail_u_split(s, width, split, tail_end)
+        return _tail_u(s, width, split, tail_end)
+
+    main = path_solid(0.0, width, 0.0, split, 0.0, thick)
 
     # Body and tail are built sharp and fused. The two plan-view tip corners
     # take TIP_ROUND first, then FILLET_MEDIAL runs along the whole medial
@@ -2151,10 +1828,8 @@ def build_body_and_lid(
         body = _cut_stage_b_contacts(body, path, params, path_solid)
         notes["q21_ref_lug"] = q21_ref_lug_numbers(params)
 
-
-    if params["MOCK_CONTACTS"]:
-        groove = _path_solid(
-            path,
+    if experiments:
+        groove = path_solid(
             GROOVE_U[0],
             GROOVE_U[1],
             GROOVE_S[0],
@@ -2162,152 +1837,6 @@ def build_body_and_lid(
             lid_y + GROOVE_Y_OFF[0],
             lid_y + GROOVE_Y_OFF[1],
         )
-        body = body.cut(groove)
-        slot = _path_solid(
-            path,
-            TONGUE_SLOT_U[0],
-            TONGUE_SLOT_U[1],
-            TONGUE_SLOT_S[0],
-            TONGUE_SLOT_S[1],
-            lid_y + TONGUE_SLOT_Y_OFF[0],
-            lid_y + TONGUE_SLOT_Y_OFF[1],
-        )
-        body = body.cut(slot)
-        web_pocket = _path_solid(
-            path,
-            TONGUE_SLOT_U[0],
-            TONGUE_SLOT_U[1],
-            WEB_POCKET_S[0],
-            WEB_POCKET_S[1],
-            lid_y + WEB_POCKET_Y_OFF[0],
-            lid_y + WEB_POCKET_Y_OFF[1],
-        )
-        body = body.cut(web_pocket)
-        clear = float(params["CLEAR_FIT"])
-        lid_thick = float(params["LID_THICK"])
-        plate_main = _path_solid(
-            path,
-            clear,
-            width - clear,
-            LID_PLATE_S[0],
-            TAIL_S0,
-            lid_y,
-            lid_y + lid_thick,
-        )
-
-        def lid_u_mock(s: float) -> tuple[float, float]:
-            u0, u1 = _tail_u(s, width)
-            return u0 + clear, u1 - clear
-
-        plate_tail = _loft_s(
-            path,
-            TAIL_S0,
-            LID_PLATE_S[1],
-            lid_u_mock,
-            lid_y,
-            lid_y + lid_thick,
-            step=1.5,
-        )
-        lid = plate_main.fuse(plate_tail)
-        try:
-            rim = [
-                e
-                for e in lid.edges()
-                if abs(e.center().Y - (lid_y + lid_thick)) < 0.15
-                and e.length > 2.0
-                and abs(_approx_s(path, e.center()) - LID_PLATE_S[0]) > 0.05
-            ]
-            lid, applied = _try_fillet(lid, rim, float(params["LID_EDGE"]))
-            notes["fillets"].append(
-                _fillet_note("LID_EDGE (plate rim except the lip end)", float(params["LID_EDGE"]), applied)
-            )
-        except Exception as exc:
-            raise CheckFail(f"LID_EDGE: rim fillet failed ({exc})") from exc
-        lip_y0 = lid_y + lid_thick - LIP_LENGTH
-        lip = _path_solid(path, LIP_U[0], LIP_U[1], LIP_S[0], LIP_S[1], lip_y0, lid_y + lid_thick)
-        lid = lid.fuse(lip)
-        bump = _path_solid(
-            path,
-            LIP_U[0],
-            LIP_U[1],
-            LIP_S[1],
-            LIP_S[1] + BUMP_OUT,
-            lip_y0,
-            lip_y0 + BUMP_TALL,
-        )
-        lid = lid.fuse(bump)
-        try:
-            root_edges = [
-                e
-                for e in lid.edges()
-                if abs(e.center().Y - lid_y) < 0.05
-                and abs(_approx_s(path, e.center()) - LIP_S[1]) < 0.05
-                and LIP_U[0] - 0.1 < _approx_u(path, e.center()) < LIP_U[1] + 0.1
-            ]
-            if len(root_edges) != 1:
-                raise CheckFail(f"lip root: expected 1 root edge, found {len(root_edges)}")
-            lid, applied = _try_fillet(lid, root_edges, LIP_ROOT_FILLET)
-            notes["fillets"].append(_fillet_note("lip root fillet", LIP_ROOT_FILLET, applied))
-        except CheckFail:
-            raise
-        except Exception as exc:
-            raise CheckFail(f"lip root fillet failed ({exc})") from exc
-        tongue_u0 = (TONGUE_SLOT_U[0] + TONGUE_SLOT_U[1] - LID_TONGUE_WIDTH) / 2.0
-        tongue_u1 = tongue_u0 + LID_TONGUE_WIDTH
-        web = _path_solid(
-            path,
-            tongue_u0,
-            tongue_u1,
-            LID_WEB_S[0],
-            LID_WEB_S[1],
-            lid_y + LID_WEB_Y_OFF[0],
-            lid_y + LID_WEB_Y_OFF[1],
-        )
-        tongue = _path_solid(
-            path,
-            tongue_u0,
-            tongue_u1,
-            LID_TONGUE_S[0],
-            LID_TONGUE_S[1],
-            lid_y + LID_TONGUE_Y_OFF[0],
-            lid_y + LID_TONGUE_Y_OFF[1],
-        )
-        lid = lid.fuse(web).fuse(tongue)
-        for u0, u1 in NUB_U:
-            nub = _path_solid(path, u0, u1, NUB_S[0], NUB_S[1], lid_y - NUB, lid_y)
-            lid = lid.fuse(nub)
-        label = emboss_label(params, list(params.get("_defaults_used", [])))
-        try:
-            if not FONT_PATH.is_file():
-                raise CheckFail(f"emboss font missing: {FONT_PATH}")
-            mid = _vec(path, width / 2.0, 28.0, lid_y)
-            plane = Plane(
-                origin=Vector(mid.X, lid_y, mid.Z),
-                x_dir=Vector(0, 0, -1),
-                y_dir=Vector(1, 0, 0),
-            )
-            text = plane * Text(label, font_size=1.4, font_path=str(FONT_PATH))
-            letters = extrude(text, amount=EMBOSS)
-            lid = lid.fuse(letters)
-            notes["emboss"] = label
-            notes["emboss_font"] = FONT_PATH.name
-        except CheckFail:
-            raise
-        except Exception as exc:
-            raise CheckFail(f"EMBOSS={label!r}: text did not build ({exc})") from exc
-        body_solid = _one_solid(body, "body")
-        lid_solid = _one_solid(lid, "lid")
-        return body_solid, lid_solid, path, notes
-
-    groove = path_solid(
-        GROOVE_U[0],
-        GROOVE_U[1],
-        GROOVE_S[0],
-        GROOVE_S[1],
-        lid_y + GROOVE_Y_OFF[0],
-        lid_y + GROOVE_Y_OFF[1],
-    )
-    if experiments:
         body = body.cut(groove)
         slot = path_solid(
             TONGUE_SLOT_U[0],
@@ -2328,7 +1857,7 @@ def build_body_and_lid(
         )
         body = body.cut(web_pocket)
 
-    # Lid plate: plan outline inset CLEAR_FIT, s -0.2 to 46.4 (shifted on B).
+    # Lid plate: plan outline inset CLEAR_FIT, s -0.2 to 46.4 (tail shift on B).
     clear = float(params["CLEAR_FIT"])
     lid_thick = float(params["LID_THICK"])
     plate_main = path_solid(
@@ -2431,11 +1960,12 @@ def build_body_and_lid(
         notes["closure"] = "E1/E3/E5 omitted; CLOSURE_PASSED is false"
 
     label = emboss_label(params, list(params.get("_defaults_used", [])))
+    # Order 1 embosses 0.8 at s 28. Stage B (Q11): 0.4 over the battery zone.
+    emboss_s = 28.0 if params["MOCK_CONTACTS"] else STAGE_B_EMBOSS_S
+    emboss_h = EMBOSS if params["MOCK_CONTACTS"] else STAGE_B_EMBOSS
     try:
         if not FONT_PATH.is_file():
             raise CheckFail(f"emboss font missing: {FONT_PATH}")
-        emboss_s = 28.0 if params["MOCK_CONTACTS"] else STAGE_B_EMBOSS_S
-        emboss_h = EMBOSS if params["MOCK_CONTACTS"] else STAGE_B_EMBOSS
         mid = _vec(path, width / 2.0, emboss_s, lid_y)
         plane = Plane(
             origin=Vector(mid.X, lid_y, mid.Z),
