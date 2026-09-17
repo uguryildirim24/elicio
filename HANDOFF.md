@@ -93,24 +93,27 @@ on a removed key.
 ## In flight
 
 - **pro** (chatgpt, GPT-6 Pro via pro-mcp, pane in the Herdr section,
-  chat `6aab403b`): TURN plan-v2 02 sent 2026-09-17 ~18:40: attack
-  `docs/fab/plan-v2.md` and turn 01, verify claims C1–C10 on live pages,
-  attack D-1..D-8 (above all D-5 charging with skin electrodes, D-3 flex
-  tabs under nuts), price the three orders; writes
-  `tasks/plan-v2/turns/02-pro.md` (expected) and pushes
-  `DONE plan-v2-02` with its file path. A Pro turn can take an hour; it shows idle
+  chat `6aab403b`): turn 02 landed (`tasks/plan-v2/turns/02-pro.md`,
+  fifteen findings, NOT SIGNED OFF, committed `a714bf7`); I answered all
+  fifteen in `tasks/plan-v2/turns/03-fable.md` and rewrote
+  `docs/fab/plan-v2.md` (turn 03 draft, `6552942`: XIAO dropped,
+  medial-face USB-C port as the physical interlock, spring contacts on
+  captive nuts, BQ25100 at 20 mA, 2000 SPS, gates G1–G8, allowances
+  $280–440). TURN plan-v2 04 sent ~20:10; Pro writes
+  `tasks/plan-v2/turns/04-pro.md` (expected) and pushes `DONE plan-v2-04`. A Pro turn can take an hour; it shows idle
   or working meanwhile; never re-prompt before the DONE. When it lands:
   commit its file (Pro cannot commit), write turn 03 (`03-fable.md`
   expected) answering every finding and revising `plan-v2.md`, prompt
   Pro with turn 04, until the disagreements turn cosmetic (Rolf's rule),
   then mark plan-v2 signed off and record its decisions as open questions.
 - **w1** (cursor `cursor-grok-4.6-xhigh`, `lane/w1`): WP11 packing v2
-  (`tasks/WP11-packing-v2.md`), prompted 2026-09-17 ~18:45. Lays out
-  architectures A (Raytac), B (E73), C (XIAO) with the DTP301120 and
-  501015 cells, series and stacked, widths 18–20, lid 8.0–9.0, flex tabs
-  under the nuts; measures on the built solid; writes
-  `docs/fab/packing-v2.md` (expected). Pushes `DONE WP11 ...`. When it
-  lands: read the report; its table feeds turn 03 or 05 of the dialogue.
+  (`tasks/WP11-packing-v2.md`), prompted 2026-09-17 ~18:45, plus a
+  coordinator follow-up at ~20:10 that runs as a second turn after its
+  first DONE (drop C, corrected heights, interface I spring contacts on
+  nut tops with a ±2 mm workspace, lids 6.0–9.0, harness and medial-face
+  receptacle envelopes). Expect TWO `DONE WP11` pushes; open no review
+  before the second. Writes `docs/fab/packing-v2.md` (expected). Its
+  table feeds turn 05 of the dialogue and D-1 (thin) for Rolf.
 - **w5** (agy, `lane/w5`): idle with WP10 unmerged at `832ef28`. It is
   reviewed together with WP11 by the round 5 reviewer (a fresh review
   branch, expected, not created yet) before anything merges.
@@ -140,8 +143,8 @@ carries claims C1–C10 and decisions D-1–D-8 for the dialogue. Outside those:
 
 ## Next
 
-- Idle until `DONE plan-v2-02` (commit Pro's file, write turn 03) or
-  `DONE WP11` (read the report, fold its table into the next turn).
+- Idle until `DONE plan-v2-04` (commit Pro's file, write turn 05) or the
+  second `DONE WP11` (read the report, fold its table into the next turn).
 
 ## Traps
 
