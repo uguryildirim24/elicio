@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "cad" / "placement.py"
 DRAWING = ROOT / "docs" / "fab" / "cad" / "v1" / "placement.svg"
+INTERFACE = ROOT / "docs" / "fab" / "interface.md"
 
 
 def load_placement():
@@ -36,38 +37,69 @@ class PlacementMathTests(unittest.TestCase):
         self.assertAlmostEqual(b.y_clear_mm, 0.17, places=2)
         self.assertGreater(b.y_clear_mm, 0.0)
 
-    def test_free_area_and_named_pack_fit(self) -> None:
+    def test_courtyards_use_maximum_bodies(self) -> None:
+        # RSM 4.1 max, BAV199 Fig. 9 3.3 x 2.9
+        self.assertEqual(P.VQFN_CY, (4.60, 4.60))
+        self.assertEqual(P.SOT23_CY, (3.30, 2.90))
+
+    def test_three_lines_need_two_arrays(self) -> None:
+        b = P.budget()
+        self.assertGreaterEqual(b.clamp_pairs, P.N_LINES)
+        served = sorted(p for pads in P.ARRAY_LINES.values() for p in pads)
+        self.assertEqual(served, sorted(P.LEAD_PADS))
+        for pads in P.ARRAY_LINES.values():
+            self.assertLessEqual(len(pads), P.PAIRS_PER_ARRAY)
+
+    def test_lug_tabs_are_in_the_free_mask(self) -> None:
         b = P.budget()
         self.assertAlmostEqual(b.board_mm2, 237.5, places=1)
-        self.assertGreater(b.free_mm2, 100.0)
-        self.assertLess(b.free_mm2, 110.0)
+        self.assertLess(b.free_mm2, b.free_tabs_to_pad_mm2)
+        self.assertLess(b.free_tabs_to_pad_mm2, b.free_without_tabs_mm2)
         self.assertFalse(b.tqfp_fits)
         self.assertTrue(b.vqfn_fits)
-        self.assertLess(b.required_named_mm2, b.free_mm2)
-        self.assertGreater(b.required_as_drawn_mm2, b.free_mm2)
 
-    def test_rf_zone_overlaps_keepout_2_and_meets_5_mm_with_cell_at_hook(self) -> None:
+    def test_rf_distance_uses_reserved_module(self) -> None:
         b = P.budget()
         self.assertTrue(b.rf_keepout2_overlap)
-        self.assertAlmostEqual(b.battery_to_module_hook_mm, 5.0, places=2)
-        self.assertLess(b.battery_to_module_rib_mm, 5.0)
+        self.assertAlmostEqual(b.battery_to_module_hook_nominal_mm, 5.0, places=2)
+        self.assertAlmostEqual(b.battery_to_module_hook_mm, 4.70, places=2)
+        self.assertAlmostEqual(b.battery_to_module_rib_mm, 4.30, places=2)
+        self.assertGreater(b.battery_to_antenna_hook_mm, P.BATTERY_RF_MIN)
 
-    def test_lead_pads_outside_keepouts_margin_and_antenna(self) -> None:
+    def test_placed_parts_sit_in_free_mask_clear_of_pads_and_each_other(self) -> None:
+        u, s, _uu, free = P.board_free_mask()
+        parts = P.placed_parts()
+        names = list(parts)
+        for i, name in enumerate(names):
+            with self.subTest(part=name):
+                self.assertTrue(P._courtyard_in_free(free, u, s, *parts[name]))
+                for pad in P.LEAD_PADS:
+                    self.assertFalse(P._boxes_overlap(parts[name], P.pad_box(pad)))
+                for other in names[i + 1 :]:
+                    self.assertFalse(P._boxes_overlap(parts[name], parts[other]))
+
+    def test_checker_catches_round_1_array_on_ref_pad(self) -> None:
+        # WP6 round 1 put one BAV199S at (4.20, 27.10); the REF pad sits on it.
+        self.assertTrue(P._boxes_overlap((4.20, 27.10, *P.ARRAY_CY), P.pad_box("REF")))
+
+    def test_reference_wire_clears_signal_keepouts(self) -> None:
+        self.assertGreaterEqual(P.wire_keepout_gap(), 0.0)
+
+    def test_pads_outside_keepouts_margin_and_antenna(self) -> None:
         for name in P.LEAD_PADS:
             with self.subTest(pad=name):
                 self.assertGreaterEqual(P.pad_keepout_gap(name), 0.0)
                 self.assertFalse(P.pad_in_antenna(name))
-                self.assertLessEqual(P.clamp_distance(name), P.CLAMP_MAX_MM)
 
-    def test_placed_ics_sit_in_free_mask(self) -> None:
-        u, s, _uu, free = P.board_free_mask()
-        for name, box in P.PLACED.items():
-            with self.subTest(part=name):
-                self.assertTrue(P._courtyard_in_free(free, u, s, *box), name)
-
-    def test_twenty_five_0402_courtyards(self) -> None:
-        sites = P.place_0402s()
-        self.assertEqual(len(sites), 25)
+    def test_conflicts_make_packing_not_confirmed_in_interface(self) -> None:
+        conflicts = P.layout_conflicts()
+        text = INTERFACE.read_text(encoding="utf-8")
+        if conflicts:
+            self.assertIn("Packing is **not confirmed**", text)
+            for c in conflicts:
+                self.assertIn(c, text)
+        else:
+            self.assertNotIn("Packing is **not confirmed**", text)
 
 
 @unittest.skipUnless(P.HAS_MATPLOTLIB, "matplotlib is not installed")
