@@ -1,12 +1,19 @@
 #!/usr/bin/env python3.13
-"""Stage B board packing drawing (plan §5, interface v2).
+"""Stage B board packing drawing (plan §5, interface v2; WP6b options).
 
 2D drawing in the body-frame (u, s) plane. Headless matplotlib, Agg,
 deterministic SVG. Does not edit CAD solids or ``manifest.json``.
 
-The layout is a candidate. ``layout_conflicts()`` lists every rule it
-breaks, and the drawing prints that list; an empty list is the only
-state that confirms packing (interface §8).
+``--option A`` (default) is the plan shell with the TE 31428 lug
+(contacts.md §8.1, C-31428 rev D4). B lengthens BODY_ARC 3.5 mm.
+C widens BODY_WIDTH 3 mm. E keeps the shell and uses the lateral face.
+
+Q13 short tabs (end under the pad, 3 mm wide) stay as a budget mask
+only. No crimp ring lug ends under its pad. See packing-options.md.
+
+``layout_conflicts(option)`` lists every rule that option breaks. An
+empty list is the only state that confirms that option. Packing of the
+product waits on ``docs/fab/packing-options.md`` until Rolf picks.
 
 Coupon-to-parameter mapping (plan §10 open item 2; interface §12 V2-2).
 The coupon itself is built in ``bte_fit_shell.py`` ``build_coupon``. Axes
@@ -29,7 +36,8 @@ top face.
 Run::
 
     .venv/bin/python scripts/cad/placement.py
-    .venv/bin/python scripts/cad/placement.py --out docs/fab/cad/v1/placement.svg
+    .venv/bin/python scripts/cad/placement.py --option A --out docs/fab/cad/v1/placement.svg
+    .venv/bin/python scripts/cad/placement.py --option B --out docs/fab/cad/v1/placement_B.svg
 """
 from __future__ import annotations
 
@@ -41,9 +49,9 @@ import io
 import math
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 import numpy as np
 
@@ -51,10 +59,10 @@ HAS_MATPLOTLIB = importlib.util.find_spec("matplotlib") is not None
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = ROOT / "docs" / "fab" / "cad" / "v1" / "placement.svg"
+OPTION_NAMES = ("A", "B", "C", "E")
 
 # ---------------------------------------------------------------------------
-# Geometry (millimetres). Every number used in the drawing has a From in
-# interface.md §5–§8. Raster pitch is 0.025 mm.
+# Geometry (millimetres). Raster pitch is 0.025 mm.
 # ---------------------------------------------------------------------------
 
 RASTER_PITCH = 0.025
@@ -68,6 +76,11 @@ BOARD_ZONE_S = (18.3, 37.9)
 CAVITY_U = (1.5, 15.5)
 CAVITY_S = (1.5, 38.2)
 BODY_U = (0.0, 17.0)
+BODY_ARC = 48.4  # plan §3.2
+BODY_WIDTH = 17.0
+CREASE_BOW = 3.0
+OPTION_B_DS = 3.5  # BODY_ARC +3.5; interface §8.2 B
+OPTION_C_DU = 3.0  # BODY_WIDTH +3; interface §8.2 C
 BATTERY_U = (3.1, 13.9)
 BATTERY_S = (1.5, 17.5)
 RIB_U = (1.5, 15.5)
@@ -95,14 +108,38 @@ CHANNEL_U = (7.7, 9.3)
 CHANNEL_S = (38.2, 40.5)
 CLAMP_MAX_MM = 10.0
 BATTERY_RF_MIN = 5.0
-# Signal lug tab envelope, interface §3.1: "3 × 7 × 1.5; from the cylinder
-# toward pad". Drawn from the Ø7.1 edge along the contact-to-pad line. The
-# copper-free margin (plan §5) goes around the keep-out and the tab.
-TAB_W = 3.0
-TAB_LEN = 7.0
+# TE Connectivity 31428, Customer Drawing C-31428 rev D4, date read
+# 2026-09-17 (contacts.md §8.1). Ring OD 5.16 → radius 2.58. Barrel end
+# 8.85 from the contact centre (0.348 in). 6.27 from the outer ring edge
+# (2.58 + 6.27 = 8.85). The Ø7.1 keep-out already covers the ring
+# (3.55 > 2.58), so the tab beyond the keep-out is 8.85 − 3.55 = 5.30.
+# Packing envelope: a0 3.55, a1 8.85, width 1.96. The tab need not point
+# at its pad; the wire does that. Q13 short tabs are not buildable.
+RING_OD = 5.16
+RING_R = RING_OD / 2.0
+LUG_A1 = 8.85  # barrel end from the contact centre; C-31428 D4 0.348 in
+TAB_W = 1.96
+TAB_LEN = 6.27  # from the outer ring edge; LUG_A1 − RING_R
+TAB_PAST_KEEPOUT = LUG_A1 - KEEPOUT_R  # 5.30 mm beyond the Ø7.1 edge
+LUG_THICK = 0.46
+TAB_W_Q13 = 3.0
+LITERAL_TAB_LEN = 7.0
+TAB_SEARCH_STEP = 5.0
+SKIN_Y = 1.5
+TAB_MODES = ("real", "q13", "literal")
 KEEPOUT_TOP_Y = 4.13
 BOARD_UNDERSIDE_Y = 4.3
+BOARD_TOP_Y = 5.3  # underside 4.3 + core 1.0; plan §5
+LID_Y = 8.0
+FOAM_THICK = 0.5  # plan §5 foam strip over the superior 3 mm
+FOAM_SUPERIOR_MM = 3.0
+LATERAL_H = LID_Y - BOARD_TOP_Y  # 2.7
+LATERAL_H_FOAM = LATERAL_H - FOAM_THICK  # 2.2 under the foam strip
+ARRAY_H_MAX = 1.2  # interface §6.4 BAV199S-Q
 PAD_Y = (1.5, 4.3)
+SIDE_CLEAR = 0.75
+END_CLEAR = 0.3
+WALL = 1.5
 
 # Courtyards at maximum dimensions (IPC-7351B Nominal unless named).
 # SOT-23 / SOT-363 use the vendor reflow "occupied area".
@@ -120,8 +157,8 @@ PAIRS_PER_ARRAY = 2
 N_ARRAYS = 2
 N_LINES = 3
 
-# Lead pads (interface v2). SIG1 moved +0.1 mm in s so a 1.0 × 1.0 pad
-# stays outside keep-out 1 plus 0.5 mm. Not frozen: see layout_conflicts().
+# Lead pads (interface v2 §4). Frozen in the interface until Rolf picks.
+# Option sheets may carry the same numbers as candidates.
 LEAD_PADS: dict[str, tuple[float, float]] = {
     "SIG1": (5.9, 26.6),
     "SIG2": (5.5, 30.0),
@@ -133,9 +170,8 @@ PAD_CONTACT: dict[str, tuple[float, float] | None] = {
     "REF": None,
 }
 
-# Candidate layout, not a confirmed packing. placed_parts() puts each part,
-# in this order, at the legal site whose centre is nearest the target (u, s):
-# inside the free mask, clear of the pads and of parts already placed.
+# Candidate layout. placed_parts() puts each part, in this order, at the
+# legal site whose centre is nearest the target (u, s).
 PART_TARGETS: dict[str, tuple[tuple[float, float], tuple[float, float]]] = {
     "ADS1292_RSM": (VQFN_CY, (12.3, 21.2)),
     "BAV199S_1": (ARRAY_CY, (5.7, 28.3)),
@@ -149,15 +185,71 @@ ARRAY_LINES: dict[str, tuple[str, ...]] = {
 }
 LINE_ARRAY = {pad: name for name, pads in ARRAY_LINES.items() for pad in pads}
 
-# Reference wire centre-line: pocket, WIRE_CHANNEL, Kapton wrap at s 37,
-# then round the low-u side of keep-out 2 to the REF pad.
-REF_WIRE: tuple[tuple[float, float], ...] = (
+# Reference wire: pocket → channel → wrap at s 37 → REF pad. The path
+# is chosen with the tab angles so the Ø1.3 jacket misses both barrels.
+# Low-u hugs keep-out 2 on the posterior side. High-u goes round K2 on
+# the inferior / high-u side when SIG2's barrel occupies low-u.
+REF_WIRE_LOW_U: tuple[tuple[float, float], ...] = (
     (8.5, 40.5),
     (8.5, 38.2),
     (8.5, 37.0),
-    (5.0, 34.6),
+    (2.8, 36.5),
+    (2.8, 29.0),
     (4.0, 29.0),
 )
+REF_WIRE_HIGH_U: tuple[tuple[float, float], ...] = (
+    (8.5, 40.5),
+    (8.5, 38.2),
+    (8.5, 37.0),
+    (10.4, 37.50),
+    (14.80, 37.50),
+    (14.80, 26.4),
+    (4.0, 26.4),
+    (4.0, 29.0),
+)
+REF_WIRE_INFERIOR: tuple[tuple[float, float], ...] = (
+    (8.5, 40.5),
+    (8.5, 41.0),
+    (14.80, 41.0),
+    (14.80, 26.4),
+    (4.0, 26.4),
+    (4.0, 29.0),
+)
+# Search result (search_tab_degrees). Flat. 0° = +u, 90° = +s.
+TAB_DEG_BY_OPTION: dict[str, dict[str, float]] = {
+    "A": {"SIG1": 355.0, "SIG2": 170.0},
+    "B": {"SIG1": 355.0, "SIG2": 120.0},
+    "C": {"SIG1": 0.0, "SIG2": 180.0},
+    "E": {"SIG1": 355.0, "SIG2": 170.0},
+}
+TAB_DEG: dict[str, float] = dict(TAB_DEG_BY_OPTION["A"])
+REF_WIRE_BY_OPTION: dict[str, tuple[tuple[float, float], ...]] = {
+    "A": REF_WIRE_HIGH_U,
+    "B": REF_WIRE_INFERIOR,
+    "C": REF_WIRE_HIGH_U,
+    "E": REF_WIRE_HIGH_U,
+}
+REF_WIRE = REF_WIRE_HIGH_U
+
+
+@dataclass(frozen=True, slots=True)
+class Layout:
+    option: str
+    board_len: float
+    board_wid: float
+    board_u: tuple[float, float]
+    board_s: tuple[float, float]
+    board_zone_u: tuple[float, float]
+    board_zone_s: tuple[float, float]
+    cavity_u: tuple[float, float]
+    cavity_s: tuple[float, float]
+    body_u: tuple[float, float]
+    body_arc: float
+    two_sided: bool
+    lead_pads: Mapping[str, tuple[float, float]]
+    ref_wire: tuple[tuple[float, float], ...]
+    tab_deg: Mapping[str, float]
+    give_up: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -166,8 +258,6 @@ class Budget:
     keepout1_mm2: float
     keepout1_margin_mm2: float
     keepout2_mm2: float
-    keepout2_margin_mm2: float
-    antenna_mm2: float
     keepout2_union_antenna_mm2: float
     tabs_margin_mm2: float
     rim_mm2: float
@@ -175,6 +265,8 @@ class Budget:
     free_mm2: float
     free_without_tabs_mm2: float
     free_tabs_to_pad_mm2: float
+    free_literal_mm2: float
+    lateral_free_mm2: float
     largest_u: float
     largest_s: float
     largest_mm2: float
@@ -191,11 +283,136 @@ class Budget:
     battery_to_module_hook_nominal_mm: float
     battery_to_antenna_hook_mm: float
     rf_keepout2_overlap: bool
+    n_0402: int
+    body_arc_mm: float
+    total_chord_mm: float
+    m1_gate_mm: float
+    option: str
 
 
-def _mesh() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    u0, u1 = BOARD_U
-    s0, s1 = BOARD_S
+def chord_from_arc_bow(arc: float, bow: float = CREASE_BOW) -> tuple[float, float]:
+    """Return (chord, radius) for arc length and sagitta, millimetres.
+
+    Same iteration as ``bte_fit_shell.chord_from_arc_bow`` (plan §3.2).
+    """
+    lo, hi = 1e-9, arc
+    for _ in range(80):
+        chord = (lo + hi) / 2.0
+        radius = chord * chord / (8.0 * bow) + bow / 2.0
+        length = 4.0 * radius * math.atan(2.0 * bow / chord)
+        if length > arc:
+            hi = chord
+        else:
+            lo = chord
+    chord = (lo + hi) / 2.0
+    radius = chord * chord / (8.0 * bow) + bow / 2.0
+    return chord, radius
+
+
+def _build_options() -> dict[str, Layout]:
+    pads = dict(LEAD_PADS)
+    a = Layout(
+        option="A",
+        board_len=BOARD_LEN,
+        board_wid=BOARD_WID,
+        board_u=BOARD_U,
+        board_s=BOARD_S,
+        board_zone_u=BOARD_ZONE_U,
+        board_zone_s=BOARD_ZONE_S,
+        cavity_u=CAVITY_U,
+        cavity_s=CAVITY_S,
+        body_u=BODY_U,
+        body_arc=BODY_ARC,
+        two_sided=False,
+        lead_pads=pads,
+        ref_wire=REF_WIRE_BY_OPTION["A"],
+        tab_deg=dict(TAB_DEG_BY_OPTION["A"]),
+        give_up="nothing on the shell; 15 of 25 of the 0402s have no courtyard site",
+    )
+    b_s1 = BOARD_S[1] + OPTION_B_DS
+    b = Layout(
+        option="B",
+        board_len=BOARD_LEN + OPTION_B_DS,
+        board_wid=BOARD_WID,
+        board_u=BOARD_U,
+        board_s=(BOARD_S[0], b_s1),
+        board_zone_u=BOARD_ZONE_U,
+        board_zone_s=(BOARD_ZONE_S[0], BOARD_ZONE_S[1] + OPTION_B_DS),
+        cavity_u=CAVITY_U,
+        cavity_s=(CAVITY_S[0], CAVITY_S[1] + OPTION_B_DS),
+        body_u=BODY_U,
+        body_arc=BODY_ARC + OPTION_B_DS,
+        two_sided=False,
+        lead_pads=pads,
+        ref_wire=REF_WIRE_BY_OPTION["B"],
+        tab_deg=dict(TAB_DEG_BY_OPTION["B"]),
+        give_up="3.5 mm of length behind the ear; M1 gate moves; 10 of 25 of the 0402s have no site",
+    )
+    c_u1 = BOARD_U[1] + OPTION_C_DU
+    c = Layout(
+        option="C",
+        board_len=BOARD_LEN,
+        board_wid=BOARD_WID + OPTION_C_DU,
+        board_u=(BOARD_U[0], c_u1),
+        board_s=BOARD_S,
+        board_zone_u=(BOARD_ZONE_U[0], BOARD_ZONE_U[1] + OPTION_C_DU),
+        board_zone_s=BOARD_ZONE_S,
+        cavity_u=(CAVITY_U[0], CAVITY_U[1] + OPTION_C_DU),
+        cavity_s=CAVITY_S,
+        body_u=(BODY_U[0], BODY_U[1] + OPTION_C_DU),
+        body_arc=BODY_ARC,
+        two_sided=False,
+        lead_pads=pads,
+        ref_wire=REF_WIRE_BY_OPTION["C"],
+        tab_deg=dict(TAB_DEG_BY_OPTION["C"]),
+        give_up="3 mm of width in the crease",
+    )
+    e = Layout(
+        option="E",
+        board_len=BOARD_LEN,
+        board_wid=BOARD_WID,
+        board_u=BOARD_U,
+        board_s=BOARD_S,
+        board_zone_u=BOARD_ZONE_U,
+        board_zone_s=BOARD_ZONE_S,
+        cavity_u=CAVITY_U,
+        cavity_s=CAVITY_S,
+        body_u=BODY_U,
+        body_arc=BODY_ARC,
+        two_sided=True,
+        lead_pads=pads,
+        ref_wire=REF_WIRE_BY_OPTION["E"],
+        tab_deg=dict(TAB_DEG_BY_OPTION["E"]),
+        give_up="a two-sided assembly; 13 of 25 of the 0402s have no courtyard site",
+    )
+    return {"A": a, "B": b, "C": c, "E": e}
+
+
+OPTIONS = _build_options()
+
+
+def get_layout(option: str = "A") -> Layout:
+    key = option.upper()
+    if key not in OPTIONS:
+        raise ValueError(f"option must be one of {OPTION_NAMES}, got {option!r}")
+    return OPTIONS[key]
+
+
+def drawing_path(option: str = "A") -> Path:
+    lay = get_layout(option)
+    if lay.option == "A":
+        return DEFAULT_OUT
+    return DEFAULT_OUT.with_name(f"placement_{lay.option}.svg")
+
+
+def named_drawing_path(option: str) -> Path:
+    return DEFAULT_OUT.with_name(f"placement_{get_layout(option).option}.svg")
+
+
+def _mesh(option: str = "A") -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    lay = get_layout(option)
+    u0, u1 = lay.board_u
+    s0, s1 = lay.board_s
     du = RASTER_PITCH
     nu = int(round((u1 - u0) / du))
     ns = int(round((s1 - s0) / du))
@@ -219,70 +436,143 @@ def _punch_rect(
     return mask & ~((uu >= ua) & (uu <= ub) & (ss >= sa) & (ss <= sb))
 
 
-def tab_span(pad: str, length: float | None = TAB_LEN) -> tuple[float, float]:
-    """Start and end of a signal lug tab along its contact-to-pad axis.
+def tab_width(mode: str = "real") -> float:
+    if mode not in TAB_MODES:
+        raise ValueError(f"mode must be one of {TAB_MODES}, got {mode!r}")
+    return TAB_W if mode == "real" else TAB_W_Q13
 
-    ``length=None`` is the short reading: the tab ends under its own pad.
+
+def tab_span(pad: str, option: str = "A", *, mode: str = "real") -> tuple[float, float]:
+    """Start and end of a signal lug tab along its axis, from the contact centre.
+
+    ``mode="real"`` is TE 31428 on the board: Ø7.1 edge (3.55) to barrel
+    end 8.85 (C-31428 D4: 2.58 + 6.27).
+    ``mode="q13"`` is the short-tab reading: Ø7.1 edge to the far pad edge.
+    ``mode="literal"`` is the r2 7 mm envelope from the Ø7.1 edge.
     """
+    if mode not in TAB_MODES:
+        raise ValueError(f"mode must be one of {TAB_MODES}, got {mode!r}")
+    if mode == "real":
+        return KEEPOUT_R, LUG_A1
+    if mode == "literal":
+        return KEEPOUT_R, KEEPOUT_R + LITERAL_TAB_LEN
+    lay = get_layout(option)
     c = PAD_CONTACT[pad]
     assert c is not None
-    pu, ps = LEAD_PADS[pad]
-    if length is None:
-        return KEEPOUT_R, math.hypot(pu - c[0], ps - c[1])
-    return KEEPOUT_R, KEEPOUT_R + length
+    pu, ps = lay.lead_pads[pad]
+    d = math.hypot(pu - c[0], ps - c[1])
+    return KEEPOUT_R, d + PAD_SIZE / 2.0
 
 
-def _tab_axes(pad: str) -> tuple[tuple[float, float], float, float]:
+def _tab_axes(
+    pad: str, option: str = "A", *, mode: str = "real", deg: float | None = None
+) -> tuple[tuple[float, float], float, float]:
     c = PAD_CONTACT[pad]
     assert c is not None
-    pu, ps = LEAD_PADS[pad]
+    if mode == "real":
+        angle = get_layout(option).tab_deg[pad] if deg is None else deg
+        rad = math.radians(angle)
+        return c, math.cos(rad), math.sin(rad)
+    lay = get_layout(option)
+    pu, ps = lay.lead_pads[pad]
     d = math.hypot(pu - c[0], ps - c[1])
     return c, (pu - c[0]) / d, (ps - c[1]) / d
 
 
-def point_tab_gap(pad: str, u: float, s: float, length: float | None = TAB_LEN) -> float:
+def point_tab_gap(
+    pad: str,
+    u: float,
+    s: float,
+    option: str = "A",
+    *,
+    mode: str = "real",
+    deg: float | None = None,
+) -> float:
     """Distance from (u, s) to the tab rectangle of ``pad``'s contact; 0 inside."""
-    (cu, cs), eu, es = _tab_axes(pad)
-    a0, a1 = tab_span(pad, length)
+    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode, deg=deg)
+    a0, a1 = tab_span(pad, option, mode=mode)
     along = (u - cu) * eu + (s - cs) * es
     across = -(u - cu) * es + (s - cs) * eu
     da = max(a0 - along, 0.0, along - a1)
-    dc = max(abs(across) - TAB_W / 2.0, 0.0)
+    dc = max(abs(across) - tab_width(mode) / 2.0, 0.0)
     return math.hypot(da, dc)
 
 
-def tab_corners(pad: str, length: float | None = TAB_LEN) -> list[tuple[float, float]]:
-    (cu, cs), eu, es = _tab_axes(pad)
-    a0, a1 = tab_span(pad, length)
-    h = TAB_W / 2.0
+def tab_corners(
+    pad: str, option: str = "A", *, mode: str = "real", deg: float | None = None
+) -> list[tuple[float, float]]:
+    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode, deg=deg)
+    a0, a1 = tab_span(pad, option, mode=mode)
+    h = tab_width(mode) / 2.0
     return [
         (cu + a * eu - c * es, cs + a * es + c * eu)
         for a, c in ((a0, -h), (a1, -h), (a1, h), (a0, h))
     ]
 
 
-def _tab_mask(uu: np.ndarray, ss: np.ndarray, pad: str, margin: float, length: float | None) -> np.ndarray:
-    (cu, cs), eu, es = _tab_axes(pad)
-    a0, a1 = tab_span(pad, length)
+def _tab_mask(
+    uu: np.ndarray,
+    ss: np.ndarray,
+    pad: str,
+    margin: float,
+    option: str = "A",
+    *,
+    mode: str = "real",
+) -> np.ndarray:
+    (cu, cs), eu, es = _tab_axes(pad, option, mode=mode)
+    a0, a1 = tab_span(pad, option, mode=mode)
     along = (uu - cu) * eu + (ss - cs) * es
     across = -(uu - cu) * es + (ss - cs) * eu
-    return (along >= a0 - margin) & (along <= a1 + margin) & (np.abs(across) <= TAB_W / 2.0 + margin)
+    half = tab_width(mode) / 2.0 + margin
+    return (along >= a0 - margin) & (along <= a1 + margin) & (np.abs(across) <= half)
 
 
-def antenna_rect() -> tuple[float, float, float, float]:
+def upright_signal_clear_mm() -> float:
+    """Air above the skin in the signal keep-out, minus the upright lug.
+
+    Ring stock 0.46 plus barrel 6.27. Keep-out top is 4.13. The board
+    underside is 4.3. Both are short of 6.73, so SIG1 and SIG2 stay flat.
+    Reference uses the tail pocket (contacts.md §5.3), not this cylinder.
+    """
+    have = KEEPOUT_TOP_Y - SKIN_Y
+    need = LUG_THICK + TAB_LEN
+    return have - need
+
+
+def bind_layout(
+    option: str,
+    *,
+    tab_deg: Mapping[str, float] | None = None,
+    ref_wire: tuple[tuple[float, float], ...] | None = None,
+) -> Layout:
+    """Swap tab angles or the reference wire on a live option (search / tests)."""
+    key = option.upper()
+    current = OPTIONS[key]
+    OPTIONS[key] = replace(
+        current,
+        tab_deg=dict(tab_deg) if tab_deg is not None else current.tab_deg,
+        ref_wire=ref_wire if ref_wire is not None else current.ref_wire,
+    )
+    placed_layout.cache_clear()
+    return OPTIONS[key]
+
+
+def antenna_rect(option: str = "A") -> tuple[float, float, float, float]:
     """Return (u0, u1, s0, s1) of the no-copper zone on the board."""
-    u0, u1 = BOARD_U
-    s1 = BOARD_S[1]
+    lay = get_layout(option)
+    u0, u1 = lay.board_u
+    s1 = lay.board_s[1]
     s0 = s1 - ANTENNA_ALONG_S
     mid = 0.5 * (u0 + u1)
     half = ANTENNA_WID / 2.0
     return (max(u0, mid - half), min(u1, mid + half), s0, s1)
 
 
-def module_rect(length: float = MODULE_L) -> tuple[float, float, float, float]:
+def module_rect(length: float = MODULE_L, option: str = "A") -> tuple[float, float, float, float]:
     """Module on the board, antenna at the inferior edge (nominal by default)."""
-    u0, u1 = BOARD_U
-    s1 = BOARD_S[1]
+    lay = get_layout(option)
+    u0, u1 = lay.board_u
+    s1 = lay.board_s[1]
     s0 = s1 - length
     mid = 0.5 * (u0 + u1)
     half = MODULE_W / 2.0
@@ -305,23 +595,32 @@ def chord_gap_at(distance_from_mid: float, chord: float = BOARD_LEN, radius: flo
 
 
 def board_free_mask(
-    tabs: bool = True, tab_length: float | None = TAB_LEN
+    tabs: bool = True,
+    option: str = "A",
+    punch_module: bool = False,
+    *,
+    mode: str = "real",
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    u, s, uu, ss = _mesh()
+    """Copper-free mask on one face. Default tabs are TE 31428 (real)."""
+    lay = get_layout(option)
+    u, s, uu, ss = _mesh(option)
     free = np.ones(uu.shape, dtype=bool)
     free = _punch_circle(free, uu, ss, CONTACT_1[0], CONTACT_1[1], KEEPOUT_R + COPPER_FREE)
     free = _punch_circle(free, uu, ss, CONTACT_2[0], CONTACT_2[1], KEEPOUT_R + COPPER_FREE)
     if tabs:
         for pad in ("SIG1", "SIG2"):
-            free &= ~_tab_mask(uu, ss, pad, COPPER_FREE, tab_length)
-    au0, au1, as0, as1 = antenna_rect()
+            free &= ~_tab_mask(uu, ss, pad, COPPER_FREE, option, mode=mode)
+    au0, au1, as0, as1 = antenna_rect(option)
     free = _punch_rect(free, uu, ss, au0, au1, as0, as1)
-    u0, u1 = BOARD_U
-    s0, s1 = BOARD_S
+    u0, u1 = lay.board_u
+    s0, s1 = lay.board_s
     free = _punch_rect(free, uu, ss, u0, u0 + RIM, s0, s1)
     free = _punch_rect(free, uu, ss, u1 - RIM, u1, s0, s1)
     free = _punch_rect(free, uu, ss, u0, u1, s0, s0 + RIM)
     free = _punch_rect(free, uu, ss, u0, u1, s1 - RIM, s1)
+    if punch_module:
+        mu0, mu1, ms0, ms1 = module_rect(MODULE_L_RESERVED, option)
+        free = _punch_rect(free, uu, ss, mu0, mu1, ms0, ms1)
     return u, s, uu, free
 
 
@@ -368,12 +667,15 @@ def _fits_rect(free: np.ndarray, wu: float, ws: float) -> bool:
     return bool((tot == ks * ku).any())
 
 
-def _courtyard_in_free(free: np.ndarray, u: np.ndarray, s: np.ndarray, x: float, y: float, wu: float, ws: float) -> bool:
+def _courtyard_in_free(
+    free: np.ndarray, u: np.ndarray, s: np.ndarray, x: float, y: float, wu: float, ws: float, option: str = "A"
+) -> bool:
+    lay = get_layout(option)
     du = RASTER_PITCH
-    i0 = int(round((x - BOARD_U[0]) / du))
-    j0 = int(round((y - BOARD_S[0]) / du))
-    i1 = int(round((x + wu - BOARD_U[0]) / du))
-    j1 = int(round((y + ws - BOARD_S[0]) / du))
+    i0 = int(round((x - lay.board_u[0]) / du))
+    j0 = int(round((y - lay.board_s[0]) / du))
+    i1 = int(round((x + wu - lay.board_u[0]) / du))
+    j1 = int(round((y + ws - lay.board_s[0]) / du))
     if i0 < 0 or j0 < 0 or i1 > free.shape[1] or j1 > free.shape[0] or i1 <= i0 or j1 <= j0:
         return False
     return bool(free[j0:j1, i0:i1].all())
@@ -385,59 +687,115 @@ def _boxes_overlap(a: tuple[float, float, float, float], b: tuple[float, float, 
     return not (ax + aw <= bx or bx + bw <= ax or ay + ah <= by or by + bh <= ay)
 
 
-def pad_box(name: str) -> tuple[float, float, float, float]:
-    pu, ps = LEAD_PADS[name]
+def pad_box(name: str, option: str = "A") -> tuple[float, float, float, float]:
+    pu, ps = get_layout(option).lead_pads[name]
     return (pu - PAD_SIZE / 2.0, ps - PAD_SIZE / 2.0, PAD_SIZE, PAD_SIZE)
 
 
+def _orientations(name: str, size: tuple[float, float]) -> tuple[tuple[float, float], ...]:
+    if name.startswith("BAV") and size[0] != size[1]:
+        return (size, (size[1], size[0]))
+    return (size,)
+
+
+def _find_site(
+    free: np.ndarray,
+    wu: float,
+    ws: float,
+    target: tuple[float, float],
+    taken: list[tuple[float, float, float, float]],
+    pads: Mapping[str, tuple[float, float]],
+    lines: tuple[str, ...],
+    option: str,
+    step: float = 0.05,
+) -> tuple[float, float, float, float] | None:
+    lay = get_layout(option)
+    z = _integral(free)
+    ku = int(round(wu / RASTER_PITCH))
+    ks = int(round(ws / RASTER_PITCH))
+    nu = int((lay.board_u[1] - lay.board_u[0] - wu) / step) + 1
+    ns = int((lay.board_s[1] - lay.board_s[0] - ws) / step) + 1
+    best: tuple[float, float, float] | None = None
+    for j in range(ns):
+        y = round(lay.board_s[0] + j * step, 4)
+        for i in range(nu):
+            x = round(lay.board_u[0] + i * step, 4)
+            cu, cs = x + wu / 2.0, y + ws / 2.0
+            cost = math.hypot(cu - target[0], cs - target[1])
+            if best is not None and cost >= best[0]:
+                continue
+            if any(math.hypot(pads[p][0] - cu, pads[p][1] - cs) > CLAMP_MAX_MM for p in lines):
+                continue
+            i0 = int(round((x - lay.board_u[0]) / RASTER_PITCH))
+            j0 = int(round((y - lay.board_s[0]) / RASTER_PITCH))
+            if i0 + ku > free.shape[1] or j0 + ks > free.shape[0]:
+                continue
+            if z[j0 + ks, i0 + ku] - z[j0, i0 + ku] - z[j0 + ks, i0] + z[j0, i0] != ks * ku:
+                continue
+            if any(_boxes_overlap((x, y, wu, ws), t) for t in taken):
+                continue
+            best = (cost, x, y)
+    if best is None:
+        return None
+    return (best[1], best[2], wu, ws)
+
+
 @functools.cache
-def placed_parts() -> dict[str, tuple[float, float, float, float]]:
+def placed_layout(option: str = "A") -> tuple[dict[str, tuple[float, float, float, float]], dict[str, str]]:
     """Greedy candidate layout; a part with no legal site is left out.
 
-    An array must also sit within CLAMP_MAX_MM of every pad it clamps.
+    An array must sit within CLAMP_MAX_MM of every pad it clamps.
+    Option E searches the lateral face for arrays after the medial face.
     """
-    _u, _s, _uu, free = board_free_mask()
-    z = _integral(free)
-    taken = [pad_box(p) for p in LEAD_PADS]
-    step = 0.05
+    lay = get_layout(option)
+    _u, _s, _uu, medial = board_free_mask(option=option)
+    lateral = board_free_mask(option=option, punch_module=True)[3] if lay.two_sided else medial
+    pads = lay.lead_pads
+    taken_m = [pad_box(p, option) for p in pads]
+    taken_l = list(taken_m)
     out: dict[str, tuple[float, float, float, float]] = {}
-    for name, ((wu, ws), (tu, ts)) in PART_TARGETS.items():
-        pads = ARRAY_LINES.get(name, ())
-        ku = int(round(wu / RASTER_PITCH))
-        ks = int(round(ws / RASTER_PITCH))
-        best: tuple[float, float, float] | None = None
-        nu = int((BOARD_U[1] - BOARD_U[0] - wu) / step) + 1
-        ns = int((BOARD_S[1] - BOARD_S[0] - ws) / step) + 1
-        for j in range(ns):
-            y = round(BOARD_S[0] + j * step, 4)
-            for i in range(nu):
-                x = round(BOARD_U[0] + i * step, 4)
-                cu, cs = x + wu / 2.0, y + ws / 2.0
-                cost = math.hypot(cu - tu, cs - ts)
-                if best is not None and cost >= best[0]:
-                    continue
-                if any(math.hypot(LEAD_PADS[p][0] - cu, LEAD_PADS[p][1] - cs) > CLAMP_MAX_MM for p in pads):
-                    continue
-                i0 = int(round((x - BOARD_U[0]) / RASTER_PITCH))
-                j0 = int(round((y - BOARD_S[0]) / RASTER_PITCH))
-                if i0 + ku > free.shape[1] or j0 + ks > free.shape[0]:
-                    continue
-                if z[j0 + ks, i0 + ku] - z[j0, i0 + ku] - z[j0 + ks, i0] + z[j0, i0] != ks * ku:
-                    continue
-                if any(_boxes_overlap((x, y, wu, ws), t) for t in taken):
-                    continue
-                best = (cost, x, y)
-        if best is not None:
-            out[name] = (best[1], best[2], wu, ws)
-            taken.append(out[name])
-    return out
+    faces: dict[str, str] = {}
+    for name, (size, target) in PART_TARGETS.items():
+        lines = ARRAY_LINES.get(name, ())
+        prefer_lat = lay.two_sided and name.startswith("BAV")
+        face_order = ("lateral", "medial") if prefer_lat else (("medial", "lateral") if lay.two_sided else ("medial",))
+        site = None
+        face = "medial"
+        for face in face_order:
+            free = lateral if face == "lateral" else medial
+            taken = taken_l if face == "lateral" else taken_m
+            for wu, ws in _orientations(name, size):
+                site = _find_site(free, wu, ws, target, taken, pads, lines, option)
+                if site is not None:
+                    break
+            if site is not None:
+                break
+        if site is not None:
+            out[name] = site
+            faces[name] = face
+            if face == "lateral":
+                taken_l.append(site)
+            else:
+                taken_m.append(site)
+    return out, faces
 
 
-def budget() -> Budget:
-    u, s, uu, free = board_free_mask()
-    _, _, _, free_no_tabs = board_free_mask(tabs=False)
-    _, _, _, free_short = board_free_mask(tab_length=None)
-    _, _, uu, ss = _mesh()
+def placed_parts(option: str = "A") -> dict[str, tuple[float, float, float, float]]:
+    return placed_layout(option)[0]
+
+
+def placed_faces(option: str = "A") -> dict[str, str]:
+    return placed_layout(option)[1]
+
+
+def budget(option: str = "A") -> Budget:
+    lay = get_layout(option)
+    u, s, uu, free = board_free_mask(option=option)
+    _, _, _, free_no_tabs = board_free_mask(tabs=False, option=option)
+    _, _, _, free_q13 = board_free_mask(mode="q13", option=option)
+    _, _, _, free_lit = board_free_mask(mode="literal", option=option)
+    _, _, _, free_lat = board_free_mask(option=option, punch_module=True)
+    _, _, _, ss = _mesh(option)
     board = np.ones(uu.shape, dtype=bool)
     k1 = _punch_circle(board, uu, ss, CONTACT_1[0], CONTACT_1[1], KEEPOUT_R)
     k1m = _punch_circle(board, uu, ss, CONTACT_1[0], CONTACT_1[1], KEEPOUT_R + COPPER_FREE)
@@ -445,20 +803,26 @@ def budget() -> Budget:
     k2m = _punch_circle(board, uu, ss, CONTACT_2[0], CONTACT_2[1], KEEPOUT_R + COPPER_FREE)
     tabs = np.zeros(uu.shape, dtype=bool)
     for pad in ("SIG1", "SIG2"):
-        tabs |= _tab_mask(uu, ss, pad, COPPER_FREE, TAB_LEN)
-    au0, au1, as0, as1 = antenna_rect()
+        tabs |= _tab_mask(uu, ss, pad, COPPER_FREE, option, mode="real")
+    au0, au1, as0, as1 = antenna_rect(option)
     ant = _punch_rect(board, uu, ss, au0, au1, as0, as1)
-    u0, u1 = BOARD_U
-    s0, s1 = BOARD_S
+    u0, u1 = lay.board_u
+    s0, s1 = lay.board_s
     rim = _punch_rect(board, uu, ss, u0, u0 + RIM, s0, s1)
     rim = _punch_rect(rim, uu, ss, u1 - RIM, u1, s0, s1)
     rim = _punch_rect(rim, uu, ss, u0, u1, s0, s0 + RIM)
     rim = _punch_rect(rim, uu, ss, u0, u1, s1 - RIM, s1)
-    board_mm2 = BOARD_LEN * BOARD_WID
+    board_mm2 = lay.board_len * lay.board_wid
     lu, ls, la = _largest_rect(free)
     vqfn = _fits_rect(free, VQFN_CY[0], VQFN_CY[1])
     tqfp = _fits_rect(free, TQFP_CY[0], TQFP_CY[1])
-    as_drawn = TQFP_CY[0] * TQFP_CY[1] + 3 * SOT23_CY[0] * SOT23_CY[1] + BQ_CY[0] * BQ_CY[1] + LDO_CY[0] * LDO_CY[1] + N_0402 * R0402_CY[0] * R0402_CY[1]
+    as_drawn = (
+        TQFP_CY[0] * TQFP_CY[1]
+        + 3 * SOT23_CY[0] * SOT23_CY[1]
+        + BQ_CY[0] * BQ_CY[1]
+        + LDO_CY[0] * LDO_CY[1]
+        + N_0402 * R0402_CY[0] * R0402_CY[1]
+    )
     named = (
         VQFN_CY[0] * VQFN_CY[1]
         + N_ARRAYS * ARRAY_CY[0] * ARRAY_CY[1]
@@ -469,21 +833,22 @@ def budget() -> Budget:
     free_mm2 = _area(free)
     cell_hook_end = BATTERY_S[0] + CELL_BODY_MAX[2]
     cell_rib_end = BATTERY_S[1]
-    mr = module_rect(MODULE_L_RESERVED)[2]
+    mr = module_rect(MODULE_L_RESERVED, option)[2]
+    chord, _radius = chord_from_arc_bow(lay.body_arc, CREASE_BOW)
     return Budget(
         board_mm2=board_mm2,
         keepout1_mm2=board_mm2 - _area(k1),
         keepout1_margin_mm2=board_mm2 - _area(k1m),
         keepout2_mm2=board_mm2 - _area(k2),
-        keepout2_margin_mm2=board_mm2 - _area(k2m),
-        antenna_mm2=board_mm2 - _area(ant),
         keepout2_union_antenna_mm2=board_mm2 - _area(k2m & ant),
         tabs_margin_mm2=_area(tabs),
         rim_mm2=board_mm2 - _area(rim),
         blocked_mm2=board_mm2 - free_mm2,
         free_mm2=free_mm2,
         free_without_tabs_mm2=_area(free_no_tabs),
-        free_tabs_to_pad_mm2=_area(free_short),
+        free_tabs_to_pad_mm2=_area(free_q13),
+        free_literal_mm2=_area(free_lit),
+        lateral_free_mm2=_area(free_lat),
         largest_u=lu,
         largest_s=ls,
         largest_mm2=la,
@@ -493,19 +858,24 @@ def budget() -> Budget:
         required_named_mm2=named,
         spare_named_mm2=free_mm2 - named,
         clamp_pairs=N_ARRAYS * PAIRS_PER_ARRAY,
-        sagitta_mm=sagitta_mm(),
+        sagitta_mm=sagitta_mm(lay.board_len),
         y_clear_mm=BOARD_UNDERSIDE_Y - KEEPOUT_TOP_Y,
         battery_to_module_hook_mm=mr - cell_hook_end,
         battery_to_module_rib_mm=mr - cell_rib_end,
-        battery_to_module_hook_nominal_mm=module_rect()[2] - cell_hook_end,
+        battery_to_module_hook_nominal_mm=module_rect(MODULE_L, option)[2] - cell_hook_end,
         battery_to_antenna_hook_mm=as0 - cell_hook_end,
         rf_keepout2_overlap=as0 < CONTACT_2[1] + KEEPOUT_R,
+        n_0402=len(place_0402s(option=option)),
+        body_arc_mm=lay.body_arc,
+        total_chord_mm=chord,
+        m1_gate_mm=chord + 3.0,
+        option=lay.option,
     )
 
 
-def pad_keepout_gap(name: str) -> float:
+def pad_keepout_gap(name: str, option: str = "A") -> float:
     """Gap from the pad square to each keep-out circle plus 0.5, minimum."""
-    u, s = LEAD_PADS[name]
+    u, s = get_layout(option).lead_pads[name]
     gaps = [
         math.hypot(u - c[0], s - c[1]) - KEEPOUT_R - COPPER_FREE - PAD_SIZE / 2.0
         for c in (CONTACT_1, CONTACT_2)
@@ -513,21 +883,21 @@ def pad_keepout_gap(name: str) -> float:
     return min(gaps)
 
 
-def pad_in_antenna(name: str) -> bool:
-    u, s = LEAD_PADS[name]
-    au0, au1, as0, as1 = antenna_rect()
+def pad_in_antenna(name: str, option: str = "A") -> bool:
+    u, s = get_layout(option).lead_pads[name]
+    au0, au1, as0, as1 = antenna_rect(option)
     half = PAD_SIZE / 2.0
     return not (u + half < au0 or u - half > au1 or s + half < as0 or s - half > as1)
 
 
-def clamp_distance(pad: str) -> float:
+def clamp_distance(pad: str, option: str = "A") -> float:
     """Pad centre to the centre of the array that clamps it; inf if unplaced."""
-    sites = placed_parts()
+    sites = placed_parts(option)
     name = LINE_ARRAY[pad]
     if name not in sites:
         return math.inf
     x, y, wu, ws = sites[name]
-    pu, ps = LEAD_PADS[pad]
+    pu, ps = get_layout(option).lead_pads[pad]
     return math.hypot(pu - (x + wu / 2.0), ps - (y + ws / 2.0))
 
 
@@ -541,34 +911,42 @@ def _segment_point_gap(a: tuple[float, float], b: tuple[float, float], p: tuple[
     return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 
 
-def wire_keepout_gap() -> float:
+def wire_keepout_gap(option: str = "A") -> float:
     """Wire surface to the nearest signal keep-out circle, in (u, s)."""
+    wire = get_layout(option).ref_wire
     return min(
         _segment_point_gap(a, b, c) - WIRE_OD / 2.0 - KEEPOUT_R
-        for a, b in zip(REF_WIRE, REF_WIRE[1:])
+        for a, b in zip(wire, wire[1:])
         for c in (CONTACT_1, CONTACT_2)
     )
 
 
-def wire_tab_gap(pad: str, samples: int = 400) -> float:
+def wire_tab_gap(pad: str, samples: int = 400, option: str = "A") -> float:
     """Wire surface to a signal lug tab rectangle, sampled along the wire."""
+    wire = get_layout(option).ref_wire
     best = math.inf
-    for a, b in zip(REF_WIRE, REF_WIRE[1:]):
+    for a, b in zip(wire, wire[1:]):
         for k in range(samples + 1):
             t = k / samples
             u = a[0] + t * (b[0] - a[0])
             s = a[1] + t * (b[1] - a[1])
-            best = min(best, point_tab_gap(pad, u, s) - WIRE_OD / 2.0)
+            best = min(best, point_tab_gap(pad, u, s, option) - WIRE_OD / 2.0)
     return best
 
 
-def _box_tab_gap(pad: str, box: tuple[float, float, float, float]) -> float:
+def _box_tab_gap(
+    pad: str,
+    box: tuple[float, float, float, float],
+    option: str = "A",
+    *,
+    deg: float | None = None,
+) -> float:
     """Smallest gap from a box to a tab rectangle; ≤ 0 when they touch."""
     x, y, wu, ws = box
     corners_box = [(x, y), (x + wu, y), (x + wu, y + ws), (x, y + ws)]
-    if any(point_tab_gap(pad, cu, cs) == 0.0 for cu, cs in corners_box):
+    if any(point_tab_gap(pad, cu, cs, option, deg=deg) == 0.0 for cu, cs in corners_box):
         return 0.0
-    tab = tab_corners(pad)
+    tab = tab_corners(pad, option, deg=deg)
     if any(x <= tu <= x + wu and y <= ts <= y + ws for tu, ts in tab):
         return 0.0
     gaps = []
@@ -581,12 +959,154 @@ def _box_tab_gap(pad: str, box: tuple[float, float, float, float]) -> float:
     return min(gaps)
 
 
-def layout_conflicts() -> list[str]:
-    """Every rule the candidate layout breaks, as short sentences."""
+def tab_tab_gap(option: str = "A") -> float:
+    """Smallest gap between the two signal barrels; 0 if they overlap."""
+    a = tab_corners("SIG1", option)
+    b = tab_corners("SIG2", option)
+    if any(point_tab_gap("SIG2", u, s, option) == 0.0 for u, s in a):
+        return 0.0
+    if any(point_tab_gap("SIG1", u, s, option) == 0.0 for u, s in b):
+        return 0.0
+    gaps = []
+    for i in range(4):
+        p, q = a[i], a[(i + 1) % 4]
+        for r in b:
+            gaps.append(_segment_point_gap(p, q, r))
+        p, q = b[i], b[(i + 1) % 4]
+        for r in a:
+            gaps.append(_segment_point_gap(p, q, r))
+    return min(gaps)
+
+
+def corner_pad_boxes(option: str = "A") -> list[tuple[float, float, float, float]]:
+    lay = get_layout(option)
+    zu0, zu1 = lay.board_zone_u
+    zs0, zs1 = lay.board_zone_s
+    return [
+        (zu0, zs0, CORNER_PAD, CORNER_PAD),
+        (zu1 - CORNER_PAD, zs0, CORNER_PAD, CORNER_PAD),
+        (zu0, zs1 - CORNER_PAD, CORNER_PAD, CORNER_PAD),
+        (zu1 - CORNER_PAD, zs1 - CORNER_PAD, CORNER_PAD, CORNER_PAD),
+    ]
+
+
+def tab_reasons(pad: str, deg: float, option: str = "A") -> list[str]:
+    """Why a flat TE 31428 tab at ``deg`` fails (empty means the metal is legal)."""
+    lay = get_layout(option)
+    us = [c[0] for c in tab_corners(pad, option, deg=deg)]
+    ss = [c[1] for c in tab_corners(pad, option, deg=deg)]
     out: list[str] = []
-    b = budget()
-    u, s, _uu, free = board_free_mask()
-    parts = placed_parts()
+    if min(us) < lay.cavity_u[0] or max(us) > lay.cavity_u[1]:
+        out.append(f"wall-u {min(us):.2f}–{max(us):.2f}")
+    if min(ss) < lay.cavity_s[0] or max(ss) > lay.cavity_s[1]:
+        out.append(f"wall-s {min(ss):.2f}–{max(ss):.2f}")
+    if min(ss) < BATTERY_S[1]:
+        out.append("battery")
+    for name, _pad in lay.lead_pads.items():
+        if name == pad:
+            continue
+        if _box_tab_gap(pad, pad_box(name, option), option, deg=deg) < COPPER_FREE:
+            out.append(f"pad-{name}")
+    for i, box in enumerate(corner_pad_boxes(option)):
+        if _box_tab_gap(pad, box, option, deg=deg) <= 0.0:
+            out.append(f"corner-{i}")
+    return out
+
+
+def legal_tab_degrees(
+    pad: str, option: str = "A", step: float = TAB_SEARCH_STEP
+) -> list[float]:
+    """Angles (deg, 0 = +u, 90 = +s) where the flat barrel clears walls and pads."""
+    out: list[float] = []
+    deg = 0.0
+    while deg < 360.0 - 1e-9:
+        if not tab_reasons(pad, deg, option):
+            out.append(deg)
+        deg += step
+    return out
+
+
+def tab_tab_gap_at(d1: float, d2: float, option: str = "A") -> float:
+    a = tab_corners("SIG1", option, deg=d1)
+    b = tab_corners("SIG2", option, deg=d2)
+    if any(point_tab_gap("SIG2", u, s, option, deg=d2) == 0.0 for u, s in a):
+        return 0.0
+    if any(point_tab_gap("SIG1", u, s, option, deg=d1) == 0.0 for u, s in b):
+        return 0.0
+    gaps = []
+    for i in range(4):
+        p, q = a[i], a[(i + 1) % 4]
+        for r in b:
+            gaps.append(_segment_point_gap(p, q, r))
+        p, q = b[i], b[(i + 1) % 4]
+        for r in a:
+            gaps.append(_segment_point_gap(p, q, r))
+    return min(gaps)
+
+
+SEARCH_WIRE: dict[str, tuple[tuple[float, float], ...]] = {}
+
+
+@functools.cache
+def search_tab_degrees(
+    option: str = "A", step: float = TAB_SEARCH_STEP
+) -> dict[str, float]:
+    """Pick a SIG1/SIG2 pair. Prefers all named parts placed, then more 0402s.
+
+    Tries the low-u and high-u reference wires. Signal tabs stay flat:
+    ``upright_signal_clear_mm`` is negative. Restores the layout on the way out.
+    """
+    lay = get_layout(option)
+    saved_deg = dict(lay.tab_deg)
+    saved_wire = lay.ref_wire
+    sig1 = legal_tab_degrees("SIG1", option, step)
+    sig2 = legal_tab_degrees("SIG2", option, step)
+    wires = [("low", REF_WIRE_LOW_U), ("high", REF_WIRE_HIGH_U)]
+    if get_layout(option).cavity_s[1] > CAVITY_S[1] + 1e-9:
+        wires.append(("inferior", REF_WIRE_INFERIOR))
+    best: tuple[tuple[int, int, int, float, float], float, float, str] | None = None
+    try:
+        for d1 in sig1:
+            for d2 in sig2:
+                if tab_tab_gap_at(d1, d2, option) < COPPER_FREE:
+                    continue
+                deg = {"SIG1": float(d1), "SIG2": float(d2)}
+                for wname, wire in wires:
+                    bind_layout(option, tab_deg=deg, ref_wire=wire)
+                    if wire_keepout_gap(option) < 0:
+                        continue
+                    if wire_tab_gap("SIG1", option=option) < 0 or wire_tab_gap("SIG2", option=option) < 0:
+                        continue
+                    parts = placed_parts(option)
+                    missing = sum(1 for name in PART_TARGETS if name not in parts)
+                    n_ok = 1 if missing == 0 else 0
+                    n_parts = len(parts)
+                    n_0402 = len(place_0402s(option=option)) if n_ok else 0
+                    score = (n_ok, n_parts, n_0402, -abs(d1), -abs(d2 - 180.0))
+                    if best is None or score > best[0]:
+                        best = (score, float(d1), float(d2), wname)
+        if best is None:
+            raise ValueError(f"no legal TE 31428 tab pair for option {option}")
+        _score, d1, d2, wname = best
+        SEARCH_WIRE[option.upper()] = {"low": REF_WIRE_LOW_U, "high": REF_WIRE_HIGH_U, "inferior": REF_WIRE_INFERIOR}[wname]
+        return {"SIG1": d1, "SIG2": d2}
+    finally:
+        bind_layout(option, tab_deg=saved_deg, ref_wire=saved_wire)
+
+
+def layout_conflicts(option: str = "A") -> list[str]:
+    """Every rule the candidate layout breaks, as short sentences.
+
+    Q14: plan §5's ≥ 5 mm is antenna-to-cell, not module body. The 4.70 mm
+    module-body figure is reported in the budget, not as a packing fail.
+    """
+    out: list[str] = []
+    lay = get_layout(option)
+    b = budget(option)
+    u, s, _uu, medial = board_free_mask(option=option)
+    lateral = board_free_mask(option=option, punch_module=True)[3] if lay.two_sided else medial
+    parts = placed_parts(option)
+    faces = placed_faces(option)
     if b.clamp_pairs < N_LINES:
         out.append(f"{b.clamp_pairs} clamp pairs for {N_LINES} lines")
     for name in PART_TARGETS:
@@ -595,64 +1115,86 @@ def layout_conflicts() -> list[str]:
     if b.spare_named_mm2 < 0:
         out.append(f"named pack {b.required_named_mm2:.2f} mm² > free {b.free_mm2:.2f} mm²")
     for name, box in parts.items():
-        if not _courtyard_in_free(free, u, s, *box):
+        free = lateral if faces.get(name) == "lateral" else medial
+        if not _courtyard_in_free(free, u, s, *box, option):
             out.append(f"{name} courtyard outside the free mask")
     names = list(parts)
     for i, a in enumerate(names):
         for c in names[i + 1 :]:
-            if _boxes_overlap(parts[a], parts[c]):
+            if faces.get(a) == faces.get(c) and _boxes_overlap(parts[a], parts[c]):
                 out.append(f"{a} overlaps {c}")
-        for pad in LEAD_PADS:
-            if _boxes_overlap(parts[a], pad_box(pad)):
+        for pad in lay.lead_pads:
+            if _boxes_overlap(parts[a], pad_box(pad, option)):
                 out.append(f"{a} overlaps pad {pad}")
-    for pad in LEAD_PADS:
-        if pad_keepout_gap(pad) < 0:
+    for pad in lay.lead_pads:
+        if pad_keepout_gap(pad, option) < 0:
             out.append(f"pad {pad} inside a keep-out + 0.5")
-        if pad_in_antenna(pad):
+        if pad_in_antenna(pad, option):
             out.append(f"pad {pad} in the RF zone")
         for other in ("SIG1", "SIG2"):
             if other == pad:
                 continue
-            if _box_tab_gap(other, pad_box(pad)) < COPPER_FREE:
+            if _box_tab_gap(other, pad_box(pad, option), option) < COPPER_FREE:
                 out.append(f"pad {pad} within 0.5 of the {other} lug tab")
-        if LINE_ARRAY[pad] in parts and clamp_distance(pad) > CLAMP_MAX_MM:
+        if LINE_ARRAY[pad] in parts and clamp_distance(pad, option) > CLAMP_MAX_MM:
             out.append(f"pad {pad} more than {CLAMP_MAX_MM:.0f} mm from its clamp")
     for pad in ("SIG1", "SIG2"):
-        us = [c[0] for c in tab_corners(pad)]
-        if min(us) < CAVITY_U[0] or max(us) > CAVITY_U[1]:
+        us = [c[0] for c in tab_corners(pad, option)]
+        ss = [c[1] for c in tab_corners(pad, option)]
+        if min(us) < lay.cavity_u[0] or max(us) > lay.cavity_u[1]:
             out.append(f"{pad} lug tab reaches a side wall (u {min(us):.2f}–{max(us):.2f})")
-    if wire_keepout_gap() < 0:
-        out.append(f"reference wire enters a keep-out ({wire_keepout_gap():.2f})")
+        if min(ss) < lay.cavity_s[0] or max(ss) > lay.cavity_s[1]:
+            out.append(f"{pad} lug tab reaches an end wall (s {min(ss):.2f}–{max(ss):.2f})")
+        if min(ss) < BATTERY_S[1]:
+            out.append(f"{pad} lug tab enters the battery pocket")
+        for i, box in enumerate(corner_pad_boxes(option)):
+            if _box_tab_gap(pad, box, option) <= 0.0:
+                out.append(f"{pad} lug tab hits corner pad {i}")
+    if tab_tab_gap(option) < COPPER_FREE:
+        out.append(f"signal lug tabs within 0.5 of each other ({tab_tab_gap(option):.2f})")
+    if wire_keepout_gap(option) < 0:
+        out.append(f"reference wire enters a keep-out ({wire_keepout_gap(option):.2f})")
     for pad in ("SIG1", "SIG2"):
-        if wire_tab_gap(pad) < 0:
+        if wire_tab_gap(pad, option=option) < 0:
             out.append(f"reference wire crosses the {pad} lug tab")
-    if b.battery_to_module_hook_mm < BATTERY_RF_MIN:
-        out.append(f"cell to reserved module {b.battery_to_module_hook_mm:.2f} < {BATTERY_RF_MIN:.0f} mm")
     return out
 
 
-def place_0402s(n: int = N_0402) -> list[tuple[float, float]]:
-    """Greedy medial 0402 courtyards in the free mask, clear of parts and pads."""
-    u, s, _uu, free = board_free_mask()
-    taken = list(placed_parts().values()) + [pad_box(p) for p in LEAD_PADS]
-    sites: list[tuple[float, float]] = []
-    r_w, r_h = R0402_CY
-    y = BOARD_S[0] + RIM
-    y_end = BOARD_S[1] - RIM - r_h
-    x_end = BOARD_U[1] - RIM - r_w
-    while y <= y_end + 1e-9 and len(sites) < n:
-        x = BOARD_U[0] + RIM
-        while x <= x_end + 1e-9 and len(sites) < n:
-            box = (x, y, r_w, r_h)
-            if not any(_boxes_overlap(box, t) for t in taken) and _courtyard_in_free(
-                free, u, s, x, y, r_w, r_h
-            ):
-                sites.append((x, y))
-                taken.append(box)
-                x += r_w
-            else:
-                x += 0.10
-        y += r_h
+def place_0402s(n: int = N_0402, option: str = "A") -> list[tuple[float, float, str]]:
+    """Greedy 0402 courtyards. Option E fills medial then lateral."""
+    lay = get_layout(option)
+    u, s, _uu, medial = board_free_mask(option=option)
+    faces_masks: list[tuple[str, np.ndarray, list[tuple[float, float, float, float]]]] = [
+        ("medial", medial, list(placed_parts(option).values()) + [pad_box(p, option) for p in lay.lead_pads])
+    ]
+    if lay.two_sided:
+        lat_taken = [pad_box(p, option) for p in lay.lead_pads]
+        for name, box in placed_parts(option).items():
+            if placed_faces(option).get(name) == "lateral":
+                lat_taken.append(box)
+        faces_masks.append(("lateral", board_free_mask(option=option, punch_module=True)[3], lat_taken))
+    sites: list[tuple[float, float, str]] = []
+    orients = (R0402_CY, (R0402_CY[1], R0402_CY[0]))
+    for face, free, taken in faces_masks:
+        if len(sites) >= n:
+            break
+        for r_w, r_h in orients:
+            y = lay.board_s[0] + RIM
+            y_end = lay.board_s[1] - RIM - r_h
+            x_end = lay.board_u[1] - RIM - r_w
+            while y <= y_end + 1e-9 and len(sites) < n:
+                x = lay.board_u[0] + RIM
+                while x <= x_end + 1e-9 and len(sites) < n:
+                    box = (x, y, r_w, r_h)
+                    if not any(_boxes_overlap(box, t) for t in taken) and _courtyard_in_free(
+                        free, u, s, x, y, r_w, r_h, option
+                    ):
+                        sites.append((x, y, face))
+                        taken.append(box)
+                        x += r_w
+                    else:
+                        x += 0.10
+                y += r_h
     return sites
 
 
@@ -690,27 +1232,36 @@ def _require_mpl() -> Any:
     return plt, Circle, Rectangle
 
 
-def render_svg() -> bytes:
+def render_svg(option: str = "A") -> bytes:
     plt, Circle, Rectangle = _require_mpl()
-    b = budget()
+    lay = get_layout(option)
+    b = budget(option)
     fig, ax = plt.subplots(figsize=(8.5, 11.0), facecolor="white")
     ax.set_aspect("equal")
-    ax.set_xlim(-1.5, 28.0)
-    ax.set_ylim(-1.0, 50.0)
+    ax.set_xlim(-1.5, 32.0)
+    ax.set_ylim(-1.0, max(50.0, lay.body_arc + 3.0))
     ax.set_xlabel("u (mm), posterior")
     ax.set_ylabel("s (mm), inferior up")
-    ax.set_title("Elicio Stage B placement at maximum courtyards  (u, s) body frame")
+    ax.set_title(f"Elicio Stage B packing option {lay.option}  (u, s) body frame")
 
     def add_rect(u0, s0, du, ds, **kw):
         ax.add_patch(Rectangle((u0, s0), du, ds, **kw))
 
-    # cavity walls / body
-    add_rect(BODY_U[0], 0.0, BODY_U[1] - BODY_U[0], 48.4, fill=False, edgecolor="0.3", linewidth=1.2, label="body")
     add_rect(
-        CAVITY_U[0],
-        CAVITY_S[0],
-        CAVITY_U[1] - CAVITY_U[0],
-        CAVITY_S[1] - CAVITY_S[0],
+        lay.body_u[0],
+        0.0,
+        lay.body_u[1] - lay.body_u[0],
+        lay.body_arc,
+        fill=False,
+        edgecolor="0.3",
+        linewidth=1.2,
+        label="body",
+    )
+    add_rect(
+        lay.cavity_u[0],
+        lay.cavity_s[0],
+        lay.cavity_u[1] - lay.cavity_u[0],
+        lay.cavity_s[1] - lay.cavity_s[0],
         fill=False,
         edgecolor="0.15",
         linewidth=0.8,
@@ -738,10 +1289,10 @@ def render_svg() -> bytes:
         label="rib",
     )
     add_rect(
-        BOARD_ZONE_U[0],
-        BOARD_ZONE_S[0],
-        BOARD_ZONE_U[1] - BOARD_ZONE_U[0],
-        BOARD_ZONE_S[1] - BOARD_ZONE_S[0],
+        lay.board_zone_u[0],
+        lay.board_zone_s[0],
+        lay.board_zone_u[1] - lay.board_zone_u[0],
+        lay.board_zone_s[1] - lay.board_zone_s[0],
         fill=False,
         edgecolor="#1d4f91",
         linestyle=":",
@@ -749,18 +1300,18 @@ def render_svg() -> bytes:
         label="BOARD_ZONE",
     )
     add_rect(
-        BOARD_U[0],
-        BOARD_S[0],
-        BOARD_WID,
-        BOARD_LEN,
+        lay.board_u[0],
+        lay.board_s[0],
+        lay.board_wid,
+        lay.board_len,
         facecolor="#d9e8f6",
         edgecolor="#1d4f91",
         linewidth=1.0,
         alpha=0.9,
-        label="board 19×12.5",
+        label=f"board {lay.board_len:g}×{lay.board_wid:g}",
     )
 
-    au0, au1, as0, as1 = antenna_rect()
+    au0, au1, as0, as1 = antenna_rect(option)
     add_rect(
         au0,
         as0,
@@ -772,7 +1323,7 @@ def render_svg() -> bytes:
         hatch="///",
         label="RF no-copper 12.4×3.8",
     )
-    mu0, mu1, ms0, ms1 = module_rect(MODULE_L_RESERVED)
+    mu0, mu1, ms0, ms1 = module_rect(MODULE_L_RESERVED, option)
     add_rect(
         mu0,
         ms0,
@@ -811,12 +1362,13 @@ def render_svg() -> bytes:
         ax.plot(uc, sc, "k.", markersize=3)
         ax.text(uc + 0.2, sc + 0.2, name, fontsize=6, color="#5a0000")
 
-    # corner nylon pads at BOARD_ZONE corners (interface v1, unchanged)
+    zu0, zu1 = lay.board_zone_u
+    zs0, zs1 = lay.board_zone_s
     corners = [
-        (1.5, 18.3),
-        (14.0, 18.3),
-        (1.5, 36.4),
-        (14.0, 36.4),
+        (zu0, zs0),
+        (zu1 - CORNER_PAD, zs0),
+        (zu0, zs1 - CORNER_PAD),
+        (zu1 - CORNER_PAD, zs1 - CORNER_PAD),
     ]
     for i, (cu, cs) in enumerate(corners):
         add_rect(
@@ -830,24 +1382,24 @@ def render_svg() -> bytes:
             label="corner pad 1.5×1.5" if i == 0 else None,
         )
 
-    # signal lug tabs 3 × 7 from the Ø7.1 edge toward their pads (interface §3.1)
     from matplotlib.patches import Polygon
 
     for i, pad in enumerate(("SIG1", "SIG2")):
         ax.add_patch(
             Polygon(
-                tab_corners(pad),
+                tab_corners(pad, option),
                 closed=True,
                 facecolor="#e07070",
                 edgecolor="#7a1010",
                 alpha=0.35,
                 hatch="\\\\",
                 linewidth=0.5,
-                label="lug tab 3×7 (+0.5 in the mask)" if i == 0 else None,
+                label="TE 31428 tab to 8.85" if i == 0 else None,
             )
         )
 
-    parts = placed_parts()
+    parts = placed_parts(option)
+    faces = placed_faces(option)
     colors = {
         "ADS1292_RSM": "#6b4c9a",
         "BAV199S_1": "#c45c26",
@@ -865,6 +1417,8 @@ def render_svg() -> bytes:
     labels_done: set[str] = set()
     for name, (x, y, wu, ws) in parts.items():
         lab = labels[name]
+        if faces.get(name) == "lateral":
+            lab = lab + " lat"
         add_rect(
             x,
             y,
@@ -874,15 +1428,15 @@ def render_svg() -> bytes:
             edgecolor="black",
             alpha=0.55,
             linewidth=0.6,
+            hatch=".." if faces.get(name) == "lateral" else None,
             label=lab if lab not in labels_done else None,
         )
         labels_done.add(lab)
         ax.text(x + 0.08, y + 0.12, name.replace("_", "\n"), fontsize=5, color="white")
 
-    # 0402 courtyards at IPC-7351 small-chip Nominal, medial, greedy
     r_w, r_h = R0402_CY
-    sites_0402 = place_0402s()
-    for i, (x, y) in enumerate(sites_0402):
+    sites_0402 = place_0402s(option=option)
+    for i, (x, y, face) in enumerate(sites_0402):
         add_rect(
             x,
             y,
@@ -892,10 +1446,11 @@ def render_svg() -> bytes:
             edgecolor="#222",
             linewidth=0.3,
             alpha=0.7,
+            hatch="xx" if face == "lateral" else None,
             label="0402 courtyard 1.80×0.90" if i == 0 else None,
         )
 
-    for name, (pu, ps) in LEAD_PADS.items():
+    for name, (pu, ps) in lay.lead_pads.items():
         add_rect(
             pu - PAD_SIZE / 2.0,
             ps - PAD_SIZE / 2.0,
@@ -908,20 +1463,25 @@ def render_svg() -> bytes:
         )
         ax.text(pu - 1.9, ps - 0.15, name, fontsize=6, color="#111")
 
-    for pad in LEAD_PADS:
+    for pad in lay.lead_pads:
         arr = LINE_ARRAY[pad]
         if arr not in parts:
             continue
         x, y, wu, ws = parts[arr]
         cu, cs = x + wu / 2.0, y + ws / 2.0
-        pu, ps = LEAD_PADS[pad]
+        pu, ps = lay.lead_pads[pad]
         ax.plot([pu, cu], [ps, cs], color="#c45c26", linewidth=0.6, linestyle=":")
-        ax.text((pu + cu) / 2.0, (ps + cs) / 2.0, f"{clamp_distance(pad):.1f}", fontsize=5, color="#8a3b10")
+        ax.text(
+            (pu + cu) / 2.0,
+            (ps + cs) / 2.0,
+            f"{clamp_distance(pad, option):.1f}",
+            fontsize=5,
+            color="#8a3b10",
+        )
 
-    # reference wire: pocket → channel → wrap at s 37 → round keep-out 2 → pad
     ax.plot(
-        [p[0] for p in REF_WIRE],
-        [p[1] for p in REF_WIRE],
+        [p[0] for p in lay.ref_wire],
+        [p[1] for p in lay.ref_wire],
         color="#d4a017",
         linewidth=WIRE_OD * 2.2,
         solid_capstyle="round",
@@ -940,7 +1500,6 @@ def render_svg() -> bytes:
         label="WIRE_CHANNEL",
     )
 
-    # cell body end (packed to the hook) to the reserved module
     cell_hook = BATTERY_S[0] + CELL_BODY_MAX[2]
     ax.annotate(
         "",
@@ -950,35 +1509,43 @@ def render_svg() -> bytes:
     )
     ax.text(8.7, 0.5 * (ms0 + cell_hook), f"{b.battery_to_module_hook_mm:.1f} mm", fontsize=6, color="#8a6d00")
 
-    conflicts = layout_conflicts()
+    conflicts = layout_conflicts(option)
     lines = [
-        f"board {b.board_mm2:.1f} mm²",
+        f"option {lay.option}  two-sided={lay.two_sided}",
+        f"board {b.board_mm2:.1f} mm²  {lay.board_len:g}×{lay.board_wid:g}",
         f"keep-out 1 + 0.5   {b.keepout1_margin_mm2:.2f}",
         f"keep-out 2 ∪ RF    {b.keepout2_union_antenna_mm2:.2f}",
-        f"lug tabs + 0.5     {b.tabs_margin_mm2:.2f}",
+        f"TE 31428 tabs+0.5  {b.tabs_margin_mm2:.2f}",
         f"rim 0.25           {b.rim_mm2:.2f}",
-        f"free               {b.free_mm2:.2f}",
+        f"free (real lug)    {b.free_mm2:.2f}",
+        f"  Q13 short        {b.free_tabs_to_pad_mm2:.2f}",
+        f"  7 mm tabs        {b.free_literal_mm2:.2f}",
         f"  without tabs     {b.free_without_tabs_mm2:.2f}",
-        f"  tabs end at pad  {b.free_tabs_to_pad_mm2:.2f}",
+        f"  lateral (E)      {b.lateral_free_mm2:.2f}",
+        f"SIG1 tab           {lay.tab_deg['SIG1']:.0f} deg (0=+u)",
+        f"SIG2 tab           {lay.tab_deg['SIG2']:.0f} deg",
+        f"upright SIG air    {upright_signal_clear_mm():.2f} (flat)",
         f"largest empty rect {b.largest_u:.2f} × {b.largest_s:.2f}",
         f"TQFP-32 7.60² fit? {b.tqfp_fits}",
         f"VQFN-32 4.60² fit? {b.vqfn_fits}",
         f"required named     {b.required_named_mm2:.2f}",
         f"spare named        {b.spare_named_mm2:.2f}",
-        f"0402 placed        {len(sites_0402)} of {N_0402}",
+        f"0402 placed        {b.n_0402} of {N_0402}",
         f"clamp pairs        {b.clamp_pairs} for {N_LINES} lines",
-        f"sagitta 19 mm chord {b.sagitta_mm:.3f}",
+        f"BODY_ARC           {b.body_arc_mm:.1f}",
+        f"TOTAL_CHORD        {b.total_chord_mm:.2f}",
+        f"M1 gate (chord+3)  {b.m1_gate_mm:.2f}",
+        f"sagitta            {b.sagitta_mm:.3f}",
         f"Y clear 4.3−4.13   {b.y_clear_mm:.2f}",
         f"cell→module 15.8 (hook) {b.battery_to_module_hook_mm:.2f}",
-        f"cell→module 15.8 (rib)  {b.battery_to_module_rib_mm:.2f}",
         f"cell→antenna zone (hook) {b.battery_to_antenna_hook_mm:.2f}",
         f"RF overlaps K2     {b.rf_keepout2_overlap}",
         "result: NOT confirmed" if conflicts else "result: no conflicts",
     ]
     lines += [f"✗ {c}" for c in conflicts]
     ax.text(
-        17.6,
-        47.5,
+        lay.body_u[1] + 0.6,
+        lay.body_arc - 0.9,
         "Packing at max courtyards\n" + "\n".join(lines),
         fontsize=5.6,
         family="DejaVu Sans",
@@ -995,7 +1562,7 @@ def render_svg() -> bytes:
         buf,
         format="svg",
         facecolor="white",
-        metadata={"Creator": "elicio-wp6", "Title": "elicio placement v1"},
+        metadata={"Creator": "elicio-wp6", "Title": f"elicio placement option {lay.option}"},
     )
     plt.close(fig)
     text = buf.getvalue().decode("utf-8")
@@ -1005,19 +1572,23 @@ def render_svg() -> bytes:
     return text.encode("utf-8")
 
 
-def write_drawing(path: Path = DEFAULT_OUT) -> str:
+def write_drawing(path: Path | None = None, option: str = "A") -> str:
+    if path is None:
+        path = drawing_path(option)
     path.parent.mkdir(parents=True, exist_ok=True)
-    data = render_svg()
+    data = render_svg(option)
     path.write_bytes(data)
     return sha256_bytes(data)
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Draw the Stage B packing figure.")
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser = argparse.ArgumentParser(description="Draw a Stage B packing option.")
+    parser.add_argument("--option", choices=OPTION_NAMES, default="A")
+    parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
-    digest = write_drawing(args.out)
-    print(f"wrote {args.out} sha256={digest}")
+    out = args.out if args.out is not None else drawing_path(args.option)
+    digest = write_drawing(out, args.option)
+    print(f"wrote {out} option={args.option} sha256={digest}")
     return 0
 
 
