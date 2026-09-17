@@ -57,7 +57,7 @@ Drawings: `docs/fab/cad/v1/placement_C.svg`, `placement_A.svg` (also `placement.
 
 | Number | From |
 |---|---|
-| TE 31428 barrel end 8.85 from centre, 6.27 past the ring edge, width 1.96 | C-31428 rev D4; contacts.md §8.1.1 |
+| TE 31428 barrel end 8.85 from centre (drawing 8.788 max, so 0.06 conservative), 6.27 past the ring edge, width 1.96 max | C-31428 rev D4; contacts.md §8.1.1 |
 | Lead Ø1.3, bend radius 3 | plan §3.3 script checks and WIRE_CHANNEL route; `LEAD_BEND_R` |
 | Required 79.30 mm² | VQFN 21.16 (RSM 4.10 max, TI 4219108/B); two BAV199S-Q 12.46 (Fig. 8); BQ 2.94; LDO 2.25; 25 × 0402 40.50 (IPC-7351B) |
 | Board 19 × 12.5 at y 4.3, parts ≤ 1.2 tall | plan §5 |

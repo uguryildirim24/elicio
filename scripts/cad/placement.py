@@ -124,14 +124,14 @@ CLAMP_MAX_MM = 10.0
 BATTERY_RF_MIN = 5.0
 # TE Connectivity 31428, Customer Drawing C-31428 rev D4, date read
 # 2026-09-17 (contacts.md §8.1). Ring OD 5.16 → radius 2.58. Barrel end
-# 8.85 from the contact centre (0.348 in). 6.27 from the outer ring edge
-# (2.58 + 6.27 = 8.85). The Ø7.1 keep-out already covers the ring
+# 8.85 from the contact centre; the drawing gives 8.788 MAX [.346], so 8.85
+# is 0.06 conservative. 6.27 from the outer ring edge (2.58 + 6.27 = 8.85). The Ø7.1 keep-out already covers the ring
 # (3.55 > 2.58), so the tab beyond the keep-out is 8.85 − 3.55 = 5.30.
 # Packing envelope: a0 3.55, a1 8.85, width 1.96. The tab need not point
 # at its pad; the wire does that. Q13 short tabs are not buildable.
 RING_OD = 5.16
 RING_R = RING_OD / 2.0
-LUG_A1 = 8.85  # barrel end from the contact centre; C-31428 D4 0.348 in
+LUG_A1 = 8.85  # barrel end from the contact centre; C-31428 D4 8.788 max
 TAB_W = 1.96
 TAB_LEN = 6.27  # from the outer ring edge; LUG_A1 − RING_R
 TAB_PAST_KEEPOUT = LUG_A1 - KEEPOUT_R  # 5.30 mm beyond the Ø7.1 edge
