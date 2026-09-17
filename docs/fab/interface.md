@@ -95,7 +95,8 @@ M2.5 is a manufacturer extension. Westfield's ISO 7380 table, read
 2026-09-16 (https://www.westfieldfasteners.co.uk/Standards/ScrewBolt-SHBtn-M.html),
 gives M2.5 dk max 4.5 and k max 1.5, not 4.7 and 1.35. The CAD contract
 stays at the plan's 4.7 / 1.35 until WP5 names a SKU drawing. If the
-SKU is 4.5 / 1.5, this file becomes v2.
+SKU is 4.5 / 1.5, this file becomes v2. WP5 named SKUs but no head
+drawing; pending as V2-1 (§12).
 
 ### 2.3 Stack above the floor
 
@@ -374,8 +375,9 @@ choice and stays on this shell if the courtyards fit.
 The plan wins. These are not silent CAD changes.
 
 1. The WP1 brief names ISO 4032. The plan names a DIN 439 / ISO 4035
-   thin nut, m = 1.6 mm. ISO 4032 M2.5 is m = 2.0 mm and does not fit
-   the y 4.13 keep-out. This file follows the plan.
+   thin nut, m = 1.6 mm. ISO 4032 M2.5 is m = 2.0 mm: level with the
+   screw tip at nominal and into the board at a wall printed 0.3 thick
+   (§2.3). This file follows the plan.
 2. The design record allows stainless or carbon-TPU on skin. The plan
    allows titanium only. This file follows the plan.
 3. L3 recommended 7–9 mm floating domes. The plan uses rigid ISO 7380
