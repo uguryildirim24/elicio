@@ -1,66 +1,71 @@
-# Packing options (WP6b)
+# Packing options (WP6b, corrected in review r3)
 
-Rolf: pick one row. Reply with the one line at the bottom.
+**Only C closes.** A, B and E leave the ADS1292 with no site once both signal lugs lie flat and their leads can leave the barrels. Reply with the one line at the bottom.
 
-Lug: TE 31428 (C-31428 rev D4, contacts.md §8.1, 2026-09-17). Barrel end **8.85 mm** from the contact centre (0.348 in = ring radius 2.58 + 6.27 from the outer ring edge). The Ø7.1 keep-out already covers the ring (3.55 > 2.58), so the tab beyond the keep-out is **5.30 mm** (a0 3.55, a1 8.85), width 1.96 mm, plus 0.5 mm in the mask. Direction is a free angle. The wire, not the tab, reaches the pad. All signal tabs are **flat**. Upright does not fit (need 6.73 mm, have 2.63 mm). Reference stays upright in the tail pocket (contacts.md §5.3). Interface v2. Pads in §4 stay until you pick.
+| Option | Closes? | Shell change | You give up |
+|---|---|---|---|
+| A. As is | **No**: no VQFN site, 10 of 25 0402s | none | nothing, but it does not fit |
+| B. Longer | **No**: no VQFN site, 14 of 25 0402s | BODY_ARC 48.4 → 51.9; M1 gate 50.90 → 54.43 | 3.5 mm behind the ear, and it still does not fit |
+| C. Wider | **Yes**: all named parts, 25 of 25 0402s, no conflicts | BODY_WIDTH 17 → 20; board 19 × 12.5 → 19 × 15.5 | 3 mm of width in the crease |
+| E. Two-sided | **No**: no VQFN site (arrays and 8 0402s go lateral) | none | a two-sided build, and it still does not fit |
 
-Q13 short tab (3 mm, SIG1 1.55 mm, SIG2 2.75 mm, end under the pad) is **not buildable with a crimp lug (WP5b)**. TE 31428 is the shortest. Panduit P22-4R is 10.61 mm from centre. Nichifu R0.3-3 is 9.40 mm. That row is not a pick.
-
-| | Q13 short | A. As is | B. Longer | C. Wider | E. Two-sided |
-|---|---|---|---|---|---|
-| Buildable with a crimp lug? | **No (WP5b)** | **Yes**, TE 31428, **flat** | **Yes**, flat | **Yes**, flat | **Yes**, flat |
-| Closes? | **No** | **Yes** | **Yes** | **Yes** | **Yes** |
-| Free vs required 79.30 mm² | 82.97; sites fail | 83.23 (+3.93) | 106.93 (+27.62) | 130.18 (+50.87) | medial 83.23; lateral 19.50 |
-| Conflicts | two arrays: no site | none | none | none | none |
-| VQFN-32 4.60² | (9.90, 22.55) | (9.90, 23.15) | (9.90, 23.15) | (10.00, 23.50) | (9.90, 23.15) |
-| Arrays (SIG1+SIG2, REF+spare) | none | (4.50, 27.10) and (7.15, 26.75); clamp 1.68 / 1.76 / 4.60 mm | (4.50, 27.10) and (2.65, 30.50); clamp 1.68 / 1.76 / 2.68 mm | same as A | same as A, medial. Height would allow arrays on the lateral face (1.2 < 2.2) |
-| 0402s with a site | 16 of 25 (Q13 mask) | **10 of 25** medial. The other 15 have no 1.80×0.90 courtyard on this board. They sit on C (27 sites) | **15 of 25** medial. The other 10 have no site on the longer board. They sit on C | **25 of 25** medial (2 spare sites) | **12 of 25** (10 medial, 2 lateral). The other 13 have no site. Lateral takes only 2 of A's leftover 15 |
-| Pads (u, s) | SIG1 (5.9, 26.6); SIG2 (5.5, 30.0); REF (4.0, 29.0) | same | same | same | same |
-| Tab | 3 mm; Ø7.1 edge to far pad edge; toward the pad | a0 3.55 a1 8.85; SIG1 355°; SIG2 170°; **flat** | a0 3.55 a1 8.85; SIG1 355°; SIG2 120°; **flat** | a0 3.55 a1 8.85; SIG1 0°; SIG2 180°; **flat** | same as A |
-| Shell | none | none | BODY_ARC 48.4 → 51.9; board 19×12.5 → 22.5×12.5 | BODY_WIDTH 17 → 20; board 19×12.5 → 19×15.5 | none |
-| TOTAL_CHORD | 47.90 | 47.90 | **51.43** | 47.90 | 47.90 |
-| M1 gate | 50.90 | 50.90 | **54.43** | 50.90 | 50.90 |
-| You give up | not a part you can buy | 15 of 25 of the 0402 courtyards | 3.5 mm behind the ear; 10 of 25 of the 0402s | 3 mm of width in the crease | a two-sided assembly; 13 of 25 of the 0402s |
-
-Drawings: `docs/fab/cad/v1/placement_A.svg` (also `placement.svg`), `placement_B.svg`, `placement_C.svg`, `placement_E.svg`.
+The short Q13 tab (ends under its pad) is **not buildable with a crimp lug** (WP5b, contacts.md §8.1): the shortest lug read, TE 31428, reaches 8.85 mm from the contact centre. It is not a row.
 
 ## Recommendation
 
-Pick **A**.
+Pick **C**. It is the only option where every part has a site with the real lug.
 
-With a1 8.85 (C-31428 D4), the plan shell closes. `layout_conflicts("A")` is empty. Named parts sit. Tabs are flat: SIG1 at 355°, SIG2 at 170°. You do not give up length, width, or a second face.
+- The lug is TE 31428, flat, barrel end 8.85 mm from the contact centre, 1.96 wide, plus 0.5 in the copper mask.
+- Each lead leaves its barrel straight and bends at 3 mm (plan §3.3). That rules out any barrel aimed at a wall. WP6b's first sheet had them aimed at walls (SIG2 ended 0.13 mm from the side wall), which is why it said A closes.
+- On the plan's 17 mm body, both barrels must point into the middle of the board. They cut two 3 mm strips through it, and the 4.6 mm VQFN courtyard no longer fits anywhere (A free 72.18 mm² against 79.30 needed). B's extra length adds area at the wrong end (free 93.72, still no 4.6 × 4.6 hole). E moves the arrays and passives to the lateral face but the VQFN stays medial.
+- C's extra 3 mm of width gives the VQFN a site beside the SIG2 barrel.
 
-Upright on SIG1 and SIG2 is not used. Keep-out air is 2.63 mm. The lug needs 6.73 mm. Reference stays upright in the tail pocket (contacts.md §5.3).
+What C needs from you besides the width:
 
-10 of 25 of the 0402 courtyards sit on A. The other 15 have no site on the 19×12.5 board (fragmentation, not area: spare 3.93 mm²). Pick **C** only if you need those 15 courtyards. C places 25 of 25. B places 15 of 25 and moves TOTAL_CHORD 47.90 → 51.43. E places 12 of 25 (two of them on the lateral face) and adds a two-sided process you do not need for the ICs.
+1. **The lead pads move** from interface v2 §4 (Q13 said the pads move if the tab is long). New pads: SIG1 (7.5, 29.35), SIG2 (13.5, 21.35), REF (5.5, 29.35).
+2. **The reference wire crosses the SIG1 lead once**, on the floor near (3.9, 33.7), where no part or pad sits above. Two Ø1.3 wires stack to 2.6 mm under a board 2.8 mm above the floor. The plan does not forbid a crossing; this is the reading. Without it, C needs a 2 mm lead bend instead of 3.
 
-Q14: cell to antenna zone is 16.70 mm on A/C/E and 20.20 mm on B. That passes ≥ 5 mm. Cell to reserved module body is 4.70 mm on A/C/E and 8.20 mm on B. That is not a packing fail.
+## C in numbers
+
+| Item | Value | From |
+|---|---|---|
+| Free medial area vs required | 126.26 vs 79.30 mm² | `budget("C")` |
+| Tabs | SIG1 110°, SIG2 270° (0° = +u, 90° = +s), flat | `search_tab_degrees("C")` |
+| Lead exit clearance | SIG1 0.54, SIG2 0.63 mm | `lead_exit_gap` |
+| VQFN-32 (4.60²) | (11.90, 21.85) | `placed_parts("C")` |
+| Arrays | SIG1+SIG2 at (5.85, 26.50); REF+spare at (11.90, 27.00) | `placed_parts("C")`, `ARRAY_LINES` |
+| Clamp distances (≤ 10) | SIG1 1.71, SIG2 8.94, REF 7.81 mm | `clamp_distance`; plan §4 |
+| Charger, LDO | BQ25100 (10.25, 20.45); TLV713 (10.40, 22.25) | `placed_parts("C")` |
+| Reference route | channel → wrap s 37 → (5.0, 34.6) → REF pad; clears keep-out 2 by 0.09 | `wire_keepout_gap`, `wire_floor_gap` |
+| TOTAL_CHORD, M1 gate | 47.90, 50.90 (unchanged) | `chord_from_arc_bow`; plan §3.2 |
+| Cell to antenna zone, to module body | 16.70, 4.70 mm (Q14: passes) | `budget`; interface §6.3 |
+| Conflicts | none | `layout_conflicts("C")` |
+
+## Why the others fail
+
+| Option | Tabs | Free vs 79.30 | What is missing |
+|---|---|---|---|
+| A | SIG1 110°, SIG2 270° | 72.18 | VQFN; 15 of 25 0402s |
+| B | SIG1 90°, SIG2 295° | 93.72 | VQFN (no 4.6 × 4.6 hole); 11 of 25 0402s |
+| E | SIG1 110°, SIG2 270° | medial 72.18, lateral 53.40 | VQFN |
+
+The search also tried A, B and E with a 2 mm lead bend. None placed the VQFN. The search steps tab angles by 5°, puts each pad nearest its lead's bend and tries four reference routes, so "no site" means the search found none, not a proof.
+
+Drawings: `docs/fab/cad/v1/placement_C.svg`, `placement_A.svg` (also `placement.svg`), `placement_B.svg`, `placement_E.svg`. Each lists its conflicts.
 
 ## From
 
 | Number | From |
 |---|---|
-| TE 31428 ring OD 5.16, radius 2.58, barrel end 8.85 from centre (0.348 in), 6.27 from outer ring edge, width 1.96, stock 0.46 | C-31428 rev D4; contacts.md §8.1.1; date read 2026-09-17 |
-| Packing tab a0 3.55, a1 8.85; beyond keep-out 5.30 | 8.85 = 2.58 + 6.27; 5.30 = 8.85 − 3.55. `tab_span` mode `real` |
-| Panduit P22-4R 10.61; Nichifu R0.3-3 9.40 from centre | contacts.md §8.1.2 |
-| Overshoot SIG1 4.25, SIG2 3.05 if aimed at the pad | contacts.md §8.1.3 |
-| Q13 SIG1 1.55, SIG2 2.75, width 3; **not buildable with a crimp lug (WP5b)** | Ø7.1 edge to far pad edge; Q13 |
-| Angles A/E 355°/170°; B 355°/120°; C 0°/180°; all **flat** | `search_tab_degrees` / `TAB_DEG_BY_OPTION` |
-| Upright SIG air 2.63; need 6.73 | Keep-out top 4.13; skin 1.5; stock 0.46 + barrel 6.27. REF: contacts.md §5.3 |
-| Required named 79.30 mm² | VQFN 21.16; two BAV199S-Q 12.46; BQ 2.94; LDO 2.25; 25×0402 40.50. RSM 4.10 max (TI 4219108/B). BAV199S-Q Fig. 8, 20 July 2026. IPC-7351B |
-| Free A 83.23; Q13 mask 82.97; B 106.93; C 130.18; E lateral 19.50 | `budget(option)` |
-| 0402 sites A 10/10 max; B 15/15; C 25/27; E 12 (10+2) | `place_0402s`; leftover have no courtyard on that shell and sit on C |
-| Conflicts | `layout_conflicts`; empty on A, B, C and E |
-| Pads | interface v2 §4; SIG1 s 26.6 (Q16) |
-| Sites / clamp ≤ 10 | `placed_parts`; L4 §5.1 / plan §4 |
-| BODY_ARC 48.4, BODY_WIDTH 17; B +3.5; C +3 | plan §3.2, §5; interface §8.2 |
-| TOTAL_CHORD 47.90 / 51.43; M1 +3 | `chord_from_arc_bow`; plan §3.2 |
-| Lateral 2.7; under foam 2.2; array ≤ 1.2 | plan §5; interface §6.4 |
-| Antenna 12.4×3.8; module 15.8 | Raytac Spec K p.9, p.13, p.7, 2022-07-01 |
-| Cell→antenna 16.70; cell→module 4.70 | Q14; B: 20.20 and 8.20 |
+| TE 31428 barrel end 8.85 from centre, 6.27 past the ring edge, width 1.96 | C-31428 rev D4; contacts.md §8.1.1 |
+| Lead Ø1.3, bend radius 3 | plan §3.3 script checks and WIRE_CHANNEL route; `LEAD_BEND_R` |
+| Required 79.30 mm² | VQFN 21.16 (RSM 4.10 max, TI 4219108/B); two BAV199S-Q 12.46 (Fig. 8); BQ 2.94; LDO 2.25; 25 × 0402 40.50 (IPC-7351B) |
+| Board 19 × 12.5 at y 4.3, parts ≤ 1.2 tall | plan §5 |
+| B +3.5 length, C +3 width | plan §10 interface decision 1; interface §8.2 |
+| Lateral face (E): module 15.8 × 10.8, RF zone, rim | plan §5 lateral row; Raytac Spec K p.7, p.9, p.13 |
 
 WP8 changes CAD solids only after you pick.
 
 ## What you answer
 
-Reply with one line: `I pick C` or `I pick B` or `I pick E` or `I pick A`.
+Reply with one line: `I pick C` (width, moved pads, one wire crossing), or `No C: <what to try instead>` (for example a shorter solder lug, or moving the contacts).
