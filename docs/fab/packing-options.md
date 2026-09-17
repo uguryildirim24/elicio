@@ -4,8 +4,8 @@
 
 | Option | Closes? | Shell change | You give up |
 |---|---|---|---|
-| A. As is | **No**: no VQFN site, 10 of 25 0402s | none | nothing, but it does not fit |
-| B. Longer | **No**: no VQFN site, 14 of 25 0402s | BODY_ARC 48.4 → 51.9; M1 gate 50.90 → 54.43 | 3.5 mm behind the ear, and it still does not fit |
+| A. As is | **No**: no VQFN site; 10 of 25 0402s placed | none | nothing, but it does not fit |
+| B. Longer | **No**: no VQFN site; 14 of 25 0402s placed | BODY_ARC 48.4 → 51.9; M1 gate 50.90 → 54.43 | 3.5 mm behind the ear, and it still does not fit |
 | C. Wider | **Yes**: all named parts, 25 of 25 0402s, no conflicts | BODY_WIDTH 17 → 20; board 19 × 12.5 → 19 × 15.5 | 3 mm of width in the crease |
 | E. Two-sided | **No**: no VQFN site (arrays and 8 0402s go lateral) | none | a two-sided build, and it still does not fit |
 
@@ -45,8 +45,8 @@ What C needs from you besides the width:
 
 | Option | Tabs | Free vs 79.30 | What is missing |
 |---|---|---|---|
-| A | SIG1 110°, SIG2 270° | 72.18 | VQFN; 15 of 25 0402s |
-| B | SIG1 90°, SIG2 295° | 93.72 | VQFN (no 4.6 × 4.6 hole); 11 of 25 0402s |
+| A | SIG1 110°, SIG2 270° | 72.18 | VQFN; 15 of 25 0402s have no site |
+| B | SIG1 90°, SIG2 295° | 93.72 | VQFN (no 4.6 × 4.6 hole); 11 of 25 0402s have no site |
 | E | SIG1 110°, SIG2 270° | medial 72.18, lateral 53.40 | VQFN |
 
 The search also tried A, B and E with a 2 mm lead bend. None placed the VQFN. The search steps tab angles by 5°, puts each pad nearest its lead's bend and tries four reference routes, so "no site" means the search found none, not a proof.
@@ -62,7 +62,7 @@ Drawings: `docs/fab/cad/v1/placement_C.svg`, `placement_A.svg` (also `placement.
 | Required 79.30 mm² | VQFN 21.16 (RSM 4.10 max, TI 4219108/B); two BAV199S-Q 12.46 (Fig. 8); BQ 2.94; LDO 2.25; 25 × 0402 40.50 (IPC-7351B) |
 | Board 19 × 12.5 at y 4.3, parts ≤ 1.2 tall | plan §5 |
 | B +3.5 length, C +3 width | plan §10 interface decision 1; interface §8.2 |
-| Lateral face (E): module 15.8 × 10.8, RF zone, rim | plan §5 lateral row; Raytac Spec K p.7, p.9, p.13 |
+| Lateral face (E): module 15.8 × 10.8, RF zone, rim; height lid 8.0 − board top 5.3 = 2.7, 2.2 under the 0.5 foam strip | plan §5 lateral row and battery-pocket row; Raytac Spec K p.7, p.9, p.13; `LATERAL_H`, `LATERAL_H_FOAM` |
 
 WP8 changes CAD solids only after you pick.
 
