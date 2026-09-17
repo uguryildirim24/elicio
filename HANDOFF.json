@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T19:42:52-04:00",
+ "generated": "2026-09-17T19:50:21-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -145,27 +145,27 @@
   {
    "workspace_id": "w1D",
    "label": "ablirated",
-   "status": "working"
+   "status": "idle"
   }
  ],
  "git": {
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "c08b71f plan-v2 turn 09: interface I under Pro's acceptance contract; standoff 3.0/4.0 per C14; cell clearance rule; C15, C16",
+   "a6b9a24 plan-v2 turn 08 (pro)",
+   "ae6a617 HANDOFF: plan v2 at turn 08 (Pro); WP11 fourth DONE expected after the interface change",
    "2fbad34 plan-v2 turn 07 draft: the plan rewrite that dba5552 was meant to carry",
    "dba5552 plan-v2 turn 07: R7 with Pro's limits; interface I without springs (board on standoff tops); ledger without an all-in claim",
-   "108a591 plan-v2 turn 06 (pro)",
-   "151f9c6 HANDOFF.json: after Rolf's herdr restart, pro tab recreated, lanes re-linked",
-   "d8adfe4 HANDOFF: plan v2 at turn 06; WP11 second note queued",
-   "11c4dcc plan-v2 turn 05: R7 rewritten without an isolation claim; standoff landing and pin arrays; charger, undervoltage, protocol v2, first-load kit, ledger"
+   "108a591 plan-v2 turn 06 (pro)"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "2fbad34",
-    "subject": "plan-v2 turn 07 draft: the plan rewrite that dba5552 was meant to carry",
+    "head": "c08b71f",
+    "subject": "plan-v2 turn 09: interface I under Pro's acceptance contract; standoff 3.0/4.0 per C14; cell clearance rule; C15, C16",
     "dirty": 1
    },
    {

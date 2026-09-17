@@ -117,15 +117,24 @@ on a removed key.
   now the board pulled onto the three brass standoff tops by its own
   screws with 8 × 8 gold pads and bosses 0.5 lower (no springs, an
   unqualified candidate until G7; C14 = a stocked 3.0/3.5 brass standoff),
-  the ledger claims no all-in figure. TURN plan-v2 08 sent ~19:35; Pro
-  saw the plan unchanged at `dba5552` and said it would review the
-  proposals separately; turn 09 points it at `2fbad34` if it asks. Pro
-  writes `tasks/plan-v2/turns/08-pro.md` (expected) and pushes
-  `DONE plan-v2-08` with the stop-rule assessment. A Pro turn can take an
-  hour; it shows idle or working meanwhile; never re-prompt before the
-  DONE. When it lands: commit its file (Pro cannot commit); if cosmetic,
-  fix the sentences, mark plan-v2 signed off and record its decisions as
-  open questions Q37+; else write turn 09 and prompt turn 10.
+  the ledger claims no all-in figure. Turn 08 (`tasks/plan-v2/turns/08-pro.md`,
+  `a6b9a24`): NOT SIGNED OFF; finding 26 = the rewrite was missing at
+  `dba5552` (true, it landed at `2fbad34`), finding 27 = the direct-pad
+  joint needs a coupled preload/strain/clearance contract (the cell under
+  the board has 0.0 clearance at a 3.5 standoff), C14 = only nickel-plated
+  3.0 (Spacer Express, per 100) and 4.0 (Harwin R25-1000402) catalogue
+  pages exist, nothing at 3.5. Turn 09 (`tasks/plan-v2/turns/09-fable.md`
+  and the plan, one commit `c08b71f`, +123 −58 in the plan) accepts all
+  of it: Pro's §5.3 contract paragraph verbatim, standoffs 3.0/3.5/4.0 in
+  WP11, cell under the board only with positive clearance or a 0.5 floor
+  recess (C15), nickel-on-gold pair, C16 spring contacts research-only.
+  TURN plan-v2 10 sent ~19:55 with the sha in the prompt. Pro writes
+  `tasks/plan-v2/turns/10-pro.md` (expected) and pushes `DONE plan-v2-10`
+  with the stop-rule assessment. A Pro turn can take an hour; it shows
+  idle or working meanwhile; never re-prompt before the DONE. When it
+  lands: commit its file (Pro cannot commit); if cosmetic, fix the
+  sentences, mark plan-v2 signed off and record its decisions as open
+  questions Q37+; else write turn 11 and prompt turn 12.
 - **w1** (cursor `cursor-grok-4.6-xhigh`, `lane/w1`): WP11 packing v2
   (`tasks/WP11-packing-v2.md`), prompted 2026-09-17 ~18:45, plus a
   coordinator follow-up at ~20:10 that runs as a second turn after its
@@ -133,7 +142,7 @@ on a removed key.
   nut tops with a ±2 mm workspace, lids 6.0–9.0, harness and medial-face
   receptacle envelopes). A second note (~21:30) redefines interface I per turn 05 (standoff
   3.0, pin arrays, region per site, switch, recessed medial opening).
-  A third note (~19:36, 2026-09-17) replaced the pin arrays with the board-on-standoffs interface of plan-v2 turn 07 (§3, §5.3: standoffs 3.0 and 3.5, cell under the board, pad-based adjustment region). Expect FOUR `DONE WP11` pushes; open no review before the fourth. Writes `docs/fab/packing-v2.md` (expected). Its
+  A third note (~19:36, 2026-09-17) replaced the pin arrays with the board-on-standoffs interface of plan-v2 turn 07 (§3, §5.3: standoffs 3.0 and 3.5, cell under the board, pad-based adjustment region). A fourth note (~19:56) added the 4.0 standoff, the cell-clearance rule and the 0.5 floor-recess variant from turn 09. Expect FIVE `DONE WP11` pushes; open no review before the fifth. Writes `docs/fab/packing-v2.md` (expected). Its
   table feeds turn 05 of the dialogue and D-1 (thin) for Rolf.
 - **w5** (agy, `lane/w5`): idle with WP10 unmerged at `832ef28`. It is
   reviewed together with WP11 by the round 5 reviewer (a fresh review
@@ -164,9 +173,9 @@ carries claims C1–C10 and decisions D-1–D-8 for the dialogue. Outside those:
 
 ## Next
 
-- Idle until `DONE plan-v2-08` (commit Pro's file; if cosmetic, fix the
-  sentences and sign off; else write turn 09) or the fourth `DONE WP11`
-  (three coordinator notes are queued behind w1's first turn; open no
+- Idle until `DONE plan-v2-10` (commit Pro's file; if cosmetic, fix the
+  sentences and sign off; else write turn 11) or the fifth `DONE WP11`
+  (four coordinator notes are queued behind w1's first turn; open no
   review before the last one).
 
 ## Traps
