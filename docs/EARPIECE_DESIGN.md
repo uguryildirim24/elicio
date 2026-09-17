@@ -378,13 +378,19 @@ a cell is measured. The SKUs that were read are in
 3. Exact microcontroller and ADC for Stage B (the bench stage is
    deliberately module-based and forgiving). Pointed 2026-09-16: L4
    (`docs/fab/L4-pod.md`) picks the Raytac MDBT50Q-1MV2 (nRF52840) for
-   the custom board and the TI ADS1292 as the front-end ADC. Status
+   the custom board and the TI ADS1292 as the front-end ADC. Envelope,
+   keep-outs, and packing live in the interface (`docs/fab/interface.md`,
+   WP1 then WP6). The board itself stays out of the shell plan. Status
    2026-09-17, electronics fit: WP6 ran the packing options against the
    real lug; the result is in `docs/fab/packing-options.md`. The pick is
-   Rolf's (Q20).
+   Rolf's (`docs/fab/open-questions.md` Q20).
 4. Dry-electrode contact geometry behind the ear, where skin curvature
    is tighter than the forearm geometries in the cited papers. Constrained
-   by the fabrication route chosen below. Status 2026-09-17: the plan
-   §3.3 defaults stand until WP7a part 2, which waits on the Stage A
-   parts (`docs/fab/montage.md` §1). The reference site is checked when
-   the gauge is worn (Q17).
+   by the fabrication route chosen below. Answered 2026-09-16 by the
+   fabrication plan §3.3 and §4: three ISO 7380 M2.5 titanium button
+   heads (4.7 mm domes), pair at 22° off the body axis at 12 mm pitch,
+   reference in the tail over the mastoid surface. Final coordinates
+   wait on the WP7a montage test. Status 2026-09-17: the plan §3.3
+   defaults stand until WP7a part 2, which waits on the Stage A parts
+   (`docs/fab/montage.md` §1). The reference site is checked when the
+   gauge is worn (`docs/fab/open-questions.md` Q17).
