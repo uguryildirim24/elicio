@@ -299,8 +299,8 @@ Each item below is one decision from the plan's §2, with the reason.
    reference on the tail over the mastoid surface. WP7a fixes positions.
    A 17 mm face cannot hold a horizontal pair, and the mastoid tip sits
    beyond any behind-the-ear body.
-9. **Contact count.** Three. Clench is three to five times a flex on the
-   same pair, so five contacts are not required for confirmation.
+9. **Contact count.** Three, not the five L4 asked for. Clench is three
+   to five times a flex on the same pair.
 10. **Suspension.** Rigid mount, hook preload 1.5 mm. A floating stud
     plus foam does not fit under the board. Force is measured at the
     active gate.
@@ -347,8 +347,9 @@ the affected S0 and S3 observations.
    distinctions the owner can produce.
 2. Can the owner produce a tensor tympani rumble at all? Stage C answers
    this with the pressure sensor if self-testing stays inconclusive.
-3. ~~Exact microcontroller and ADC for Stage B (the bench stage is
-   deliberately module-based and forgiving).~~ Pointed 2026-09-16: L4
+3. Exact microcontroller and ADC for Stage B (the bench stage is
+   deliberately module-based and forgiving). Pointed 2026-09-16, still
+   open until WP6 confirms the board: L4
    (`docs/fab/L4-pod.md`) picks the Raytac MDBT50Q-1MV2 (nRF52840) for
    the custom board and the TI ADS1292 as the front-end ADC. Envelope,
    keep-outs, and packing live in the interface (`docs/fab/interface.md`,
