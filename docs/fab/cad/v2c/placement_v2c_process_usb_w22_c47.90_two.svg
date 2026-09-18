@@ -143,8 +143,8 @@
 <text x="391.4" y="186.8" font-size="7" text-anchor="middle" fill="#fff">R30</text>
 <rect x="309.6" y="315.0" width="39.6" height="39.6" fill="#f7f4ef" stroke="#b33" stroke-width="0.7"/>
 <rect x="363.6" y="315.0" width="39.6" height="39.6" fill="#f7f4ef" stroke="#b33" stroke-width="0.7"/>
-<rect x="354.7" y="274.1" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
-<rect x="366.8" y="213.2" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
-<rect x="342.5" y="213.2" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
+<rect x="354.7" y="213.2" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
+<rect x="342.5" y="274.1" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
+<rect x="366.8" y="274.1" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
 <text x="12" y="16" font-size="11" fill="#111">process usb w22 chord 47.90 two 66/66 fold neck</text>
 </svg>

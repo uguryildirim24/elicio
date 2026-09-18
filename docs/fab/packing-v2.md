@@ -2051,10 +2051,10 @@ Q81 is settled: the build carries this cell. J1 and U5 are absent. P4 and P5 are
 | R20 | bottom | 17.08 | 33.57 | 0 | 1.86 × 0.94 | passive, second side |
 | R21 | bottom | 17.08 | 34.77 | 0 | 1.86 × 0.94 | passive, second side |
 | R22 | bottom | 17.08 | 35.97 | 0 | 1.86 × 0.94 | passive, second side |
-| R23 | bottom | 18.28 | 21.17 | 0 | 1.86 × 0.94 | passive, second side |
-| R24 | bottom | 18.28 | 22.37 | 0 | 1.86 × 0.94 | passive, second side |
+| R23 | bottom | 18.32 | 21.10 | 0 | 1.86 × 0.94 | passive, second side |
+| R24 | bottom | 18.49 | 22.57 | 90 | 0.94 × 1.86 | passive, second side |
 | R25 | bottom | 7.82 | 17.23 | 90 | 0.94 × 1.86 | passive, second side |
-| R26 | bottom | 14.22 | 21.63 | 90 | 0.94 × 1.86 | passive, second side |
+| R26 | bottom | 14.21 | 21.63 | 90 | 0.94 × 1.86 | passive, second side |
 | R27 | bottom | 18.22 | 25.23 | 90 | 0.94 × 1.86 | passive, second side |
 | R28 | bottom | 18.62 | 27.23 | 90 | 0.94 × 1.86 | passive, second side |
 | R29 | bottom | 18.62 | 29.23 | 90 | 0.94 × 1.86 | passive, second side |
@@ -2065,7 +2065,7 @@ Q81 is settled: the build carries this cell. J1 and U5 are absent. P4 and P5 are
 | U3 | top | 15.68 | 30.85 | 0 | 2.96 × 3.50 | BQ25100 |
 | U4 | top | 16.65 | 34.80 | 0 | 4.10 × 3.40 | TLV71330 |
 
-## 5d. Flat pattern and pin table v2 (WP11e, Q85)
+## 5d. Flat pattern and pin table v2.1 (WP11e–WP11f, Q85)
 
 Build cell: process-edge, width 22, chord 47.90, two sides, fold neck, no receptacle (Q81). Island u 2.25–19.75, s 16.00–37.60. Leftover s 16.05–20.90. The flex board is drawn flat. The §5c pin table still lists P1–P3 at the folded (shell) sites; pin table v2 below is what the board lane pins.
 
@@ -2084,7 +2084,7 @@ Flat-to-folded mapping (neck-end, Q83): each SIG strip leaves the island at (con
 
 Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_two.svg` (strips and ring pads in PCB coordinates; at most four drawings, Q56).
 
-### Pin table v2 — flat PCB coordinates (width 22, chord 47.90, two sides, fold neck)
+### Pin table v2.1 — flat PCB coordinates (width 22, chord 47.90, two sides, fold neck)
 
 68 rows (66 footprints including P4/P5, plus H1 and H2). Side column as in §5c. Pad-to-outline ≥ 0.30. Holes at the Q82 sites. SW1 in the lid recess. Contact variant A. P1, P2, P4 and P5 are the FLAT ring centres (not the folded sites). P4 and P5 keep RING_PAD_D5_H2.7 courtyards. Folded they sit on the hook-end medial floor inside the cavity, with pad-to-outline ≥ 0.30. They replace the side-wall sites (0.75, 44.00) and (21.25, 44.00) and the off-body tail sites (5.05, 49.50) and (16.95, 49.50). The board lane pins this table within 0.1 mm. The shell lane ignores it and takes the folded-site table.
 
@@ -2143,10 +2143,10 @@ Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_t
 | R20 | bottom | 17.08 | 33.57 | 0 | 1.86 × 0.94 | passive, second side |
 | R21 | bottom | 17.08 | 34.77 | 0 | 1.86 × 0.94 | passive, second side |
 | R22 | bottom | 17.08 | 35.97 | 0 | 1.86 × 0.94 | passive, second side |
-| R23 | bottom | 18.28 | 21.17 | 0 | 1.86 × 0.94 | passive, second side |
-| R24 | bottom | 18.28 | 22.37 | 0 | 1.86 × 0.94 | passive, second side |
+| R23 | bottom | 18.32 | 21.10 | 0 | 1.86 × 0.94 | passive, second side |
+| R24 | bottom | 18.49 | 22.57 | 90 | 0.94 × 1.86 | passive, second side |
 | R25 | bottom | 7.82 | 17.23 | 90 | 0.94 × 1.86 | passive, second side |
-| R26 | bottom | 14.22 | 21.63 | 90 | 0.94 × 1.86 | passive, second side |
+| R26 | bottom | 14.21 | 21.63 | 90 | 0.94 × 1.86 | passive, second side |
 | R27 | bottom | 18.22 | 25.23 | 90 | 0.94 × 1.86 | passive, second side |
 | R28 | bottom | 18.62 | 27.23 | 90 | 0.94 × 1.86 | passive, second side |
 | R29 | bottom | 18.62 | 29.23 | 90 | 0.94 × 1.86 | passive, second side |
@@ -2161,7 +2161,7 @@ Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_t
 
 ### Folded sites for the shell (u, s, y)
 
-Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner floor (1.50 mm). P4 and P5 sit on the hook-end medial floor (not the tail, not the 1.5 mm side walls). Whole Ø5 copper is ahead of the tail loft (s + 2.5 ≤ 45.5). Pad-to-outline ≥ 0.30. Nylon between pads ≥ 3 mm. Edge-to-edge ≥ 2 mm to the REF Ø6.4 dome (8.50, 43.00) and the Ø5 screw head (14.50, 41.00). Two Ø5 pads cannot meet those rules on the tail; largest tail pair Ø2.1. WP14 follows these sites. Flat centres are in pin table v2.
+Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner floor (1.50 mm). P4 and P5 sit on the hook-end medial floor (not the tail, not the 1.5 mm side walls). Whole Ø5 copper is ahead of the tail loft (s + 2.5 ≤ 45.5). Pad-to-outline ≥ 0.30. Nylon between pads ≥ 3 mm. Edge-to-edge ≥ 2 mm to the REF Ø6.4 dome (8.50, 43.00) and the Ø5 screw head (14.50, 41.00). Two Ø5 pads cannot meet those rules on the tail; largest tail pair Ø2.1. WP14 follows these sites. Flat centres are in pin table v2.1.
 
 | pad | net | u | s | y | courtyard | notes |
 |---|---|---:|---:|---:|---|---|
@@ -2177,13 +2177,16 @@ Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner fl
 
 ### J4 NPTH keep-out both sides (Q85)
 
-Tag-Connect TC2030-IDC-NL in `hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. No B.Cu footprint may enter that zone. Same-face courtyard keep-out on F.Cu stands.
+Tag-Connect TC2030-IDC-NL from `git show 30ca79d:hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. KiCad canvas Y increases down; at the pinned (16.25, 24.60) rot 90 the map is (u + py, s − px). Pin table v2 used a Y-up map and swapped the pair and the single along s. No B.Cu pad may enter that zone (KiCad hole_clearance: circle radius drill/2 + clearance). Same-face courtyard keep-out on F.Cu stands.
 
 | hole | u | s | drill | keep | sides |
 |---|---:|---:|---:|---:|---|
-| J4-NPTH1 | 16.25 | 22.06 | 0.9906 | 1.39 | F.Cu and B.Cu |
-| J4-NPTH2 | 17.27 | 27.14 | 0.9906 | 1.39 | F.Cu and B.Cu |
-| J4-NPTH3 | 15.23 | 27.14 | 0.9906 | 1.39 | F.Cu and B.Cu |
+| J4-NPTH1 | 16.250 | 27.140 | 0.9906 | 1.39 | F.Cu and B.Cu |
+| J4-NPTH2 | 15.234 | 22.060 | 0.9906 | 1.39 | F.Cu and B.Cu |
+| J4-NPTH3 | 17.266 | 22.060 | 0.9906 | 1.39 | F.Cu and B.Cu |
+
+Q87 fold from pin table v2: R23 from (18.28, 21.17) rot 0 to (18.32, 21.10) rot 0 (+0.04 u, -0.07 s); R24 from (18.28, 22.37) rot 0 to (18.49, 22.57) rot 90 (+0.21 u, +0.20 s); R26 from (14.22, 21.63) rot 90 to (14.21, 21.63) rot 90 (-0.01 u, +0.00 s). WP12e zero-track DRC (route.md §9) asked R24 +0.46 u (pad vs hole); route.md §10 was not on lane/w2 at this pass. Packing keep is pad vs the Ø1.39 circle. The reviewer reconciles within 0.1 mm; the board is copper truth.
+
 
 Drawings (at most four, Q56) live under `docs/fab/cad/v2c/` so the round-5 14-file `placement_v2_*.svg` set in `docs/fab/cad/v1/` stays pinned.
 This package keeps `placement_v2c_process_usb_w22_c47.90_two.svg`, `placement_v2c_body_usb_w22_c47.90_two.svg`, `placement_v2c_process_norec_w22_c47.90_two.svg`, `placement_v2c_body_norec_w22_c47.90_two.svg`.
