@@ -126,11 +126,14 @@ brief in full and do it", nothing owed from me until their pushes.
   box). Third `DONE WP11b` at `9f8136f`: LID_Y 9.5–10.5 and widths
   20–22 do not help either (0 of 108), because the buyable cells fail on
   length along the body (antenna zone, SIG1 standoff), not on height.
-  Only a cell inside the 15.6 × 10.4 × 5.2 envelope packs. Fourth turn
-  sent 23:48: rerun with the real 501015 pack (17.0 × 10.0 × 5.0 with
-  PCM) and the marketplace 501012 pack (13.0 × 10.1 × 5.1) as §1e; a
-  fourth DONE is expected. Q55 is the round's open problem (decision 69
-  in the r6 brief).
+  Only a cell inside the 15.6 × 10.4 × 5.2 envelope packs. Fourth
+  `DONE WP11b` at `bcecc83` (§1e): the winner body does NOT close with
+  the real 17.0 mm 501015 pack (`BQ25100 overlaps header`; at +1.5 arc
+  only the M1 gate fails, 49.42 > 49.00 at M1 52); the marketplace 501012
+  pack closes on 8 bodies, smallest w19 × y8, outer 9.0, chord 47.90.
+  w3 idles; nothing queued. Reading in the r6 brief: shell and board stay
+  on w20 × y8, the carried cell becomes the 501012 pack, the purchase
+  route is Rolf's (decision 69).
 - **w2 → WP12b board route** (`tasks/WP12b-board-route.md`), branch
   `lane/w2`. Re-place from packing-v2 §5, sync, route, `release.py
   --routed` exit 0, stiffeners ≤ 3 (Q60), decoupling (Q68), standby load
