@@ -170,15 +170,17 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   `.worktrees/w3/.reports/WP11g-report.md` (expected) → `DONE WP11g`
   (the second one carries the channels); then I send w1 the line "flat
   pattern v3" plus the sha and w2 the line "pin table v3" plus the sha.
-- **w1 → WP14f shell v2f** (`tasks/WP14f-shell-v2f.md`, main `9354834`):
-  RUNNING since 09:05 on `lane/w1-r6` at `facb0c1`: step 1 is Q89 (a lid
-  boss into a tail pocket, ≥ 3 mm of thread, the screw length stated,
-  `V2_CLOSURE` passing, exit 0, committed); then it STOPS with `WAITING
-  WP14f flat pattern v3` unless I have sent that line plus w3's sha; on
-  the prompt P4/P5 move into the side wall per §5e and the floor holes,
-  rib slot and drop channel go, renders with the wall visible. Report
+- **w1 → WP14f shell v2f** (`tasks/WP14f-shell-v2f.md`, main `9354834`): WAITING since 10:20, `WAITING WP14f flat pattern v3`
+  received, lane at `89279c2` on `lane/w1-r6` (tree clean, no report
+  yet, expected). First half done: Q89 built, lid boss 3.2 mm into a
+  tail pocket, M2.5×8, `lid_engagement` 4.75, `V2_CLOSURE` passes,
+  build exit 0; the medial well moved to (16.50, 41.00) to clear the
+  REF pocket, tail boss OD 9.94 measured; renders viewed (medial still
+  shows the Q86 skin pads until the wall pads are cut). Waits for my
+  line "flat pattern v3" plus w3's sha, then cuts the Q90 wall pads at
+  the v3 sites, third view with the wall, closure text. Report
   (expected) `.worktrees/w1/.reports/WP14f-report.md` (expected) →
-  `DONE WP14f`.
+  `DONE WP14f`; then sheet v13 with the new renders.
 - **w4 → WP13d montage scoring** (`tasks/WP13d-montage-scoring.md`, main
   `9354834`): LANDED, `DONE WP13d` at `dbeeafa` on `lane/w4` (tree
   clean, report `.worktrees/w4/.reports/WP13d-report.md` present, 251

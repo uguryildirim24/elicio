@@ -190,6 +190,8 @@ WP12g (`8348e62` on `lane/w2`, on top of `fbd56e6`): Q88 applied as three 7 × 7
 
 WP12h (`c9c750d` on `lane/w2`): the hand router (`hardware/board/hand_route.py`) kept the WP12g copper and closed nothing: each of the 63 rats is named with the two coppers and the millimetres in `route.md` §12; Freerouting with JLC's extreme via (0.10/0.30) on a copy reached 56 unconnected at the price of 63 via-rule errors and was not imported. Structural now: the island's channels (Q98). WP11g takes the channels into pin table v3; WP12i checks U2's and U3's footprints, does Q94, Q95 and Q97 now, and re-pins and routes on v3.
 
+WP14f, first half (`89279c2` on `lane/w1-r6`, WAITING for flat pattern v3): Q89 is built. A lid boss hangs 3.2 mm from the lid underside into a tail pocket; the M2.5×8 from the medial well (head at y 1.55, tip at y 9.55) has 4.75 mm of thread in the lid, `V2_CLOSURE` passes and the build exits 0. The well moved from (14.50, 41.00) to (16.50, 41.00) to clear the REF pocket; the tail boss measures Ø2.10 / wall 3.92 / OD 9.94, the lid boss Ø2.10 / 1.45 / 5.00. The lateral lid stays unbroken (a closed pad over the lid boss). The ×8 length is Rolf's buy (L8 lists 4 and 6). The wall pads (Q90) come when v3 lands; the medial render still shows the Q86 skin pads until then. w3 was told the new well site for §5e's tail sentence.
+
 ## For Rolf
 
 Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
