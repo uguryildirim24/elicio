@@ -389,17 +389,69 @@ def git_commit_date(commit: str) -> str:
         return "unknown"
 
 
+def stamp_label(commit: str, date: str) -> str:
+    """Corner stamp. A dirty tree hash keeps the word 'dirty' after the short id."""
+    if commit.endswith(" dirty"):
+        raw = commit[: -len(" dirty")]
+        short = raw[:12] if len(raw) >= 12 else raw
+        return f"solids commit {short} dirty  {date}"
+    short = commit[:12] if commit not in ("", "unknown") else commit or "unknown"
+    return f"solids commit {short}  {date}"
+
+
 def stamp(ax, commit: str, date: str) -> None:
     ax.text(
         0.995,
         0.005,
-        f"solids commit {commit[:12]}  {date}",
+        stamp_label(commit, date),
         transform=ax.transAxes,
         ha="right",
         va="bottom",
         fontsize=7,
         family="monospace",
     )
+
+
+def _out_dir_dirty(out_dir: Path) -> bool:
+    """True when hashed solids (STEP/STL/3MF) under out_dir differ from HEAD."""
+    try:
+        rel = out_dir.resolve().relative_to(REPO_ROOT.resolve())
+    except ValueError:
+        return True
+    try:
+        text = subprocess.check_output(
+            ["git", "status", "--porcelain", "--", str(rel)],
+            cwd=REPO_ROOT,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return True
+    for line in text.splitlines():
+        name = line[3:].strip().rsplit(" -> ", 1)[-1]
+        if name.lower().endswith((".step", ".stl", ".3mf")):
+            return True
+    return False
+
+
+def _git_head_tree() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD^{tree}"],
+            cwd=REPO_ROOT,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def solids_stamp_commit(manifest: dict[str, Any], out_dir: Path) -> str:
+    """Commit id drawn on the views: the manifest commit, or tree hash + ' dirty'."""
+    if _out_dir_dirty(out_dir):
+        tree = _git_head_tree()
+        return f"{tree} dirty"
+    return str(manifest.get("commit") or "unknown")
 
 
 def save_png(fig) -> bytes:
@@ -449,6 +501,7 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
     cursor = 0.0
     top = bottom = 0.0
     labels: list[tuple[float, str]] = []
+    medial_place: tuple[View, float] | None = None
     for name, color, label in bodies:
         verts, faces = load_stl(out_dir / f"{name}.stl")
         verts = to_body_frame(verts, theta)
@@ -461,6 +514,8 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
             ext = _view_block(view, meshes)
             img = rasterize(view, meshes, extent=ext, px_per_mm=ppm)
             dx = cursor - ext[0]
+            if view is medial and medial_place is None:
+                medial_place = (view, dx)
             place_image(ax, img, ext, ppm, dx)
             top = max(top, ext[3])
             bottom = min(bottom, ext[2])
@@ -480,13 +535,50 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
             cursor += (ext[1] - ext[0]) + (4.0 if view is medial else 14.0)
     for x, text in labels:
         ax.text(x, top + 6.0, text, fontsize=9.5, va="bottom", zorder=6)
+    if manifest.get("stage") == "shell" and medial_place is not None:
+        cad = load_cad()
+        path = cad.make_path(
+            float(manifest["parameters"]["BODY_ARC"]),
+            float(manifest["parameters"]["CREASE_BOW"]),
+        )
+        view, dx = medial_place
+        well_xyz = np.array(
+            cad.p_xyz(path, cad.SHELL_SCREW_U, cad.SHELL_SCREW_S, -0.2)
+        )
+        well_xyz = to_body_frame(well_xyz.reshape(1, 3), theta)[0]
+        p = view.project(well_xyz)
+        ax.annotate(
+            "concealed M2.5 well on the medial tail (Q71).\n"
+            "Skin hides the head. Lateral lid is unbroken.",
+            xy=(p[0] + dx, p[1]),
+            xytext=(p[0] + dx + 18.0, p[1] + 10.0),
+            fontsize=8,
+            arrowprops={"arrowstyle": "->", "lw": 0.7},
+            zorder=8,
+        )
+        s5c = cad.load_s5d_folded()
+        for label, site, dy in (
+            ("P4/P5 charging pads, hook end (Q86)", s5c.p4, 14.0),
+            ("P4/P5 charging pads, hook end (Q86)", s5c.p5, -10.0),
+        ):
+            xyz = np.array(cad.p_xyz(path, site[0], site[1], -0.4))
+            xyz = to_body_frame(xyz.reshape(1, 3), theta)[0]
+            q = view.project(xyz)
+            ax.annotate(
+                label,
+                xy=(q[0] + dx, q[1]),
+                xytext=(q[0] + dx + 14.0, q[1] + dy),
+                fontsize=8,
+                arrowprops={"arrowstyle": "->", "lw": 0.7},
+                zorder=8,
+            )
     ax.set_xlim(-2.0, cursor - 8.0)
     ax.set_ylim(bottom - 9.0, top + 13.0)
     ax.set_aspect("equal")
     ax.set_axis_off()
     scale_bar(ax, 0.0, bottom - 3.5)
     caption = (
-        "Medial (skin side): three contact domes, tail, hook. Same scale throughout.\n"
+        "Medial (skin side): three EMG domes, two hook-end charging pads (Q86), screw well, hook. Same scale throughout.\n"
         "Faint facet shading on curved edges is the STL mesh (0.02 mm chord), not geometry."
         if manifest.get("stage") == "shell"
         else
@@ -540,18 +632,28 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     if manifest.get("stage") == "shell":
         usb = at(10.0, 0.2, 2.8)
         ax.annotate(
-            "USB-C 9.0 × 3.5 on the hook-end end face (plan v2 §5.4 fallback).\n"
-            "Receptacle sits 4.8 outside the face; the hook fills 0.9 of the\n"
-            "opening. V2_USB_end fails (review r6, decision 70).",
+            "No USB opening (Q81: no receptacle at M1 52).\n"
+            "V2_USB_end is NOT_APPLICABLE.",
             xy=usb,
             xytext=(usb[0] + 28.0, usb[1] - 14.0),
             fontsize=8,
             arrowprops={"arrowstyle": "->", "lw": 0.7},
             zorder=6,
         )
-        tail = at(10.0, 39.4, lid_y + 0.5)
+        hinge = at(10.0, 3.5, 8.4)
         ax.annotate(
-            "hinge lip in the tail plus two snaps: no undercut,\nthe lid lifts off. V2_CLOSURE fails (decision 71).",
+            "hinge lip in the hook-end wall (Q71).\n"
+            "0.30 mm of body nylon over the lip.",
+            xy=hinge,
+            xytext=(hinge[0] + 28.0, hinge[1] + 12.0),
+            fontsize=8,
+            arrowprops={"arrowstyle": "->", "lw": 0.7},
+            zorder=6,
+        )
+        tail = at(14.5, 41.0, lid_y + 1.2)
+        ax.annotate(
+            "lid screw well is on the medial tail (Q71),\n"
+            "not on this lateral face.",
             xy=tail,
             xytext=(tail[0] + 16.0, tail[1] - 4.0),
             fontsize=8,
@@ -587,7 +689,7 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     hc = lateral.project(hook_c)
     hook_mid = lateral.project(rotate_x(np.array([float(params["HOOK_ROOT_X"]) - float(params["HOOK_RADIUS"]), float(params["HOOK_ROOT_Y"]), float(params["HOOK_RADIUS"])]), theta))
     ax.annotate(
-        "hook, elliptical section, glasses flat on its lateral-superior side"
+        "hook, circular root then elliptical section, glasses flat on its lateral-superior side"
         if manifest.get("stage") == "shell"
         else "hook, glasses flat on its lateral-superior side",
         xy=hook_mid,
@@ -605,7 +707,7 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     ax.text(
         0.0,
         1.0,
-        "Lateral (outer side): shell v2, lid seated, elliptical hook"
+        "Lateral (outer side): shell v2, lid seated, circular-root hook"
         if manifest.get("stage") == "shell"
         else "Lateral (outer side): full p15, lid seated, hook",
         transform=ax.transAxes,
@@ -912,8 +1014,8 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
             f"chord gate: M1 ≥ {gate['gate']:.3f}",
             f"solids commit {commit}   date {date}",
             "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
-            "Closure: hinge lip plus two snaps, no undercut; V2_CLOSURE fails (shell-v2.md §2, code-r6 decision 71).",
-            "USB-C on the hook-end end face. No text on the outside. Q59: packing-v2.md §5 REF_end_wall_slot.",
+            "Closure: Q71 hinge lip at the hook-end wall plus one concealed medial-tail M2.5. S4 pull/drop qualitative.",
+            "Q81: no USB receptacle at M1 52. P4/P5 charging pads, hook end (Q86). No text on the outside. Q59 slot stays.",
             *("  " + row for row in fillet_summary(manifest)),
             "Rolf approves the two renders before any shell order. Nothing is ordered here.",
         ]
@@ -968,16 +1070,27 @@ def main(argv: list[str] | None = None) -> int:
             raise RenderError(f"missing {out_dir / name}")
     configure_matplotlib()
     cad = load_cad()
-    solids_commit = cad.git_commit_solids(
-        REPO_ROOT, out_dir if manifest.get("stage") == "shell" else None
+    manifest_commit = str(manifest.get("commit") or "unknown")
+    if manifest.get("stage") == "shell":
+        stamp_commit = solids_stamp_commit(manifest, out_dir)
+        recorded_commit = manifest_commit
+    else:
+        stamp_commit = cad.git_commit_solids(REPO_ROOT, None)
+        recorded_commit = stamp_commit
+    date_id = (
+        stamp_commit[: -len(" dirty")]
+        if stamp_commit.endswith(" dirty")
+        else stamp_commit
     )
-    date = git_commit_date(solids_commit)
+    date = git_commit_date("HEAD" if stamp_commit.endswith(" dirty") else date_id)
     views = {
-        "render_medial.png": render_medial(out_dir, manifest=manifest, commit=solids_commit, date=date),
-        "render_lateral.png": render_lateral(out_dir, manifest=manifest, commit=solids_commit, date=date),
-        "drawing.pdf": draw_page(out_dir, cad=cad, manifest=manifest, commit=solids_commit, date=date, debug_png=args.debug_png),
+        "render_medial.png": render_medial(out_dir, manifest=manifest, commit=stamp_commit, date=date),
+        "render_lateral.png": render_lateral(out_dir, manifest=manifest, commit=stamp_commit, date=date),
+        "drawing.pdf": draw_page(
+            out_dir, cad=cad, manifest=manifest, commit=stamp_commit, date=date, debug_png=args.debug_png
+        ),
     }
-    update_manifest(out_dir, views, solids_commit, solids_commit)
+    update_manifest(out_dir, views, recorded_commit, recorded_commit)
     print(json.dumps({"out": str(out_dir), "views": views}, indent=2))
     return 0
 
