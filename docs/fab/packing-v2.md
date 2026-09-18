@@ -8,7 +8,8 @@ cell under the board only with positive nominal clearance and no load
 after the board bends onto the bosses. Standoffs 3.0, 3.5 and 4.0.
 A 0.5-deep floor recess (web 1.0 remaining) is run at 3.5 and 4.0.
 Interface II is the flex-tab fallback.
-Arc-plus was not run: layouts already close at BODY_ARC 48.4.
+Arc-plus for the DTP301120 under interface II is §1b (WP11b, Q55).
+The REF tab route search is in §5 (WP11b, Q59).
 
 ## 1. Every run at BODY_ARC 48.4
 
@@ -879,6 +880,74 @@ Arc-plus was not run: layouts already close at BODY_ARC 48.4.
 | B | I | 4 | 0.5 | 501015 | stacked | 20 | 9 | no | nominal cell clearance -1.2 is not positive (cell 5.7 under standoff 4 recess 0.5) | -1.2 | -1.7 | 7.0 | 9.5 | 10.0 | 163.9 | 47.90 | 50.90 |
 | B | II | 3 | 0 | 501015 | stacked | 20 | 9 | no | cell top 13.02 > LID_Y 9 | -2.7 | -3.2 | 5.8 | 8.3 | 10.0 | 163.9 | 47.90 | 50.90 |
 
+## 1b. DTP301120 arc-plus under interface II (WP11b)
+
+DTP301120 22.0 × 11.5 × 3.2, foam 0.5 (Q57), series, interface II, architecture A. Widths 18 to 20, LID_Y 7 to 9 (the v2 lid steps in that range), standoffs 3 and 4. Conflict logic is the round 5 checker (no new constants). 48 runs.
+
+| arch | standoff | width | lid | arc+ | closes | first conflict | TOTAL_CHORD | M1 gate |
+|---|---:|---:|---:|---:|---|---|---:|---:|
+| A | 3 | 18 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 18 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 18 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 18 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 18 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 18 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 18 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 18 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 18 | 8.5 | 1.5 | no | module 10.50×15.50 at (7.50,31.35) outside the board | 49.42 | 52.42 |
+| A | 3 | 18 | 8.5 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 18 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 18 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 18 | 9 | 1.5 | no | module 10.50×15.50 at (7.50,31.35) outside the board | 49.42 | 52.42 |
+| A | 3 | 18 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 18 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 18 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+| A | 3 | 19 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 19 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 19 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 19 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 19 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 19 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 19 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 19 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 19 | 8.5 | 1.5 | no | module 10.50×15.50 at (7.50,31.35) outside the board | 49.42 | 52.42 |
+| A | 3 | 19 | 8.5 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 19 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 19 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 19 | 9 | 1.5 | no | module 10.50×15.50 at (7.50,31.35) outside the board | 49.42 | 52.42 |
+| A | 3 | 19 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 19 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 19 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+| A | 3 | 20 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 20 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 20 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 20 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 20 | 8 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| A | 3 | 20 | 8 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| A | 4 | 20 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 20 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 20 | 8.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| A | 3 | 20 | 8.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| A | 4 | 20 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 20 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 20 | 9 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| A | 3 | 20 | 9 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| A | 4 | 20 | 9 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| A | 4 | 20 | 9 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+
+0 of 48 close at +1.5 or +3.0. There is no DTP body that closes. At +1.5 mm of arc, TOTAL_CHORD 49.42 against M1−3 = 49.00 (M1 = 52, Q34 blank, default.toml). At +3.0 mm of arc, TOTAL_CHORD 50.93 (M1 gate 53.93). Length cost versus the 501015 winner chord 47.90 is not a closer: +3.0 mm of arc is +3.03 mm of chord. First conflict of each run is in the table.
+
+First-conflict families (numbers masked), failing DTP arc-plus runs:
+
+| family | runs |
+|---|---:|
+| module top # > LID_Y # | 24 |
+| JST_SH top # > LID_Y # | 8 |
+| ADS#_RSM in the antenna keep-out | 4 |
+| cell to antenna zone # < # mm | 4 |
+| module #×# at (#,#) outside the board | 4 |
+| module overlaps ADS#_RSM | 4 |
+
 ## 2. Clearance, stack, and first-conflict families
 
 Cell packed height = body + foam 0.5: DTP301120 3.2 + 0.5 = 3.7; 501015 5.2 + 0.5 = 5.7.
@@ -996,6 +1065,34 @@ Flex tabs (ring Ø5, hole Ø2.7, strip 2.5, bend R ≥ 1):
 - SIG2: (10.40, 33.10) → (10.40, 26.10).
 - REF: (8.50, 43.00) → (8.50, 36.80).
 
+### REF tab route (WP11b, Q59)
+
+Winner board `A_501015_series_w20_y8_iII_s3`, tail site CONTACT_REF (8.50, 43.00). Flex at the tab 0.31 (PI 0.11 + FR4 0.2). Bend R 1.5 (board-v2.md §11). The packing tab itself is unchanged (Stage B still measures the straight floor path).
+
+| name | y | points | length | added | min wall | side wall | end wall | in cavity | bend R 1.5 |
+|---|---|---|---:|---:|---:|---:|---|---|---|
+| `along_floor` | 1.50–1.81 | (8.50, 43.00) → (8.50, 36.80) | 6.20 | +0.00 | 0.00 | 5.75 | s 38.20–39.25 at u 8.50 | no | yes |
+| `along_lateral_wall` | 1.50–1.81 | (8.50, 43.00) → (2.75, 43.00) → (2.75, 36.80) → (8.50, 36.80) | 17.70 | +11.50 | 0.00 | 0.00 | s 38.20–39.25 at u 2.75 | no | yes |
+| `over_pocket_air` | 7.30–7.61 | (8.50, 43.00) → (8.50, 36.80) | 6.20 | +0.00 | 0.00 | 5.75 | s 38.20–39.25 at u 8.50 | no | yes |
+
+- `along_floor`: current packing tab, ring to board along s at u 8.50; cavity ends at s 38.20; Ø7.5 pocket starts at s 39.25; 1.05 mm of nylon between them
+- `along_lateral_wall`: hug posterior inner wall at u 2.75, then to the ring; the ring is past the cavity, so the high-s leg leaves cavity air; cavity ends at s 38.20; Ø7.5 pocket starts at s 39.25; 1.05 mm of nylon between them
+- `over_pocket_air`: same (u, s) as along_floor at y 7.30–7.61 (cell top 7.20 + 0.10, lid 8); cell-pocket free air at low s does not reach the tail site without the end wall; cavity ends at s 38.20; Ø7.5 pocket starts at s 39.25; 1.05 mm of nylon between them
+
+No in-cavity route exists. The Ø7.5 tail pocket starts at s 39.25 and the cavity ends at s 38.20, so 1.05 mm of nylon sits between them. Every searched path crosses that wall. WP14 cuts a slot that contains the straight floor tab:
+
+| item | number |
+|---|---|
+| name | `REF_end_wall_slot` |
+| u | 7.25–9.75 (centre 8.50) |
+| s | 38.20–39.25 (centre 38.73) |
+| y | 1.50–1.81 |
+| width | 2.50 |
+| through (s) | 1.05 |
+| height (y) | 0.31 |
+| volume (rect) | 0.814 mm³ |
+
+
 Stack at each site: floor 1.5, ring 0.31, brass standoff 3 (5 AF, circumradius 2.9) from y 1.81 to 4.81 = board underside. ISO 7380 M2.5×4 from outside projects 2.5 past the floor and ends 0.81 below the standoff top. No nut: the standoff's female thread takes the screw (plan v2 §5.3). The flex over the standoffs is not fastened to them; its retention is WP14's.
 Harness 100 ± 3 mm: NOT_MEASURED (routed length, not a solid).
 
@@ -1069,6 +1166,7 @@ Measured on the built `A_501015_series_w20_y8_iII_s3` solid (review r5; `tests/t
 | Plug volume | 12 × 6.5 × 15 | plan v2 §5.4 |
 | JST-SH | 4 × 6 × 2.9 side entry | WP11 brief |
 | Ring pad | Ø5, hole Ø2.7, strip 2.5 | plan v2 §5.3 interface II |
+| Flex tab bend (WP11b REF search) | R 1.5 | board-v2.md §11 |
 | Screw ISO 7380 M2.5×4 | projects 2.5 past the floor | v1 |
 | Harness | 100 ± 3 mm | plan v2; NOT_MEASURED as a solid |
 | BODY_WIDTH / LID_Y / BODY_ARC | 18–20 / 6–9 / 48.4 | coordinator note 1; other params stageb_provisional.toml |
@@ -1086,6 +1184,8 @@ Measured on the built `A_501015_series_w20_y8_iII_s3` solid (review r5; `tests/t
 - Nominal and deformed cell clearance for Interface I: packing arithmetic, not a solid probe. G5/G7 remain open.
 - E73 antenna sheet: unreachable; v1 12.4 × 3.8 used.
 - M1 on Rolf (Q34): default 52 used for the gate.
+- REF tab lid-to-wall gap: packing treats the cavity end wall as solid from floor 1.5 to LID_Y 8.0; a gap under the lid was not probed on the solid.
+- DTP single-unit purchase and a 501015 pack in ones: Q55; this package does not order.
 
 ## 9. Drawings in the repo
 
