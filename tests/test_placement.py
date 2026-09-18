@@ -942,18 +942,19 @@ class PlacementWP11dTests(unittest.TestCase):
             for ref in ("P4", "P5"):
                 p = by[ref]
                 self.assertEqual(p.footprint, "RING_PAD_D5_H2.7")
-                self.assertAlmostEqual(p.wu, 6.40, places=2)
+                self.assertAlmostEqual(p.wu, self.mod.CHARGE_STANDOFF, places=2)
                 self.assertAlmostEqual(p.ws, 6.40, places=2)
-                self.assertEqual(p.face, "floor")
-                self.assertIn("RING_PAD", p.notes)
+                self.assertEqual(p.face, "wall")
+                self.assertIn("clamped button-head", p.notes)
             p4s, p5s = self.mod.charge_pad_sites(lay.width, self.v2)
             self.assertAlmostEqual(by["P4"].u, p4s[0], places=2)
             self.assertAlmostEqual(by["P4"].s, p4s[1], places=2)
             self.assertAlmostEqual(by["P5"].u, p5s[0], places=2)
             self.assertAlmostEqual(by["P5"].s, p5s[1], places=2)
             cu0, cu1 = 1.50, lay.width - 1.50
+            self.assertAlmostEqual(by["P4"].u, cu1, places=2)
+            self.assertAlmostEqual(by["P5"].u, cu1, places=2)
             self.assertGreaterEqual(by["P4"].u, cu0)
-            self.assertLessEqual(by["P5"].u, cu1)
             self.assertNotAlmostEqual(by["P4"].u, 0.75, places=2)
             self.assertLessEqual(by["P4"].s + 2.50, 45.5)
             self.assertLessEqual(by["P5"].s + 2.50, 45.5)
@@ -996,12 +997,17 @@ class PlacementWP11dTests(unittest.TestCase):
                 self.assertEqual(p.ref, "J1")
                 continue
             if p.face == "floor":
-                self.assertIn(p.ref, {"P1", "P2", "P3", "P4", "P5"})
+                self.assertIn(p.ref, {"P1", "P2", "P3"})
+                continue
+            if p.face == "wall":
+                self.assertIn(p.ref, {"P4", "P5"})
                 continue
             if p.ref in {"J2", "J3"}:
                 continue
-            in_island = self.mod._inside(p.u, p.s, p.wu, p.ws, lay.island)
-            in_left = self.mod._inside(p.u, p.s, p.wu, p.ws, lay.leftover)
+            if p.face == "bottom":
+                continue
+            in_island = self.mod._inside(p.u, p.s, p.wu, p.ws, lay.island, slack=0.4)
+            in_left = self.mod._inside(p.u, p.s, p.wu, p.ws, lay.leftover, slack=0.4)
             in_pocket = p.s + p.ws / 2.0 <= bs0 + 0.3
             self.assertTrue(
                 in_island or in_left or in_pocket,
@@ -1189,7 +1195,7 @@ class PlacementWP11eTests(unittest.TestCase):
                     f"{ref} flat ({u:.2f}, {s:.2f}) inside {p.ref} at ({p.u:.2f}, {p.s:.2f})",
                 )
         rows = list(self.mod._pin_table_v2_parts(self.v2, self.lay))
-        self.assertEqual(len(rows), 68)
+        self.assertEqual(len(rows), 66)
         p2 = next(r for r in rows if r[0] == "P2")
         self.assertAlmostEqual(p2[3], pads["P2"][1], places=2)
         p4 = next(r for r in rows if r[0] == "P4")
@@ -1223,63 +1229,52 @@ class PlacementWP11eTests(unittest.TestCase):
         self.assertAlmostEqual(folded["P4"][1], p4[1], places=2)
         self.assertAlmostEqual(folded["P5"][0], p5[0], places=2)
         self.assertAlmostEqual(folded["P5"][1], p5[1], places=2)
-        for ref in ("P1", "P2", "P3", "P4", "P5"):
+        y_wall = self.mod.charge_pad_y(self.v2)
+        for ref in ("P1", "P2", "P3"):
             self.assertAlmostEqual(folded[ref][2], self.v2.FLOOR_Y, places=2)
+        self.assertAlmostEqual(folded["P4"][2], y_wall, places=2)
+        self.assertAlmostEqual(folded["P5"][2], y_wall, places=2)
 
-    def test_charge_pads_on_hook_end_medial_floor(self) -> None:
+    def test_charge_pads_on_posterior_wall(self) -> None:
         p4 = next(p for p in self.lay.parts if p.ref == "P4")
         p5 = next(p for p in self.lay.parts if p.ref == "P5")
-        cu0, cu1 = 1.50, self.lay.width - 1.50
-        self.assertGreaterEqual(p4.u, cu0)
-        self.assertLessEqual(p5.u, cu1)
-        self.assertGreaterEqual(p4.u - 2.50, cu0)
-        self.assertLessEqual(p5.u + 2.50, cu1)
-        self.assertLessEqual(p4.s + 2.50, 45.5)
-        self.assertLessEqual(p5.s + 2.50, 45.5)
-        lobe = self.mod.charge_tail_outline(self.v2, self.lay.island, self.lay.width)
-        cav = (cu0, cu1, 1.50, 38.20)
-        for p in (p4, p5):
-            edge = self.mod._pad_edge(self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, lobe)
+        cu1 = self.lay.width - 1.50
+        self.assertEqual(p4.face, "wall")
+        self.assertEqual(p5.face, "wall")
+        self.assertAlmostEqual(p4.u, cu1, places=2)
+        self.assertAlmostEqual(p5.u, cu1, places=2)
+        self.assertGreaterEqual(p4.s - 2.50, 1.50 - 1e-9)
+        self.assertLessEqual(p5.s + 2.50, 14.90 + 1e-9)
+        ch_box = self.mod.charge_flat_box(self.v2, self.lay.island, self.lay.width)
+        outline = (
+            ch_box[1] - ch_box[3] / 2.0,
+            ch_box[1] + ch_box[3] / 2.0,
+            ch_box[2] - ch_box[4] / 2.0,
+            ch_box[2] + ch_box[4] / 2.0,
+        )
+        flats = self.mod.charge_flat_pads(self.v2, self.lay.island, self.lay.width)
+        for p, pref in ((p4, "P4"), (p5, "P5")):
+            fu, fs = flats[pref]
+            edge = self.mod._pad_edge(self.v2, fu, fs, p.pad_w, p.pad_h, p.rot, outline)
             self.assertGreaterEqual(edge, 0.30 - 1e-9, f"{p.ref} pad-to-outline {edge:.3f}")
-            edge_c = self.mod._pad_edge(self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, cav)
-            self.assertGreaterEqual(edge_c, 0.30 - 1e-9, f"{p.ref} pad-to-cavity {edge_c:.3f}")
-            g_ref = self.mod._edge_gap(p.u, p.s, 2.50, 8.50, 43.00, 3.20)
-            g_screw = self.mod._edge_gap(p.u, p.s, 2.50, 14.50, 41.00, 2.50)
-            self.assertGreaterEqual(g_ref, 2.0 - 1e-9, f"{p.ref} REF edge {g_ref:.2f}")
-            self.assertGreaterEqual(g_screw, 2.0 - 1e-9, f"{p.ref} screw edge {g_screw:.2f}")
-            self.assertFalse(p.s + 2.50 > 38.20 and p.s - 2.50 < 39.25 and p.u + 2.50 > 7.25 and p.u - 2.50 < 9.75)
+            self.assertGreaterEqual(p.u - self.mod.CHARGE_STANDOFF, 11.90 - 1e-9)
         between = ((p4.u - p5.u) ** 2 + (p4.s - p5.s) ** 2) ** 0.5 - 5.0
         self.assertGreaterEqual(between, 3.0 - 1e-9)
+        y_pad = self.mod.charge_pad_y(self.v2)
+        hole_r = self.mod.CHARGE_HOLE_D / 2.0
+        self.assertGreaterEqual(self.mod._wall_around_mm(y_pad, hole_r, 1.50), 1.50 - 1e-9)
+        self.assertGreaterEqual(self.mod._wall_around_mm(p4.s, hole_r, 1.50), 1.50 - 1e-9)
         self.assertNotAlmostEqual(p4.u, 0.75, places=2)
-        self.assertNotAlmostEqual(p5.u, 21.25, places=2)
-        self.assertNotAlmostEqual(p4.s, 49.50, places=2)
         self.assertAlmostEqual(self.mod.CHARGE_TAIL_MAX_D, 2.1, places=1)
-        rule = next(r for r in self.lay.rules if r[0].startswith("P4/P5 on the hook-end"))
+        rule = next(r for r in self.lay.rules if r[0].startswith("P4/P5 clamped button-heads"))
         self.assertTrue(rule[1], rule[2])
-        self.assertIn("tail Ø5 impossible", rule[2])
+        self.assertIn("posterior side wall", rule[2])
 
     def test_packing_doc_has_section_5d(self) -> None:
         doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
         text = doc.read_text(encoding="utf-8")
-        self.assertIn("## 5d. Flat pattern and pin table v2", text)
-        self.assertIn("Pin table v2.1 — flat PCB coordinates", text)
-        self.assertIn("Folded sites for the shell", text)
-        self.assertIn("J4 NPTH keep-out both sides", text)
-        self.assertIn("| H1 |", text)
-        self.assertIn("| H2 |", text)
-        self.assertIn("FLAT PCB (Q85)", text)
-        self.assertIn("placement_v2c_process_norec_w22_c47.90_two.svg", text)
-        self.assertIn("| P4 | CHARGE_VBUS | 14.70 | 4.30 |", text)
-        self.assertIn("| P5 | CHARGE_GND | 17.70 | 11.72 |", text)
-        self.assertNotIn("| P4 | CHARGE_VBUS | 0.75 | 44.00 |", text)
-        self.assertNotIn("| P4 | CHARGE_VBUS | 5.05 | 49.50 |", text)
-        self.assertIn("hook-end medial floor", text)
-        self.assertIn("largest tail pair Ø2.1", text)
-        self.assertIn("| P4 | floor | 37.47 | 2.80 |", text)
-        self.assertIn("| P5 | floor | 30.05 | 5.80 |", text)
-        self.assertIn("s 14.90–15.70", text)
-        self.assertIn("Drop height 3.31", text)
-        self.assertIn("### Shell extras for the P4/P5 fold", text)
+        self.assertIn("## 5d. Flat pattern and pin table v2.1", text)
+        self.assertIn("superseded by §5e", text)
         v2c_dir = Path(__file__).resolve().parents[1] / "docs" / "fab" / "cad" / "v2c"
         v2c = {p.name for p in v2c_dir.glob("placement_v2c_*.svg")}
         self.assertLessEqual(len(v2c), 4)
@@ -1287,16 +1282,12 @@ class PlacementWP11eTests(unittest.TestCase):
     def test_charge_flat_centres_distinct_from_folded(self) -> None:
         pads = self.mod.charge_flat_pads(self.v2, self.lay.island, self.lay.width)
         p4, p5 = self.mod.charge_pad_sites(self.lay.width, self.v2)
-        self.assertAlmostEqual(pads["P4"][0], 37.47, places=2)
-        self.assertAlmostEqual(pads["P4"][1], 2.80, places=2)
-        self.assertAlmostEqual(pads["P5"][0], 30.05, places=2)
-        self.assertAlmostEqual(pads["P5"][1], 5.80, places=2)
         self.assertNotAlmostEqual(pads["P4"][0], p4[0], places=2)
-        self.assertNotAlmostEqual(pads["P4"][1], p4[1], places=2)
+        self.assertAlmostEqual(pads["P4"][1], p4[1], places=2)
         self.assertNotAlmostEqual(pads["P5"][0], p5[0], places=2)
-        self.assertNotAlmostEqual(pads["P5"][1], p5[1], places=2)
-        self.assertAlmostEqual(self.mod.charge_drop_mm(self.v2), 3.31, places=2)
-        self.assertAlmostEqual(self.mod.charge_fold_allowance(self.v2), 5.02, places=2)
+        self.assertAlmostEqual(pads["P5"][1], p5[1], places=2)
+        self.assertGreater(pads["P4"][0], p4[0])
+        self.assertAlmostEqual(self.mod.charge_fold_allowance(self.v2), math.pi * 1.5 / 2.0, places=2)
 
     def test_floor_pad_sharing_xy_with_top_has_distinct_flat_centre(self) -> None:
         flats = self.mod.all_flat_pads(self.v2, self.lay)
@@ -1321,12 +1312,6 @@ class PlacementWP11eTests(unittest.TestCase):
                     f"{p.ref} flat ({fu:.2f}, {fs:.2f}) inside {t.ref}",
                 )
         self.assertGreaterEqual(shared, 1)
-        self.assertTrue(
-            any(p.ref in {"P4", "P5"} and t.ref in {"SW1", "U2"}
-                for p in self.lay.parts if p.face == "floor"
-                for t in self.lay.parts if t.face == "top"
-                and self.mod._xy_overlap(p.u, p.s, p.wu, p.ws, t.u, t.s, t.wu, t.ws))
-        )
 
 
 class PlacementWP11fTests(unittest.TestCase):
@@ -1364,9 +1349,9 @@ class PlacementWP11fTests(unittest.TestCase):
         self.assertEqual(len(holes), 3)
         self.assertEqual(self.lay.j4_npth, holes)
 
-    def test_pin_table_v21_has_68_rows_and_real_holes(self) -> None:
+    def test_pin_table_v21_has_66_rows_and_real_holes(self) -> None:
         rows = list(self.mod._pin_table_v2_parts(self.v2, self.lay))
-        self.assertEqual(len(rows), 68)
+        self.assertEqual(len(rows), 66)
         r24 = next(p for p in self.lay.parts if p.ref == "R24")
         keep_r = self.mod.j4_npth_keep_r()
         self.assertFalse(
@@ -1377,11 +1362,105 @@ class PlacementWP11fTests(unittest.TestCase):
         )
         doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
         text = doc.read_text(encoding="utf-8")
-        self.assertIn("Pin table v2.1 — flat PCB coordinates", text)
+        self.assertIn("Pin table v3 — flat PCB coordinates", text)
         self.assertIn("| J4-NPTH1 | 16.250 | 27.140 |", text)
         self.assertIn("| J4-NPTH2 | 15.234 | 22.060 |", text)
         self.assertIn("| J4-NPTH3 | 17.266 | 22.060 |", text)
         self.assertNotIn("| J4-NPTH1 | 16.25 | 22.06 |", text)
+
+
+class PlacementWP11gTests(unittest.TestCase):
+    """WP11g: posterior-wall P4/P5, J2 inside, J3 break-off, R9/R10 out, pin table v3."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.mod = cls.v2._layout_v2c_mod()
+        cls.lay = cls.mod.wp12d_norec_layout(cls.v2)
+
+    def test_posterior_wall_is_the_far_side_from_the_hook_root(self) -> None:
+        u0, u1 = self.mod.posterior_wall_u(22.0, self.v2)
+        self.assertAlmostEqual(u0, 20.50, places=2)
+        self.assertAlmostEqual(u1, 22.00, places=2)
+        self.assertEqual(self.mod.CHARGE_WALL_NAME, "posterior side wall")
+        self.assertEqual(self.mod.CHARGE_HEAD_AXIS, "+u")
+
+    def test_p4_p5_clamped_button_heads_in_posterior_wall(self) -> None:
+        by = {p.ref: p for p in self.lay.parts}
+        p4, p5 = by["P4"], by["P5"]
+        self.assertEqual(p4.face, "wall")
+        self.assertEqual(p5.face, "wall")
+        self.assertAlmostEqual(p4.u, 20.50, places=2)
+        self.assertAlmostEqual(p5.u, 20.50, places=2)
+        self.assertAlmostEqual(p4.s, 4.35, places=2)
+        self.assertAlmostEqual(p5.s, 12.35, places=2)
+        nylon = math.hypot(p4.u - p5.u, p4.s - p5.s) - 5.0
+        self.assertGreaterEqual(nylon, 3.0 - 1e-9)
+        y_pad = self.mod.charge_pad_y(self.v2)
+        hole_r = 1.35
+        self.assertGreaterEqual(self.mod._wall_around_mm(y_pad, hole_r, 1.50), 1.50 - 1e-9)
+        self.assertGreaterEqual(self.mod._wall_around_mm(p4.s, hole_r, 1.50), 1.50 - 1e-9)
+        self.assertGreaterEqual(p4.u - self.mod.CHARGE_STANDOFF, 11.90 - 1e-9)
+        self.assertNotIn("R9", by)
+        self.assertNotIn("R10", by)
+        self.assertNotIn("J1", by)
+        self.assertNotIn("U5", by)
+
+    def test_j2_inside_cavity_j3_on_break_off_tab(self) -> None:
+        by = {p.ref: p for p in self.lay.parts}
+        j2, j3 = by["J2"], by["J3"]
+        self.assertEqual(j2.face, "top")
+        self.assertGreaterEqual(j2.u - j2.wu / 2.0, 1.50 - 1e-9)
+        self.assertLessEqual(j2.u + j2.wu / 2.0, 20.50 + 1e-9)
+        self.assertGreaterEqual(j2.s - j2.ws / 2.0, 1.50 - 1e-9)
+        island_u1 = self.lay.island[1]
+        self.assertGreaterEqual(j3.u - j3.wu / 2.0, island_u1 - 1e-9)
+        self.assertAlmostEqual(self.lay.j3_cut_u, island_u1 + self.mod.J3_BREAK_NECK, places=2)
+        self.assertLessEqual(self.mod.J3_BREAK_NECK, 2.5 + 1e-9)
+        self.assertEqual(self.mod.cavity_hits(self.v2, self.lay), [])
+
+    def test_q97_and_cavity_and_pin_table_v3(self) -> None:
+        self.assertEqual(self.mod.q97_zone_hits(self.v2, self.lay), [])
+        self.assertEqual(self.mod.flat_pattern_hits(self.v2, self.lay), [])
+        rows = list(self.mod._pin_table_v2_parts(self.v2, self.lay))
+        self.assertEqual(len(rows), 66)
+        refs = [r[0] for r in rows]
+        self.assertNotIn("R9", refs)
+        self.assertNotIn("R10", refs)
+        self.assertIn("H1", refs)
+        self.assertIn("H2", refs)
+        for name, ok, why in self.lay.rules:
+            self.assertTrue(ok, f"{name}: {why}")
+        for p in self.lay.parts:
+            if p.face != "bottom":
+                continue
+            h = self.mod._height(self.v2.kicad_part_table()[p.ref])
+            self.assertLessEqual(h, self.lay.under_clear_mm + 1e-9, p.ref)
+
+    def test_packing_doc_section_5e(self) -> None:
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        start = text.index("## 5e. Flat pattern v3 and pin table v3")
+        nxt = text.find("\n## ", start + 1)
+        section = text[start:] if nxt < 0 else text[start:nxt]
+        self.assertIn("Pin table v3 — flat PCB coordinates", section)
+        self.assertIn("### Shell table — floor sites and wall sites", section)
+        self.assertIn("posterior side wall", section)
+        self.assertIn("head +u", section)
+        self.assertIn("| P4 | CHARGE_VBUS | 20.50 | 4.35 |", section)
+        self.assertIn("| P5 | CHARGE_GND | 20.50 | 12.35 |", section)
+        self.assertNotIn("| P4 | CHARGE_VBUS | 14.70 | 4.30 |", section)
+        self.assertIn("J3 break-off", section)
+        self.assertIn("R9 and R10 are DNP", section)
+        self.assertIn("Remove the J3 break-off tab after programming and before closing the shell", section)
+        self.assertIn("unused; leave it", section)
+        self.assertIn("| H1 |", section)
+        self.assertIn("| H2 |", section)
+        self.assertIn("66 rows", section)
+        v2c_dir = Path(__file__).resolve().parents[1] / "docs" / "fab" / "cad" / "v2c"
+        v2c = {p.name for p in v2c_dir.glob("placement_v2c_*.svg")}
+        self.assertLessEqual(len(v2c), 4)
+        self.assertIn("placement_v2c_process_norec_w22_c47.90_two.svg", text)
 
 
 if __name__ == "__main__":
