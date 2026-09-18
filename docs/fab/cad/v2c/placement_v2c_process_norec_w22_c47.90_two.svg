@@ -133,14 +133,14 @@
 <text x="373.0" y="130.0" font-size="7" text-anchor="middle" fill="#fff">R21</text>
 <rect x="361.8" y="109.9" width="22.3" height="11.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
 <text x="373.0" y="115.6" font-size="7" text-anchor="middle" fill="#fff">R22</text>
-<rect x="376.2" y="287.5" width="22.3" height="11.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
-<text x="387.4" y="293.2" font-size="7" text-anchor="middle" fill="#fff">R23</text>
-<rect x="376.2" y="273.1" width="22.3" height="11.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
-<text x="387.4" y="278.8" font-size="7" text-anchor="middle" fill="#fff">R24</text>
+<rect x="376.7" y="288.4" width="22.3" height="11.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="387.8" y="294.0" font-size="7" text-anchor="middle" fill="#fff">R23</text>
+<rect x="384.2" y="265.2" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="389.9" y="276.4" font-size="7" text-anchor="middle" fill="#fff">R24</text>
 <rect x="256.2" y="329.3" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
 <text x="261.8" y="340.4" font-size="7" text-anchor="middle" fill="#fff">R25</text>
-<rect x="333.0" y="276.5" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
-<text x="338.6" y="287.6" font-size="7" text-anchor="middle" fill="#fff">R26</text>
+<rect x="332.9" y="276.5" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="338.5" y="287.6" font-size="7" text-anchor="middle" fill="#fff">R26</text>
 <rect x="381.0" y="233.3" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
 <text x="386.6" y="244.4" font-size="7" text-anchor="middle" fill="#fff">R27</text>
 <rect x="385.8" y="209.3" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
@@ -151,8 +151,8 @@
 <text x="391.4" y="172.4" font-size="7" text-anchor="middle" fill="#fff">R30</text>
 <rect x="309.6" y="315.0" width="39.6" height="39.6" fill="#f7f4ef" stroke="#b33" stroke-width="0.7"/>
 <rect x="363.6" y="315.0" width="39.6" height="39.6" fill="#f7f4ef" stroke="#b33" stroke-width="0.7"/>
-<rect x="354.7" y="274.1" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
-<rect x="366.8" y="213.2" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
-<rect x="342.5" y="213.2" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
+<rect x="354.7" y="213.2" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
+<rect x="342.5" y="274.1" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
+<rect x="366.8" y="274.1" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
 <text x="12" y="16" font-size="11" fill="#111">process norec w22 chord 47.90 two 64/64 fold neck</text>
 </svg>

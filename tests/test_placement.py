@@ -1199,16 +1199,16 @@ class PlacementWP11eTests(unittest.TestCase):
 
     def test_j4_npth_empty_on_bottom(self) -> None:
         self.assertGreaterEqual(len(self.lay.j4_npth), 2)
-        keep = self.mod.j4_npth_keep()
+        keep_r = self.mod.j4_npth_keep_r()
         for p in self.lay.parts:
             if p.face != "bottom":
                 continue
-            for hu, hs in self.lay.j4_npth:
-                hole = self.v2.Box("J4_NPTH", hu, hs, keep, keep, -1.0, 20.0, "top")
-                self.assertFalse(
-                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), hole, 0.0),
-                    f"{p.ref} on B.Cu in J4 NPTH ({hu:.2f}, {hs:.2f})",
-                )
+            self.assertFalse(
+                self.mod._pad_hits_j4_npth(
+                    self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, self.lay.j4_npth, keep_r
+                ),
+                f"{p.ref} on B.Cu in J4 NPTH at ({p.u:.2f}, {p.s:.2f})",
+            )
 
     def test_folded_site_table_equals_section_5_contacts(self) -> None:
         folded = self.mod.folded_pad_sites(self.v2, self.lay.width, False)
@@ -1262,7 +1262,7 @@ class PlacementWP11eTests(unittest.TestCase):
         doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
         text = doc.read_text(encoding="utf-8")
         self.assertIn("## 5d. Flat pattern and pin table v2", text)
-        self.assertIn("Pin table v2 — flat PCB coordinates", text)
+        self.assertIn("Pin table v2.1 — flat PCB coordinates", text)
         self.assertIn("Folded sites for the shell", text)
         self.assertIn("J4 NPTH keep-out both sides", text)
         self.assertIn("| H1 |", text)
@@ -1327,6 +1327,61 @@ class PlacementWP11eTests(unittest.TestCase):
                 for t in self.lay.parts if t.face == "top"
                 and self.mod._xy_overlap(p.u, p.s, p.wu, p.ws, t.u, t.s, t.wu, t.ws))
         )
+
+
+class PlacementWP11fTests(unittest.TestCase):
+    """WP11f: J4 NPTH centres from the KiCad footprint, pin table v2.1."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.mod = cls.v2._layout_v2c_mod()
+        cls.lay = cls.mod.wp12d_norec_layout(cls.v2)
+
+    def test_j4_npth_centres_match_kicad_within_0_01(self) -> None:
+        j4 = next(p for p in self.lay.parts if p.ref == "J4")
+        self.assertAlmostEqual(j4.u, 16.25, places=2)
+        self.assertAlmostEqual(j4.s, 24.60, places=2)
+        self.assertAlmostEqual(j4.rot, 90.0, places=1)
+        text = self.mod._j4_pcb_text()
+        self.assertIn("Tag-Connect_TC2030", text)
+        parsed, drill = self.mod._j4_npth_locals_from_pcb(text)
+        self.assertEqual(len(parsed), 3)
+        self.assertIsNotNone(drill)
+        pads, spec_drill, _clr = self.mod.j4_npth_spec()
+        self.assertEqual(len(pads), 3)
+        self.assertAlmostEqual(spec_drill, 0.9906, places=4)
+        for got, want in zip(pads, parsed):
+            self.assertAlmostEqual(got[0], want[0], places=3)
+            self.assertAlmostEqual(got[1], want[1], places=3)
+        holes = self.mod.j4_npth_world(j4.u, j4.s, j4.rot)
+        expected = ((16.25, 27.14), (15.234, 22.06), (17.266, 22.06))
+        for eu, es in expected:
+            self.assertTrue(
+                any(abs(hu - eu) < 0.01 and abs(hs - es) < 0.01 for hu, hs in holes),
+                f"KiCad hole ({eu}, {es}) missing from {holes}",
+            )
+        self.assertEqual(len(holes), 3)
+        self.assertEqual(self.lay.j4_npth, holes)
+
+    def test_pin_table_v21_has_68_rows_and_real_holes(self) -> None:
+        rows = list(self.mod._pin_table_v2_parts(self.v2, self.lay))
+        self.assertEqual(len(rows), 68)
+        r24 = next(p for p in self.lay.parts if p.ref == "R24")
+        keep_r = self.mod.j4_npth_keep_r()
+        self.assertFalse(
+            self.mod._pad_hits_j4_npth(
+                self.v2, r24.u, r24.s, r24.pad_w, r24.pad_h, r24.rot, self.lay.j4_npth, keep_r
+            ),
+            f"R24 ({r24.u:.2f}, {r24.s:.2f}) pad on J4 NPTH",
+        )
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("Pin table v2.1 — flat PCB coordinates", text)
+        self.assertIn("| J4-NPTH1 | 16.250 | 27.140 |", text)
+        self.assertIn("| J4-NPTH2 | 15.234 | 22.060 |", text)
+        self.assertIn("| J4-NPTH3 | 17.266 | 22.060 |", text)
+        self.assertNotIn("| J4-NPTH1 | 16.25 | 22.06 |", text)
 
 
 if __name__ == "__main__":

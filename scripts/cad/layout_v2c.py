@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import math
 import re
+import subprocess
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
@@ -466,12 +467,32 @@ def _edge_gap(
     return math.hypot(u - ou, s - os) - r - or_
 
 
-# Tag-Connect TC2030-IDC-NL NPTH pads in hardware/board/elicio-v2.kicad_pcb (J4).
-# The KiCad footprint has three NPTH, drill 0.9906. min_hole_clearance is 0.20
-# in elicio-v2.kicad_pro.
+# Tag-Connect TC2030-IDC-NL NPTH pads. Locals come from the KiCad footprint
+# (`git show 30ca79d:hardware/board/elicio-v2.kicad_pcb` or the board file).
+# Fallback matches that footprint: three NPTH, drill 0.9906. min_hole_clearance
+# 0.20 in elicio-v2.kicad_pro.
 J4_NPTH_LOCAL = ((-2.54, 0.0), (2.54, -1.016), (2.54, 1.016))
 J4_NPTH_DRILL = 0.9906
 J4_HOLE_CLEARANCE = 0.20
+J4_KICAD_COMMIT = "30ca79d"
+# Pin table v2 B.Cu cluster around J4 (WP11e). Restore, then fold the smallest hole move.
+J4_NPTH_FOLD_SEEDS = {
+    "R23": (18.28, 21.17),
+    "R24": (18.28, 22.37),
+    "R26": (14.22, 21.63),
+}
+# (u, s, rot) as published in pin table v2. Greedy-with-real-holes otherwise
+# packs R27–R30 into R24's +u lane.
+PIN_TABLE_V2_J4_CLUSTER = {
+    "R23": (18.28, 21.17, 0.0),
+    "R24": (18.28, 22.37, 0.0),
+    "R26": (14.22, 21.63, 90.0),
+    "R27": (18.22, 25.23, 90.0),
+    "R28": (18.62, 27.23, 90.0),
+    "R29": (18.62, 29.23, 90.0),
+    "R30": (18.62, 31.23, 90.0),
+}
+_J4_PCB_CACHE: str | None = None
 
 
 def fold_arc_mm(v2: Any) -> float:
@@ -479,54 +500,125 @@ def fold_arc_mm(v2: Any) -> float:
     return math.pi * v2.BOARD_BEND_R
 
 
+def _j4_pcb_text() -> str:
+    """KiCad PCB that holds the TC2030 footprint. Prefer the board WP12e pinned."""
+    global _J4_PCB_CACHE
+    if _J4_PCB_CACHE is not None:
+        return _J4_PCB_CACHE
+    root = Path(__file__).resolve().parents[2]
+    text = ""
+    try:
+        out = subprocess.run(
+            ["git", "show", f"{J4_KICAD_COMMIT}:hardware/board/elicio-v2.kicad_pcb"],
+            cwd=root,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        if out.returncode == 0 and "Tag-Connect_TC2030" in out.stdout:
+            text = out.stdout
+    except OSError:
+        pass
+    if not text:
+        pcb = root / "hardware" / "board" / "elicio-v2.kicad_pcb"
+        if pcb.is_file():
+            text = pcb.read_text(encoding="utf-8")
+    _J4_PCB_CACHE = text
+    return text
+
+
+def _j4_npth_locals_from_pcb(text: str) -> tuple[list[tuple[float, float]], float | None]:
+    found: list[tuple[float, float]] = []
+    d_found: float | None = None
+    if not text:
+        return found, d_found
+    for block in text.split("(footprint "):
+        if '(property "Reference" "J4"' not in block:
+            continue
+        if "Tag-Connect_TC2030" not in block:
+            continue
+        for m in re.finditer(
+            r'\(pad "" np_thru_hole circle\s+\(at ([-\d.]+) ([-\d.]+)',
+            block,
+        ):
+            found.append((float(m.group(1)), float(m.group(2))))
+        dm = re.search(r"np_thru_hole circle.*?\(drill ([-\d.]+)\)", block, re.S)
+        if dm:
+            d_found = float(dm.group(1))
+        break
+    return found, d_found
+
+
+_J4_SPEC_CACHE: tuple[tuple[tuple[float, float], ...], float, float] | None = None
+
+
 def j4_npth_spec() -> tuple[tuple[tuple[float, float], ...], float, float]:
     """NPTH locals, drill, and hole clearance, read from the KiCad files when present."""
+    global _J4_SPEC_CACHE
+    if _J4_SPEC_CACHE is not None:
+        return _J4_SPEC_CACHE
     root = Path(__file__).resolve().parents[2]
     pads = list(J4_NPTH_LOCAL)
     drill = J4_NPTH_DRILL
     clr = J4_HOLE_CLEARANCE
-    pcb = root / "hardware" / "board" / "elicio-v2.kicad_pcb"
+    found, d_found = _j4_npth_locals_from_pcb(_j4_pcb_text())
+    if found:
+        pads = found
+    if d_found is not None:
+        drill = d_found
     pro = root / "hardware" / "board" / "elicio-v2.kicad_pro"
-    if pcb.is_file():
-        text = pcb.read_text(encoding="utf-8")
-        found: list[tuple[float, float]] = []
-        d_found: float | None = None
-        for block in text.split("(footprint "):
-            if '(property "Reference" "J4"' not in block and "(property \"Reference\" \"J4\"" not in block:
-                continue
-            for m in re.finditer(
-                r'\(pad "" np_thru_hole circle\s+\(at ([-\d.]+) ([-\d.]+)',
-                block,
-            ):
-                found.append((float(m.group(1)), float(m.group(2))))
-            dm = re.search(r"np_thru_hole circle.*?\(drill ([-\d.]+)\)", block, re.S)
-            if dm:
-                d_found = float(dm.group(1))
-            break
-        if found:
-            pads = found
-        if d_found is not None:
-            drill = d_found
     if pro.is_file():
         pm = re.search(r'"min_hole_clearance"\s*:\s*([0-9.]+)', pro.read_text(encoding="utf-8"))
         if pm:
             clr = float(pm.group(1))
-    return tuple(pads), drill, clr
+    _J4_SPEC_CACHE = (tuple(pads), drill, clr)
+    return _J4_SPEC_CACHE
 
 
 def j4_npth_world(u: float, s: float, rot: float) -> tuple[tuple[float, float], ...]:
+    """World centres. KiCad Y increases down; positive rot is CCW on that canvas."""
     pads, _drill, _clr = j4_npth_spec()
     rad = math.radians(rot)
     c, si = math.cos(rad), math.sin(rad)
     out: list[tuple[float, float]] = []
     for px, py in pads:
-        out.append((u + px * c - py * si, s + px * si + py * c))
+        du = px * c + py * si
+        ds = -px * si + py * c
+        out.append((round(u + du, 3), round(s + ds, 3)))
     return tuple(out)
 
 
 def j4_npth_keep() -> float:
     _pads, drill, clr = j4_npth_spec()
     return drill + 2.0 * clr
+
+
+def j4_npth_keep_r() -> float:
+    """Pad-to-hole keep radius: drill/2 + min_hole_clearance (KiCad)."""
+    _pads, drill, clr = j4_npth_spec()
+    return drill / 2.0 + clr
+
+
+def _pad_hits_j4_npth(
+    v2: Any,
+    u: float,
+    s: float,
+    pad_w: float,
+    pad_h: float,
+    rot: float,
+    holes: tuple[tuple[float, float], ...],
+    keep_r: float,
+) -> bool:
+    pw, ph = v2._rot_size(pad_w, pad_h, rot)
+    u0, u1 = u - pw / 2.0, u + pw / 2.0
+    s0, s1 = s - ph / 2.0, s + ph / 2.0
+    for hu, hs in holes:
+        nu = min(max(hu, u0), u1)
+        ns = min(max(hs, s0), s1)
+        if math.hypot(hu - nu, hs - ns) < keep_r - 1e-9:
+            return True
+    return False
 
 
 def neck_flat_pads(
@@ -754,6 +846,153 @@ def _nudge_copper_parts(
             continue
         seen.add(ref)
         parts[by[ref]] = _nudge_one(v2, parts[by[ref]], occupied, island, pocket, need)
+
+
+def _part_hits_j4_npth(v2: Any, part: Any, holes: tuple[tuple[float, float], ...], keep_r: float) -> bool:
+    return _pad_hits_j4_npth(v2, part.u, part.s, part.pad_w, part.pad_h, part.rot, holes, keep_r)
+
+
+def _site_clears_j4_npth(
+    v2: Any,
+    part: Any,
+    uu: float,
+    ss: float,
+    occupied: list[Any],
+    island: tuple[float, float, float, float],
+    pocket: tuple[float, float, float, float],
+    holes: tuple[tuple[float, float], ...],
+    keep_r: float,
+    need: float,
+    *,
+    rot: float | None = None,
+    wu: float | None = None,
+    ws: float | None = None,
+) -> bool:
+    rot = part.rot if rot is None else rot
+    wu = part.wu if wu is None else wu
+    ws = part.ws if ws is None else ws
+    old = next((b for b in occupied if b.name == part.ref), None)
+    y0, y1 = (old.y0, old.y1) if old is not None else (0.0, 1.0)
+    cand = v2.Box(part.ref, uu, ss, wu, ws, y0, y1, part.face)
+    for other in occupied:
+        if other.name == part.ref:
+            continue
+        if str(other.name).startswith("J4_NPTH"):
+            continue
+        if v2._overlap(cand, other, 0.0):
+            return False
+    outline = _copper_outline_for(uu, ss, wu, ws, island, pocket)
+    if outline is not None:
+        if _pad_edge(v2, uu, ss, part.pad_w, part.pad_h, rot, outline) < need - 1e-9:
+            return False
+    if _pad_hits_j4_npth(v2, uu, ss, part.pad_w, part.pad_h, rot, holes, keep_r):
+        return False
+    return True
+
+
+def _min_site_off_j4_npth(
+    v2: Any,
+    part: Any,
+    occupied: list[Any],
+    island: tuple[float, float, float, float],
+    pocket: tuple[float, float, float, float],
+    holes: tuple[tuple[float, float], ...],
+    keep_r: float,
+    need: float,
+    seed: tuple[float, float],
+) -> tuple[float, float, float, float, float] | None:
+    """Nearest 0.01 mm site to the pin-table-v2 seed. Tries both 0402 rotations."""
+    su, ss0 = seed
+    poses = (
+        (part.rot, part.wu, part.ws),
+        ((part.rot + 90.0) % 180.0, part.ws, part.wu),
+    )
+    for rot, wu, ws in poses:
+        if _site_clears_j4_npth(
+            v2, part, su, ss0, occupied, island, pocket, holes, keep_r, need, rot=rot, wu=wu, ws=ws
+        ):
+            return su, ss0, rot, wu, ws
+    best: tuple[float, float, float, float, float] | None = None
+    best_key: tuple[float, float, float, float] | None = None
+    for n in range(1, 201):
+        for du_i in range(-n, n + 1):
+            for ds_i in range(-n, n + 1):
+                if max(abs(du_i), abs(ds_i)) != n:
+                    continue
+                uu = round(su + du_i * 0.01, 2)
+                ss = round(ss0 + ds_i * 0.01, 2)
+                for rot, wu, ws in poses:
+                    if not _site_clears_j4_npth(
+                        v2, part, uu, ss, occupied, island, pocket, holes, keep_r, need,
+                        rot=rot, wu=wu, ws=ws,
+                    ):
+                        continue
+                    hyp = math.hypot(uu - su, ss - ss0)
+                    rot_pen = 0.0 if abs(rot - part.rot) < 1e-9 else 0.01
+                    key = (hyp + rot_pen, -(uu - su), abs(ss - ss0), rot_pen)
+                    if best_key is None or key < best_key:
+                        best_key = key
+                        best = (uu, ss, rot, wu, ws)
+        if best is not None:
+            return best
+    return None
+
+
+def _restore_pin_table_v2_j4_cluster(
+    v2: Any,
+    parts: list[Any],
+    occupied: list[Any],
+) -> None:
+    """Put the J4-side B.Cu cluster back on pin table v2 before the hole nudge (Q87)."""
+    table = v2.kicad_part_table()
+    by = {p.ref: i for i, p in enumerate(parts)}
+    for ref, (u, s, rot) in PIN_TABLE_V2_J4_CLUSTER.items():
+        if ref not in by:
+            continue
+        part = parts[by[ref]]
+        row = table[ref]
+        wu, ws = v2._rot_size(row["cr_w"], row["cr_h"], rot)
+        old = next((b for b in occupied if b.name == ref), None)
+        parts[by[ref]] = replace(part, u=u, s=s, rot=rot, wu=wu, ws=ws)
+        if old is not None:
+            occupied[occupied.index(old)] = v2.Box(ref, u, s, wu, ws, old.y0, old.y1, old.face)
+
+
+def _nudge_off_j4_npth(
+    v2: Any,
+    parts: list[Any],
+    occupied: list[Any],
+    island: tuple[float, float, float, float],
+    pocket: tuple[float, float, float, float],
+    holes: tuple[tuple[float, float], ...],
+) -> None:
+    """Smallest move off the real J4 holes from pin table v2 (Q87)."""
+    if not holes:
+        return
+    _restore_pin_table_v2_j4_cluster(v2, parts, occupied)
+    keep_r = j4_npth_keep_r()
+    need = v2.COPPER_TO_EDGE
+    by = {p.ref: i for i, p in enumerate(parts)}
+    refs: list[str] = []
+    for ref in ("R24", "R26", "R23"):
+        if ref in by and parts[by[ref]].face == "bottom":
+            refs.append(ref)
+    for p in parts:
+        if p.face == "bottom" and p.ref not in refs and _part_hits_j4_npth(v2, p, holes, keep_r):
+            refs.append(p.ref)
+    for ref in refs:
+        part = parts[by[ref]]
+        seed = J4_NPTH_FOLD_SEEDS.get(ref, (part.u, part.s))
+        site = _min_site_off_j4_npth(v2, part, occupied, island, pocket, holes, keep_r, need, seed)
+        if site is None:
+            continue
+        nu, ns, rot, wu, ws = site
+        if abs(nu - part.u) < 1e-9 and abs(ns - part.s) < 1e-9 and abs(rot - part.rot) < 1e-9:
+            continue
+        old = next((b for b in occupied if b.name == ref), None)
+        if old is not None:
+            occupied[occupied.index(old)] = v2.Box(ref, nu, ns, wu, ws, old.y0, old.y1, old.face)
+        parts[by[ref]] = replace(part, u=nu, s=ns, rot=rot, wu=wu, ws=ws)
 
 
 def search_layout_v2c(
@@ -991,14 +1230,11 @@ def search_layout_v2c(
     if try_top("J4", [leftover_i, side_i], near=(bu1 - 3.5, (leftover[2] + leftover[3]) / 2.0), notes=j4_note):
         j4p = next(p for p in parts if p.ref == "J4")
         occupied.append(v2.Box("J4_keepout", j4p.u, j4p.s, j4p.wu + 1.0, j4p.ws + 1.0, y_top, y_top + 8.0, "top"))
-        # Q85 both-side hole keep is for the board the build carries (no receptacle).
+        j4_npth = j4_npth_world(j4p.u, j4p.s, j4p.rot)
         if not receptacle:
-            j4_npth = j4_npth_world(j4p.u, j4p.s, j4p.rot)
             keep = j4_npth_keep()
             for i, (hu, hs) in enumerate(j4_npth, 1):
                 occupied.append(v2.Box(f"J4_NPTH{i}", hu, hs, keep, keep, -1.0, 20.0, "top"))
-        else:
-            j4_npth = j4_npth_world(j4p.u, j4p.s, j4p.rot)
     else:
         missing.append("J4")
 
@@ -1062,6 +1298,8 @@ def search_layout_v2c(
 
     if edge == "process":
         _nudge_copper_parts(v2, parts, occupied, island, pocket)
+        if not receptacle:
+            _nudge_off_j4_npth(v2, parts, occupied, island, pocket, j4_npth)
 
     extra_u = (bu1 - bu0) - 15.5
     extra_s = (bs1 - bs0) - 21.6
@@ -1321,24 +1559,22 @@ def search_layout_v2c(
         )
     )
     j4_bot_hits = []
-    keep_j4 = j4_npth_keep()
+    keep_r_j4 = j4_npth_keep_r()
     if not receptacle:
         for p in parts:
             if p.face != "bottom":
                 continue
-            for i, (hu, hs) in enumerate(j4_npth, 1):
-                hole = v2.Box(f"J4_NPTH{i}", hu, hs, keep_j4, keep_j4, -1.0, 20.0, "top")
-                if v2._overlap(v2._part_box(p, 0.0, 1.0), hole, 0.0):
-                    j4_bot_hits.append(p.ref)
+            if _pad_hits_j4_npth(v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, j4_npth, keep_r_j4):
+                j4_bot_hits.append(p.ref)
         rules.append(
             (
                 "J4 NPTH keep-out both sides (Q85)",
                 j4 is not None and not j4_bot_hits,
                 (
-                    f"{len(j4_npth)} holes, keep {keep_j4:.2f} mm; B.Cu empty"
+                    f"{len(j4_npth)} holes, keep Ø{j4_npth_keep():.2f} mm; B.Cu pads empty"
                     if j4 is not None and not j4_bot_hits
                     else (
-                        f"B.Cu in J4 holes: {', '.join(j4_bot_hits[:8])}"
+                        f"B.Cu pads in J4 holes: {', '.join(j4_bot_hits[:8])}"
                         if j4_bot_hits
                         else "J4 not placed"
                     )
@@ -1719,7 +1955,7 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
     """WP11e: flat pattern, pin table v2, folded-site table, J4 NPTH keep-out (Q85)."""
     lines: list[str] = []
     lay = smallest_full(rows, "process", receptacle=False)
-    lines.append("## 5d. Flat pattern and pin table v2 (WP11e, Q85)")
+    lines.append("## 5d. Flat pattern and pin table v2.1 (WP11e–WP11f, Q85)")
     lines.append("")
     if lay is None:
         lines.append(
@@ -1835,7 +2071,7 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
     lines.append("")
     n_rows = len(list(_pin_table_v2_parts(v2, lay)))
     lines.append(
-        f"### Pin table v2 — flat PCB coordinates "
+        f"### Pin table v2.1 — flat PCB coordinates "
         f"(width {lay.width:g}, chord {lay.chord:.2f}, {lay.sides} sides, fold {lay.fold})"
     )
     lines.append("")
@@ -1862,7 +2098,7 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
         f"Edge-to-edge ≥ {CHARGE_CLEAR:g} mm to the REF Ø6.4 dome (8.50, 43.00) and the "
         f"Ø5 screw head ({CHARGE_SCREW_U:.2f}, {CHARGE_SCREW_S:.2f}). "
         f"Two Ø5 pads cannot meet those rules on the tail; largest tail pair Ø{CHARGE_TAIL_MAX_D:g}. "
-        "WP14 follows these sites. Flat centres are in pin table v2."
+        "WP14 follows these sites. Flat centres are in pin table v2.1."
     )
     lines.append("")
     lines.append("| pad | net | u | s | y | courtyard | notes |")
@@ -1905,11 +2141,14 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
     lines.append("")
     j4p = next((p for p in lay.parts if p.ref == "J4"), None)
     lines.append(
-        f"Tag-Connect TC2030-IDC-NL in `hardware/board/elicio-v2.kicad_pcb`: "
+        f"Tag-Connect TC2030-IDC-NL from `git show {J4_KICAD_COMMIT}:hardware/board/elicio-v2.kicad_pcb`: "
         f"{len(_pads)} NPTH, drill {drill:.4f} mm. "
         f"`elicio-v2.kicad_pro` min_hole_clearance {clr:.2f} mm. "
         f"Keep-out diameter = drill + 2 × clearance = {keep:.2f} mm. "
-        "No B.Cu footprint may enter that zone. Same-face courtyard keep-out on F.Cu stands."
+        "KiCad canvas Y increases down; at the pinned (16.25, 24.60) rot 90 the map is "
+        "(u + py, s − px). Pin table v2 used a Y-up map and swapped the pair and the single along s. "
+        "No B.Cu pad may enter that zone (KiCad hole_clearance: circle radius drill/2 + clearance). "
+        "Same-face courtyard keep-out on F.Cu stands."
     )
     lines.append("")
     lines.append("| hole | u | s | drill | keep | sides |")
@@ -1917,8 +2156,30 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
     if j4p is not None:
         for i, (hu, hs) in enumerate(lay.j4_npth, 1):
             lines.append(
-                f"| J4-NPTH{i} | {hu:.2f} | {hs:.2f} | {drill:.4f} | {keep:.2f} | F.Cu and B.Cu |"
+                f"| J4-NPTH{i} | {hu:.3f} | {hs:.3f} | {drill:.4f} | {keep:.2f} | F.Cu and B.Cu |"
             )
+    lines.append("")
+    by = {p.ref: p for p in lay.parts}
+    moved = []
+    for ref, (su, ss) in J4_NPTH_FOLD_SEEDS.items():
+        p = by.get(ref)
+        if p is None:
+            continue
+        du, ds = p.u - su, p.s - ss
+        old_rot = PIN_TABLE_V2_J4_CLUSTER.get(ref, (su, ss, p.rot))[2]
+        if abs(du) >= 0.005 or abs(ds) >= 0.005 or abs(p.rot - old_rot) >= 1:
+            moved.append(
+                f"{ref} from ({su:.2f}, {ss:.2f}) rot {old_rot:g} to ({p.u:.2f}, {p.s:.2f}) rot {p.rot:g} "
+                f"({du:+.2f} u, {ds:+.2f} s)"
+            )
+    if moved:
+        lines.append(
+            "Q87 fold from pin table v2: " + "; ".join(moved) + ". "
+            "WP12e zero-track DRC (route.md §9) asked R24 +0.46 u (pad vs hole); "
+            "route.md §10 was not on lane/w2 at this pass. Packing keep is pad vs "
+            "the Ø1.39 circle. The reviewer reconciles within 0.1 mm; the board is copper truth."
+        )
+        lines.append("")
     lines.append("")
     return lines
 
