@@ -111,9 +111,12 @@ brief in full and do it", nothing owed from me until their pushes.
   is unchanged. Note sent 23:05 to w1 to cut that slot. Second `DONE
   WP11b` at `90d6d0a` (Jauch LP501218JH as a third cell: 0 of 72 runs
   close, packed height 5.9, so no buyable cell closes inside the brief's
-  box). Third turn sent 23:12: extend the search for the two buyable
-  cells to LID_Y 9.5–10.5 and widths 20–22, so Q55 has a price in
-  millimetres; a third DONE is expected.
+  box). Third `DONE WP11b` at `9f8136f`: LID_Y 9.5–10.5 and widths
+  20–22 do not help either (0 of 108), because the buyable cells fail on
+  length along the body (antenna zone, SIG1 standoff), not on height.
+  Only a cell inside the 15.6 × 10.4 × 5.2 envelope packs. w3 idles;
+  nothing queued. Q55 is now the round's open problem: a note went to w5
+  at 23:20 to search for any pouch cell under 16 mm long sold in ones.
 - **w2 → WP12b board route** (`tasks/WP12b-board-route.md`), branch
   `lane/w2`. Re-place from packing-v2 §5, sync, route, `release.py
   --routed` exit 0, stiffeners ≤ 3 (Q60), decoupling (Q68), standby load
@@ -159,7 +162,9 @@ brief in full and do it", nothing owed from me until their pushes.
   JLC3DP colours: natural grey or dyed black (Q30). Notes sent 22:58 to
   w2 (take the BOM codes, fee and datasheet sentences from L7 §3 and §4,
   state the probe limit in board-v2 §4) and to w3 (add the Jauch cell as
-  a third case). w5 idles; nothing queued.
+  a third case). Second turn sent 23:20: any pouch cell inside 16.0 ×
+  10.5 × 5.2 with protection, in ones, wider seller list plus a labelled
+  marketplace class, as L7 §7; a second DONE is expected.
 - **Reviewer r6**: not started. When all six DONEs are in: `git worktree
   add .worktrees/review -b review/r6 main` (path absent on main, removed
   after r5), brief `tasks/review-r6.md` (expected) from `tasks/review-r5.md`,
