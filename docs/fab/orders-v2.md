@@ -141,6 +141,6 @@ Price blank.
 
 | Item | Quantity | Status | Unit price as displayed | Source URL and date | Shipping | Tax | Import collection | Delivered line total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Ceiling | — | allowance | blank | Q33; waits for Rolf | — | — | — | blank |
+| Ceiling | — | allowance | blank | Q33; Rolf writes the ceiling here. Blank until he does. | — | — | — | blank |
 | Three orders plus kit if needed | — | allowance | $290–460 plus $50–70 if the kit is needed | plan v2 §9, 2026-09-17 | blank | blank | blank | blank |
 | All-in delivered total | — | — | not claimed | plan v2 §9: no all-in figure until this ledger reproduces one from quoted or catalogue lines | blank | blank | blank | blank |
