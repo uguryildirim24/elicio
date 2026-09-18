@@ -570,6 +570,7 @@ class PlacementWP11bTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.v2 = P._v2()
         cls.dtp = cls.v2.run_dtp_arc_plus()
+        cls.jauch = cls.v2.run_jauch_series()
 
     def spec(self, **kwargs):
         base = dict(
@@ -678,14 +679,44 @@ class PlacementWP11bTests(unittest.TestCase):
         doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
         text = doc.read_text(encoding="utf-8")
         self.assertIn("## 1b. DTP301120 arc-plus under interface II (WP11b)", text)
+        self.assertIn("## 1c. Jauch LP501218JH under interface II (WP11b, L7 §2)", text)
+        self.assertIn("### Smallest body per buyable cell (WP11b, L7 §2)", text)
         self.assertIn("### REF tab route (WP11b, Q59)", text)
         self.assertIn("`REF_end_wall_slot`", text)
         self.assertIn("cell to antenna zone 4.15 < 5 mm", text)
+        self.assertIn("cell to antenna zone 4.65 < 5 mm", text)
+        self.assertIn("L7-research-v4.md", text)
+        self.assertIn("Rolf solders nothing", text)
         rows = getattr(PlacementV2Tests, "rows", None)
         generated = self.v2.packing_markdown(
             rows if rows is not None else self.v2.run_matrix(include_arc=False)
         )
         self.assertEqual(text, generated)
+
+    def test_jauch_series_is_72_runs_and_none_close(self) -> None:
+        rows = self.jauch
+        self.assertEqual(len(rows), 72)
+        self.assertEqual(len(self.v2.jauch_specs()), 72)
+        self.assertTrue(all(r.spec.cell == "jauch" and r.spec.iface == "II" for r in rows))
+        self.assertTrue(all(r.spec.layout == "series" for r in rows))
+        self.assertEqual(sorted({r.spec.arc_plus for r in rows}), [0.0, 1.5, 3.0])
+        self.assertEqual(sorted({r.spec.standoff for r in rows}), [3.0, 4.0])
+        self.assertAlmostEqual(self.v2.CELL["jauch"]["t"] + self.v2.FOAM, 5.9)
+        self.assertFalse(any(r.closes for r in rows))
+
+    def test_jauch_w20_y8_5_s3_antenna_gap_is_4_65(self) -> None:
+        result = self.v2.run_spec(self.spec(cell="jauch", arc_plus=0.0, lid_y=8.5, standoff=3.0, width=20.0))
+        self.assertFalse(result.closes)
+        self.assertEqual(result.first_conflict, "cell to antenna zone 4.65 < 5 mm")
+        self.assertAlmostEqual(result.total_chord, 47.9005, places=3)
+        self.assertAlmostEqual(result.parts["cell"].y1, 7.4, places=2)
+
+    def test_jauch_cell_top_7_40_exceeds_lid_y_7(self) -> None:
+        result = self.v2.run_spec(self.spec(cell="jauch", arc_plus=0.0, lid_y=7.0, standoff=3.0, width=20.0))
+        self.assertFalse(result.closes)
+        self.assertTrue(any(c.startswith("cell top 7.40 > LID_Y 7") for c in result.conflicts))
+        self.assertAlmostEqual(result.parts["cell"].wu, 12.5)
+        self.assertAlmostEqual(result.parts["cell"].ws, 20.0)
 
 
 if __name__ == "__main__":
