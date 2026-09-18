@@ -123,7 +123,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11d last queued turn, w1 WP14d, w2 WP12d), WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11d fourth turn, the no-receptacle pin table; w1 WP14d; w2 WP12d), WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -193,21 +193,25 @@ fast-forwarded to `110a79b`.
   holes); side-wall fold pockets leave a 0.65 wall → Q83 (neck-end
   strips, 501012 body SIG1 10.71 / SIG2 21.81); three FR4 ring pieces
   fine (count 5). Recorded at `a3960d6`.
-- **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): first `DONE
-  WP11d` at `e2a0e01`, second at `e1f1d6f` on `lane/w3` (tree clean,
-  report `.worktrees/w3/.reports/WP11d-report.md` present, 221 tests OK).
-  §5c now has 32 cells: with the receptacle, width 20 two-sided 52/66 and
-  width 22 two-sided 66/66; without it (J1, U5 out, tail pads P4/P5 at
-  (0.75, 44.0) and (21.25, 44.0)), width 20 two-sided 58/64 and width 22
+- **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): `DONE WP11d`
+  three times on `lane/w3`: `e2a0e01` (16-cell grid), `e1f1d6f` (32
+  cells with the no-receptacle variant, Q82 hole sites, neck-end strips),
+  `ae19850` (placer keeps pad-to-outline ≥ 0.30 on island and pocket,
+  holes not under U1); tree clean, report
+  `.worktrees/w3/.reports/WP11d-report.md` present, tests OK. Results:
+  with the receptacle, width 20 two-sided 53/66 and width 22 two-sided
+  66/66; without it (J1, U5 out, tail pads P4/P5 at (0.75, 44.0) and
+  (21.25, 44.0)), width 20 two-sided 52/64 (J4 never places) and width 22
   two-sided 64/64; every body-outline cell fails on J4; island holes for
-  the width-22 closer at (13.45, 17.70) and (17.95, 17.70); neck-end
-  strips on every cell (side wall would be 0.65). Settled in
-  open-questions at `d67e534`: Q78 width 22, Q81 no-receptacle variant,
-  Q82 those hole sites, Q83 neck-end strips. One queued turn remains (the
-  pin-table note: nudge D1, C3, C10, C11, C12 to copper-to-edge 0.30,
-  publish the pin tables for the width-22 closers with and without the
-  receptacle); it pushes a third `DONE WP11d`, after which I send w2
-  the line "§5c final" plus the sha. Waits for nothing from me.
+  the width-22 closers at (13.45, 17.70) and (17.95, 17.70); neck-end
+  strips on every cell. Settled in open-questions at `d67e534`: Q78 width
+  22, Q81 no-receptacle variant, Q82 those hole sites, Q83 neck-end
+  strips. §5c carries ONE pin table so far (the USB cell, 66 footprints,
+  side column, every rule met); the build's variant (no receptacle, width
+  22) has none yet: a fourth turn was prompted at 02:20 to publish it in
+  the same format with that cell's strip lengths and the norec drawing;
+  it pushes a fourth `DONE WP11d`, after which I send w2 the line "§5c
+  final" plus the sha. Waits for nothing from me.
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
   WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
   package commit, tree clean, report
@@ -324,15 +328,15 @@ Outside those:
 
 ## Next
 
-- Idle until the third `DONE WP11d` (w3), `DONE WP14d` (w1), `DONE
-  WP12d` or `WAITING WP12d §5c final sha` (w2), or BLOCKED/GONE for any
-  (a DONE is checked: report present, tree clean; then read); on the
-  third `DONE WP11d` send w2 the line "§5c final" plus the sha (a prompt; if w2 is
-  WAITING it continues, if not the line is queued) and, if a number w1
-  used moved, note a WP14e; when WP11d, WP14d and WP12d have landed
-  (WP11c, WP13c, WP14b, WP14c, WP17c, WP12d-prep already have), open
-  review r7 with a brief (expected) at `tasks/review-r7.md` (expected),
-  from `tasks/review-code-template.md`.
+- Idle until the fourth `DONE WP11d` (w3, the no-receptacle pin table),
+  `DONE WP14d` (w1), `DONE WP12d` or `WAITING WP12d §5c final sha` (w2),
+  or BLOCKED/GONE for any (a DONE is checked: report present, tree clean;
+  then read); on the fourth `DONE WP11d` send w2 the line "§5c final"
+  plus the sha (a prompt; if w2 is WAITING it continues, if not the line
+  is queued) and, if a number w1 used moved, note a WP14e; when WP11d,
+  WP14d and WP12d have landed (WP11c, WP13c, WP14b, WP14c, WP17c,
+  WP12d-prep already have), open review r7 with a brief (expected) at
+  `tasks/review-r7.md` (expected), from `tasks/review-code-template.md`.
 
 ## Traps
 
