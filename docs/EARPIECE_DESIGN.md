@@ -70,6 +70,13 @@ masseter), satisfying the harness's independence rule inside one device.
 - Owner self-test, 2026-08-13: voluntary auricular movement confirmed;
   tensor tympani rumble uncertain.
 
+## History
+
+**2026-09-17, requirement 5.** Rolf answered titanium (open-questions
+Q28 and Q49). The requirements list dropped printed carbon-TPU and
+stainless steel as the permitted skin contacts. Plan v2 §5.7 is the
+reading the build follows: ISO 7380 M2.5 Grade 5 button heads.
+
 ## Requirements
 
 1. The act of issuing a command must produce no externally visible movement.
@@ -79,7 +86,8 @@ masseter), satisfying the harness's independence rule inside one device.
    During tethered debugging the laptop runs on battery, not mains.
 4. Every electrode lead carries a series current-limiting resistor and
    protection clamps. Measurement only; nothing on this path stimulates.
-5. Skin contacts are nickel-free: printed carbon-TPU or stainless steel.
+5. Skin contacts are titanium: ISO 7380 M2.5 Grade 5 button heads
+   (plan v2 §5.7; Rolf, 2026-09-17).
 6. The decoder output remains `(symbol, confidence, timestamp)`. The harness
    does not change for hardware reasons.
 7. Raw samples and timestamps are saved for every session as the permanent
@@ -90,9 +98,12 @@ masseter), satisfying the harness's independence rule inside one device.
 Debug loud, operate quiet: each stage brings up hardware on large, easy
 signals before moving to the small covert ones.
 
-**Stage A - bench amplifier, one channel.** A protoboard biopotential
+**Stage A - bench amplifier, one channel.** Superseded 2026-09-17 as
+the bench: plan v2 (`docs/fab/plan-v2.md`) benches on the assembled
+board with gel electrodes on a desk stand, not this breadboard. See
+"Plan v2 decisions (2026-09-17)". A protoboard biopotential
 amplifier proven on a large forearm contraction, then pointed at the
-auricular site. Exit criteria: a live envelope visibly tracking deliberate
+auricular site. The 2026-08-13 text follows. Exit criteria: a live envelope visibly tracking deliberate
 contraction in `elicio scope`; a captured auricular session replayed through
 `elicio replay-recording` completing one verified harness action. That
 replay is the project's first real biological signal completing a real
@@ -117,6 +128,10 @@ if available; clench confirmation). Only after Stage D does multi-channel
 ADS1299-class acquisition or ear-EEG deserve discussion.
 
 ## Stage A circuit design
+
+Superseded 2026-09-17 as the bench circuit: plan v2 acquisition is the
+ADS1292 on the assembled board (D-6). This section is the 2026-08-13
+breadboard. See "Plan v2 decisions (2026-09-17)".
 
 Signal chain, one channel, three skin contacts (two signal over the muscle,
 one reference on the mastoid or another bony site):
@@ -219,6 +234,7 @@ The rest of this section is the 2026-08-13 record.
 Recorded 2026-08-13: the owner does not own a 3D printer. This changes
 nothing before Stage B, and Stage A is entirely unaffected because it is
 breadboard, modules, and gelled electrodes with no fabricated part in it.
+Superseded 2026-09-17 as the bench: plan v2 has no breadboard Stage A.
 
 Stage B needs two things made: a shell that holds the pod behind the ear,
 and skin contacts. Three routes, none of which require owning a printer:
@@ -234,6 +250,8 @@ and skin contacts. Three routes, none of which require owning a printer:
    stainless steel contacts. Off-the-shelf stainless or gold-plated dry
    electrode discs remove the conductive-filament problem, at the cost of
    giving up the conformal fit that carbon-TPU buys on curved skin.
+   Superseded 2026-09-17: requirement 5 is titanium; this route is
+   history. See "History" and "Plan v2 decisions (2026-09-17)".
 3. **Shape the shell by hand.** Moldable polycaprolactone thermoplastic
    softens in hot water, is shaped by hand, sets rigid, and remelts if the
    fit is wrong. For a one-off prototype whose geometry is unknown until
@@ -256,17 +274,23 @@ lives in build123d, headless, exporting native STEP from
 natural grey, duties prepaid. Skin contacts are three titanium ISO 7380
 M2.5 button heads (4.7 mm domes), rigid through a 1.5 mm wall. The first
 order is a provisional passive fit gauge for Rolf's ear, not the
-electronics. Wear and purchase sit on release states S0 to S4. Nothing
+electronics. Superseded 2026-09-17: plan v2 orders no gauge (D-7, Q29).
+Fit is measurements plus a paper template. See "Plan v2 decisions
+(2026-09-17)". Wear and purchase sit on release states S0 to S4. Nothing
 here buys anything: agents do not purchase, upload, quote, or contact a
 vendor. Purchases stay Rolf's explicit approval.
 
 `docs/fab/plan.md` is the Phase 1 contract (revision 5, signed off by
 GPT-6 Pro at commit `0c5d0eb`). The review record is `tasks/plan/turns/`.
+Plan v2 (`docs/fab/plan-v2.md`, signed off at `ef369bd`) supersedes the
+named sections. See "Plan v2 decisions (2026-09-17)" and Q37.
 
 Skin side is PA12 and titanium. Cleaning is a 70 % isopropanol wipe
 after each wear. The pod runs on battery only: no connector, no port;
 charging is off the ear with the lid removed. Each contact reaches the
 board only through its own lead, series resistor, and clamp.
+Superseded 2026-09-17 as the contact joint: plan v2 uses no lugs and no
+wires (D-3, Q39). Path: titanium dome, screw, standoff, gold pad.
 
 ### Conflicts resolved
 
@@ -274,7 +298,8 @@ Each item below is one decision from the plan's §2, with the reason.
 
 1. **Battery.** The cell is a 501015, 50 mAh. Seven hours of streaming
    covers a session. A 30 mm 100 mAh cell forces stacking past 10 mm,
-   and 110 mAh was a pricing box, not a fit.
+   and 110 mAh was a pricing box, not a fit. Superseded 2026-09-17 as
+   the only cell: plan v2 names Data Power DTP301120 (D-4, Q40).
 2. **Envelope.** The body is 48.4 × 17.0 × 9.0 mm plus hook, derived in
    the plan's §5. L4's 16 × 9.5 mm islands cannot carry the 15.5 × 10.5
    mm module; L2's box was for quoting; L1 assumed no contact hardware.
@@ -282,7 +307,8 @@ Each item below is one decision from the plan's §2, with the reason.
 3. **Contact metal.** Titanium only. The brief and this record require
    nickel-free skin contacts; 316L is 10–14 % nickel, and gold flash over
    nickel wears through. Changing requirement 5 is Rolf's, outside the
-   plan.
+   plan. Superseded 2026-09-17: Rolf answered titanium (Q28, Q49).
+   Requirement 5 now reads Grade 5 ISO 7380 M2.5 button heads.
 4. **Contact size.** ISO 7380 M2.5, 4.7 mm dome. Other sizes are an
    interface v2 change. Over 4.7 mm the exploratory pressure is 17–23
    kPa; every millimetre of nut keep-out costs body length.
@@ -294,7 +320,8 @@ Each item below is one decision from the plan's §2, with the reason.
    at the tail tip, and two nubs. Nothing sits inside the cavity. Tape
    is the passive fallback. The first lid is the snap test article.
 7. **Gauge material.** MJF PA12, same as order 2. The gauge spends hours
-   on skin, so resin is out.
+   on skin, so resin is out. Superseded 2026-09-17: plan v2 prints no
+   gauge (D-7).
 8. **Montage.** Signal pair at 22° off the body axis, 12 mm pitch;
    reference on the tail over the mastoid surface. WP7a fixes positions.
    A 17 mm face cannot hold a horizontal pair, and the mastoid tip sits
@@ -307,6 +334,8 @@ Each item below is one decision from the plan's §2, with the reason.
 11. **Ear capture.** A generic shell from caliper numbers M1–M8, each
     with a default; defaults only give a provisional gauge. An impression
     waits for Stage C. The gauge costs about $40 and tests the real ear.
+    Superseded 2026-09-17 as a printed gauge: plan v2 uses M1–M8 plus a
+    1:1 paper template (D-7, Q29).
 12. **Shipping.** Standard DDP for order 1, DHL for order 2. Order 1 is
     not on the critical path.
 13. **Shells and PCB.** Separate parcels. They are different tariff
@@ -323,6 +352,9 @@ Each item below is one decision from the plan's §2, with the reason.
 Order 1 is the provisional gauge set, allowance $30–44 with standard
 shipping. Order 2 is two Stage B bodies, verified titanium hardware, and
 a nickel test kit, allowance about $130, after the §9 gates.
+Superseded 2026-09-17 as the order sequence: plan v2 is board and small
+parts, then bench, then shell, each once (D-7). The ledger is
+`docs/fab/orders-v2.md`.
 
 ### Release states
 
@@ -333,6 +365,10 @@ a nickel test kit, allowance about $130, after the §9 gates.
 | S2 assembled | Bench only | Reviewed schematic with three separately protected paths; assembled inspection; battery-powered leakage and continuity check; DMG screen |
 | S3 validation wear | Only the sessions WP7a prescribes, at most 4 h per day | S2 pass; protocol unchanged since S1 |
 | S4 routine use | Daily wear; decoder mapping promotion per this record | All WP7a criteria pass, including three days and background activities |
+
+Superseded 2026-09-17 as the release sequence: plan v2 §10 is S0 files
+through S6 routine use, with no printed gauge. See "Plan v2 decisions
+(2026-09-17)".
 
 Fail at S3 returns to S2. Changed contacts, coordinates, or shell void
 the affected S0 and S3 observations.
@@ -356,14 +392,212 @@ until Rolf rules.
 Three facts changed the design's shape.
 
 A crimp ring lug does not end under its pad. The drawings are in
-`docs/fab/contacts.md` §8.
+`docs/fab/contacts.md` §8. Superseded 2026-09-17 as the contact joint:
+plan v2 uses no lugs (D-3, Q39).
 
 Only the 3 mm wider body closes the packing on that lug, pending Rolf.
-The layouts are in `docs/fab/packing-options.md`.
+The layouts are in `docs/fab/packing-options.md`. Superseded 2026-09-17
+as packing on a lug: plan v2 packing is WP11 on standoffs (D-1, Q38).
 
 No published cell pack fits folded, so the plan's hand fold stands until
 a cell is measured. The SKUs that were read are in
-`docs/fab/interface.md` §5.
+`docs/fab/interface.md` §5. Superseded 2026-09-17 as the only cell: plan
+v2 names DTP301120 (D-4, Q40).
+
+## Plan v2 decisions (2026-09-17)
+
+Plan v2 (`docs/fab/plan-v2.md`) was signed off at `ef369bd`. Each
+decision below appears once. The reading is from
+`docs/fab/open-questions.md` Q37 to Q55. Where Rolf still owes an
+answer, the paragraph says waits for Rolf.
+
+### Q37 — Which plan governs
+
+Plan v2 governs WP11 to WP17 and supersedes the v1 sections it names:
+orders and their sequence, the contact joint, the board and bench, the
+states, and the ledger. Every other v1 section stands. For those
+packages, "the plan wins" means plan v2.
+
+### D-1 — Thickness (Q38)
+
+Rolf picked thin. Thin (4.5 mm cavity) is expected to fail with the
+board on standoffs; the stack over the module is 6.0 to 7.3 mm before
+clearance, so the body lands between 9.0 and 9.8 mm outer. WP11's table
+says which layouts close. The build follows that table. Rolf accepts
+the number when he sees the renders. This waits for Rolf. The table
+closed thin: see Q51.
+
+### D-2 — Gates then objectives (Q47)
+
+Gates G1 to G8 pass or fail with evidence; none is waived. Among
+survivors the objectives are, in order: smallest body height, then
+fewest of Rolf's tools and steps, then lowest delivered cost. The §10
+residual-risk list is accepted before S1. This waits for Rolf.
+
+### D-3 — Contact joint (Q39)
+
+Interface I is the candidate: the board is pulled onto three brass
+standoff tops by its own screws and meets each top with an 8 × 8 mm
+gold pad; the populated board is the spring. The path is skin, titanium
+dome, screw thread, standoff, gold pad, board. There are no discrete
+spring contacts, no wires, no lugs, and no solder by Rolf. Interface I
+is unqualified until G7 passes. Interface II (flex under the standoffs)
+is the fallback. SMD spring contacts are research only (C16).
+Interface I did not close: see Q50.
+
+### Q43 — Standoff height and part
+
+The default candidate is the 4.0 mm Harwin R25-1000402 (manufacturer
+drawing DRG-01991; DigiKey 952-2175-ND showed stock on 2026-09-17). The
+alternative is the 3.0 mm Spacer Express LAI-FF-M2.5-SW5-L3-100, sold
+per 100. A 3.5 mm match is sourcing-open. Both verified pages are
+nickel-plated brass; the pressure pair is nickel on gold, to be
+qualified under G7.
+
+### D-4 — Cell and charger (Q40)
+
+The cell is Data Power DTP301120 (SparkFun PRT-25270): 40 mAh; 3.2 ×
+11.5 × 22 mm maximum with protection; maximum continuous charge 40 mA;
+charge 0–45 °C; over-discharge protection at 2.4 V, all from its sheet.
+The charger is a BQ25100 4.20 V variant at about 20 mA, with
+termination and timers active and TS a fixed 10 kΩ to VSS; the
+temperature window is by procedure. The exact harness revision is gate
+G1b: SparkFun's page says JST-SH and the linked drawing says JST-PHR,
+so no footprint is frozen until one document settles it. The cell
+itself is reopened by Q55.
+
+### D-5 — Electrode boundary (Q41)
+
+R7 as rewritten is a proposed change for Rolf's informed acceptance.
+The circuit has no galvanic isolation between USB-connected circuitry
+and its electrode paths. All skin-connected use, including the gel
+bench, is battery-only with external power, data and debug disconnected.
+The 220 kΩ on every contact path is a per-path bound only (23 µA is the
+5 V calculation for one intact path, not a total or single-fault claim).
+The VBUS supply gate is an inhibit, not isolation. Charging is on a
+desk from a battery power bank that is not itself plugged in, or a
+listed Class II 5 V adapter. This waits for Rolf.
+
+### D-6 — Firmware and protocol
+
+Streaming firmware uses the §6 frame contract. The factory image is an
+Adafruit-style UF2 bootloader with SoftDevice. Application firmware
+loads by file copy over USB, off the ear. The protocol v2 table is
+written before dry data.
+
+### Q45 — Firmware base
+
+WP13 chooses between the Adafruit nRF52 Arduino core built with
+arduino-cli and Zephyr, both free and installable without sign-up, with
+the reason in its report. The Adafruit UF2 bootloader is the factory
+image either way. The frame contract v2 is written before code. WP13
+chose Arduino: see Q52.
+
+### D-7 — Order sequence
+
+Orders are the board and small parts, then bench on that board, then
+the shell; each once. Sites used for the shell are only inside the
+stated region. There is no simultaneous shell order and no printed
+gauge.
+
+### D-8 — Vendors and country (Q44)
+
+JLC is a candidate, not a winner. Each order carries one US route as
+quote-only (board: MacroFab or Screaming Circuits; shell: Xometry).
+Until Rolf answers Q36, the reading is JLCPCB standard PCBA, 4-layer
+1.0 mm ENIG, the smallest assembled quantity its page allows, JLC3DP
+for the shell, and DDP checkout figures in the ledger. Delivery is
+Massachusetts, assumed until he confirms. This waits for Rolf on the
+country.
+
+### Q42 — Radio module
+
+The radio is a module with the RF inside it: A, Raytac MDBT50Q-1MV2, or
+B, Ebyte E73-2G4M08S1C. The XIAO is out. WP11's table decides on
+envelope. Until then WP12's schematic is designed for the Raytac
+footprint with the E73 footprint in the library and its pin mapping
+documented, not placed.
+
+### Q46 — Tools on Rolf's Mac
+
+The board lane installs KiCad 10.0.6 by Homebrew cask and the firmware
+lane installs its toolchain the same way. Both are free software with
+no accounts. Rolf can veto, and the lanes record what they installed.
+This waits for Rolf.
+
+### Q48 — First firmware load
+
+The kit is Tag-Connect TC2030-IDC-NL and the Raspberry Pi Debug Probe
+($33.95 and $12.00 listed, $45.95 together) unless WP17 finds JLC's programming service
+catalogue-priced without a quote request. Completion time is recorded
+at the first off-body execution, not promised.
+
+### Q49 — Requirement 5
+
+Rolf answered titanium on 2026-09-17 (Q28). Requirement 5 in this file
+now names ISO 7380 M2.5 Grade 5 button heads. The old stainless and
+carbon-TPU wording is in History.
+
+### Q50 — Contact interface
+
+No interface I layout closes in WP11's matrix (0 of 720 after review
+r5): no cell fits under a 3.0 or 3.5 mm standoff without carrying the
+board, and the REF site lies past the end of any rigid board. The build
+uses interface II, the plan v2 §5.3 fallback: a 2-layer polyimide flex
+with FR4 stiffeners, whose three ring pads are clamped between the floor
+and the brass standoffs by the titanium screws, with the board resting on
+the standoff tops. Interface II carries its own qualification (G7) and
+JLC's flex fixture fee (C7). Interface I stays in `docs/fab/board-v2.md`
+as the rejected candidate with its reason. Rolf can override.
+
+### Q51 — USB face and body size
+
+The closing layouts put the USB-C on the hook-end end face, the plan v2
+§5.4 fallback, not the medial face. That changes only R7's ergonomic
+deterrent; the disconnection procedure and G2 stand, and the position
+goes on the residual-risk list. The smallest body that closes is 20 mm
+wide with LID_Y 8.0, outer 9.0, the v1 full body, so thin is closed.
+Q38 stays Rolf's: he accepts the number when he sees the renders.
+
+### Q52 — Firmware base
+
+WP13 built on the Adafruit nRF52 Arduino core with arduino-cli (Q45),
+and that stands for S0 to S2: the Adafruit UF2 bootloader is the factory
+image either way, BLE NUS is built in, and no Nordic account is needed.
+Plan v2 §6 still names the nRF Connect SDK; that is an erratum of the
+signed plan, recorded here and not edited there. A Zephyr port is needed
+only if S2 shows a problem the core cannot fix. V_STOP and V_START are
+WP12's 3.00 V and 3.20 V; review r5 replaced the lane's placeholders.
+
+### Q53 — Firmware tools on Rolf's Mac
+
+WP13 installed about 3.8 GB: arduino-cli, the Adafruit nRF52 core
+(1.3 GB), the Arm GNU Toolchain cask (1.0 GB), an unused
+`arm-none-eabi-gcc` formula (540 MB) with binutils, and Rosetta 2 for
+the core's x86_64 tools. `brew uninstall arm-none-eabi-gcc` removes the
+unused formula; no agent removes it. Whether Rosetta 2 stays is Rolf's
+call. This is for Rolf's information.
+
+### Q54 — Raytac sourcing
+
+When WP17 read JLC's parts library, the Raytac MDBT50Q-1MV2 was out of
+stock and the Ebyte E73 was stocked, but only the Raytac closes in
+packing. The board stays designed for the Raytac. Sourcing is a ledger
+line with two routes: JLC global sourcing if the part is quotable there
+without a request, otherwise consignment, where Rolf buys the modules
+at DigiKey or Mouser and ships them to JLC, which adds one parcel and
+JLC's consignment fee, both taken from pages.
+
+### Q55 — Cell
+
+The closing layouts use plan v1's 501015 cell, and nobody has verified
+buying one in ones (Q18). The buyable DTP301120 is 22 mm long and closes
+in no layout at the v1 length. Gate G1 decides the cell: before S0,
+either a 501015-class pack with a page price, stock and a drawing in
+ones, or a WP11b re-run with the body 1.5 and 3.0 mm longer for the DTP
+in series under interface II. WP11b runs those longer cases either way,
+so the decision has numbers. The charger in D-4 stands. Rolf sees the
+length trade in the renders.
 
 ## Open questions
 
@@ -383,7 +617,9 @@ a cell is measured. The SKUs that were read are in
    WP1 then WP6). The board itself stays out of the shell plan. Status
    2026-09-17, electronics fit: WP6 ran the packing options against the
    real lug; the result is in `docs/fab/packing-options.md`. The pick is
-   Rolf's (`docs/fab/open-questions.md` Q20).
+   Rolf's (`docs/fab/open-questions.md` Q20). Superseded 2026-09-17 as
+   the breadboard bench and the lug packing: plan v2 benches on the
+   assembled board (Q31, D-7) and picks the radio in WP11 (Q42).
 4. Dry-electrode contact geometry behind the ear, where skin curvature
    is tighter than the forearm geometries in the cited papers. Constrained
    by the fabrication route chosen below. Answered 2026-09-16 by the
@@ -393,4 +629,7 @@ a cell is measured. The SKUs that were read are in
    wait on the WP7a montage test. Status 2026-09-17: the plan §3.3
    defaults stand until WP7a part 2, which waits on the Stage A parts
    (`docs/fab/montage.md` §1). The reference site is checked when the
-   gauge is worn (`docs/fab/open-questions.md` Q17).
+   gauge is worn (`docs/fab/open-questions.md` Q17). Superseded
+   2026-09-17 as a printed-gauge check: plan v2 has no gauge; the
+   reference "on bone" stands provisionally (Q28) and is checked on the
+   paper template and at S2.

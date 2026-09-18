@@ -254,7 +254,9 @@ class CadRegenTests(unittest.TestCase):
             "placement_C.svg",
             "placement_E.svg",
         }
-        self.assertEqual(committed, expected | {"manifest.json"} | placement | set(ARTWORK))
+        v2_drawings = {p.name for p in MANIFEST.parent.glob("placement_v2_*.svg")}
+        self.assertGreaterEqual(len(v2_drawings), 1)
+        self.assertEqual(committed, expected | {"manifest.json"} | placement | set(ARTWORK) | v2_drawings)
         for name, meta in manifest["files"].items():
             with self.subTest(committed=name):
                 self.assertEqual(
@@ -735,6 +737,142 @@ class CadStageBBuildTests(unittest.TestCase):
                 self.assertTrue(row["passed"], name)
         self.assertNotIn("views", payload)
         load_manifest_mod().validate(payload)
+
+
+class CadStageBV2Tests(unittest.TestCase):
+    def test_v2_packing_uses_width_20_and_lid_8(self) -> None:
+        params = stage_b_params(
+            {
+                "PACKING": "v2",
+                "V2_ARCH": "A",
+                "V2_CELL": "501015",
+                "V2_LAYOUT": "series",
+                "V2_WIDTH": 20.0,
+                "V2_LID_Y": 8.0,
+                "V2_IFACE": "II",
+                "V2_STANDOFF": 3.0,
+            }
+        )
+        self.assertEqual(params["PACKING"], "v2")
+        self.assertAlmostEqual(params["BODY_WIDTH"], 20.0)
+        self.assertAlmostEqual(params["BODY_ARC"], 48.4)
+        self.assertAlmostEqual(params["LID_Y"], 8.0)
+        self.assertAlmostEqual(params["BODY_THICK"], 9.0)
+        self.assertAlmostEqual(params["TOTAL_CHORD"], 47.9005, places=3)
+
+    def test_v2_pre_cad_records_not_measured_tab_gap(self) -> None:
+        params = stage_b_params(
+            {
+                "PACKING": "v2",
+                "V2_ARCH": "A",
+                "V2_CELL": "501015",
+                "V2_LAYOUT": "series",
+                "V2_WIDTH": 20.0,
+                "V2_LID_Y": 8.0,
+                "V2_IFACE": "II",
+                "V2_STANDOFF": 3.0,
+            }
+        )
+        rows = {c.name: c for c in CAD.run_pre_cad_checks(params)}
+        tab = rows["TAB_envelope_air pre-CAD"]
+        self.assertFalse(tab.passed)
+        self.assertTrue(tab.detail.startswith("NOT_MEASURED"))
+        q21 = rows["Q21_REF_lug pre-CAD"]
+        self.assertTrue(q21.passed)
+        self.assertIn("brass standoff", q21.detail)
+        # Review r5: ring 0.31 + standoff 3.0 on the floor, no DIN 439 nut.
+        self.assertAlmostEqual(q21.numbers["stack_top_y"], 4.81)
+        self.assertAlmostEqual(q21.numbers["tip_below_top"], 0.81)
+
+
+STAGE_B_V2_FILE = ROOT / "scripts" / "cad" / "params" / "stageb_v2.toml"
+
+
+@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+class CadStageBV2BuildTests(unittest.TestCase):
+    """Winner layout measured on the order-1 construction path."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.params = stage_b_params(
+            {
+                "PACKING": "v2",
+                "V2_ARCH": "A",
+                "V2_CELL": "501015",
+                "V2_LAYOUT": "series",
+                "V2_WIDTH": 20.0,
+                "V2_LID_Y": 8.0,
+                "V2_IFACE": "II",
+                "V2_STANDOFF": 3.0,
+            }
+        )
+        cls.body, cls.lid, cls.path, cls.notes = CAD.build_body_and_lid(cls.params)
+
+    def test_v2_solid_checks_include_measured_envelopes(self) -> None:
+        checks = CAD.run_stage_b_solid_checks(
+            self.body,
+            self.lid,
+            self.path,
+            self.params,
+            self.notes["stage_b_cuts"],
+            raise_on_fail=False,
+        )
+        rows = {c.name: c for c in checks}
+        for name in (
+            "V2_CELL_envelope",
+            "V2_MODULE_envelope",
+            "V2_BOARD_envelope",
+            "V2_TAB_envelope",
+            "V2_CONTACT_STACK",
+            "V2_LID_band",
+            "V2_WALL_minima",
+            "V2_TOTAL_CHORD",
+            "V2_M1_gate",
+            "V2_STANDOFF",
+            "V2_ADJUSTMENT",
+            "V2_USB_medial",
+            "V2_HARNESS",
+            "V2_BOSS",
+            "V2_CELL_CLEARANCE",
+            "V2_STACK",
+            "V2_RECESS",
+        ):
+            self.assertIn(name, rows)
+            self.assertFalse(
+                rows[name].detail.startswith("NOT_MEASURED") and rows[name].passed,
+                name,
+            )
+        self.assertAlmostEqual(rows["V2_TOTAL_CHORD"].numbers["TOTAL_CHORD"], 47.9005, places=3)
+        self.assertTrue(rows["V2_M1_gate"].passed)
+        self.assertTrue(rows["Q21_REF_lug"].passed)
+        self.assertIn("body_mm3", rows["V2_BOARD_envelope"].numbers)
+        self.assertIn("body_mm3", rows["V2_CELL_envelope"].numbers)
+        # packing-v2.md §6 prints STAGE_B_V2_MEASURED; it must be this build.
+        v2 = CAD.load_placement()._v2()
+        for name, (status, nums, _text) in v2.STAGE_B_V2_MEASURED.items():
+            with self.subTest(check=name):
+                row = rows[name]
+                if status == "NOT_MEASURED":
+                    self.assertTrue(row.detail.startswith("NOT_MEASURED"), row.detail)
+                    self.assertFalse(row.passed)
+                else:
+                    self.assertEqual(row.passed, status == "pass", row.detail)
+                for key, value in nums.items():
+                    self.assertAlmostEqual(row.numbers[key], value, places=3, msg=key)
+
+    def test_two_consecutive_v2_stage_b_runs_are_identical(self) -> None:
+        cmd = [sys.executable, str(SCRIPT), "--params", str(STAGE_B_V2_FILE)]
+        hashes = []
+        for _ in range(2):
+            with tempfile.TemporaryDirectory() as temp_dir:
+                dest = Path(temp_dir)
+                done = subprocess.run(cmd + ["--out", str(dest)], capture_output=True, text=True)
+                self.assertIn(done.returncode, (0, CAD.STAGE_B_NOT_PASSED_EXIT), done.stderr)
+                payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+                hashes.append(payload["files"])
+                self.assertEqual(payload["packing"], "v2")
+                load_manifest_mod().validate(payload)
+        self.assertEqual(hashes[0], hashes[1])
 
 
 if __name__ == "__main__":
