@@ -73,6 +73,26 @@ blocks the merge; all sit before WP8 proper (order 2).
 | Q35 | "this will come put together right?": Rolf expects a finished device; no vendor assembles a printed shell, a board, screws and a cell into one piece | Plan v2 rule: final assembly by Rolf with a small screwdriver only. No soldering, no glue, no crimping. The contact screws press onto board pads (spring fingers or pogo pins over the nut ends), the cell has a plug, the lid snaps, firmware loads over USB by drag and drop. This favours a Seeed XIAO carrier over a bare module | plan v2 | decided, coordinator's reading |
 | Q36 | "do we actually have to get it from china?": JLC3DP and JLCPCB are in China; the plan chose them on price and speed for quantity one | No. Plan v2 quotes JLC and one non-China alternative per order (print: Craftcloud, Sculpteo, i.materialise or Xometry; assembled board: Aisler or Eurocircuits in Europe, MacroFab or Screaming Circuits in the US) with prices from pages. JLC stays the default until Rolf says "not China". His country is needed for shipping and duties and is asked | Rolf in chat | open, **Rolf** |
 
+## Round 5b (plan v2 signed off, 2026-09-17 evening)
+
+`docs/fab/plan-v2.md` was signed off by GPT-6 Pro at turn 10 (`tasks/plan-v2/turns/10-pro.md`, "SIGNED OFF WITH EDITS"); turn 11 applied the edits (`ef369bd`). Its decisions D-1 to D-8 and the gates become the questions below. Coordinator readings are what the build follows; rows marked **Rolf** wait for him.
+
+| # | Question | Reading the build follows | Owner |
+|---|---|---|---|
+| Q37 | Which plan governs which package | Plan v2 governs WP11 to WP17 and supersedes the v1 sections it names (orders and their sequence, the contact joint, the board and bench, the states and the ledger). Every other v1 section stands, and `tasks/phase1-common.md`'s rule "the plan wins" now means plan v2 for those packages | Coordinator |
+| Q38 | D-1 thickness: Rolf picked thin | Thin (4.5 cavity) is expected to fail with the board on standoffs (stack 6.0 to 7.3 over the module before clearance); the body lands between 9.0 and 9.8 outer, WP11's table says where. The build follows the table; Rolf accepts the number when he sees the renders | **Rolf** (informed by WP11) |
+| Q39 | D-3 contact joint | Interface I, the board pulled onto three standoff tops by its own screws with 8 × 8 gold pads, under the §5.3 acceptance contract; an unqualified candidate until G7 (WP12 drawing and analysis, WP14 datum chain); interface II (flex under the standoffs) is the fallback; SMD spring contacts are research only (C16) | Coordinator |
+| Q40 | D-4 cell and charger | DTP301120 (SparkFun PRT-25270) with a BQ25100 4.20 V variant at about 20 mA, termination and timers active, TS fixed 10 kΩ to VSS, the 0 to 45 °C window by procedure. The connector family (JST-SH per the page, JST-PH per the legacy drawing) is G1b: WP17 verifies, WP12 places SH and keeps PH as an alternate | Coordinator; G1b open |
+| Q41 | D-5 R7 as rewritten | Battery-only while worn or gelled; charging on a desk from a power bank not itself plugged in or a Class II adapter; 220 kΩ per path is a per-path bound only; the supply gate is an inhibit, proved or withdrawn; residual exposure named. This is a proposal Rolf must accept in writing before S1; the answer sheet v3 will state it in plain words | **Rolf** |
+| Q42 | Radio module A or B | WP11's table decides on envelope. Until then WP12's schematic is designed for the Raytac MDBT50Q-1MV2 footprint with the E73-2G4M08S1C footprint in the library and its pin mapping documented, not placed | Coordinator |
+| Q43 | Standoff height and part | Default candidate 4.0 mm Harwin R25-1000402 (manufacturer drawing DRG-01991, DigiKey 952-2175-ND showed stock on 2026-09-17); alternative 3.0 mm Spacer Express LAI-FF-M2.5-SW5-L3-100 sold per 100; 3.5 mm is sourcing-open. Both are nickel-plated brass; the pressure pair is nickel on gold, to be qualified under G7 | Coordinator |
+| Q44 | Board vendor and quantity; China or not (Q36) | Until Rolf answers Q36: JLCPCB standard PCBA, 4-layer 1.0 mm ENIG, the smallest assembled quantity its page allows (WP17 quotes the page), spare bare boards if the panel gives them; JLC3DP for the shell; DDP checkout figures in the ledger. WP17 lists US alternatives with catalogue prices, no quote requests | **Rolf** for the country; coordinator for the rest |
+| Q45 | Firmware base | WP13 chooses between the Adafruit nRF52 Arduino core built with arduino-cli and Zephyr, both free and installable without sign-up, with the reason in its report; the Adafruit UF2 bootloader is the factory image either way; the frame contract v2 is written before code | Coordinator |
+| Q46 | Tools installed on Rolf's Mac | The board lane installs KiCad 10.0.6 by Homebrew cask (about 1.5 GB) and the firmware lane installs its toolchain the same way; both free software, no accounts. Rolf can veto and the lanes record what they installed | **Rolf** (veto), coordinator otherwise |
+| Q47 | Objectives order and residual risks | After the gates: height, then Rolf's burden, then cost (plan v2 §4); the §10 residual-risk list is accepted before S1 | **Rolf** |
+| Q48 | First load: factory or kit | The kit (Tag-Connect TC2030-IDC-NL and the Raspberry Pi Debug Probe, $45.95 listed) unless WP17 finds JLC's programming service catalogue-priced without a quote request; completion time is recorded at the first off-body execution, not promised | Coordinator |
+| Q49 | Requirement 5 | Titanium (Rolf, Q28); WP16 edits `docs/EARPIECE_DESIGN.md` requirement 5 and records the v2 decisions once each | Coordinator |
+
 ## For Rolf
 
 Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
@@ -92,3 +112,8 @@ Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
 - Q34 M1 and the other measurements; nothing prints before M1.
 - Q30 what "prettier" means: look, colour, a reference photo or link.
 - Q36 China or not, and which country he is in.
+- Q38 accept the body height WP11 measures (thin does not close with a board on standoffs).
+- Q41 accept R7 as rewritten (battery-only while worn; charging on a desk).
+- Q44 with Q36: China (JLC) or a US board house at a higher price.
+- Q46 veto, if you want, KiCad and a firmware toolchain being installed on your Mac.
+- Q47 the order of objectives after the gates, and the residual-risk list in plan v2 §10.
