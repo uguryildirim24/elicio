@@ -2080,6 +2080,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run WP11b Jauch LP501218JH series under interface II (BODY_ARC and arc-plus)",
     )
+    parser.add_argument(
+        "--buyable-ext",
+        action="store_true",
+        help="run WP11b bigger-box series for DTP301120 and LP501218JH",
+    )
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
     if args.packing_doc:
@@ -2115,6 +2120,19 @@ def main(argv: list[str] | None = None) -> int:
             print(
                 f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
                 f"first={row.first_conflict}"
+            )
+        return 0
+    if args.buyable_ext:
+        v2 = _v2()
+        rows = v2.run_buyable_ext()
+        packed = sum(1 for r in rows if v2.packs_outside_brief_box(r))
+        print(f"buyable-ext runs={len(rows)} packed={packed} closed={sum(1 for r in rows if r.closes)}")
+        for row in rows:
+            pc = v2.packing_conflicts(row)
+            first = "—" if not pc else pc[0]
+            print(
+                f"{row.spec.tag} packs={int(not pc)} chord={row.total_chord:.2f} "
+                f"outer={row.outer_at_lid:.1f} first={first}"
             )
         return 0
     if args.all or args.kept_drawings or args.all_drawings:
