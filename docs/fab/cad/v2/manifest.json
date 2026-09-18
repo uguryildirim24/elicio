@@ -2070,12 +2070,12 @@
   },
   "views": {
     "drawing.pdf": {
-      "bytes": 74229,
-      "sha256": "c59de952f844dee90a7ced70626a49ad4fb1f8166d8bd7823df0941d4635ff6d"
+      "bytes": 74272,
+      "sha256": "42957eba6e90385f4c478b0153683818b69b728bc225e87bef95157a84755c8c"
     },
     "render_lateral.png": {
-      "bytes": 120419,
-      "sha256": "a0634fb86354644911264b2b824a8214cdbe2a9c7cc253f71f2751c094a1a945"
+      "bytes": 124723,
+      "sha256": "bc2587f8c65adbc8f39abf6711d5286b66241eb7f578b7c87d7569c9c2b2a74e"
     },
     "render_medial.png": {
       "bytes": 124685,
