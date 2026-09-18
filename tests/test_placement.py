@@ -736,6 +736,33 @@ class PlacementWP11bTests(unittest.TestCase):
         doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
         self.assertIn("## 1d. Bigger body for the two buyable cells (WP11b note 2)", doc.read_text(encoding="utf-8"))
 
+    def test_l7_packs_winner_17mm_fails_and_501012_closes_at_w19(self) -> None:
+        rows = self.v2.run_pack_cells()
+        self.assertEqual(len(rows), 144)
+        self.assertEqual(len(self.v2.pack_cell_specs()), 144)
+        self.assertAlmostEqual(self.v2.CELL["pack501015"]["l"], 17.0)
+        self.assertAlmostEqual(self.v2.CELL["pack501012"]["l"], 13.0)
+        p15 = [r for r in rows if r.spec.cell == "pack501015"]
+        p12 = [r for r in rows if r.spec.cell == "pack501012"]
+        self.assertEqual(len(p15), 72)
+        self.assertFalse(any(r.closes for r in p15))
+        overlay = self.v2.winner_with_pack501015()
+        self.assertFalse(overlay.closes)
+        self.assertEqual(overlay.first_conflict, "BQ25100 overlaps header")
+        self.assertAlmostEqual(overlay.total_chord, 47.9005, places=3)
+        closed = [r for r in p12 if r.closes]
+        self.assertEqual(len(closed), 8)
+        best = min(
+            closed,
+            key=lambda r: (r.spec.width, r.spec.lid_y, r.spec.arc_plus, r.spec.standoff, r.total_chord),
+        )
+        self.assertEqual(best.spec.tag, "A_pack501012_series_w19_y8_iII_s3")
+        self.assertAlmostEqual(best.spec.width, 19.0)
+        self.assertAlmostEqual(best.total_chord, 47.9005, places=3)
+        self.assertAlmostEqual(best.outer_at_lid, 9.0)
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        self.assertIn("## 1e. 501015 pack and 501012 pack under interface II (WP11b note 3, L7 §7)", doc.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()
