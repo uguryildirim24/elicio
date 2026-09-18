@@ -875,5 +875,134 @@ class CadStageBV2BuildTests(unittest.TestCase):
         self.assertEqual(hashes[0], hashes[1])
 
 
+SHELL_FILE = ROOT / "scripts" / "cad" / "params" / "shell_v2.toml"
+
+
+class CadShellV2Tests(unittest.TestCase):
+    def test_snap_strain_is_below_four_percent(self) -> None:
+        strain = CAD.snap_strain(CAD.SHELL_SNAP_L, CAD.SHELL_SNAP_T, CAD.SHELL_SNAP_Y)
+        self.assertAlmostEqual(strain, 1.5 * 1.0 * 0.5 / 64.0, places=6)
+        self.assertLessEqual(strain, 0.04)
+
+    def test_shell_overlay_sets_stage_and_winner_layout(self) -> None:
+        args = CAD.parse_args(["--params", str(SHELL_FILE), "--stage", "shell"])
+        overrides, _from_m = CAD.resolve_overrides(args)
+        overrides["STAGE"] = "shell"
+        overrides.setdefault("MOCK_CONTACTS", False)
+        params, _used = CAD.build_reference_params(
+            variant="full", preload=1.5, overrides=overrides
+        )
+        self.assertTrue(CAD.stage_is_shell(params))
+        self.assertEqual(params["PACKING"], "v2")
+        self.assertEqual(params["V2_IFACE"], "II")
+        self.assertAlmostEqual(params["V2_STANDOFF"], 3.0)
+        self.assertAlmostEqual(params["LID_Y"], 8.0)
+        self.assertAlmostEqual(params["BODY_WIDTH"], 20.0)
+        header = SHELL_FILE.read_text(encoding="utf-8")
+        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0"):
+            self.assertIn(token, header)
+
+    def test_shell_refuses_v1_and_allows_v2(self) -> None:
+        params = stage_b_params(
+            {
+                "PACKING": "v2",
+                "STAGE": "shell",
+                "V2_ARCH": "A",
+                "V2_CELL": "501015",
+                "V2_LAYOUT": "series",
+                "V2_WIDTH": 20.0,
+                "V2_LID_Y": 8.0,
+                "V2_IFACE": "II",
+                "V2_STANDOFF": 3.0,
+            }
+        )
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.assert_stage_b_out_dir(CAD.V1_DIR, params)
+        self.assertIn("v1", str(ctx.exception).lower())
+        CAD.assert_stage_b_out_dir(CAD.V2_DIR, params)
+
+
+@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+class CadShellV2BuildTests(unittest.TestCase):
+    """Wearable body on the round 5 winner. Same construction path as Stage B v2."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.params = stage_b_params(
+            {
+                "PACKING": "v2",
+                "STAGE": "shell",
+                "V2_ARCH": "A",
+                "V2_CELL": "501015",
+                "V2_LAYOUT": "series",
+                "V2_WIDTH": 20.0,
+                "V2_LID_Y": 8.0,
+                "V2_IFACE": "II",
+                "V2_STANDOFF": 3.0,
+            }
+        )
+        cls.body, cls.lid, cls.path, cls.notes = CAD.build_body_and_lid(cls.params)
+
+    def test_q59_and_new_checks_on_the_solid(self) -> None:
+        checks = CAD.run_stage_b_solid_checks(
+            self.body,
+            self.lid,
+            self.path,
+            self.params,
+            self.notes["stage_b_cuts"],
+            raise_on_fail=False,
+        )
+        rows = {c.name: c for c in checks}
+        self.assertTrue(rows["V2_TAB_envelope"].passed, rows["V2_TAB_envelope"].detail)
+        self.assertTrue(rows["REF_WIRE_envelope"].passed, rows["REF_WIRE_envelope"].detail)
+        self.assertLessEqual(rows["V2_TAB_envelope"].numbers["REF_body_mm3"], 0.005)
+        self.assertLessEqual(rows["REF_WIRE_envelope"].numbers["body_mm3"], 0.005)
+        for name in (
+            "V2_BOSS",
+            "V2_RING_seat",
+            "V2_USB_end",
+            "V2_SWITCH_reach",
+            "V2_CLOSURE",
+            "V2_EDGE_radii",
+            "V2_WALL_minima",
+        ):
+            self.assertIn(name, rows)
+            self.assertTrue(rows[name].passed, f"{name}: {rows[name].detail} {rows[name].numbers}")
+            self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
+        wall = rows["V2_WALL_minima"].numbers
+        self.assertGreaterEqual(wall["slot_wall_s_left"], 1.0)
+        self.assertGreaterEqual(wall["slot_wall_s_right"], 1.0)
+        self.assertGreaterEqual(wall["slot_floor_y"], 1.0)
+        self.assertGreaterEqual(wall["slot_clear_u"], 0.15)
+        self.assertIn("q59", self.notes)
+        self.assertIn("REF_end_wall_slot", self.notes["q59"])
+        self.assertIn("packing-v2.md", self.notes["q59"])
+
+    def test_two_consecutive_shell_runs_are_identical(self) -> None:
+        cmd = [
+            sys.executable,
+            str(SCRIPT),
+            "--params",
+            str(SHELL_FILE),
+            "--stage",
+            "shell",
+        ]
+        hashes = []
+        for _ in range(2):
+            with tempfile.TemporaryDirectory() as temp_dir:
+                dest = Path(temp_dir)
+                done = subprocess.run(
+                    cmd + ["--out", str(dest)], capture_output=True, text=True
+                )
+                self.assertEqual(done.returncode, 0, done.stderr + done.stdout)
+                payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+                hashes.append(payload["files"])
+                self.assertEqual(payload["stage"], "shell")
+                self.assertEqual(payload["winner"], CAD.SHELL_WINNER)
+                self.assertTrue(payload["provisional"])
+                load_manifest_mod().validate(payload)
+        self.assertEqual(hashes[0], hashes[1])
+
+
 if __name__ == "__main__":
     unittest.main()
