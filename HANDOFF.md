@@ -105,8 +105,13 @@ brief in full and do it", nothing owed from me until their pushes.
   end face; standoff 3.0. Open from its report: printed hex well
   oversized against the brass 5 mm across flats (G7), the hook joint
   fillet left sharp by the kernel, snap forces not computed, Q17 REF
-  dome. The 23:05 slot note may run as a second turn; a second DONE is
-  possible. The renders are the pictures Rolf approves (answer sheet Q2).
+  dome. Second `DONE WP14` at `c3c11d8`: the slot cut from
+  `packing-v2.md` §5 on `lane/w3` with 0.20 mm flex clearance;
+  `V2_TAB_envelope` and `REF_WIRE_envelope` pass on the shell solid (0.0
+  mm³), walls beside the slot 1.83 and 1.88, floor under it 1.50; Stage B
+  v2 stays unslotted and exit 3 by design. w1 idles; nothing queued. The
+  renders are the pictures Rolf approves (answer sheet Q2, version 4
+  carries the first-turn renders; the slot is inside and invisible).
 - **w3 → WP11b packing follow-ups**: LANDED, `DONE WP11b` at `284ec05`
   on `lane/w3` (two commits, tree clean, report
   `.worktrees/w3/.reports/WP11b-report.md` present, 177 tests OK, doc
