@@ -79,6 +79,8 @@ class LayoutV2c:
     fold: str = "neck"
     wall_left: float = 0.65
     hole_sites: tuple[tuple[float, float], ...] = ()
+    sig1_strip: float = 10.71
+    sig2_strip: float = 21.81
 
 
 _CACHE: dict[tuple, LayoutV2c] | None = None
@@ -528,8 +530,8 @@ def search_layout_v2c(
         cr = v2.KICAD_COURTYARD["RING_PAD_D5_H2.7"]
         pad = v2.KICAD_PAD_EXTENT["RING_PAD_D5_H2.7"]
         for ref, site, note in (
-            ("P4", charge_pad_sites(width)[0], "CHARGE_VBUS tail pad (Q81)"),
-            ("P5", charge_pad_sites(width)[1], "CHARGE_GND tail pad (Q81)"),
+            ("P4", charge_pad_sites(width)[0], "CHARGE_VBUS tail pad (Q81); RING_PAD_D5_H2.7"),
+            ("P5", charge_pad_sites(width)[1], "CHARGE_GND tail pad (Q81); RING_PAD_D5_H2.7"),
         ):
             add(
                 v2.LayoutPart(
@@ -899,6 +901,8 @@ def search_layout_v2c(
         fold=fold_name,
         wall_left=wall_left,
         hole_sites=tuple(hole_sites),
+        sig1_strip=float(fold_nums["SIG1_strip"]),
+        sig2_strip=float(fold_nums["SIG2_strip"]),
     )
 
 
@@ -947,6 +951,11 @@ def wp12d_layout(v2: Any) -> LayoutV2c | None:
     return smallest_full(run_v2c_grid(v2), "process", receptacle=True)
 
 
+def wp12d_norec_layout(v2: Any) -> LayoutV2c | None:
+    """Smallest process-edge all-64 with no receptacle that meets every rule (Q81; width 22 today)."""
+    return smallest_full(run_v2c_grid(v2), "process", receptacle=False)
+
+
 def _shortfall(lay: LayoutV2c, table: dict[str, dict[str, Any]]) -> tuple[float, list[str]]:
     leftover_parts = lay.missing
     area = 0.0
@@ -983,8 +992,9 @@ def section_5c(v2: Any) -> list[str]:
         "Q81: each edge/width/chord/side cell is run twice. With a receptacle, J1 USB-C stays "
         "on the hook-end face (Q80) and U5 stays. With no receptacle, J1 and U5 leave the BOM "
         "(64 footprints) and two charging pads sit on the tail end (same RING_PAD Ø5 as the EMG "
-        "domes, VBUS and GND). Growing the body to M1 ≥ 58.3 seats USB-C inside; dropping the "
-        "receptacle is the other reading until Rolf measures M1."
+        "domes, VBUS and GND). Q81 is settled on main: the build carries the no-receptacle "
+        "variant (width 22, chord 47.90, two sides). USB-C on the hook-end face returns if M1 "
+        "measures ≥ 58.5."
     )
     lines.append("")
     lines.append(
@@ -1135,35 +1145,50 @@ def section_5c(v2: Any) -> list[str]:
         )
         lines.append("")
 
-    w20_norec_ok = [
-        r
-        for r in rows
-        if (not r.receptacle)
-        and r.edge == "process"
-        and abs(r.width - 20.0) < 1e-9
-        and r.placed >= r.bom_n
-        and not r.missing
-        and not r.first_blocking
-    ]
-    if w20_norec_ok:
-        norec20 = min(w20_norec_ok, key=lambda r: (0 if r.sides == "top" else 1, r.chord))
-        holes = "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in norec20.hole_sites) or "—"
+    w20_norec = v2c_cell(v2, "process", 20.0, V2C_CHORD_AS_BUILT, True, False)
+    if w20_norec.placed >= w20_norec.bom_n and not w20_norec.missing and not w20_norec.first_blocking:
         lines.append(
-            f"### WP12d pin table — no-receptacle cell at width 20 that places the full BOM "
-            f"(chord {norec20.chord:.2f}, {norec20.sides} sides, fold {norec20.fold})"
+            "Process-edge at width 20, chord 47.90, two sides, with no receptacle, places all 64 "
+            "and meets every rule."
         )
         lines.append("")
-        lines.append(
-            "J1 and U5 are absent. P4 and P5 are the tail charging pads (Q81). "
-            "Every rule this table is checked against is met, including copper-to-edge ≥ 0.30. "
-            f"Hole sites (Q82, not under U1): {holes}."
-        )
-        lines.append("")
-        lines.extend(_placement_table(norec20))
     else:
         lines.append(
-            "No no-receptacle cell at width 20 places the full BOM under every rule, "
-            "so there is no second WP12d pin table from width 20."
+            "No no-receptacle cell at width 20 places the full BOM under every rule "
+            f"({w20_norec.placed}/{w20_norec.bom_n}"
+            + (f"; {w20_norec.first_blocking.split(':')[0]}" if w20_norec.first_blocking else "")
+            + ")."
+        )
+        lines.append("")
+
+    norec = smallest_full(rows, "process", receptacle=False)
+    if norec is not None:
+        holes = "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in norec.hole_sites) or "—"
+        lines.append(
+            f"### WP12d pin table — smallest all-64 with no receptacle "
+            f"(width {norec.width:g}, chord {norec.chord:.2f}, {norec.sides} sides, fold {norec.fold})"
+        )
+        lines.append("")
+        lines.append(
+            "Q81 is settled: the build carries this cell. J1 and U5 are absent. "
+            "P4 and P5 are the tail charging pads with RING_PAD_D5_H2.7 courtyards. "
+            "Every rule this table is checked against is met, including copper-to-edge ≥ 0.30. "
+            f"Hole sites (Q82, keep 3.30, not under U1; SW1 stays in the lid recess): {holes}. "
+            f"Neck-end strips (Q83): SIG1 {norec.sig1_strip:.2f} mm, SIG2 {norec.sig2_strip:.2f} mm. "
+            "Contact variant A: R1–R3 on the island. Contact sites are unchanged. "
+            "The board lane pins this table within 0.1 mm"
+            + (
+                f" if the body grows to width {norec.width:g}."
+                if norec.width > 20.0 + 1e-9
+                else "."
+            )
+        )
+        lines.append("")
+        lines.extend(_placement_table(norec))
+    else:
+        lines.append(
+            "No process-edge cell with no receptacle places all 64 under every rule, "
+            "so there is no second WP12d pin table."
         )
         lines.append("")
 
