@@ -718,6 +718,24 @@ class PlacementWP11bTests(unittest.TestCase):
         self.assertAlmostEqual(result.parts["cell"].wu, 12.5)
         self.assertAlmostEqual(result.parts["cell"].ws, 20.0)
 
+    def test_buyable_ext_108_runs_dtp_antenna_gap_is_2_65(self) -> None:
+        rows = self.v2.run_buyable_ext()
+        self.assertEqual(len(rows), 108)
+        self.assertEqual(len(self.v2.buyable_ext_specs()), 108)
+        self.assertFalse(any(r.closes for r in rows))
+        self.assertFalse(any(self.v2.packs_outside_brief_box(r) for r in rows))
+        result = self.v2.run_spec(
+            self.spec(cell="dtp", width=20.0, lid_y=9.5, arc_plus=0.0, standoff=3.0)
+        )
+        self.assertEqual(result.first_conflict, "cell to antenna zone 2.65 < 5 mm")
+        self.assertAlmostEqual(result.outer_at_lid, 10.5)
+        dtp = [r for r in rows if r.spec.cell == "dtp"]
+        self.assertTrue(
+            all(any(c.startswith("cell overlaps standoff_SIG") for c in r.conflicts) for r in dtp)
+        )
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        self.assertIn("## 1d. Bigger body for the two buyable cells (WP11b note 2)", doc.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

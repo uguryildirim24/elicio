@@ -10,6 +10,7 @@ A 0.5-deep floor recess (web 1.0 remaining) is run at 3.5 and 4.0.
 Interface II is the flex-tab fallback.
 Arc-plus for the DTP301120 under interface II is §1b (WP11b, Q55).
 The Jauch LP501218JH under interface II is §1c (WP11b, L7-research-v4.md §2).
+A bigger lid and width for the two buyable cells is §1d (WP11b note 2).
 The REF tab route search is in §5 (WP11b, Q59).
 
 ## 1. Every run at BODY_ARC 48.4
@@ -1044,6 +1045,137 @@ First-conflict families (numbers masked), failing Jauch runs:
 | cell overlaps standoff_SIG# | 2 |
 | cell to antenna zone # < # mm | 2 |
 
+## 1d. Bigger body for the two buyable cells (WP11b note 2)
+
+DTP301120 and LP501218JH only. Series, interface II, architecture A, foam 0.5, standoffs 3 and 4, BODY_ARC and arc-plus +1.5 and +3.0. LID_Y 9.5, 10.0 and 10.5; widths 20, 21 and 22. Conflict logic is the round 5 checker (no new constants). 108 runs. The plan's ≤ 9.0 high and 20 wide cap still records a conflict; a run packs here if that cap is the only remaining conflict, so the table can answer how much bigger a buyable cell needs.
+
+| cell | standoff | width | lid | outer | arc+ | packs | first packing conflict | TOTAL_CHORD | M1 gate |
+|---|---:|---:|---:|---:|---:|---|---|---:|---:|
+| DTP301120 | 3 | 20 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 20 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 20 | 9.5 | 10.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 4 | 20 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 20 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 20 | 9.5 | 10.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 3 | 20 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 20 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 20 | 10 | 11.0 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 4 | 20 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 20 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 20 | 10 | 11.0 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 3 | 20 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 20 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 20 | 10.5 | 11.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 4 | 20 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 20 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 20 | 10.5 | 11.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 3 | 21 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 21 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 21 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 21 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 21 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 21 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 21 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 21 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 21 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 21 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 21 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 21 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 21 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 21 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 21 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 21 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 21 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 21 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 22 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 22 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 22 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 22 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 22 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 22 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 22 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 22 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 22 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 22 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 22 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 22 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 22 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 22 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 22 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 22 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 22 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 22 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 20 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 20 | 9.5 | 10.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 20 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 20 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 20 | 9.5 | 10.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 20 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 20 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 20 | 10 | 11.0 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 20 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 20 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 20 | 10 | 11.0 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 20 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 20 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 20 | 10.5 | 11.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 20 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 20 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 20 | 10.5 | 11.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 20 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 21 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 21 | 9.5 | 10.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 21 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 21 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 21 | 9.5 | 10.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 21 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 21 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 21 | 10 | 11.0 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 21 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 21 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 21 | 10 | 11.0 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 21 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 21 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 21 | 10.5 | 11.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 21 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 21 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 21 | 10.5 | 11.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 21 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 22 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 22 | 9.5 | 10.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 22 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 22 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 22 | 9.5 | 10.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 22 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 22 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 22 | 10 | 11.0 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 22 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 22 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 22 | 10 | 11.0 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 22 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 22 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 22 | 10.5 | 11.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 22 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 22 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 22 | 10.5 | 11.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 22 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+
+0 of 108 close under every round-5 check (including the ≤9×20 cap). 0 of 108 pack if that cap is set aside. No new drawing: Q56 keeps closers only.
+
+- **DTP301120**: no body packs. Family that never clears: `SIG# tab crosses boss_# courtyard`, `cell overlaps standoff_SIG#`. Height cost: no closer; the search reaches LID_Y 10.5, outer 11.5 (+2.5 mm vs winner outer 9.0). Chord cost: no closer; BODY_ARC TOTAL_CHORD 47.90 (same as the 501015 winner 47.90); +3.0 mm of arc is 50.93 (+3.03 mm) and fails M1−3 = 49.00.
+
+- **LP501218JH**: no body packs. Family that never clears: `cell overlaps standoff_SIG#`. Height cost: no closer; the search reaches LID_Y 10.5, outer 11.5 (+2.5 mm vs winner outer 9.0). Chord cost: no closer; BODY_ARC TOTAL_CHORD 47.90 (same as the 501015 winner 47.90); +3.0 mm of arc is 50.93 (+3.03 mm) and fails M1−3 = 49.00.
+
+First packing-conflict families (numbers masked), failing bigger-box runs:
+
+| family | runs |
+|---|---:|
+| cell to antenna zone # < # mm | 54 |
+| cell overlaps standoff_SIG# | 30 |
+| switch in the antenna keep-out | 12 |
+| ADS#_RSM in the antenna keep-out | 6 |
+| JST_SH in the antenna keep-out | 6 |
+
 ### Smallest body per buyable cell (WP11b, L7 §2)
 
 L7-research-v4.md §2 found no 501015-class cell sold in ones. The two buyable packs with page price, stock and a drawing are DTP301120 and LP501218JH.
@@ -1053,6 +1185,14 @@ L7-research-v4.md §2 found no 501015-class cell sold in ones. The two buyable p
 | 501015 | no (L7 §2) | `A_501015_series_w20_y8_iII_s3` | 20 | 8 | 3 | 0 | 47.90 | — |
 | DTP301120 | yes, SparkFun PRT-25270 | none | — | — | — | — | — | no closer |
 | LP501218JH | yes, DigiKey (bare leads; needs a terminator) | none | — | — | — | — | — | no closer |
+
+Extended (WP11b note 2): LID_Y 9.5, 10.0 and 10.5; widths 20, 21 and 22. A run packs if the only extra conflict is the plan's ≤ 9.0 high and 20 wide cap.
+
+| cell | box | smallest closer | width | lid | outer | TOTAL_CHORD | height vs winner | chord vs winner | never-clears family |
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| 501015 | ≤9×20 | `A_501015_series_w20_y8_iII_s3` | 20 | 8 | 9.0 | 47.90 | — | — | — |
+| DTP301120 | lid 9.5–10.5, w 20–22 | none | — | — | 11.5 | — | +2.5 mm still open | +0 / +3.03 mm, no closer | `SIG# tab crosses boss_# courtyard`, `cell overlaps standoff_SIG#` |
+| LP501218JH | lid 9.5–10.5, w 20–22 | none | — | — | 11.5 | — | +2.5 mm still open | +0 / +3.03 mm, no closer | `cell overlaps standoff_SIG#` |
 
 ## 2. Clearance, stack, and first-conflict families
 
