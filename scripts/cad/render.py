@@ -548,12 +548,12 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
             arrowprops={"arrowstyle": "->", "lw": 0.7},
             zorder=6,
         )
-        hinge = at(10.0, 1.2, 7.5)
+        hinge = at(10.0, 3.5, 8.4)
         ax.annotate(
             "hinge lip in the hook-end wall (Q71).\n"
             "0.30 mm of body nylon over the lip.",
             xy=hinge,
-            xytext=(hinge[0] + 22.0, hinge[1] + 10.0),
+            xytext=(hinge[0] + 28.0, hinge[1] + 12.0),
             fontsize=8,
             arrowprops={"arrowstyle": "->", "lw": 0.7},
             zorder=6,
@@ -597,7 +597,7 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     hc = lateral.project(hook_c)
     hook_mid = lateral.project(rotate_x(np.array([float(params["HOOK_ROOT_X"]) - float(params["HOOK_RADIUS"]), float(params["HOOK_ROOT_Y"]), float(params["HOOK_RADIUS"])]), theta))
     ax.annotate(
-        "hook, elliptical section, glasses flat on its lateral-superior side"
+        "hook, circular root then elliptical section, glasses flat on its lateral-superior side"
         if manifest.get("stage") == "shell"
         else "hook, glasses flat on its lateral-superior side",
         xy=hook_mid,
@@ -615,7 +615,7 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     ax.text(
         0.0,
         1.0,
-        "Lateral (outer side): shell v2, lid seated, elliptical hook"
+        "Lateral (outer side): shell v2, lid seated, circular-root hook"
         if manifest.get("stage") == "shell"
         else "Lateral (outer side): full p15, lid seated, hook",
         transform=ax.transAxes,
