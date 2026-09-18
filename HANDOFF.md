@@ -207,19 +207,20 @@ fast-forwarded to `110a79b`.
   part), pin table v2 with 68 rows in flat coordinates plus side, the
   folded-site table for the shell (unchanged contact sites), J4's
   THREE NPTH (drill 0.99, keep Ø1.39) as a both-side keep-out with no
-  B.Cu part inside. Second turn LANDED at `bf9f3f6` (tree clean): P4/P5
-  moved to (5.05, 49.50) and (16.95, 49.50), u inside the island span,
-  but s 49.50 is OFF THE BODY: TOTAL_CHORD is 47.90, the shell's tail
-  loft starts at s 45.5, a Ø5 pad there reaches s 52.0, and the flat
-  tail was drawn out through it; the lane derived s from the REF dome's
-  courtyard and never checked the body end. Third turn RUNNING since
-  04:20: place P4/P5 on the medial floor where nylon exists (copper
-  ahead of s 45.5, clear of the end-wall slot s 38.20–39.25, the M2.5
-  well at (14.50, 41.00) and the REF dome Ø6.4 at (8.50, 43.00), nylon
-  ≥ 3.0 between pads, ≥ 2.0 edge-to-edge to dome and head), or state
-  the largest pad that fits, or hook-end sites. Its DONE brings the
-  final v2 sha; only then do I send w2 "pin table v2" plus that sha
-  and brief w1's WP14e on the new P4/P5 folded sites.
+  B.Cu part inside. Second turn `bf9f3f6` put P4/P5 at s 49.50, off
+  the 47.90 body (my prompt caught it). Third turn LANDED at `303be75`
+  (tree clean, report updated, tests green): the tail cannot take two
+  Ø5 pads (end-wall slot, REF dome, screw well, loft from s 45.5;
+  largest tail pair Ø2.1), so P4/P5 sit on the hook-end medial floor
+  beside the cell at (14.70, 4.30) and (17.70, 11.72), Ø5 holes through
+  the floor, recorded as Q86 (`690c88e`). Still open: their flex path
+  has no flat coordinates (table says flat = folded while SW1/U2 share
+  that XY on the pocket island). Fourth turn RUNNING since 04:45: the
+  fold for P4/P5 (drop along the cell's side or a floor tab through a
+  rib slot at s 14.90–15.70), flat centres in the pin table, non-overlap
+  proven, the shell's additions listed. Its DONE brings the final v2
+  sha; only then do I send w2 "pin table v2" plus that sha and brief
+  w1's WP14e on the folded sites and the floor holes.
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
   WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
   package commit, tree clean, report
@@ -348,7 +349,7 @@ Outside those:
    (Pro amendment, Rolf's call); WP14c's screw well on the medial tail
    vs the REF contact and skin (Q17), and whether a well against skin
    collects sweat (the tail-end-face variant is the alternative).
-   Round 7 additions: WP14d built the P4/P5 charging domes inside the
+   Round 7 additions: the charging pads moved three times in WP11e (walls → off-body tail → hook-end floor, Q86), check the shell, board and §5d agree on the final sites. WP14d built the P4/P5 charging domes inside the
    1.5 mm side walls at §5c's sites (u 0.75 / 21.25), protruding past
    the silhouette (WP11e moves them, WP14e follows); its render stamp is
    the solids commit `f52afc5` while HEAD `ecfff54` is a one-line read
