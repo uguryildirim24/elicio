@@ -21,14 +21,18 @@ V2C_EDGES = ("process", "body")
 V2C_SIDES = ("top", "two")
 V2C_RECEPTACLE = (True, False)
 V2C_WALL_MIN = 1.0
-# Q81 addendum: charging pads on the flex tail, not in the 1.5 mm side walls.
-# s is past the REF courtyard (43.00 + 6.40 + 0.10) so P4/P5 do not overlap P3.
-CHARGE_PAD_S = 49.50
-# Shell V2_CHARGE_pads (WP14d): nylon between ≥ 3.0, clear of REF and the
-# medial-tail screw well ≥ 2.0. Well site is WP14c's concealed M2.5.
+# Q81 addendum 2: Ø5 charging pads cannot sit on the tail (loft s 45.5,
+# REF_end_wall_slot 38.20–39.25, REF dome, screw well). Hook-end medial floor
+# beside the 501012 cell. Largest pair that fits on the tail is Ø2.1.
+CHARGE_LOFT_S = 45.5
+CHARGE_SLOT_S = (38.20, 39.25)
+CHARGE_CELL_U1 = 11.90  # pack501012 as placed: u0 1.80, u1 11.90, s 1.50–14.50
+CHARGE_TAIL_MAX_D = 2.1
+CHARGE_REF_DOME_R = 3.20  # Ø6.4 ring seat
+CHARGE_SCREW_HEAD_R = 2.50  # ISO 7380 head ~Ø5 well
+# Shell V2_CHARGE_pads: nylon between pads ≥ 3.0, edge-to-edge to REF/screw ≥ 2.0.
 CHARGE_NYLON = 3.0
 CHARGE_CLEAR = 2.0
-CHARGE_SCREW_HOLE = 2.7
 CHARGE_SCREW_U = 14.50
 CHARGE_SCREW_S = 41.00
 # WP12d pin table: these five sit inward so copper-to-edge is ≥ 0.30.
@@ -309,34 +313,49 @@ def fold_choice(v2: Any, spec: Any) -> tuple[str, dict[str, Any], float]:
 
 
 def charge_pad_sites(width: float, v2: Any | None = None) -> tuple[tuple[float, float], tuple[float, float]]:
-    """Q81: two charging pads on the flex tail, inside the cavity, pad-to-outline ≥ 0.30.
+    """Q81: two Ø5 charging pads on the hook-end medial floor, not on the tail.
 
-    The tail has the island u-span. A Ø5 pad needs its centre RING_R + 0.30 in from
-    that outline, so the copper stays on the flex. s sits past the REF courtyard so
-    P4/P5 do not overlap P3. Folded = flat; the shell table uses these sites.
+    The tail (s after REF_end_wall_slot, copper before loft 45.5) cannot hold two
+    Ø5 pads at edge-to-edge ≥ 2.0 from the REF Ø6.4 dome and the Ø5 screw head.
+    Largest pair on that tail is Ø2.1. These sites sit beside the 501012 cell,
+    inside cavity u, pad-to-outline ≥ 0.30, whole copper ahead of the loft.
+    Folded = flat; the shell table uses these sites.
     """
     wall = v2.WALL if v2 is not None else 1.5
-    side = v2.SIDE_CLEAR if v2 is not None else 0.75
-    ring_r = v2.RING_R if v2 is not None else 2.5
     copper = v2.COPPER_TO_EDGE if v2 is not None else 0.30
-    bu0 = wall + side
-    bu1 = width - wall - side
+    ring_r = v2.RING_R if v2 is not None else 2.5
+    cu0, cu1 = wall, width - wall
     inset = ring_r + copper
-    s = CHARGE_PAD_S
-    if v2 is not None:
-        cr_s = v2.KICAD_COURTYARD["RING_PAD_D5_H2.7"][1]
-        s = round(v2.CONTACT_REF[1] + cr_s + 0.10, 2)
-    return ((bu0 + inset, s), (bu1 - inset, s))
+    u4 = round(CHARGE_CELL_U1 + inset, 2)
+    u5 = round(cu1 - inset, 2)
+    s4 = round(cu0 + inset, 2)
+    du = abs(u5 - u4)
+    need = 2.0 * ring_r + CHARGE_NYLON
+    if du + 1e-9 >= need:
+        s5 = s4
+    else:
+        s5 = round(s4 + math.sqrt(max(0.0, need * need - du * du)), 2)
+    return ((u4, s4), (u5, s5))
 
 
 def charge_tail_outline(
     v2: Any, island: tuple[float, float, float, float], width: float
 ) -> tuple[float, float, float, float]:
-    """Island-width flex tail from the high-s island edge through P4/P5 copper + 0.30."""
-    bu0, bu1, _bs0, bs1 = island
-    _p4, p5 = charge_pad_sites(width, v2)
-    s1 = p5[1] + v2.RING_R + v2.COPPER_TO_EDGE
-    return (bu0, bu1, bs1, s1)
+    """Hook-end floor lobe covering P4/P5 copper + 0.30, beside the cell."""
+    p4, p5 = charge_pad_sites(width, v2)
+    inset = v2.RING_R + v2.COPPER_TO_EDGE
+    u0 = min(p4[0], p5[0]) - inset
+    u1 = max(p4[0], p5[0]) + inset
+    s0 = min(p4[1], p5[1]) - inset
+    s1 = max(p4[1], p5[1]) + inset
+    return (u0, u1, s0, s1)
+
+
+def _edge_gap(
+    u: float, s: float, r: float, ou: float, os: float, or_: float
+) -> float:
+    """Edge-to-edge gap of two circles. Negative is overlap."""
+    return math.hypot(u - ou, s - os) - r - or_
 
 
 # Tag-Connect TC2030-IDC-NL NPTH pads in hardware/board/elicio-v2.kicad_pcb (J4).
@@ -664,7 +683,12 @@ def search_layout_v2c(
     occupied.append(v2.Box("TABROOT_REF", v2.CONTACT_REF[0], bs1 - 2.0, v2.TAB_W, 4.0, y_air0, y_air1, "floor"))
     if not receptacle:
         for i, site in enumerate(charge_pad_sites(width, v2), 1):
-            occupied.append(v2.Box(f"RING_CHG{i}", site[0], site[1], 7.0, 7.0, y_air0, y_top + 8.0, "floor"))
+            occupied.append(
+                v2.Box(
+                    f"RING_CHG{i}", site[0], site[1], 7.0, 7.0,
+                    v2.FLOOR_Y, v2.FLOOR_Y + v2.TAB_T, "floor",
+                )
+            )
 
     parts: list[Any] = []
     missing: list[str] = []
@@ -740,8 +764,8 @@ def search_layout_v2c(
         cr = v2.KICAD_COURTYARD["RING_PAD_D5_H2.7"]
         pad = v2.KICAD_PAD_EXTENT["RING_PAD_D5_H2.7"]
         for ref, site, note in (
-            ("P4", charge_pad_sites(width, v2)[0], "CHARGE_VBUS tail pad (Q81); RING_PAD_D5_H2.7"),
-            ("P5", charge_pad_sites(width, v2)[1], "CHARGE_GND tail pad (Q81); RING_PAD_D5_H2.7"),
+            ("P4", charge_pad_sites(width, v2)[0], "CHARGE_VBUS hook-end floor pad (Q81); RING_PAD_D5_H2.7"),
+            ("P5", charge_pad_sites(width, v2)[1], "CHARGE_GND hook-end floor pad (Q81); RING_PAD_D5_H2.7"),
         ):
             add(
                 v2.LayoutPart(
@@ -1043,45 +1067,65 @@ def search_layout_v2c(
         charge_hits: list[str] = []
         if p4 is not None and p5 is not None:
             cu0, cu1 = geom["cavity_u"]
-            tail = charge_tail_outline(v2, island, width)
+            cs0, cs1 = geom["cavity_s"]
+            lobe = charge_tail_outline(v2, island, width)
+            cav = (cu0, cu1, cs0, cs1)
+            ring_r = v2.RING_R
             p3 = by_ref.get("P3")
             for p in (p4, p5):
                 if p.u < cu0 - 1e-9 or p.u > cu1 + 1e-9:
                     charge_hits.append(f"{p.ref} u {p.u:.2f} outside cavity {cu0:.2f}–{cu1:.2f}")
-                copper_lo = p.u - v2.RING_R
-                copper_hi = p.u + v2.RING_R
-                if copper_lo < cu0 - 1e-9 or copper_hi > cu1 + 1e-9:
-                    charge_hits.append(f"{p.ref} Ø5 copper outside cavity")
-                edge_mm = _pad_edge(v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, tail)
-                if edge_mm < v2.COPPER_TO_EDGE - 1e-9:
-                    charge_hits.append(f"{p.ref} pad-to-outline {edge_mm:.3f}")
-                d_ref = math.hypot(p.u - v2.CONTACT_REF[0], p.s - v2.CONTACT_REF[1])
-                d_screw = math.hypot(p.u - CHARGE_SCREW_U, p.s - CHARGE_SCREW_S)
-                if d_ref < CHARGE_CLEAR - 1e-9:
-                    charge_hits.append(f"{p.ref} d_ref {d_ref:.2f} < {CHARGE_CLEAR:g}")
-                if d_screw < CHARGE_CLEAR - 1e-9:
-                    charge_hits.append(f"{p.ref} d_screw {d_screw:.2f} < {CHARGE_CLEAR:g}")
+                if p.u - ring_r < cu0 - 1e-9 or p.u + ring_r > cu1 + 1e-9:
+                    charge_hits.append(f"{p.ref} Ø5 copper outside cavity u")
+                if p.s + ring_r > CHARGE_LOFT_S + 1e-9:
+                    charge_hits.append(f"{p.ref} copper s {p.s + ring_r:.2f} past loft {CHARGE_LOFT_S:g}")
+                slot_u0, slot_u1 = 7.25, 9.75
+                slot_s0, slot_s1 = CHARGE_SLOT_S
+                if not (
+                    p.u + ring_r <= slot_u0 + 1e-9
+                    or p.u - ring_r >= slot_u1 - 1e-9
+                    or p.s + ring_r <= slot_s0 + 1e-9
+                    or p.s - ring_r >= slot_s1 - 1e-9
+                ):
+                    charge_hits.append(f"{p.ref} copper in REF_end_wall_slot")
+                edge_lobe = _pad_edge(v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, lobe)
+                if edge_lobe < v2.COPPER_TO_EDGE - 1e-9:
+                    charge_hits.append(f"{p.ref} pad-to-outline {edge_lobe:.3f}")
+                edge_cav = _pad_edge(v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, cav)
+                if edge_cav < v2.COPPER_TO_EDGE - 1e-9:
+                    charge_hits.append(f"{p.ref} pad-to-cavity {edge_cav:.3f}")
+                g_ref = _edge_gap(
+                    p.u, p.s, ring_r, v2.CONTACT_REF[0], v2.CONTACT_REF[1], CHARGE_REF_DOME_R
+                )
+                g_screw = _edge_gap(
+                    p.u, p.s, ring_r, CHARGE_SCREW_U, CHARGE_SCREW_S, CHARGE_SCREW_HEAD_R
+                )
+                if g_ref < CHARGE_CLEAR - 1e-9:
+                    charge_hits.append(f"{p.ref} REF edge-to-edge {g_ref:.2f} < {CHARGE_CLEAR:g}")
+                if g_screw < CHARGE_CLEAR - 1e-9:
+                    charge_hits.append(f"{p.ref} screw edge-to-edge {g_screw:.2f} < {CHARGE_CLEAR:g}")
                 if p3 is not None and v2._overlap(
                     v2._part_box(p, v2.FLOOR_Y, v2.FLOOR_Y + v2.TAB_T),
                     v2._part_box(p3, v2.FLOOR_Y, v2.FLOOR_Y + v2.TAB_T),
                     0.0,
                 ):
                     charge_hits.append(f"{p.ref} courtyard overlaps P3")
-            between = math.hypot(p4.u - p5.u, p4.s - p5.s) - CHARGE_SCREW_HOLE
+            between = math.hypot(p4.u - p5.u, p4.s - p5.s) - 2.0 * v2.RING_R
             if between < CHARGE_NYLON - 1e-9:
                 charge_hits.append(f"nylon between {between:.2f} < {CHARGE_NYLON:g}")
         rules.append(
             (
-                "P4/P5 on the flex tail inside the cavity (Q81)",
+                "P4/P5 on the hook-end medial floor (Q81)",
                 p4 is not None and p5 is not None and not charge_hits,
                 (
                     "; ".join(charge_hits[:8])
                     if charge_hits
                     else (
-                        f"cavity u {geom['cavity_u'][0]:.2f}–{geom['cavity_u'][1]:.2f}; "
+                        f"hook-end; copper ahead of loft {CHARGE_LOFT_S:g}; "
                         f"pad-to-outline ≥ {v2.COPPER_TO_EDGE:.2f}; "
-                        f"clear REF and screw well ≥ {CHARGE_CLEAR:g}; "
-                        f"nylon between ≥ {CHARGE_NYLON:g}"
+                        f"REF/screw edge-to-edge ≥ {CHARGE_CLEAR:g}; "
+                        f"nylon between ≥ {CHARGE_NYLON:g}; "
+                        f"tail Ø5 impossible, max tail pair Ø{CHARGE_TAIL_MAX_D:g}"
                         if p4 is not None and p5 is not None
                         else "P4/P5 missing"
                     )
@@ -1506,7 +1550,7 @@ def section_5c(v2: Any) -> list[str]:
         lines.append("")
         lines.append(
             "Q81 is settled: the build carries this cell. J1 and U5 are absent. "
-            "P4 and P5 are the tail charging pads with RING_PAD_D5_H2.7 courtyards. "
+            "P4 and P5 are the hook-end charging pads with RING_PAD_D5_H2.7 courtyards. "
             "Every rule this table is checked against is met, including copper-to-edge ≥ 0.30. "
             f"Hole sites (Q82, keep 3.30, not under U1; SW1 stays in the lid recess): {holes}. "
             f"Neck-end strips (Q83): SIG1 {norec.sig1_strip:.2f} mm, SIG2 {norec.sig2_strip:.2f} mm. "
@@ -1589,8 +1633,12 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
         f"(contact u, s0 − L_flat). A 180° fold at R 1.5 at the neck puts the ring on the "
         f"floor at the contact site. REF does not take that fold: it already leaves the "
         f"island high-s end (s={bs1:.2f}) through the end-wall slot, so P3 flat = P3 folded. "
-        "P4 and P5 sit on the flex tail (island u-span, past the REF courtyard), inside the "
-        "cavity u-range. They are not in the 1.5 mm side walls. Flat = folded."
+        "P4 and P5 cannot sit on that tail: TOTAL_CHORD 47.90, loft s 45.5, Ø5 copper would "
+        "need s ≤ 43.0, and the slot/REF dome/screw well leave no pair of Ø5 sites "
+        f"(largest tail pair Ø{CHARGE_TAIL_MAX_D:g}). They sit on the hook-end medial floor "
+        "beside the cell. Flat = folded. Extra channel: Ø5 holes through the medial floor "
+        "at those sites; REF_end_wall_slot is unchanged. If the pocket island cannot carry "
+        "the rings, the shell also needs a rib slot at s 14.90–15.70, u 11.90–20.50, height 0.31."
     )
     lines.append("")
     lines.append("| strip | attach (u, s) | flat ring (u, s) | flat rectangle centre wu × ws | folded run | L_flat |")
@@ -1643,9 +1691,10 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
         f"{n_rows} rows (66 footprints including P4/P5, plus H1 and H2). Side column as in §5c. Pad-to-outline ≥ 0.30. "
         "Holes at the Q82 sites. SW1 in the lid recess. Contact variant A. "
         "P1 and P2 are the FLAT ring centres (not the folded sites WP12d pinned). "
-        "P4 and P5 keep RING_PAD_D5_H2.7 courtyards on the flex tail, inside the cavity, "
-        "with pad-to-outline ≥ 0.30. They replace the side-wall sites (0.75, 44.00) and "
-        f"({lay.width - 0.75:.2f}, 44.00). "
+        "P4 and P5 keep RING_PAD_D5_H2.7 courtyards on the hook-end medial floor, "
+        "inside the cavity, with pad-to-outline ≥ 0.30. They replace the side-wall sites "
+        f"(0.75, 44.00) and ({lay.width - 0.75:.2f}, 44.00) and the off-body tail sites "
+        "(5.05, 49.50) and (16.95, 49.50). "
         "The board lane pins this table within 0.1 mm. The shell lane ignores it and "
         "takes the folded-site table."
     )
@@ -1655,10 +1704,13 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
     lines.append("")
     lines.append(
         "Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner floor "
-        f"({v2.FLOOR_Y:.2f} mm). P4 and P5 moved off the 1.5 mm side walls onto the flex "
-        "tail: inside cavity u, pad-to-outline ≥ 0.30, clear of the REF dome (8.50, 43.00) "
-        f"and the medial screw well ({CHARGE_SCREW_U:.2f}, {CHARGE_SCREW_S:.2f}) by ≥ {CHARGE_CLEAR:g} mm, "
-        f"nylon between pads ≥ {CHARGE_NYLON:g} mm. WP14 follows these sites."
+        f"({v2.FLOOR_Y:.2f} mm). P4 and P5 sit on the hook-end medial floor (not the tail, "
+        "not the 1.5 mm side walls). Whole Ø5 copper is ahead of the tail loft "
+        f"(s + 2.5 ≤ {CHARGE_LOFT_S:g}). Pad-to-outline ≥ 0.30. Nylon between pads ≥ {CHARGE_NYLON:g} mm. "
+        f"Edge-to-edge ≥ {CHARGE_CLEAR:g} mm to the REF Ø6.4 dome (8.50, 43.00) and the "
+        f"Ø5 screw head ({CHARGE_SCREW_U:.2f}, {CHARGE_SCREW_S:.2f}). "
+        f"Two Ø5 pads cannot meet those rules on the tail; largest tail pair Ø{CHARGE_TAIL_MAX_D:g}. "
+        "WP14 follows these sites."
     )
     lines.append("")
     lines.append("| pad | net | u | s | y | courtyard | notes |")
@@ -1674,8 +1726,8 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
         "P1": "folded seat after the neck 180° fold",
         "P2": "folded seat after the neck 180° fold",
         "P3": "REF_end_wall_slot; flat = folded",
-        "P4": "flex tail inside cavity; not in the side wall; flat = folded (Q81)",
-        "P5": "flex tail inside cavity; not in the side wall; flat = folded (Q81)",
+        "P4": "hook-end medial floor; not the tail; flat = folded (Q81)",
+        "P5": "hook-end medial floor; not the tail; flat = folded (Q81)",
     }
     for ref, (u, s, y) in folded.items():
         lines.append(
@@ -1797,14 +1849,16 @@ def _svg_for(lay: LayoutV2c) -> str:
     pad = 8.0
     by = {p.ref: p for p in lay.parts}
     extra_s = []
-    extra_hi = [s1, 50.0]
+    extra_hi = [s1]
     if "P1" in by:
         extra_s.append(s0 - lay.sig1_strip)
     if "P2" in by:
         extra_s.append(s0 - lay.sig2_strip)
     if "P4" in by:
+        extra_s.append(by["P4"].s - by["P4"].ws / 2.0)
         extra_hi.append(by["P4"].s + by["P4"].ws / 2.0)
     if "P5" in by:
+        extra_s.append(by["P5"].s - by["P5"].ws / 2.0)
         extra_hi.append(by["P5"].s + by["P5"].ws / 2.0)
     min_u, max_u = min(u0, -6.0) - pad, max(u1, 22.0) + pad
     min_s, max_s = min(s0, -8.0, *extra_s) - pad, max(extra_hi) + pad
@@ -1834,8 +1888,13 @@ def _svg_for(lay: LayoutV2c) -> str:
         f'fill="#fff" stroke="#111" stroke-width="1.2"/>'
     )
     if "P4" in by and "P5" in by:
-        tail_s1 = max(by["P4"].s, by["P5"].s) + by["P4"].ws / 2.0
-        parts.append(rect((u0 + u1) / 2.0, (s1 + tail_s1) / 2.0, u1 - u0, tail_s1 - s1, "#fff7e8", "#a67c00"))
+        p4p, p5p = by["P4"], by["P5"]
+        inset = 2.80
+        lu0 = min(p4p.u, p5p.u) - inset
+        lu1 = max(p4p.u, p5p.u) + inset
+        ls0 = min(p4p.s, p5p.s) - inset
+        ls1 = max(p4p.s, p5p.s) + inset
+        parts.append(rect((lu0 + lu1) / 2.0, (ls0 + ls1) / 2.0, lu1 - lu0, ls1 - ls0, "#fff7e8", "#a67c00"))
     if lay.fold == "neck" and "P1" in by and "P2" in by:
         for ref, length in (("P1", lay.sig1_strip), ("P2", lay.sig2_strip)):
             p = by[ref]
