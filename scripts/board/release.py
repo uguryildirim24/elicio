@@ -92,11 +92,11 @@ def write_jlc_cpl(pos_csv: Path, out_csv: Path, keep: set[str] | None = None) ->
     With keep, only those designators are written (review r6: the CPL is the
     BOM's parts, so DNP parts the PCB does not flag and THT parts line up).
     """
-    text = pos_csv.read_text()
+    text = pos_csv.read_text(encoding="utf-8")
     # KiCad csv may start with comment lines.
     lines = [ln for ln in text.splitlines() if ln.strip() and not ln.startswith("#")]
     if not lines:
-        out_csv.write_text("Designator,Val,Package,Mid X,Mid Y,Rotation,Layer\n")
+        out_csv.write_text("Designator,Val,Package,Mid X,Mid Y,Rotation,Layer\n", encoding="utf-8")
         return 0
     reader = csv.DictReader(lines)
     rows = []
@@ -122,7 +122,7 @@ def write_jlc_cpl(pos_csv: Path, out_csv: Path, keep: set[str] | None = None) ->
 
 def count_placed_parts(sch: Path) -> int:
     """Count schematic symbol instances that are on the board, in the BOM, not DNP."""
-    text = sch.read_text()
+    text = sch.read_text(encoding="utf-8")
     count = 0
     for match in re.finditer(r"\(symbol\n\t\t\(lib_id", text):
         chunk = text[match.start() : match.start() + 1200]
@@ -133,7 +133,7 @@ def count_placed_parts(sch: Path) -> int:
 
 def pcb_stats(pcb: Path) -> dict[str, int]:
     """Tracks, declared nets and pads with no net on the PCB (not the schematic)."""
-    text = pcb.read_text()
+    text = pcb.read_text(encoding="utf-8")
     pads = re.findall(r"\(pad \"[^\"]*\" (?:smd|thru_hole|connect)\b(.*?)\n\t\t\)", text, re.S)
     no_net = sum(1 for body in pads if "(net " not in body)
     return {
@@ -201,7 +201,7 @@ def main() -> int:
     if not erc_json.is_file():
         sys.stderr.write(erc.stderr or erc.stdout or "ERC produced no report\n")
         return 1
-    erc_payload = json.loads(erc_json.read_text())
+    erc_payload = json.loads(erc_json.read_text(encoding="utf-8"))
     erc_errors, erc_warnings = erc_counts(erc_payload)
 
     drc = run(
@@ -211,7 +211,7 @@ def main() -> int:
     if not drc_json.is_file():
         sys.stderr.write(drc.stderr or drc.stdout or "DRC produced no report\n")
         return 1
-    drc_payload = json.loads(drc_json.read_text())
+    drc_payload = json.loads(drc_json.read_text(encoding="utf-8"))
     drc_errors = count_severity(drc_payload, "violations", "error")
     drc_warnings = count_severity(drc_payload, "violations", "warning")
     unconnected = len(drc_payload.get("unconnected_items") or [])
@@ -371,7 +371,7 @@ def main() -> int:
             "step": step_run.returncode,
         },
     }
-    summary.write_text(json.dumps(payload, indent=2) + "\n")
+    summary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
     if erc_errors:
         sys.stderr.write(f"ERC errors: {erc_errors}\n")
