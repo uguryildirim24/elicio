@@ -169,6 +169,13 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   well site 16.50 in the tail sentence → a second `DONE WP11g`; only
   then w1 gets the line "flat pattern v3" and w2 the line "pin table v3", each with that sha,
   because the channels can move H1/H2 and the shell's bosses follow.
+  11:20 Rolf: "w3 is not running": the screen showed Cursor's "Agent
+  stopped retrying" (connection interrupted repeatedly) with the
+  addendum half done (437 uncommitted lines in `scripts/cad/layout_v2c.py`
+  on top of `665578e`) and the well note still queued as a follow-up;
+  re-prompted 11:25 with the whole addendum plus the well site, told to
+  continue from the tree and to commit `wip(WP11g)` and push WAITING if
+  the connection drops again; working since.
   RUNNING since 09:05 on `lane/w3` at `facb0c1` (told to
   `git merge main` first): which side wall is the posterior edge; P4/P5
   as clamped button heads in that wall beside the cell (Q90, Q93); J2
@@ -291,6 +298,13 @@ Outside those:
 
 ## Traps
 
+- A Cursor lane can die quietly: "Error: Agent stopped retrying" after
+  repeated connection drops leaves the pane idle, the edit uncommitted,
+  queued follow-ups unsent and no DONE or WAITING push. herdr shows plain
+  idle. When a lane is quiet past the size of its turn, one
+  `herdr agent read` of that lane; if that message is on screen, re-prompt with
+  the whole turn and "continue from the tree"; the work in the tree is
+  kept.
 - After a herdr restart, a non-Claude lane comes back as its bare resume
   line (`agy --conversation <id>`) without the flags it was started
   with; agy then asks for every URL, edit and command and no BLOCKED
