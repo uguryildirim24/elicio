@@ -116,12 +116,16 @@ on a removed key.
   `docs/fab/board-v2.md` (expected) (G2 table, G4 map, charger and undervoltage
   numbers), `tests/test_board_release.py`. Waits for nothing; WAITING if
   the install fails. Report `.reports/WP12-report.md` (expected).
-- **w4** (cursor, `lane/w4`, at `401f92d`): WP13 firmware v2
-  (`tasks/WP13-firmware.md`), prompted ~20:20: `docs/fab/frame-v2.md` (expected),
-  `elicio/frame_v2.py` with fixtures, `firmware/` with a host-tested
-  framer, `docs/fab/firmware-v2.md` (expected), the protocol v2 table in
-  `montage.md`. Installs arduino-cli or west (Q45, Q46). Report
-  `.reports/WP13-report.md` (expected).
+- **w4** (cursor, `lane/w4`): WP13 firmware v2 landed, `DONE WP13` at
+  `28b284c` (~21:05): `docs/fab/frame-v2.md` (absent on main), the
+  decoder `src/elicio/frame_v2.py` (absent on main) with ten golden
+  fixtures and a native clang framer harness, `firmware/` (Arduino, Adafruit nRF52 core, compiles
+  on the Feather nRF52840 stand-in FQBN with two toolchains),
+  `docs/fab/firmware-v2.md` (absent on main), montage §8 protocol v2
+  table; 142 tests OK with 22 CAD skips; tree clean. Installed about 3.8
+  GB including Rosetta 2 (Q53). Arduino over Zephyr recorded as Q52.
+  Waits for the round 5 reviewer. Its report `.reports/WP13-report.md` (absent on main)
+  (absent on main, untracked in `.worktrees/w4`).
 - **w9** (cursor, `lane/w9`): WP16 record v2 landed, `DONE WP16` at
   `cc22134` (~20:13): requirement 5 to titanium and the plan v2 decisions
   once each in `docs/EARPIECE_DESIGN.md`, and the ledger skeleton
@@ -137,7 +141,7 @@ on a removed key.
   in `docs/fab/L5-research-v2.md` (absent on main). agy status is unreliable; its DONE push
   is the only signal. Report `.reports/WP17-report.md` (expected).
 
-Round 5 review: when WP12, WP13 and WP17 have also landed (WP11 and WP16 have) (a lane that pushes WAITING is recorded and the review opens
+Round 5 review: when WP12 and WP17 have also landed (WP11, WP13 and WP16 have) (a lane that pushes WAITING is recorded and the review opens
 without it), create the round 5 review branch (expected, not created yet) from `main`,
 a fresh Opus 5 high reviewer from `tasks/review-code-template.md` as
 `tasks/review-r5.md` (expected), merging `lane/w1`, `lane/w5`, `lane/w2`, `lane/w4`,
@@ -178,7 +182,7 @@ and gates G1–G8 for the build. Outside those:
 ## Next
 
 - Idle until a DONE lands (check report file and clean tree, read the
-  report); WP11 and WP16 have landed; when WP12, WP13 and WP17 have landed
+  report); WP11, WP13 and WP16 have landed; when WP12 and WP17 have landed
   or pushed WAITING, open the round 5 review as described under In flight.
 
 ## Traps
