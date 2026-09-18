@@ -80,6 +80,10 @@ RING_D = 5.0
 RING_R = RING_D / 2.0
 RING_HOLE = 2.7
 BEND_R = 1.0
+# board-v2.md §11: packing R ≥ 1.0; JLC 10×PI → 1.1; that file states R = 1.5.
+# WP11b uses 1.5 for the REF tab search. Conflict checks keep BEND_R (review r5).
+BOARD_BEND_R = 1.5
+TAB_ATTACH_INSET = 0.8  # _make_tabs: board-side end of a straight tab
 SCREW_L = 4.0  # ISO 7380 M2.5×4: projects SCREW_L - WALL = 2.5 past the inner floor
 SCREW_PROJ = SCREW_L - WALL  # 2.50
 KEEPOUT_TOP_Y = 4.13  # v1 keep-out air (nut stack); v2 uses the standoff top too
@@ -267,6 +271,25 @@ class TabPath:
     points: tuple[tuple[float, float], ...]
     width: float = TAB_W
     thick: float = TAB_T
+
+
+@dataclass(frozen=True, slots=True)
+class RefTabRoute:
+    """One WP11b candidate for the REF flex tab on the 501015 winner board."""
+
+    name: str
+    points: tuple[tuple[float, float], ...]
+    y0: float
+    y1: float
+    length_mm: float
+    length_added_mm: float
+    min_wall_distance_mm: float
+    min_side_wall_mm: float
+    end_wall_crosses: bool
+    end_wall_where: str
+    in_cavity: bool
+    bend_ok: bool
+    notes: str
 
 
 @dataclass
@@ -474,7 +497,8 @@ def _tab_boxes(tab: TabPath, y0: float, y1: float) -> list[Box]:
     return out
 
 
-def _bend_ok(points: tuple[tuple[float, float], ...]) -> bool:
+def _bend_ok(points: tuple[tuple[float, float], ...], radius: float | None = None) -> bool:
+    r = BEND_R if radius is None else radius
     if len(points) < 3:
         return True
     for i in range(1, len(points) - 1):
@@ -487,7 +511,7 @@ def _bend_ok(points: tuple[tuple[float, float], ...]) -> bool:
             return False
         cos_t = max(-1.0, min(1.0, (v1[0] * v2[0] + v1[1] * v2[1]) / (n1 * n2)))
         theta = math.acos(cos_t)
-        need = BEND_R * math.tan(theta / 2.0) if theta < math.pi - 1e-9 else math.inf
+        need = r * math.tan(theta / 2.0) if theta < math.pi - 1e-9 else math.inf
         if n1 < need or n2 < need:
             return False
     return True
@@ -498,14 +522,226 @@ def _make_tabs(spec: V2Spec, geom: dict[str, Any]) -> dict[str, TabPath]:
         return {}
     bs0, bs1 = geom["board_s"]
     # Straight runs, no 90° jog. Bend radius is free on a straight tab.
-    sig1_end_s = min(CONTACT_1[1] + 7.0, bs1 - 0.8)
-    sig2_end_s = max(CONTACT_2[1] - 7.0, bs0 + 0.8)
-    ref_end_s = bs1 - 0.8
+    sig1_end_s = min(CONTACT_1[1] + 7.0, bs1 - TAB_ATTACH_INSET)
+    sig2_end_s = max(CONTACT_2[1] - 7.0, bs0 + TAB_ATTACH_INSET)
+    ref_end_s = bs1 - TAB_ATTACH_INSET
     return {
         "SIG1": TabPath("SIG1", (CONTACT_1, (CONTACT_1[0], sig1_end_s))),
         "SIG2": TabPath("SIG2", (CONTACT_2, (CONTACT_2[0], sig2_end_s))),
         "REF": TabPath("REF", (CONTACT_REF, (CONTACT_REF[0], ref_end_s))),
     }
+
+
+def _ref_attach(geom: dict[str, Any]) -> tuple[float, float]:
+    """Board-side end of the straight REF tab (same inset as ``_make_tabs``)."""
+    return (CONTACT_REF[0], geom["board_s"][1] - TAB_ATTACH_INSET)
+
+
+def _polyline_length(points: tuple[tuple[float, float], ...]) -> float:
+    return float(sum(math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(points, points[1:])))
+
+
+def _sample_polyline(points: tuple[tuple[float, float], ...], step: float = 0.05) -> list[tuple[float, float]]:
+    out: list[tuple[float, float]] = []
+    for a, b in zip(points, points[1:]):
+        dist = math.hypot(b[0] - a[0], b[1] - a[1])
+        n = max(1, int(math.ceil(dist / step)))
+        for k in range(n):
+            t = k / n
+            out.append((a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])))
+    out.append(points[-1])
+    return out
+
+
+def _in_ref_pocket(u: float, s: float) -> bool:
+    return math.hypot(u - CONTACT_REF[0], s - CONTACT_REF[1]) <= POCKET_DIA / 2.0 + 1e-9
+
+
+def _end_wall_span(geom: dict[str, Any]) -> tuple[float, float]:
+    """s-range of nylon between the cavity end and the Ø7.5 REF pocket."""
+    return (geom["cavity_s"][1], CONTACT_REF[1] - POCKET_DIA / 2.0)
+
+
+def _crosses_end_wall(
+    points: tuple[tuple[float, float], ...], geom: dict[str, Any]
+) -> tuple[bool, str]:
+    s0, s1 = _end_wall_span(geom)
+    if s1 <= s0 + 1e-9:
+        return False, "no"
+    for u, s in _sample_polyline(points):
+        if s0 < s < s1 and not _in_ref_pocket(u, s):
+            return True, f"s {s0:.2f}–{s1:.2f} at u {u:.2f}"
+    return False, "no"
+
+
+def _min_side_wall_mm(points: tuple[tuple[float, float], ...], geom: dict[str, Any]) -> float:
+    """Smallest tab-edge gap to a cavity side wall (u), on samples inside the cavity."""
+    cu = geom["cavity_u"]
+    cs = geom["cavity_s"]
+    best = math.inf
+    for u, s in _sample_polyline(points):
+        if not (cs[0] - 1e-9 <= s <= cs[1] + 1e-9):
+            continue
+        gap = min(u - cu[0], cu[1] - u) - TAB_W / 2.0
+        best = min(best, gap)
+    return 0.0 if best is math.inf else float(best)
+
+
+def _route_in_cavity(points: tuple[tuple[float, float], ...], geom: dict[str, Any]) -> bool:
+    """True when every sample is in the cavity or in the REF pocket, never in the end wall."""
+    if _crosses_end_wall(points, geom)[0]:
+        return False
+    cu, cs = geom["cavity_u"], geom["cavity_s"]
+    for u, s in _sample_polyline(points):
+        in_cavity = cu[0] - 1e-9 <= u <= cu[1] + 1e-9 and cs[0] - 1e-9 <= s <= cs[1] + 1e-9
+        if not in_cavity and not _in_ref_pocket(u, s):
+            return False
+    return True
+
+
+def _measure_ref_route(
+    name: str,
+    points: tuple[tuple[float, float], ...],
+    y0: float,
+    y1: float,
+    geom: dict[str, Any],
+    straight_len: float,
+    notes: str,
+) -> RefTabRoute:
+    length = _polyline_length(points)
+    crosses, where = _crosses_end_wall(points, geom)
+    side = _min_side_wall_mm(points, geom)
+    return RefTabRoute(
+        name=name,
+        points=points,
+        y0=y0,
+        y1=y1,
+        length_mm=length,
+        length_added_mm=length - straight_len,
+        min_wall_distance_mm=0.0 if crosses else side,
+        min_side_wall_mm=side,
+        end_wall_crosses=crosses,
+        end_wall_where=where,
+        in_cavity=_route_in_cavity(points, geom),
+        bend_ok=_bend_ok(points, BOARD_BEND_R),
+        notes=notes,
+    )
+
+
+def ref_tab_routes(spec: V2Spec | None = None) -> list[RefTabRoute]:
+    """Three in-cavity searches for the REF tab on the 501015 winner board (Q59).
+
+    The ring stays at ``CONTACT_REF``. Flex at the tab is ``TAB_T`` (0.31). Bend
+    radius is ``BOARD_BEND_R`` (board-v2.md §11). The default packing tab is
+    unchanged: Stage B still measures the straight floor path.
+    """
+    spec = spec or stage_b_winner_spec()
+    geom = body_geom(spec)
+    attach = _ref_attach(geom)
+    straight = (CONTACT_REF, attach)
+    straight_len = _polyline_length(straight)
+    y_floor0, y_floor1 = FLOOR_Y, FLOOR_Y + TAB_T
+    cell = CELL[spec.cell]
+    y_air0 = FLOOR_Y + cell["t"] + FOAM + 0.1
+    y_air1 = y_air0 + TAB_T
+    lat_u = geom["cavity_u"][0] + TAB_W / 2.0
+    lateral = (CONTACT_REF, (lat_u, CONTACT_REF[1]), (lat_u, attach[1]), attach)
+    s0, s1 = _end_wall_span(geom)
+    wall_note = (
+        f"cavity ends at s {s0:.2f}; Ø{POCKET_DIA:g} pocket starts at s {s1:.2f}; "
+        f"{s1 - s0:.2f} mm of nylon between them"
+    )
+    return [
+        _measure_ref_route(
+            "along_floor",
+            straight,
+            y_floor0,
+            y_floor1,
+            geom,
+            straight_len,
+            "current packing tab, ring to board along s at u 8.50; " + wall_note,
+        ),
+        _measure_ref_route(
+            "along_lateral_wall",
+            lateral,
+            y_floor0,
+            y_floor1,
+            geom,
+            straight_len,
+            f"hug posterior inner wall at u {lat_u:.2f}, then to the ring; "
+            "the ring is past the cavity, so the high-s leg leaves cavity air; " + wall_note,
+        ),
+        _measure_ref_route(
+            "over_pocket_air",
+            straight,
+            y_air0,
+            y_air1,
+            geom,
+            straight_len,
+            f"same (u, s) as along_floor at y {y_air0:.2f}–{y_air1:.2f} "
+            f"(cell top {FLOOR_Y + cell['t'] + FOAM:.2f} + 0.10, lid {spec.lid_y:g}); "
+            "cell-pocket free air at low s does not reach the tail site without the end wall; "
+            + wall_note,
+        ),
+    ]
+
+
+def best_ref_tab_route(spec: V2Spec | None = None) -> RefTabRoute | None:
+    """The in-cavity route with least added length, or None if none stays in the cavity."""
+    inside = [r for r in ref_tab_routes(spec) if r.in_cavity]
+    if not inside:
+        return None
+    inside.sort(key=lambda r: (r.length_added_mm, r.length_mm, r.name))
+    return inside[0]
+
+
+def ref_end_wall_slot(spec: V2Spec | None = None) -> dict[str, float]:
+    """Slot through the cavity end wall that contains the straight REF tab (WP14)."""
+    spec = spec or stage_b_winner_spec()
+    geom = body_geom(spec)
+    s0, s1 = _end_wall_span(geom)
+    u = CONTACT_REF[0]
+    return {
+        "u0": u - TAB_W / 2.0,
+        "u1": u + TAB_W / 2.0,
+        "s0": s0,
+        "s1": s1,
+        "y0": FLOOR_Y,
+        "y1": FLOOR_Y + TAB_T,
+        "u": u,
+        "s": (s0 + s1) / 2.0,
+        "width": TAB_W,
+        "through": s1 - s0,
+        "height": TAB_T,
+    }
+
+
+DTP_ARC_LID_YS = (7.0, 8.0, 8.5, 9.0)
+DTP_ARC_STANDOFFS = (3.0, 4.0)
+DTP_ARC_STEPS = (1.5, 3.0)
+
+
+def dtp_arc_plus_specs() -> list[V2Spec]:
+    """WP11b: DTP301120 series, interface II, arc +1.5 and +3.0 (Q55, Q57)."""
+    specs: list[V2Spec] = []
+    for width in WIDTHS:
+        for lid_y in DTP_ARC_LID_YS:
+            for standoff in DTP_ARC_STANDOFFS:
+                for arc_plus in DTP_ARC_STEPS:
+                    specs.append(
+                        V2Spec("A", "dtp", "series", width, lid_y, arc_plus, "II", standoff, 0.0)
+                    )
+    return specs
+
+
+_DTP_ARC_PLUS_ROWS: list[V2Result] | None = None
+
+
+def run_dtp_arc_plus() -> list[V2Result]:
+    global _DTP_ARC_PLUS_ROWS
+    if _DTP_ARC_PLUS_ROWS is None:
+        _DTP_ARC_PLUS_ROWS = [run_spec(s) for s in dtp_arc_plus_specs()]
+    return _DTP_ARC_PLUS_ROWS
 
 
 def _place_cell(spec: V2Spec, geom: dict[str, Any], module: Box | None) -> Box:
@@ -1682,6 +1918,131 @@ def _md_cell(text: str) -> str:
     return text.replace("|", "/").replace("\n", " ")
 
 
+def _dtp_arc_plus_section(winner_chord: float) -> list[str]:
+    """WP11b table: DTP series, interface II, arc +1.5 and +3.0."""
+    rows = run_dtp_arc_plus()
+    closed = [r for r in rows if r.closes]
+    lines: list[str] = []
+    lines.append("## 1b. DTP301120 arc-plus under interface II (WP11b)")
+    lines.append("")
+    lines.append(
+        "DTP301120 22.0 × 11.5 × 3.2, foam 0.5 (Q57), series, interface II, architecture A. "
+        f"Widths {WIDTHS[0]:g} to {WIDTHS[-1]:g}, LID_Y {DTP_ARC_LID_YS[0]:g} to {DTP_ARC_LID_YS[-1]:g} "
+        f"(the v2 lid steps in that range), standoffs {DTP_ARC_STANDOFFS[0]:g} and {DTP_ARC_STANDOFFS[1]:g}. "
+        "Conflict logic is the round 5 checker (no new constants). "
+        f"{len(rows)} runs."
+    )
+    lines.append("")
+    lines.append(
+        "| arch | standoff | width | lid | arc+ | closes | first conflict | TOTAL_CHORD | M1 gate |"
+    )
+    lines.append("|---|---:|---:|---:|---:|---|---|---:|---:|")
+    for r in rows:
+        spec = r.spec
+        first = "—" if r.closes else _md_cell(r.first_conflict)
+        lines.append(
+            f"| {spec.arch} | {spec.standoff:g} | {spec.width:g} | {spec.lid_y:g} | {spec.arc_plus:g} | "
+            f"{'yes' if r.closes else 'no'} | {first} | {r.total_chord:.2f} | {r.m1_gate:.2f} |"
+        )
+    lines.append("")
+    if closed:
+        closed.sort(key=lambda r: (r.spec.width, r.spec.lid_y, r.spec.arc_plus, r.spec.standoff))
+        best = closed[0]
+        cost = best.total_chord - winner_chord
+        lines.append(
+            f"{len(closed)} of {len(rows)} close. Smallest body: `{best.spec.tag}`. "
+            f"TOTAL_CHORD {best.total_chord:.2f} against M1−3 = {M1_DEFAULT - 3.0:.2f} "
+            f"(M1 = {M1_DEFAULT:g}, Q34). Length cost versus the 501015 winner chord {winner_chord:.2f}: "
+            f"{cost:+.2f} mm."
+        )
+    else:
+        plus3 = next(r for r in rows if r.spec.arc_plus == 3.0)
+        plus15 = next(r for r in rows if r.spec.arc_plus == 1.5)
+        cost3 = plus3.total_chord - winner_chord
+        lines.append(
+            f"0 of {len(rows)} close at +1.5 or +3.0. There is no DTP body that closes. "
+            f"At +1.5 mm of arc, TOTAL_CHORD {plus15.total_chord:.2f} against M1−3 = {M1_DEFAULT - 3.0:.2f} "
+            f"(M1 = {M1_DEFAULT:g}, Q34 blank, default.toml). "
+            f"At +3.0 mm of arc, TOTAL_CHORD {plus3.total_chord:.2f} (M1 gate {plus3.m1_gate:.2f}). "
+            f"Length cost versus the 501015 winner chord {winner_chord:.2f} is not a closer: "
+            f"+3.0 mm of arc is {cost3:+.2f} mm of chord. First conflict of each run is in the table."
+        )
+    fam_counts: dict[str, int] = {}
+    for r in rows:
+        if not r.closes:
+            key = conflict_family(r.first_conflict)
+            fam_counts[key] = fam_counts.get(key, 0) + 1
+    if fam_counts:
+        lines.append("")
+        lines.append("First-conflict families (numbers masked), failing DTP arc-plus runs:")
+        lines.append("")
+        lines.append("| family | runs |")
+        lines.append("|---|---:|")
+        for fam, n in sorted(fam_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+            lines.append(f"| {_md_cell(fam)} | {n} |")
+    lines.append("")
+    return lines
+
+
+def _ref_tab_route_section() -> list[str]:
+    """WP11b REF tab search on the 501015 winner board (Q59)."""
+    routes = ref_tab_routes()
+    slot = ref_end_wall_slot()
+    best = best_ref_tab_route()
+    lines: list[str] = []
+    lines.append("### REF tab route (WP11b, Q59)")
+    lines.append("")
+    lines.append(
+        f"Winner board `{stage_b_winner_spec().tag}`, tail site CONTACT_REF "
+        f"({CONTACT_REF[0]:.2f}, {CONTACT_REF[1]:.2f}). Flex at the tab {TAB_T:g} "
+        f"(PI {FLEX:g} + FR4 {STIFFENER_TAB:g}). Bend R {BOARD_BEND_R:g} (board-v2.md §11). "
+        f"The packing tab itself is unchanged (Stage B still measures the straight floor path)."
+    )
+    lines.append("")
+    lines.append(
+        "| name | y | points | length | added | min wall | side wall | end wall | in cavity | bend R 1.5 |"
+    )
+    lines.append("|---|---|---|---:|---:|---:|---:|---|---|---|")
+    for route in routes:
+        pts = " → ".join(f"({u:.2f}, {s:.2f})" for u, s in route.points)
+        wall = "no" if not route.end_wall_crosses else route.end_wall_where
+        lines.append(
+            f"| `{route.name}` | {route.y0:.2f}–{route.y1:.2f} | {pts} | {route.length_mm:.2f} | "
+            f"{route.length_added_mm:+.2f} | {route.min_wall_distance_mm:.2f} | "
+            f"{route.min_side_wall_mm:.2f} | {wall} | "
+            f"{'yes' if route.in_cavity else 'no'} | {'yes' if route.bend_ok else 'no'} |"
+        )
+    lines.append("")
+    for route in routes:
+        lines.append(f"- `{route.name}`: {route.notes}")
+    lines.append("")
+    if best is not None:
+        lines.append(
+            f"Named layout: `{best.name}`. WP14 can cut that path; points and y are in the table."
+        )
+    else:
+        lines.append(
+            "No in-cavity route exists. The Ø7.5 tail pocket starts at s 39.25 and the cavity ends "
+            "at s 38.20, so 1.05 mm of nylon sits between them. Every searched path crosses that wall. "
+            "WP14 cuts a slot that contains the straight floor tab:"
+        )
+        lines.append("")
+        lines.append("| item | number |")
+        lines.append("|---|---|")
+        lines.append(f"| name | `REF_end_wall_slot` |")
+        lines.append(f"| u | {slot['u0']:.2f}–{slot['u1']:.2f} (centre {slot['u']:.2f}) |")
+        lines.append(f"| s | {slot['s0']:.2f}–{slot['s1']:.2f} (centre {slot['s']:.2f}) |")
+        lines.append(f"| y | {slot['y0']:.2f}–{slot['y1']:.2f} |")
+        lines.append(f"| width | {slot['width']:.2f} |")
+        lines.append(f"| through (s) | {slot['through']:.2f} |")
+        lines.append(f"| height (y) | {slot['height']:.2f} |")
+        lines.append(
+            f"| volume (rect) | {slot['width'] * slot['through'] * slot['height']:.3f} mm³ |"
+        )
+    lines.append("")
+    return lines
+
+
 def packing_markdown(rows: list[V2Result]) -> str:
     """WP11 packing-v2.md body. Plan is not changed."""
     closed = [r for r in rows if r.closes]
@@ -1697,7 +2058,8 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append("after the board bends onto the bosses. Standoffs 3.0, 3.5 and 4.0.")
     lines.append("A 0.5-deep floor recess (web 1.0 remaining) is run at 3.5 and 4.0.")
     lines.append("Interface II is the flex-tab fallback.")
-    lines.append("Arc-plus was not run: layouts already close at BODY_ARC 48.4.")
+    lines.append("Arc-plus for the DTP301120 under interface II is §1b (WP11b, Q55).")
+    lines.append("The REF tab route search is in §5 (WP11b, Q59).")
     lines.append("")
     lines.append("## 1. Every run at BODY_ARC 48.4")
     lines.append("")
@@ -1723,6 +2085,9 @@ def packing_markdown(rows: list[V2Result]) -> str:
     closed_i = [r for r in closed if r.spec.iface == "I"]
     closed_ii = [r for r in closed if r.spec.iface == "II"]
     winner = stage_b_winner_spec()
+    winner_row = next((r for r in rows if r.spec == winner), None)
+    winner_chord = winner_row.total_chord if winner_row is not None else 47.9005
+    lines.extend(_dtp_arc_plus_section(winner_chord))
     lines.append("## 2. Clearance, stack, and first-conflict families")
     lines.append("")
     packs = "; ".join(
@@ -1951,6 +2316,8 @@ def packing_markdown(rows: list[V2Result]) -> str:
         for name, tab in a.tabs.items():
             pts = " → ".join(f"({u:.2f}, {s:.2f})" for u, s in tab.points)
             lines.append(f"- {name}: {pts}.")
+        lines.append("")
+        lines.extend(_ref_tab_route_section())
         st0, st1 = standoff_y(spec)
         lines.append("")
         lines.append(
@@ -2036,6 +2403,7 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append(f"| Plug volume | {PLUG_VOLUME[0]:g} × {PLUG_VOLUME[1]:g} × {PLUG_VOLUME[2]:g} | plan v2 §5.4 |")
     lines.append(f"| JST-SH | {JST[0]:g} × {JST[1]:g} × {JST[2]:g} side entry | WP11 brief |")
     lines.append(f"| Ring pad | Ø{RING_D:g}, hole Ø{RING_HOLE:g}, strip {TAB_W:g} | plan v2 §5.3 interface II |")
+    lines.append(f"| Flex tab bend (WP11b REF search) | R {BOARD_BEND_R:g} | board-v2.md §11 |")
     lines.append(f"| Screw ISO 7380 M2.5×{SCREW_L:g} | projects {SCREW_PROJ:g} past the floor | v1 |")
     lines.append("| Harness | 100 ± 3 mm | plan v2; NOT_MEASURED as a solid |")
     lines.append(
@@ -2055,6 +2423,11 @@ def packing_markdown(rows: list[V2Result]) -> str:
     )
     lines.append("- E73 antenna sheet: unreachable; v1 12.4 × 3.8 used.")
     lines.append("- M1 on Rolf (Q34): default 52 used for the gate.")
+    lines.append(
+        "- REF tab lid-to-wall gap: packing treats the cavity end wall as solid from floor "
+        f"{FLOOR_Y:g} to LID_Y 8.0; a gap under the lid was not probed on the solid."
+    )
+    lines.append("- DTP single-unit purchase and a 501015 pack in ones: Q55; this package does not order.")
     lines.append("")
     lines.append("## 9. Drawings in the repo")
     lines.append("")
