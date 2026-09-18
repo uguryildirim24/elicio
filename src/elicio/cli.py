@@ -497,6 +497,56 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path(".elicio-recording-replay"),
         help="directory for the marker and JSONL audit log",
     )
+    receive = subparsers.add_parser(
+        "receive",
+        help="record a frame v2 NUS stream into a pipeline session directory",
+    )
+    source = receive.add_mutually_exclusive_group(required=True)
+    source.add_argument(
+        "--device",
+        help="BLE name or address of the board (needs elicio[ble])",
+    )
+    source.add_argument(
+        "--simulate",
+        type=Path,
+        help="replay a committed fragment-stream JSON fixture without a radio",
+    )
+    source.add_argument(
+        "--simulate-live",
+        action="store_true",
+        help="feed the Python framer through a fake transport with injected faults",
+    )
+    receive.add_argument(
+        "--out",
+        type=Path,
+        required=True,
+        help="session directory to write samples.npz, sidecar.json, and meta.json",
+    )
+    receive.add_argument(
+        "--subject",
+        default="bench",
+        help="pipeline Recording.subject",
+    )
+    receive.add_argument(
+        "--session",
+        default="s2",
+        help="pipeline Recording.session",
+    )
+    receive.add_argument(
+        "--seconds",
+        type=float,
+        default=None,
+        help="BLE only: stop after this many seconds",
+    )
+    receive_check = subparsers.add_parser(
+        "receive-check",
+        help="print S2 dry-check stats for a receive session directory",
+    )
+    receive_check.add_argument(
+        "session_dir",
+        type=Path,
+        help="directory written by elicio receive",
+    )
     return parser
 
 
@@ -512,6 +562,14 @@ def main(argv: list[str] | None = None) -> int:
         return run_scope(args)
     if args.command == "replay-recording":
         return run_recording_replay(args.recording, args.state_dir)
+    if args.command == "receive":
+        from .receiver_v2 import run_receive
+
+        return run_receive(args)
+    if args.command == "receive-check":
+        from .receiver_v2 import run_receive_check
+
+        return run_receive_check(args.session_dir)
     raise AssertionError(f"unhandled command: {args.command}")
 
 
