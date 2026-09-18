@@ -156,6 +156,47 @@ class PackingAgreementTests(unittest.TestCase):
         )
 
 
+    def test_pcb_matches_packing_5d_pin_table_v21(self) -> None:
+        """Review r7: the board and packing §5d pin table v2.1 carry one set of
+        numbers, side and rotation included (bottom parts are mirrored, so pcb
+        rot = 180 - packing rot). R24 alone keeps the Q87 allowance: this board
+        (fbd56e6) has it at +0.47 u rot 0; WP12g moves it onto v2.1's site."""
+        text = PCB.read_text(encoding="utf-8")
+        found: dict[str, tuple[float, float, float, str]] = {}
+        for chunk in text.split("\n\t(footprint ")[1:]:
+            at = re.search(r"\(at ([-\d.]+) ([-\d.]+)(?: ([-\d.]+))?\)", chunk)
+            ref = re.search(r'\(property "Reference" "([^"]+)"', chunk)
+            layer = re.search(r'\(layer "([^"]+)"\)', chunk)
+            if at and ref and layer:
+                found[ref.group(1)] = (
+                    float(at.group(1)), float(at.group(2)), float(at.group(3) or 0.0), layer.group(1)
+                )
+        doc = (ROOT / "docs" / "fab" / "packing-v2.md").read_text(encoding="utf-8")
+        section = doc[doc.index("### Pin table v2.1"):]
+        section = section[: section.index("\n### ", 5)]
+        rows = 0
+        for line in section.splitlines():
+            m = re.match(
+                r"^\|\s*([A-Z][A-Z0-9]*)\s*\|\s*(\w+)\s*\|\s*([-0-9.]+)\s*\|\s*([-0-9.]+)\s*\|\s*([-0-9.]+)\s*\|",
+                line,
+            )
+            if m is None:
+                continue
+            rows += 1
+            ref, side = m.group(1), m.group(2)
+            u, s, rot = float(m.group(3)), float(m.group(4)), float(m.group(5))
+            with self.subTest(ref=ref):
+                self.assertIn(ref, found)
+                x, y, prot, layer = found[ref]
+                limit = 0.50 if ref == "R24" else 0.1
+                self.assertLessEqual(((x - u) ** 2 + (y - s) ** 2) ** 0.5, limit, (ref, x, y, u, s))
+                self.assertEqual(layer, "B.Cu" if side == "bottom" else "F.Cu", ref)
+                if ref != "R24":
+                    want = (180.0 - rot) % 360.0 if side == "bottom" else rot % 360.0
+                    self.assertAlmostEqual(prot % 360.0, want, places=1, msg=ref)
+        self.assertEqual(rows, 68)
+
+
 class Wp12cRoutedAssertionTests(unittest.TestCase):
     def test_order_release_stays_unrouted(self) -> None:
         """WP12h: Contact and SES copper exist; DRC 0 with 0 unconnected was not reached."""
