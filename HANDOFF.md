@@ -115,20 +115,26 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w1 WP14b, w3 WP11d, w5 WP17c), WP11c and WP13c landed, w2 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11d, w5 WP17c), WP11c, WP13c and WP14b landed, w1, w2 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
-- **w1 → WP14b shell v2, second pass** (`tasks/WP14b-shell-v2b.md`, main
-  `58ae5b8`): RUNNING since 00:45 on `lane/w1-r6` at `110a79b`; prompt:
-  read the brief in full and do it. Closure per Q71 (concealed tail M2.5
-  titanium screw into a boss plus the hinge lip, no snaps), a lofted lid
-  lapping the wall tops with R ≥ 1.0 all round and no flat station over
-  3 mm, hook root blend per Q76, every check measured on the built solid,
-  the USB row NOT_MEASURED until packing §5b (Q70). Waits for nothing
-  from me. Report (expected) `.worktrees/w1/.reports/WP14b-report.md` →
-  `DONE WP14b`; then a second turn once WP11c publishes §5b (USB wall,
-  tab fold pockets, island bosses); merges in round 7's review.
+- **w1 → WP14b shell v2, second pass** (`tasks/WP14b-shell-v2b.md`):
+  LANDED, `DONE WP14b` at `bb0c788` on `lane/w1-r6` (five commits on
+  `110a79b`, tree clean, report `.worktrees/w1/.reports/WP14b-report.md`
+  present, 206 tests OK with the CAD tests running, order 1
+  byte-identical, Stage B v2 unchanged, shell identical twice, build exit
+  0). Measured on the solid: V2_CLOSURE passes (hinge undercut 1, lip in
+  1, screw engagement 4.00, boss wall 3.13, head 1.75 below the boss
+  top), V2_EDGE_radii passes (0 flat stations of 6, lid rim R 1.08
+  fitted), V2_WALL_minima passes (hinge outer wall 1.00, side walls
+  1.50, slot floor 1.50); V2_USB_end NOT_MEASURED by name, the hook-end
+  wall left solid until packing §5c (Q70); Q76 built as a circular root
+  r 1.75 with a 1.5 fillet, no fallback needed. Its decision list repeats
+  Q34, Q30, Q17, S4 qualitative, standoff 3.0, Q70; nothing new. w1
+  idles; next: the second turn after `DONE WP11d` (USB wall from §5c,
+  tab fold pockets, island bosses), merges in round 7's review. The new
+  renders go on the answer sheet (version 7).
 - **w3 → WP11c courtyards** (`tasks/WP11c-courtyards.md`): LANDED, `DONE
   WP11c` at `1897df0` on `lane/w3` (two commits on top of `bcecc83`, tree
   clean, report `.worktrees/w3/.reports/WP11c-report.md` present, 187
@@ -220,12 +226,12 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP11d` (w3), `DONE WP17c` (w5) or `DONE WP14b` (w1), or
-  BLOCKED/GONE for any (a DONE is checked: report present, tree clean;
-  then read); with WP11d's grid and WP17c's item 1 settle Q78 (the edge
-  reading, width 20 or 22) in open-questions, then brief WP12d for w2 on
-  §5c and WP14b's second turn for w1; when WP14b, WP11d, WP17c and WP12d
-  have landed (WP11c and WP13c already have), open review r7
+- Idle until `DONE WP11d` (w3) or `DONE WP17c` (w5), or BLOCKED/GONE for
+  either (a DONE is checked: report present, tree clean; then read); with
+  WP11d's grid and WP17c's item 1 settle Q78 (the edge reading, width 20
+  or 22) in open-questions, then brief WP12d for w2 on §5c and WP14b's
+  second turn for w1; when WP11d, WP17c, WP12d and the w1 second turn
+  have landed (WP11c, WP13c, WP14b already have), open review r7
   (`tasks/review-r7.md` (expected) from `tasks/review-code-template.md`).
 
 ## Traps
