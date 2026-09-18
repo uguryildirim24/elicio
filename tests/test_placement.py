@@ -946,8 +946,15 @@ class PlacementWP11dTests(unittest.TestCase):
                 self.assertAlmostEqual(p.ws, 6.40, places=2)
                 self.assertEqual(p.face, "floor")
                 self.assertIn("RING_PAD", p.notes)
-            self.assertAlmostEqual(by["P4"].s, 44.00, places=2)
-            self.assertAlmostEqual(by["P5"].s, 44.00, places=2)
+            p4s, p5s = self.mod.charge_pad_sites(lay.width, self.v2)
+            self.assertAlmostEqual(by["P4"].u, p4s[0], places=2)
+            self.assertAlmostEqual(by["P4"].s, p4s[1], places=2)
+            self.assertAlmostEqual(by["P5"].u, p5s[0], places=2)
+            self.assertAlmostEqual(by["P5"].s, p5s[1], places=2)
+            cu0, cu1 = 1.50, lay.width - 1.50
+            self.assertGreaterEqual(by["P4"].u, cu0)
+            self.assertLessEqual(by["P5"].u, cu1)
+            self.assertNotAlmostEqual(by["P4"].u, 0.75, places=2)
         for ref in ("R1", "R2", "R3"):
             self.assertIn(ref, by)
             self.assertIn(by[ref].face, {"top", "bottom"})
@@ -1195,13 +1202,36 @@ class PlacementWP11eTests(unittest.TestCase):
         self.assertAlmostEqual(folded["P2"][1], self.v2.CONTACT_2[1], places=2)
         self.assertAlmostEqual(folded["P3"][0], self.v2.CONTACT_REF[0], places=2)
         self.assertAlmostEqual(folded["P3"][1], self.v2.CONTACT_REF[1], places=2)
-        p4, p5 = self.mod.charge_pad_sites(self.lay.width)
+        p4, p5 = self.mod.charge_pad_sites(self.lay.width, self.v2)
         self.assertAlmostEqual(folded["P4"][0], p4[0], places=2)
         self.assertAlmostEqual(folded["P4"][1], p4[1], places=2)
         self.assertAlmostEqual(folded["P5"][0], p5[0], places=2)
         self.assertAlmostEqual(folded["P5"][1], p5[1], places=2)
         for ref in ("P1", "P2", "P3", "P4", "P5"):
             self.assertAlmostEqual(folded[ref][2], self.v2.FLOOR_Y, places=2)
+
+    def test_charge_pads_on_flex_tail_inside_cavity(self) -> None:
+        p4 = next(p for p in self.lay.parts if p.ref == "P4")
+        p5 = next(p for p in self.lay.parts if p.ref == "P5")
+        cu0, cu1 = 1.50, self.lay.width - 1.50
+        self.assertGreaterEqual(p4.u, cu0)
+        self.assertLessEqual(p5.u, cu1)
+        self.assertGreaterEqual(p4.u - 2.50, cu0)
+        self.assertLessEqual(p5.u + 2.50, cu1)
+        tail = self.mod.charge_tail_outline(self.v2, self.lay.island, self.lay.width)
+        for p in (p4, p5):
+            edge = self.mod._pad_edge(self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, tail)
+            self.assertGreaterEqual(edge, 0.30 - 1e-9, f"{p.ref} pad-to-outline {edge:.3f}")
+            d_ref = ((p.u - 8.50) ** 2 + (p.s - 43.00) ** 2) ** 0.5
+            d_screw = ((p.u - 14.50) ** 2 + (p.s - 41.00) ** 2) ** 0.5
+            self.assertGreaterEqual(d_ref, 2.0 - 1e-9, f"{p.ref} d_ref {d_ref:.2f}")
+            self.assertGreaterEqual(d_screw, 2.0 - 1e-9, f"{p.ref} d_screw {d_screw:.2f}")
+        between = ((p4.u - p5.u) ** 2 + (p4.s - p5.s) ** 2) ** 0.5 - 2.7
+        self.assertGreaterEqual(between, 3.0 - 1e-9)
+        self.assertNotAlmostEqual(p4.u, 0.75, places=2)
+        self.assertNotAlmostEqual(p5.u, 21.25, places=2)
+        rule = next(r for r in self.lay.rules if r[0].startswith("P4/P5 on the flex tail"))
+        self.assertTrue(rule[1], rule[2])
 
     def test_packing_doc_has_section_5d(self) -> None:
         doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
@@ -1214,6 +1244,10 @@ class PlacementWP11eTests(unittest.TestCase):
         self.assertIn("| H2 |", text)
         self.assertIn("FLAT PCB (Q85)", text)
         self.assertIn("placement_v2c_process_norec_w22_c47.90_two.svg", text)
+        self.assertIn("| P4 | CHARGE_VBUS | 5.05 | 49.50 |", text)
+        self.assertIn("| P5 | CHARGE_GND | 16.95 | 49.50 |", text)
+        self.assertNotIn("| P4 | CHARGE_VBUS | 0.75 | 44.00 |", text)
+        self.assertIn("not in the 1.5 mm side walls", text)
         v2c_dir = Path(__file__).resolve().parents[1] / "docs" / "fab" / "cad" / "v2c"
         v2c = {p.name for p in v2c_dir.glob("placement_v2c_*.svg")}
         self.assertLessEqual(len(v2c), 4)

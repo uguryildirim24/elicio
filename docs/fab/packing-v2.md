@@ -2022,8 +2022,8 @@ Q81 is settled: the build carries this cell. J1 and U5 are absent. P4 and P5 are
 | P1 | floor | 5.90 | 22.00 | 0 | 6.40 × 6.40 | SIG1 ring; Q79 tab carries one Contact trace |
 | P2 | floor | 10.40 | 33.10 | 0 | 6.40 × 6.40 | SIG2 ring |
 | P3 | floor | 8.50 | 43.00 | 0 | 6.40 × 6.40 | REF ring; REF_end_wall_slot |
-| P4 | floor | 0.75 | 44.00 | 0 | 6.40 × 6.40 | CHARGE_VBUS tail pad (Q81); RING_PAD_D5_H2.7 |
-| P5 | floor | 21.25 | 44.00 | 0 | 6.40 × 6.40 | CHARGE_GND tail pad (Q81); RING_PAD_D5_H2.7 |
+| P4 | floor | 5.05 | 49.50 | 0 | 6.40 × 6.40 | CHARGE_VBUS tail pad (Q81); RING_PAD_D5_H2.7 |
+| P5 | floor | 16.95 | 49.50 | 0 | 6.40 × 6.40 | CHARGE_GND tail pad (Q81); RING_PAD_D5_H2.7 |
 | Q1 | bottom | 4.48 | 27.60 | 0 | 3.86 × 3.40 | SOT-23 |
 | Q2 | bottom | 4.48 | 31.20 | 0 | 3.86 × 3.40 | SOT-23 |
 | Q3 | bottom | 4.48 | 34.80 | 0 | 3.86 × 3.40 | SOT-23 |
@@ -2071,7 +2071,7 @@ Build cell: process-edge, width 22, chord 47.90, two sides, fold neck, no recept
 
 Fold allowance: inner R 1.5 mm, stack 0.31 mm (PI 0.11 + FR4 0.2). Arc at R is πR = 4.71 mm. Midplane arc π(R + t/2) = 5.20 mm. Q83 strip lengths use πR, so SIG1 10.71 mm and SIG2 21.81 mm stay. Flat length = folded run + πR. Folded run SIG1 = 6.00 mm, SIG2 = 17.10 mm.
 
-Flat-to-folded mapping (neck-end, Q83): each SIG strip leaves the island at (contact u, s=16.00) toward −s. The ring centre in PCB coordinates is (contact u, s0 − L_flat). A 180° fold at R 1.5 at the neck puts the ring on the floor at the contact site. REF does not take that fold: it already leaves the island high-s end (s=37.60) through the end-wall slot, so P3 flat = P3 folded. P4 and P5 sit on the tail of the flat board; flat = folded.
+Flat-to-folded mapping (neck-end, Q83): each SIG strip leaves the island at (contact u, s=16.00) toward −s. The ring centre in PCB coordinates is (contact u, s0 − L_flat). A 180° fold at R 1.5 at the neck puts the ring on the floor at the contact site. REF does not take that fold: it already leaves the island high-s end (s=37.60) through the end-wall slot, so P3 flat = P3 folded. P4 and P5 sit on the flex tail (island u-span, past the REF courtyard), inside the cavity u-range. They are not in the 1.5 mm side walls. Flat = folded.
 
 | strip | attach (u, s) | flat ring (u, s) | flat rectangle centre wu × ws | folded run | L_flat |
 |---|---|---|---|---:|---:|
@@ -2085,7 +2085,7 @@ Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_t
 
 ### Pin table v2 — flat PCB coordinates (width 22, chord 47.90, two sides, fold neck)
 
-68 rows (66 footprints including P4/P5, plus H1 and H2). Side column as in §5c. Pad-to-outline ≥ 0.30. Holes at the Q82 sites. SW1 in the lid recess. Contact variant A. P1 and P2 are the FLAT ring centres (not the folded sites WP12d pinned). P4 and P5 keep RING_PAD_D5_H2.7 courtyards on the tail. The board lane pins this table within 0.1 mm. The shell lane ignores it and takes the folded-site table.
+68 rows (66 footprints including P4/P5, plus H1 and H2). Side column as in §5c. Pad-to-outline ≥ 0.30. Holes at the Q82 sites. SW1 in the lid recess. Contact variant A. P1 and P2 are the FLAT ring centres (not the folded sites WP12d pinned). P4 and P5 keep RING_PAD_D5_H2.7 courtyards on the flex tail, inside the cavity, with pad-to-outline ≥ 0.30. They replace the side-wall sites (0.75, 44.00) and (21.25, 44.00). The board lane pins this table within 0.1 mm. The shell lane ignores it and takes the folded-site table.
 
 | ref | side | u | s | rot | courtyard wu × ws | notes |
 |---|---|---:|---:|---:|---:|---|
@@ -2113,8 +2113,8 @@ Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_t
 | P1 | floor | 5.90 | 5.29 | 0 | 6.40 × 6.40 | SIG1 ring; Q79 tab carries one Contact trace; FLAT PCB (Q85); folded site in the shell table |
 | P2 | floor | 10.40 | -5.81 | 0 | 6.40 × 6.40 | SIG2 ring; FLAT PCB (Q85); folded site in the shell table |
 | P3 | floor | 8.50 | 43.00 | 0 | 6.40 × 6.40 | REF ring; REF_end_wall_slot |
-| P4 | floor | 0.75 | 44.00 | 0 | 6.40 × 6.40 | CHARGE_VBUS tail pad (Q81); RING_PAD_D5_H2.7 |
-| P5 | floor | 21.25 | 44.00 | 0 | 6.40 × 6.40 | CHARGE_GND tail pad (Q81); RING_PAD_D5_H2.7 |
+| P4 | floor | 5.05 | 49.50 | 0 | 6.40 × 6.40 | CHARGE_VBUS tail pad (Q81); RING_PAD_D5_H2.7 |
+| P5 | floor | 16.95 | 49.50 | 0 | 6.40 × 6.40 | CHARGE_GND tail pad (Q81); RING_PAD_D5_H2.7 |
 | Q1 | bottom | 4.48 | 27.60 | 0 | 3.86 × 3.40 | SOT-23 |
 | Q2 | bottom | 4.48 | 31.20 | 0 | 3.86 × 3.40 | SOT-23 |
 | Q3 | bottom | 4.48 | 34.80 | 0 | 3.86 × 3.40 | SOT-23 |
@@ -2160,15 +2160,15 @@ Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_t
 
 ### Folded sites for the shell (u, s, y)
 
-Contact sites are unchanged from §5. y is the ring seat on the inner floor (1.50 mm). WP14 keeps these numbers.
+Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner floor (1.50 mm). P4 and P5 moved off the 1.5 mm side walls onto the flex tail: inside cavity u, pad-to-outline ≥ 0.30, clear of the REF dome (8.50, 43.00) and the medial screw well (14.50, 41.00) by ≥ 2 mm, nylon between pads ≥ 3 mm. WP14 follows these sites.
 
 | pad | net | u | s | y | courtyard | notes |
 |---|---|---:|---:|---:|---|---|
 | P1 | SIG1 | 5.90 | 22.00 | 1.50 | 6.40 × 6.40 | folded seat after the neck 180° fold |
 | P2 | SIG2 | 10.40 | 33.10 | 1.50 | 6.40 × 6.40 | folded seat after the neck 180° fold |
 | P3 | REF | 8.50 | 43.00 | 1.50 | 6.40 × 6.40 | REF_end_wall_slot; flat = folded |
-| P4 | CHARGE_VBUS | 0.75 | 44.00 | 1.50 | 6.40 × 6.40 | tail; flat = folded (Q81) |
-| P5 | CHARGE_GND | 21.25 | 44.00 | 1.50 | 6.40 × 6.40 | tail; flat = folded (Q81) |
+| P4 | CHARGE_VBUS | 5.05 | 49.50 | 1.50 | 6.40 × 6.40 | flex tail inside cavity; not in the side wall; flat = folded (Q81) |
+| P5 | CHARGE_GND | 16.95 | 49.50 | 1.50 | 6.40 × 6.40 | flex tail inside cavity; not in the side wall; flat = folded (Q81) |
 
 ### J4 NPTH keep-out both sides (Q85)
 
