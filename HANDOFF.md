@@ -207,11 +207,19 @@ fast-forwarded to `110a79b`.
   part), pin table v2 with 68 rows in flat coordinates plus side, the
   folded-site table for the shell (unchanged contact sites), J4's
   THREE NPTH (drill 0.99, keep Ø1.39) as a both-side keep-out with no
-  B.Cu part inside. Not yet done: my mid-turn addendum (P4/P5 out of
-  the 1.5 mm side walls, inside the cavity u range) is running as its
-  second turn (status working at 04:05); its DONE brings the final v2
-  sha. Only then do I send w2 "pin table v2" plus that sha and brief
-  w1's WP14e on the new P4/P5 folded sites.
+  B.Cu part inside. Second turn LANDED at `bf9f3f6` (tree clean): P4/P5
+  moved to (5.05, 49.50) and (16.95, 49.50), u inside the island span,
+  but s 49.50 is OFF THE BODY: TOTAL_CHORD is 47.90, the shell's tail
+  loft starts at s 45.5, a Ø5 pad there reaches s 52.0, and the flat
+  tail was drawn out through it; the lane derived s from the REF dome's
+  courtyard and never checked the body end. Third turn RUNNING since
+  04:20: place P4/P5 on the medial floor where nylon exists (copper
+  ahead of s 45.5, clear of the end-wall slot s 38.20–39.25, the M2.5
+  well at (14.50, 41.00) and the REF dome Ø6.4 at (8.50, 43.00), nylon
+  ≥ 3.0 between pads, ≥ 2.0 edge-to-edge to dome and head), or state
+  the largest pad that fits, or hook-end sites. Its DONE brings the
+  final v2 sha; only then do I send w2 "pin table v2" plus that sha
+  and brief w1's WP14e on the new P4/P5 folded sites.
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
   WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
   package commit, tree clean, report
