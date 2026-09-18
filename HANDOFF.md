@@ -126,7 +126,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w2 WP12f routing, w3 WP11f, w1 WP14e), WP12e landed un-routed at 30ca79d, WP11e landed at 408a476, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w2 WP12f routing, w3 WP11f), WP14e landed at bdfc429, WP12e landed un-routed at 30ca79d, WP11e landed at 408a476, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -183,13 +183,18 @@ fast-forwarded to `110a79b`.
   cavity range, then w1 gets a WP14e to follow the v2 folded sites. w1
   then got WP14e.
 - **w1 → WP14e shell v2e** (`tasks/WP14e-shell-v2e.md`, main `77d310d`):
-  RUNNING since 05:10 on `lane/w1-r6` on top of `ecfff54` (told to `git
-  merge main` first): P4/P5 at §5d's hook-end floor sites with Ø5 floor
-  holes, the tail-corner pads removed, the rib slot and the drop
-  channel for the charge tab, `V2_CHARGE_pads` and every check
-  re-measured, renders regenerated with stamp = solids commit,
-  `shell-v2.md` updated. Waits for nothing from me. Report
-  `.worktrees/w1/.reports/WP14e-report.md` (expected) → `DONE WP14e`.
+  LANDED, `DONE WP14e` at `bdfc429` on `lane/w1-r6` (tree clean, report
+  `.worktrees/w1/.reports/WP14e-report.md` present, full suite exit 0
+  under `LC_ALL=C`, shell class 7 OK, order 1 byte-identical, two runs
+  identical, stamp = manifest.commit = solids `9734c34`). Built: P4/P5
+  flush Ø5 floor pads at §5d's (14.70, 4.30) and (17.70, 11.72) parsed
+  from the folded-site table at `408a476`, tail-corner pads gone, rib
+  slot and drop channel (air 1 each), `V2_CHARGE_pads` nylon between
+  3.00, floor 1.50, cell gap 0.30 / 3.30, creepage nylon 1.0; every
+  other check unchanged from WP14d. I viewed both renders: two pads
+  under the hook on the skin face, three domes below, screw ring at the
+  tail, lateral unbroken; nothing protrudes. w1 idle on `lane/w1-r6`.
+  Sheet version 11 carries these renders and question 6c (Q86).
 - **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): LANDED, `DONE
   WP11d` four times on `lane/w3`, final `c6bd2fe` (tree clean, report
   `.worktrees/w3/.reports/WP11d-report.md` present, tests OK).
@@ -395,16 +400,15 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP12f` (w2), `DONE WP11f` (w3) and `DONE WP14e` (w1),
-  or BLOCKED/GONE for any (a DONE is checked: report present, tree
-  clean; then read; WP14e's renders viewed and the sheet refreshed to
-  version 11 with the hook-end pads and a Q86 question); when all three
-  have landed (WP12f routed or stopped with a structural reason that is
-  not the board's to fix), open review r7: a review worktree (expected)
-  at `.worktrees/review` (expected) on a round 7 review branch cut from
-  main, a fresh Opus 5 high pane, brief (expected) at `tasks/review-r7.md`
-  (expected) from `tasks/review-code-template.md` with the seams in Open
-  item 6 and every report pasted; merge order w3, w1-r6, w5, w4, w2.
+- Idle until `DONE WP12f` (w2) and `DONE WP11f` (w3), or BLOCKED/GONE
+  for either (a DONE is checked: report present, tree clean; then read);
+  when both have landed (WP12f routed, or stopped with a structural
+  reason that is not the board's to fix), open review r7: a review
+  worktree (expected) at `.worktrees/review` (expected) on a round 7
+  review branch cut from main, a fresh Opus 5 high pane, brief
+  (expected) at `tasks/review-r7.md` (expected) from
+  `tasks/review-code-template.md` with the seams in Open item 6 and
+  every report pasted; merge order w3, w1-r6, w5, w4, w2.
 
 ## Traps
 
