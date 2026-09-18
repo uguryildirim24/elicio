@@ -100,11 +100,17 @@ brief in full and do it", nothing owed from me until their pushes.
   `docs/fab/cad/v2/` (expected) and `docs/fab/shell-v2.md` (expected).
   Waits for nothing from me. Report `.reports/WP14-report.md` (expected)
   → `DONE WP14`. It may read `lane/w3` for the tab route.
-- **w3 → WP11b packing follow-ups** (`tasks/WP11b-packing-followups.md`),
-  branch `lane/w3`, new lane this round (tab `w1B:tR`, pane `w1B:pR`).
-  Arc-plus runs for the DTP301120 (Q55) and the REF tab route inside the
-  cavity (Q59), regenerated `docs/fab/packing-v2.md`. Report
-  `.reports/WP11b-report.md` (expected) → `DONE WP11b`.
+- **w3 → WP11b packing follow-ups**: LANDED, `DONE WP11b` at `284ec05`
+  on `lane/w3` (two commits, tree clean, report
+  `.worktrees/w3/.reports/WP11b-report.md` present, 177 tests OK, doc
+  regenerated not edited). Results: the DTP301120 closes in 0 of 48
+  arc-plus runs (+1.5 already fails the M1 gate, 49.42 > 49.00); no REF
+  tab route stays inside the cavity, so `REF_end_wall_slot` (2.50 wide,
+  1.05 through, 0.31 high at u 7.25–9.75, s 38.20–39.25) is published in
+  `docs/fab/packing-v2.md` §5 on `lane/w3` for WP14 to cut; the winner
+  is unchanged. Note sent 23:05 to w1 to cut that slot. A second DONE is
+  expected from w3: the 22:58 note adds the Jauch LP501218JH cell as a
+  third packing case.
 - **w2 → WP12b board route** (`tasks/WP12b-board-route.md`), branch
   `lane/w2`. Re-place from packing-v2 §5, sync, route, `release.py
   --routed` exit 0, stiffeners ≤ 3 (Q60), decoupling (Q68), standby load
