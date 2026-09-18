@@ -1,0 +1,2134 @@
+{
+  "checks": [
+    {
+      "detail": "VARIANT \u00d7 HOOK_PRELOAD must be {full,thin} \u00d7 {1.5,2.5}",
+      "name": "matrix",
+      "numbers": {
+        "HOOK_PRELOAD": 1.5,
+        "VARIANT": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "thickness follows LID_Y + LID_THICK when PACKING=v2",
+      "name": "BODY_THICK",
+      "numbers": {
+        "BODY_THICK": 9.0,
+        "expected": 9.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "clamped bow is 1\u20138",
+      "name": "CREASE_BOW_clamp",
+      "numbers": {
+        "CREASE_BOW": 3.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "M1 must be at least TOTAL_CHORD + 3",
+      "name": "M1_gate",
+      "numbers": {
+        "M1": 52.0,
+        "TOTAL_CHORD": 47.900523407445874,
+        "gate": 50.900523407445874
+      },
+      "passed": true
+    },
+    {
+      "detail": "hook inner radius HOOK_RADIUS \u2212 HOOK_DIA/2 must be < M8 + 1",
+      "name": "HOOK_RADIUS",
+      "numbers": {
+        "HOOK_RADIUS": 13.5,
+        "M8": 11.0,
+        "inner": 11.75,
+        "limit": 12.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: floor (WALL_MEDIAL)",
+      "numbers": {
+        "size": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: anterior side wall",
+      "numbers": {
+        "size": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: posterior side wall",
+      "numbers": {
+        "size": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: top end wall",
+      "numbers": {
+        "size": 1.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: top end wall at LIP_GROOVE",
+      "numbers": {
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: lip above TONGUE_SLOT",
+      "numbers": {
+        "size": 1.1
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: tail below TONGUE_SLOT",
+      "numbers": {
+        "size": 7.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: tail below web pocket",
+      "numbers": {
+        "size": 6.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: lid plate",
+      "numbers": {
+        "size": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "walls \u2265 1.0 (plan \u00a73.6)",
+      "name": "wall: hook",
+      "numbers": {
+        "size": 3.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "rib at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E2",
+      "numbers": {
+        "minimum": 0.8,
+        "plan_size": 0.8,
+        "size": 0.8
+      },
+      "passed": true
+    },
+    {
+      "detail": "coupon rib at its plan size and \u2265 its minimum (plan \u00a73.6)",
+      "name": "E4",
+      "numbers": {
+        "minimum": 0.4,
+        "plan_size": 0.4,
+        "size": 0.4
+      },
+      "passed": true
+    },
+    {
+      "detail": "nominal from geometry matches plan \u00a73.6",
+      "name": "fit: plate underside : recess floor",
+      "numbers": {
+        "nominal": 0.0,
+        "plan": 0.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "stack top at KEEPOUT_SIGNAL top 4.13, tip past the nut, below the board at wall +0.3",
+      "name": "CONTACT_STACK",
+      "numbers": {
+        "board_underside": 4.3,
+        "tip_past_nut": 0.4,
+        "top_y": 4.13,
+        "top_y_wall_plus_0_3": 4.13
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to superior low-u pad",
+      "numbers": {
+        "gap": 0.1517
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to superior high-u pad",
+      "numbers": {
+        "gap": 7.8185
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to inferior low-u pad",
+      "numbers": {
+        "gap": 11.7715
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to inferior high-u pad",
+      "numbers": {
+        "gap": 15.9745
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to rib",
+      "numbers": {
+        "gap": 0.3746
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to anterior wall",
+      "numbers": {
+        "gap": 0.85
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to posterior wall",
+      "numbers": {
+        "gap": 9.05
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_1 to cavity end",
+      "numbers": {
+        "gap": 13.5553
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to superior low-u pad",
+      "numbers": {
+        "gap": 12.4826
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to superior high-u pad",
+      "numbers": {
+        "gap": 13.0114
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to inferior low-u pad",
+      "numbers": {
+        "gap": 4.6305
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to inferior high-u pad",
+      "numbers": {
+        "gap": 4.0371
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to rib",
+      "numbers": {
+        "gap": 12.7997
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to anterior wall",
+      "numbers": {
+        "gap": 5.3453
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to posterior wall",
+      "numbers": {
+        "gap": 4.5547
+      },
+      "passed": true
+    },
+    {
+      "detail": "KEEPOUT_SIGNAL \u00d87.1 clear of solid (body frame)",
+      "name": "keep-out: CONTACT_2 to cavity end",
+      "numbers": {
+        "gap": 2.0645
+      },
+      "passed": true
+    },
+    {
+      "detail": "physical opening at u=9.3 must be positive",
+      "name": "WIRE_CHANNEL_opening",
+      "numbers": {
+        "physical_opening": 0.9382694314928568,
+        "s_entry": 39.64373902907198
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_1",
+      "numbers": {
+        "CREASE_BOW": 1.0,
+        "physical_opening": 1.0891129737581813
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_3",
+      "numbers": {
+        "CREASE_BOW": 3.0,
+        "physical_opening": 0.9382694314928568
+      },
+      "passed": true
+    },
+    {
+      "detail": "opening at supported bow",
+      "name": "WIRE_CHANNEL_bow_8",
+      "numbers": {
+        "CREASE_BOW": 8.0,
+        "physical_opening": 0.5372829739143715
+      },
+      "passed": true
+    },
+    {
+      "detail": "signal contacts at the sites placement.py searched pads, tab angles and the reference route for; new sites (WP7a) need a placement re-run first",
+      "name": "PLACEMENT_contacts",
+      "numbers": {
+        "CONTACT_1_S": 22.0,
+        "CONTACT_1_U": 5.9,
+        "drift": 0.0266,
+        "placement_CONTACT_1_S": 22.0,
+        "placement_CONTACT_1_U": 5.9
+      },
+      "passed": true
+    },
+    {
+      "detail": "board underside at y 4.3 clears stack top 4.13, barrels and tab envelopes",
+      "name": "BOARD_underside_clear pre-CAD",
+      "numbers": {
+        "TAB_HEIGHT": 2.0,
+        "barrel_top": 3.46,
+        "board_underside": 4.3,
+        "envelope_top": 3.5,
+        "stack_top": 4.13
+      },
+      "passed": true
+    },
+    {
+      "detail": "cell 5.2 \u00d7 10.4 \u00d7 15.6 plus 0.5 foam fits the plan pocket under LID_Y",
+      "name": "CELL_envelope pre-CAD",
+      "numbers": {
+        "clear_s": 0.4,
+        "clear_u": 0.4,
+        "clear_y": 0.3,
+        "need_y": 5.7,
+        "pocket_top_y": 7.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "\u00d82.0 exit lies in the board zone between the corner pads, above the floor, below LID_Y",
+      "name": "CABLE_EXIT_cavity pre-CAD",
+      "numbers": {
+        "CABLE_EXIT_S": 35.0,
+        "CABLE_EXIT_Y": 3.0,
+        "board_side_of_rib": 1.0,
+        "corner_pad_s_gap": 0.4,
+        "in_cavity_s": 1.0,
+        "y_ok": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "NOT_MEASURED: v2 flex tabs are not the TE 31428 pad-gap search; solids measure them",
+      "name": "TAB_envelope_air pre-CAD",
+      "numbers": {
+        "TAB_HEIGHT": 2.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "v2: ring and brass standoff (hex corners) against LID_Y and the \u00d87.5 pocket; no TE 31428 lug",
+      "name": "Q21_REF_lug pre-CAD",
+      "numbers": {
+        "lid_y": 8.0,
+        "pocket_dia": 7.5,
+        "pocket_r": 3.75,
+        "ring_d": 5.0,
+        "ring_t": 0.31,
+        "stack_top_y": 4.81,
+        "standoff_circumr": 2.9,
+        "standoff_h": 3.0,
+        "tip_below_top": 0.81
+      },
+      "passed": true
+    },
+    {
+      "detail": "each \u00d82.9 hole removed the 1.5 medial wall disc only (removed volume = disc) and is open",
+      "name": "CONTACT_HOLE_wall",
+      "numbers": {
+        "open_REF": 1.0,
+        "open_SIG1": 1.0,
+        "open_SIG2": 1.0,
+        "removed_REF_mm3": 9.9078,
+        "removed_SIG1_mm3": 9.9078,
+        "removed_SIG2_mm3": 9.9078,
+        "wall_disc_mm3": 9.9078
+      },
+      "passed": true
+    },
+    {
+      "detail": "NOT_MEASURED: v1 \u00d87.1 TE keep-out; interface II puts the hex collar there (V2_STANDOFF, V2_RING_seat)",
+      "name": "KEEPOUT_SIGNAL_air",
+      "numbers": {},
+      "passed": false
+    },
+    {
+      "detail": "NOT_MEASURED: v2 flex tabs are not the TE 31428 envelope; see V2_TAB_envelope",
+      "name": "TAB_envelope_air",
+      "numbers": {
+        "TAB_HEIGHT": 2.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "NOT_MEASURED: v1 \u00d87.5 lug pocket; interface II puts the REF hex collar and the Q59 slot there",
+      "name": "KEEPOUT_REF_air",
+      "numbers": {},
+      "passed": false
+    },
+    {
+      "detail": "board underside (lowest pad top) above the stack top, both barrels and the tab envelopes",
+      "name": "BOARD_underside_clear",
+      "numbers": {
+        "TAB_HEIGHT": 2.0,
+        "barrel_top": 3.46,
+        "board_underside": 4.3,
+        "envelope_top": 3.5,
+        "floor_y": 1.5,
+        "stack_top": 4.13
+      },
+      "passed": true
+    },
+    {
+      "detail": "v2 REF flex tab 2.5 wide \u00d7 0.31 thick along the ring-to-board path holds no nylon",
+      "name": "REF_WIRE_envelope",
+      "numbers": {
+        "body_mm3": 0.0,
+        "lid_mm3": 0.0,
+        "tab_t": 0.31,
+        "tab_w": 2.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "NOT_MEASURED: no bench-cable exit on the shell (plan v2 \u00a77); posterior wall closed at CABLE_EXIT_S",
+      "name": "CABLE_EXIT_cavity",
+      "numbers": {
+        "CABLE_EXIT_S": 35.0,
+        "wall_closed": 1.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "cell 5.2 \u00d7 10.4 \u00d7 15.6 plus 0.5 foam on the lid face (plan \u00a75, Q18) sits in the pocket clear of body, rib, walls and the seated lid with its emboss",
+      "name": "CELL_envelope",
+      "numbers": {
+        "body_mm3": 0.0,
+        "clear_s_end_wall": 0.2,
+        "clear_s_rib": 0.2,
+        "clear_u_anterior": 1.8,
+        "clear_u_posterior": 4.8,
+        "clear_y_lid": 0.8,
+        "floor_y": 1.5,
+        "lid_mm3": 0.0,
+        "need_y": 5.7,
+        "plan_pocket_clear_s": 0.4,
+        "plan_pocket_clear_u": 0.4,
+        "plan_pocket_clear_y": 0.3
+      },
+      "passed": true
+    },
+    {
+      "detail": "v2: ring and brass standoff (hex corners, circumradius 2.9) on the probed floor against the measured lid over the pocket and the measured pocket radius; no TE 31428 lug (Q21, Q28)",
+      "name": "Q21_REF_lug",
+      "numbers": {
+        "floor_y": 1.5,
+        "lid_y": 8.0,
+        "pocket_r": 3.75,
+        "ring_r": 2.5,
+        "ring_t": 0.31,
+        "stack_top_y": 4.81,
+        "standoff_circumr": 2.9,
+        "standoff_h": 3.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "NOT_MEASURED: v1 E1 flag (Q28, E1 dropped); the shell closure is V2_CLOSURE",
+      "name": "CLOSURE_PASSED",
+      "numbers": {
+        "flag": 0.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "v2 cell box from the packing layout holds no nylon on the built body or seated lid",
+      "name": "V2_CELL_envelope",
+      "numbers": {
+        "body_mm3": 0.0,
+        "lid_mm3": 0.0,
+        "ws": 15.6,
+        "wu": 10.4,
+        "y0": 1.5,
+        "y1": 7.2
+      },
+      "passed": true
+    },
+    {
+      "detail": "v2 module box holds no nylon; antenna_body_mm3 is nylon inside the keep-out prism over the board (reported, not gated: the keep-out is no copper, not air)",
+      "name": "V2_MODULE_envelope",
+      "numbers": {
+        "antenna_body_mm3": 3.7167,
+        "body_mm3": 0.0,
+        "lid_mm3": 0.0,
+        "y0": 5.32,
+        "y1": 7.62
+      },
+      "passed": true
+    },
+    {
+      "detail": "v2 board zone from its underside (the standoff tops) to its top holds no nylon, body or lid",
+      "name": "V2_BOARD_envelope",
+      "numbers": {
+        "body_mm3": 0.0,
+        "lid_mm3": 0.0,
+        "top": 5.32,
+        "underside": 4.81
+      },
+      "passed": true
+    },
+    {
+      "detail": "v2 flex tabs 2.5 \u00d7 0.31 with \u00d85 rings, on the floor, hold no nylon",
+      "name": "V2_TAB_envelope",
+      "numbers": {
+        "REF_body_mm3": 0.0,
+        "SIG1_body_mm3": 0.0,
+        "SIG2_body_mm3": 0.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "measured floor + flex ring + brass standoff: top at or under the board underside and under the lid over SIG1; the screw tip ends inside the standoff",
+      "name": "V2_CONTACT_STACK",
+      "numbers": {
+        "board_underside": 4.81,
+        "floor_y": 1.5,
+        "lid_over_SIG1": 8.0,
+        "ring_t": 0.31,
+        "stack_top_y": 4.81,
+        "standoff_h": 3.0,
+        "tip_below_top": 0.81
+      },
+      "passed": true
+    },
+    {
+      "detail": "lid underside over the board mid-point, measured on the seated lid",
+      "name": "V2_LID_band",
+      "numbers": {
+        "LID_Y": 8.0,
+        "lid_underside_y": 8.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0 beside it; flex clearance 0.2 mm per side in u on REF_end_wall_slot",
+      "name": "V2_WALL_minima",
+      "numbers": {
+        "WALL_MEDIAL": 1.5,
+        "anterior_wall": 1.5,
+        "posterior_wall": 1.5,
+        "slot_clear_s_cad": 0.2,
+        "slot_clear_u": 0.2,
+        "slot_clear_u_cad": 0.2,
+        "slot_clear_y_cad": 0.15,
+        "slot_floor_y": 1.5,
+        "slot_open": 1.0,
+        "slot_pack_vol_mm3": 0.814,
+        "slot_wall_s_left": 2.3,
+        "slot_wall_s_right": 2.3,
+        "slot_width": 2.8999,
+        "snap_residual": 1.1,
+        "usb_ligament_hook": -0.8921
+      },
+      "passed": false
+    },
+    {
+      "detail": "TOTAL_CHORD of the path that built this solid equals the packing layout's",
+      "name": "V2_TOTAL_CHORD",
+      "numbers": {
+        "BODY_ARC": 48.4,
+        "CREASE_BOW": 3.0,
+        "TOTAL_CHORD": 47.9005,
+        "packing_TOTAL_CHORD": 47.9005
+      },
+      "passed": true
+    },
+    {
+      "detail": "M1 versus TOTAL_CHORD + 3 on the built path (Q34 blank, default.toml M1)",
+      "name": "V2_M1_gate",
+      "numbers": {
+        "M1": 52.0,
+        "TOTAL_CHORD": 47.9005,
+        "gate": 50.9005,
+        "m1_minus_3": 49.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "5 AF brass standoff: prism from the ring to the standoff top holds no nylon; well AF \u2212 0.3 \u2265 5 (fit) and well AF + 0.3 < 5.774 across corners (no turn)",
+      "name": "V2_STANDOFF",
+      "numbers": {
+        "REF_body_mm3": 0.0,
+        "REF_well_af": 5.3006,
+        "REF_well_corner_r": 3.0599,
+        "SIG1_body_mm3": 0.0,
+        "SIG1_well_af": 5.3006,
+        "SIG1_well_corner_r": 3.0599,
+        "SIG2_body_mm3": 0.0,
+        "SIG2_well_af": 5.3005,
+        "SIG2_well_corner_r": 3.0599,
+        "probe_y": 2.81,
+        "standoff_h": 3.0,
+        "top_y": 4.81
+      },
+      "passed": true
+    },
+    {
+      "detail": "NOT_MEASURED on the solid: region \u00b10.80 = 4.0 \u2212 2.9 \u2212 0.3 (JLC floor \u00b10.3)",
+      "name": "V2_ADJUSTMENT",
+      "numbers": {
+        "circumradius": 2.9,
+        "pad_half": 4.0,
+        "placement_tol": 0.3,
+        "region_mm": 0.8
+      },
+      "passed": false
+    },
+    {
+      "detail": "NOT_MEASURED: the closer uses the hook-end end face (plan v2 \u00a75.4 fallback); see V2_USB_end",
+      "name": "V2_USB_medial",
+      "numbers": {
+        "recess": 1.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "NOT_MEASURED: 100 \u00b1 3 mm cell leads are a routed length, not a solid envelope",
+      "name": "V2_HARNESS",
+      "numbers": {
+        "reserve_mm": 100.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "board rests on the standoff tops first: printed bosses 0.5 lower, nylon at the boss top, air at the standoff top",
+      "name": "V2_BOSS",
+      "numbers": {
+        "boss_1_at_standoff_top": 0.0,
+        "boss_1_top_solid": 1.0,
+        "boss_2_at_standoff_top": 0.0,
+        "boss_2_top_solid": 1.0,
+        "boss_top_y": 4.31,
+        "drop": 0.5,
+        "standoff_top_y": 4.81
+      },
+      "passed": true
+    },
+    {
+      "detail": "the cell sits beside the board (no u-s overlap with the board zone); the under-board clearance rule does not apply, V2_CELL_envelope measures the cell",
+      "name": "V2_CELL_CLEARANCE",
+      "numbers": {
+        "board_s0": 18.6,
+        "cell_s1": 17.1
+      },
+      "passed": true
+    },
+    {
+      "detail": "module top (ring + standoff + board + module above the floor) under the lid underside probed over the module centre",
+      "name": "V2_STACK",
+      "numbers": {
+        "lid_over_module": 8.0,
+        "module_lid_gap": 0.38,
+        "module_top_y": 7.62,
+        "outer_lid": 9.0,
+        "outer_zero": 8.62,
+        "stack": 6.12
+      },
+      "passed": true
+    },
+    {
+      "detail": "NOT_MEASURED: 0.5 floor recess and 1.0 residual web (C15) are not on the order-1 solid",
+      "name": "V2_RECESS",
+      "numbers": {
+        "floor_web": 1.5,
+        "recess": 0.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "ring-pad seat: air over the floor at each site, \u00d82.7 hole through the 1.5 wall, seat \u00d8 measured on the solid \u2265 \u00d86.1 ring outline + 0.3 print",
+      "name": "V2_RING_seat",
+      "numbers": {
+        "REF_hole_open": 1.0,
+        "REF_seat_d": 6.4,
+        "REF_well_air": 1.0,
+        "SIG1_hole_open": 1.0,
+        "SIG1_seat_d": 6.4,
+        "SIG1_well_air": 1.0,
+        "SIG2_hole_open": 1.0,
+        "SIG2_seat_d": 6.4,
+        "SIG2_well_air": 1.0,
+        "hole": 2.7,
+        "ring_t": 0.31
+      },
+      "passed": true
+    },
+    {
+      "detail": "USB-C hook-end end face: opening 9.0 \u00d7 3.5 open, receptacle mouth \u2265 1.0 behind the outer face (measured face vs packing usb box), ligament \u2265 1.5 from the opening to the hook measured on the face with the hook in the body frame, plug volume clear of the cell",
+      "name": "V2_USB_end",
+      "numbers": {
+        "hook_u_max_on_face": 6.3921,
+        "ligament_SIG1_collar_s": 15.6503,
+        "ligament_hook": -0.8921,
+        "mouth_recess": -4.8,
+        "opening_air": 1.0,
+        "opening_u0": 5.5,
+        "outer_face_s": -1.0,
+        "plug_cell_mm3": 0.0,
+        "plug_x": 12.0,
+        "plug_y": 6.5,
+        "plug_z": 15.0,
+        "receptacle_s0": -5.8,
+        "receptacle_s1": 1.5,
+        "recess": 1.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "blind recess in the lid over the recovery switch, no through-hole",
+      "name": "V2_SWITCH_reach",
+      "numbers": {
+        "lid_over_switch": 8.5,
+        "membrane": 0.5,
+        "recess": 0.5
+      },
+      "passed": true
+    },
+    {
+      "detail": "built lid: body nylon over each snap hook and over the hinge lip (undercut), beam \u2265 JLC 1 wall, strain 1.5\u00b7t\u00b7y/L\u00b2 of the built beam \u2264 0.04 (PA12 repeated snap)",
+      "name": "V2_CLOSURE",
+      "numbers": {
+        "ant_beam_L": 1.0,
+        "ant_beam_t": 0.5,
+        "ant_deflection": 0.18,
+        "ant_strain": 0.13503,
+        "ant_undercut": 0.0,
+        "hinge_lip_undercut": 0.0,
+        "jlc_min_wall": 1.0,
+        "post_beam_L": 1.0,
+        "post_beam_t": 0.5,
+        "post_deflection": 0.18,
+        "post_strain": 0.13503,
+        "post_undercut": 0.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "plan v2 \u00a77: no planar facet over 3 mm on the lid (top sampled 3 mm apart at 7 stations), outside edges R \u2265 1.0 (lid rim is the built LID_EDGE fillet)",
+      "name": "V2_EDGE_radii",
+      "numbers": {
+        "flat_stations": 4.0,
+        "lid_rim_R": 0.8,
+        "medial_fillet": 1.5,
+        "min_rise_over_3mm": 0.0,
+        "stations": 6.0
+      },
+      "passed": false
+    },
+    {
+      "detail": "body_full_p15",
+      "name": "exported lid seated on this body: interiors disjoint",
+      "numbers": {
+        "LID_Y": 8.0,
+        "overlap_mm3": 0.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "body_full_p15",
+      "name": "one connected solid",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "body_full_p15",
+      "name": "watertight",
+      "numbers": {
+        "bytes": 2206684.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "lid",
+      "name": "one connected solid",
+      "numbers": {},
+      "passed": true
+    },
+    {
+      "detail": "lid",
+      "name": "watertight",
+      "numbers": {},
+      "passed": true
+    }
+  ],
+  "chord_gate": {
+    "gate": 50.900523407445874,
+    "m1": 52.0,
+    "total_chord": 47.900523407445874
+  },
+  "closure_passed": false,
+  "commit": "c68d4b2839c9ebc031d8a04376656b290656e677",
+  "contact_source": "interface II flex tabs under standoffs (WP11 turn 07)",
+  "contact_stack": {
+    "board_underside_y": 4.3,
+    "keepout_top_y": 4.13,
+    "nominal": {
+      "height_above_floor": 2.63,
+      "kapton": 0.13,
+      "lug": 0.5,
+      "nut": 1.6,
+      "tip_past_nut": 0.4,
+      "top_y": 4.13,
+      "wall": 1.5
+    },
+    "wall_plus_0_3": {
+      "height_above_floor": 2.33,
+      "kapton": 0.13,
+      "lug": 0.5,
+      "nut": 1.6,
+      "tip_past_nut": 0.1,
+      "top_y": 4.13,
+      "wall": 1.8
+    }
+  },
+  "crease_bow": {
+    "clamped": 3.0,
+    "computed_from_m1_m2": 11.001411613371118,
+    "requested": 3.0,
+    "source": "CREASE_BOW parameter (M1 and M2 not both measured)"
+  },
+  "defaults_used": [
+    "BODY_ARC",
+    "BODY_WIDTH",
+    "CLEAR_FIT",
+    "CREASE_BOW",
+    "FILLET_MEDIAL",
+    "HOOK_ANGLE",
+    "HOOK_DIA",
+    "HOOK_ROOT_X",
+    "LID_EDGE",
+    "LID_THICK",
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7",
+    "M8",
+    "SIDE",
+    "WALL_END",
+    "WALL_MEDIAL",
+    "WALL_SIDE"
+  ],
+  "exceptions": {
+    "E1": {
+      "feature": "tongue",
+      "minimum": 0.4,
+      "note": "minimum fitted",
+      "plan_size": 0.5,
+      "size": 0.5
+    },
+    "E2": {
+      "feature": "rib",
+      "minimum": 0.8,
+      "note": "locating only",
+      "plan_size": 0.8,
+      "size": 0.8
+    },
+    "E3": {
+      "feature": "nubs",
+      "minimum": 0.6,
+      "plan_size": 0.8,
+      "size": 0.8
+    },
+    "E4": {
+      "feature": "coupon rib",
+      "minimum": 0.4,
+      "note": "measurement",
+      "plan_size": 0.4,
+      "size": 0.4
+    },
+    "E5": {
+      "feature": "lip cantilever / bump",
+      "minimum": {
+        "bump": 0.2,
+        "lip": 1.0
+      },
+      "note": "below JLC 1.5; fitted bump \u2265 0.2",
+      "plan_size": {
+        "bump": 0.5,
+        "lip": 1.0
+      },
+      "size": {
+        "bump": 0.5,
+        "lip": 1.0
+      }
+    }
+  },
+  "files": {
+    "body_full_p15.3mf": {
+      "bytes": 583557,
+      "sha256": "0a91d20d99d7b335f7b48d33814ae7b9f7dbaf6faaa14046f054487b50790177"
+    },
+    "body_full_p15.step": {
+      "bytes": 1353134,
+      "sha256": "962737491c6d9cb7144a30c4f1644d82c45b7857cd34b3e03638ef0f1fb10dbb"
+    },
+    "body_full_p15.stl": {
+      "bytes": 2206684,
+      "sha256": "c491cf1c4d9460e149aed8c6fdfaa8fe06e2a64f94af22f15f5b52c784b18578"
+    },
+    "lid.3mf": {
+      "bytes": 173387,
+      "sha256": "ab2ce0b49d6423b09454844aba28ee09e8bbac7de4369277293ae7b032997ff0"
+    },
+    "lid.step": {
+      "bytes": 344033,
+      "sha256": "727da6c57a1e0db85ec182995d6e476549fd8f29805d22c5b47c7f3d52ec2027"
+    },
+    "lid.stl": {
+      "bytes": 651884,
+      "sha256": "e80da2accb69a71ff9863b4d0c76739a24619da4a97639c24c607a5dc7f7c957"
+    }
+  },
+  "fits": [
+    {
+      "adverse": null,
+      "nominal": 0.0,
+      "pair": "plate underside : recess floor",
+      "type": "seating"
+    },
+    {
+      "adverse": [
+        -0.4,
+        0.8
+      ],
+      "nominal": 0.2,
+      "pair": "lip inner face : top face, s",
+      "type": "compliant, one-sided"
+    },
+    {
+      "adverse": [
+        -0.4,
+        0.8
+      ],
+      "nominal": 0.2,
+      "pair": "bump tip : groove bottom, s",
+      "type": "compliant, one-sided"
+    },
+    {
+      "adverse": [
+        -0.3,
+        0.9
+      ],
+      "nominal": 0.3,
+      "pair": "bump engagement into groove, s",
+      "type": "retention"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "bump 0.6 : groove 1.0, y",
+      "type": "rigid, total"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "tongue 0.5 : slot 0.9, y",
+      "type": "rigid, total"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "tongue tip : slot end, s",
+      "type": "rigid, one-sided"
+    },
+    {
+      "adverse": [
+        0.0,
+        1.2
+      ],
+      "nominal": 0.6,
+      "pair": "web 0.8 : pocket 1.4, s",
+      "type": "rigid, total"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "web bottom : pocket floor, y",
+      "type": "rigid, one-sided"
+    },
+    {
+      "adverse": [
+        -0.2,
+        1.0
+      ],
+      "nominal": 0.4,
+      "pair": "nub : side wall, u",
+      "type": "rigid, one-sided"
+    }
+  ],
+  "hash_rule": "SHA-256 of raw file bytes. STEP timestamp 2026-09-16T00:00:00Z. STL/3MF linear deflection 0.02 mm, angular deflection 5 deg. 3MF object UUID5 is elicio:cad:v2:<part>; remaining UUIDs are rewritten in appearance order and the zip date is pinned to 2026-09-16.",
+  "interference": {
+    "lid_body_overlap_mm3": 0.0,
+    "unintended_nominal_overlap_fail": false
+  },
+  "keepout_clearance": {
+    "CONTACT_1 to anterior wall": 0.85,
+    "CONTACT_1 to cavity end": 13.5553,
+    "CONTACT_1 to inferior high-u pad": 15.9745,
+    "CONTACT_1 to inferior low-u pad": 11.7715,
+    "CONTACT_1 to posterior wall": 9.05,
+    "CONTACT_1 to rib": 0.3746,
+    "CONTACT_1 to superior high-u pad": 7.8185,
+    "CONTACT_1 to superior low-u pad": 0.1517,
+    "CONTACT_2 to anterior wall": 5.3453,
+    "CONTACT_2 to cavity end": 2.0645,
+    "CONTACT_2 to inferior high-u pad": 4.0371,
+    "CONTACT_2 to inferior low-u pad": 4.6305,
+    "CONTACT_2 to posterior wall": 4.5547,
+    "CONTACT_2 to rib": 12.7997,
+    "CONTACT_2 to superior high-u pad": 13.0114,
+    "CONTACT_2 to superior low-u pad": 12.4826
+  },
+  "notes": {
+    "body_full_p15": {
+      "closure": "hinge lip at the cavity-tail wall plus two cantilever snaps L=8 t=1 y=0.5 strain=0.0117 (PA12)",
+      "emboss": "none (plan v2 \u00a77: no text outside)",
+      "fillets": [
+        "\u00a73.5 step 2 tip round 4.0 applied",
+        "FILLET_MEDIAL 1.5 applied",
+        "LID_EDGE (plate rim except the lip end) 0.8 applied",
+        "\u00a73.5 step 9 hook joint fillet 1.5: no radius builds; left sharp"
+      ],
+      "hook_stub_in_cavity_removed_mm3": 5.1373,
+      "q59": "packing-v2.md \u00a75 on lane/w3 at 284ec05 (git show 284ec05): no in-cavity REF tab route; REF_end_wall_slot u 7.25\u20139.75, s 38.20\u201339.25, y 1.50\u20131.81, width 2.50, through 1.05, height 0.31, 0.814 mm\u00b3, plus flex clearance 0.2 mm per side in u, 0.2 mm in s, 0.15 mm in y",
+      "shell_measure": {
+        "boss_1_s": 21.5,
+        "boss_1_u": 14.85,
+        "boss_2_s": 28.1,
+        "boss_2_u": 14.85,
+        "boss_top_y": 4.31,
+        "bosses": 2,
+        "lid_crown": 0.5,
+        "q59_clear_s": 0.2,
+        "q59_clear_u": 0.2,
+        "q59_clear_y": 0.15,
+        "q59_pack_overlap_mm3": 0.885,
+        "q59_pack_vol_mm3": 0.814,
+        "q59_removed_mm3": 1.8134,
+        "q59_slot": "REF_end_wall_slot",
+        "standoff_top_y": 4.81,
+        "switch_s": 24.2,
+        "switch_u": 10.1,
+        "usb_opening_removed_mm3": 87.2571,
+        "wp11b_route": "none in cavity"
+      },
+      "stage_b_cuts": {
+        "exit_nylon_in_cavity_mm3": 0.0,
+        "exit_removed_mm3": 0.0,
+        "hole_removed_mm3": {
+          "REF": 9.9078,
+          "SIG1": 9.9078,
+          "SIG2": 9.9078
+        },
+        "pocket_removed_mm3": 287.1612,
+        "shell_skipped": "v1 REF wire channel and bench-cable exit"
+      },
+      "winner": "A_501015_series_w20_y8_iII_s3"
+    }
+  },
+  "packing": "v2",
+  "parameters": {
+    "BOARD_ZONE_S": [
+      18.3,
+      37.9
+    ],
+    "BOARD_ZONE_U": [
+      1.5,
+      18.5
+    ],
+    "BODY_ARC": 48.4,
+    "BODY_THICK": 9.0,
+    "BODY_WIDTH": 20.0,
+    "CABLE_EXIT_S": 35.0,
+    "CAVITY_S": [
+      1.5,
+      38.2
+    ],
+    "CAVITY_U": [
+      1.5,
+      18.5
+    ],
+    "CLEAR_FIT": 0.4,
+    "CLOSURE_PASSED": false,
+    "CONTACT_1_S": 22.0,
+    "CONTACT_1_U": 5.9,
+    "CONTACT_2_S": 33.126206254801446,
+    "CONTACT_2_U": 10.395279120990946,
+    "CONTACT_REF_S": 43.0,
+    "CONTACT_REF_U": 8.5,
+    "CONTACT_SOURCE": "interface II flex tabs under standoffs (WP11 turn 07)",
+    "CREASE_BOW": 3.0,
+    "CREASE_BOW_COMPUTED": 11.001411613371118,
+    "CREASE_BOW_REQUESTED": 3.0,
+    "FILLET_MEDIAL": 1.5,
+    "GLASSES_FLAT": 0.8,
+    "HOOK_ANGLE": 145.0,
+    "HOOK_DIA": 3.5,
+    "HOOK_PRELOAD": 1.5,
+    "HOOK_RADIUS": 13.5,
+    "HOOK_ROOT_X": 4.0,
+    "HOOK_ROOT_Y": 3.0,
+    "LEAD_PADS": {
+      "REF": [
+        5.5,
+        29.35
+      ],
+      "SIG1": [
+        7.5,
+        29.35
+      ],
+      "SIG2": [
+        13.5,
+        21.35
+      ]
+    },
+    "LID_EDGE": 0.8,
+    "LID_THICK": 1.0,
+    "LID_Y": 8.0,
+    "M1": 52.0,
+    "M2": 58.0,
+    "M3": 11.0,
+    "M4": 6.0,
+    "M5": 2.5,
+    "M6": 15.0,
+    "M7": 22.0,
+    "M8": 11.0,
+    "MOCK_CONTACTS": false,
+    "NUB_U": [
+      [
+        1.9,
+        2.7
+      ],
+      [
+        17.3,
+        18.1
+      ]
+    ],
+    "PACKING": "v2",
+    "PATH_RADIUS": 97.10250594613626,
+    "SIDE": "right",
+    "STAGE": "shell",
+    "TAB_DEG": {
+      "SIG1": 110.0,
+      "SIG2": 270.0
+    },
+    "TAB_HEIGHT": 2.0,
+    "TAIL_DS": 0.0,
+    "TAIL_S0": 38.2,
+    "THETA_DEG": 1.793625348966511,
+    "TOTAL_CHORD": 47.900523407445874,
+    "V2_ARCH": "A",
+    "V2_ARC_PLUS": 0.0,
+    "V2_CELL": "501015",
+    "V2_IFACE": "II",
+    "V2_LAYOUT": "series",
+    "V2_LID_Y": 8.0,
+    "V2_RECESS": 0.0,
+    "V2_STANDOFF": 3.0,
+    "V2_TAG": "A_501015_series_w20_y8_iII_s3",
+    "V2_WIDTH": 20.0,
+    "VARIANT": "full",
+    "WALL_END": 1.5,
+    "WALL_MEDIAL": 1.5,
+    "WALL_SIDE": 1.5,
+    "WIRE_S": [
+      38.2,
+      40.5
+    ]
+  },
+  "params_file": "scripts/cad/params/shell_v2.toml",
+  "params_sha256": "f5882494c9758e418edc66f88ca5d160862a92a41e1d8d0187b83022cdf49f70",
+  "parts": [
+    "body_full_p15",
+    "lid"
+  ],
+  "provisional": true,
+  "q34": "M1=52 default.toml; Q34 blank",
+  "quantities": {
+    "body_full_p15": 1,
+    "lid": 2
+  },
+  "ref_build": true,
+  "schema": 1,
+  "span": {
+    "body_full_p15": {
+      "BODY_THICK": 9.0,
+      "M3": 11.0,
+      "pinna_displacement": 0.0,
+      "span": 10.35
+    }
+  },
+  "stage": "shell",
+  "stage_b": {
+    "BOARD_underside_clear": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "TAB_HEIGHT": 2.0,
+            "barrel_top": 3.46,
+            "board_underside": 4.3,
+            "envelope_top": 3.5,
+            "floor_y": 1.5,
+            "stack_top": 4.13
+          },
+          "passed": true
+        }
+      },
+      "detail": "board underside (lowest pad top) above the stack top, both barrels and the tab envelopes",
+      "numbers": {
+        "TAB_HEIGHT": 2.0,
+        "barrel_top": 3.46,
+        "board_underside": 4.3,
+        "envelope_top": 3.5,
+        "floor_y": 1.5,
+        "stack_top": 4.13
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "CABLE_EXIT_cavity": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "CABLE_EXIT_S": 35.0,
+            "wall_closed": 1.0
+          },
+          "passed": false
+        }
+      },
+      "detail": "NOT_MEASURED: no bench-cable exit on the shell (plan v2 \u00a77); posterior wall closed at CABLE_EXIT_S",
+      "numbers": {
+        "CABLE_EXIT_S": 35.0,
+        "wall_closed": 1.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "CELL_envelope": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "body_mm3": 0.0,
+            "clear_s_end_wall": 0.2,
+            "clear_s_rib": 0.2,
+            "clear_u_anterior": 1.8,
+            "clear_u_posterior": 4.8,
+            "clear_y_lid": 0.8,
+            "floor_y": 1.5,
+            "lid_mm3": 0.0,
+            "need_y": 5.7,
+            "plan_pocket_clear_s": 0.4,
+            "plan_pocket_clear_u": 0.4,
+            "plan_pocket_clear_y": 0.3
+          },
+          "passed": true
+        }
+      },
+      "detail": "cell 5.2 \u00d7 10.4 \u00d7 15.6 plus 0.5 foam on the lid face (plan \u00a75, Q18) sits in the pocket clear of body, rib, walls and the seated lid with its emboss",
+      "numbers": {
+        "body_mm3": 0.0,
+        "clear_s_end_wall": 0.2,
+        "clear_s_rib": 0.2,
+        "clear_u_anterior": 1.8,
+        "clear_u_posterior": 4.8,
+        "clear_y_lid": 0.8,
+        "floor_y": 1.5,
+        "lid_mm3": 0.0,
+        "need_y": 5.7,
+        "plan_pocket_clear_s": 0.4,
+        "plan_pocket_clear_u": 0.4,
+        "plan_pocket_clear_y": 0.3
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "CLOSURE_PASSED": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "flag": 0.0
+          },
+          "passed": false
+        }
+      },
+      "detail": "NOT_MEASURED: v1 E1 flag (Q28, E1 dropped); the shell closure is V2_CLOSURE",
+      "numbers": {
+        "flag": 0.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "CONTACT_HOLE_wall": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "open_REF": 1.0,
+            "open_SIG1": 1.0,
+            "open_SIG2": 1.0,
+            "removed_REF_mm3": 9.9078,
+            "removed_SIG1_mm3": 9.9078,
+            "removed_SIG2_mm3": 9.9078,
+            "wall_disc_mm3": 9.9078
+          },
+          "passed": true
+        }
+      },
+      "detail": "each \u00d82.9 hole removed the 1.5 medial wall disc only (removed volume = disc) and is open",
+      "numbers": {
+        "open_REF": 1.0,
+        "open_SIG1": 1.0,
+        "open_SIG2": 1.0,
+        "removed_REF_mm3": 9.9078,
+        "removed_SIG1_mm3": 9.9078,
+        "removed_SIG2_mm3": 9.9078,
+        "wall_disc_mm3": 9.9078
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "KEEPOUT_REF_air": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {},
+          "passed": false
+        }
+      },
+      "detail": "NOT_MEASURED: v1 \u00d87.5 lug pocket; interface II puts the REF hex collar and the Q59 slot there",
+      "numbers": {},
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "KEEPOUT_SIGNAL_air": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {},
+          "passed": false
+        }
+      },
+      "detail": "NOT_MEASURED: v1 \u00d87.1 TE keep-out; interface II puts the hex collar there (V2_STANDOFF, V2_RING_seat)",
+      "numbers": {},
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "Q21_REF_lug": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "floor_y": 1.5,
+            "lid_y": 8.0,
+            "pocket_r": 3.75,
+            "ring_r": 2.5,
+            "ring_t": 0.31,
+            "stack_top_y": 4.81,
+            "standoff_circumr": 2.9,
+            "standoff_h": 3.0
+          },
+          "passed": true
+        }
+      },
+      "detail": "v2: ring and brass standoff (hex corners, circumradius 2.9) on the probed floor against the measured lid over the pocket and the measured pocket radius; no TE 31428 lug (Q21, Q28)",
+      "numbers": {
+        "floor_y": 1.5,
+        "lid_y": 8.0,
+        "pocket_r": 3.75,
+        "ring_r": 2.5,
+        "ring_t": 0.31,
+        "stack_top_y": 4.81,
+        "standoff_circumr": 2.9,
+        "standoff_h": 3.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "REF_WIRE_envelope": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "body_mm3": 0.0,
+            "lid_mm3": 0.0,
+            "tab_t": 0.31,
+            "tab_w": 2.5
+          },
+          "passed": true
+        }
+      },
+      "detail": "v2 REF flex tab 2.5 wide \u00d7 0.31 thick along the ring-to-board path holds no nylon",
+      "numbers": {
+        "body_mm3": 0.0,
+        "lid_mm3": 0.0,
+        "tab_t": 0.31,
+        "tab_w": 2.5
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "TAB_envelope_air": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "TAB_HEIGHT": 2.0
+          },
+          "passed": false
+        }
+      },
+      "detail": "NOT_MEASURED: v2 flex tabs are not the TE 31428 envelope; see V2_TAB_envelope",
+      "numbers": {
+        "TAB_HEIGHT": 2.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "V2_ADJUSTMENT": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "circumradius": 2.9,
+            "pad_half": 4.0,
+            "placement_tol": 0.3,
+            "region_mm": 0.8
+          },
+          "passed": false
+        }
+      },
+      "detail": "NOT_MEASURED on the solid: region \u00b10.80 = 4.0 \u2212 2.9 \u2212 0.3 (JLC floor \u00b10.3)",
+      "numbers": {
+        "circumradius": 2.9,
+        "pad_half": 4.0,
+        "placement_tol": 0.3,
+        "region_mm": 0.8
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "V2_BOARD_envelope": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "body_mm3": 0.0,
+            "lid_mm3": 0.0,
+            "top": 5.32,
+            "underside": 4.81
+          },
+          "passed": true
+        }
+      },
+      "detail": "v2 board zone from its underside (the standoff tops) to its top holds no nylon, body or lid",
+      "numbers": {
+        "body_mm3": 0.0,
+        "lid_mm3": 0.0,
+        "top": 5.32,
+        "underside": 4.81
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_BOSS": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "boss_1_at_standoff_top": 0.0,
+            "boss_1_top_solid": 1.0,
+            "boss_2_at_standoff_top": 0.0,
+            "boss_2_top_solid": 1.0,
+            "boss_top_y": 4.31,
+            "drop": 0.5,
+            "standoff_top_y": 4.81
+          },
+          "passed": true
+        }
+      },
+      "detail": "board rests on the standoff tops first: printed bosses 0.5 lower, nylon at the boss top, air at the standoff top",
+      "numbers": {
+        "boss_1_at_standoff_top": 0.0,
+        "boss_1_top_solid": 1.0,
+        "boss_2_at_standoff_top": 0.0,
+        "boss_2_top_solid": 1.0,
+        "boss_top_y": 4.31,
+        "drop": 0.5,
+        "standoff_top_y": 4.81
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_CELL_CLEARANCE": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "board_s0": 18.6,
+            "cell_s1": 17.1
+          },
+          "passed": true
+        }
+      },
+      "detail": "the cell sits beside the board (no u-s overlap with the board zone); the under-board clearance rule does not apply, V2_CELL_envelope measures the cell",
+      "numbers": {
+        "board_s0": 18.6,
+        "cell_s1": 17.1
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_CELL_envelope": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "body_mm3": 0.0,
+            "lid_mm3": 0.0,
+            "ws": 15.6,
+            "wu": 10.4,
+            "y0": 1.5,
+            "y1": 7.2
+          },
+          "passed": true
+        }
+      },
+      "detail": "v2 cell box from the packing layout holds no nylon on the built body or seated lid",
+      "numbers": {
+        "body_mm3": 0.0,
+        "lid_mm3": 0.0,
+        "ws": 15.6,
+        "wu": 10.4,
+        "y0": 1.5,
+        "y1": 7.2
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_CLOSURE": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "ant_beam_L": 1.0,
+            "ant_beam_t": 0.5,
+            "ant_deflection": 0.18,
+            "ant_strain": 0.13503,
+            "ant_undercut": 0.0,
+            "hinge_lip_undercut": 0.0,
+            "jlc_min_wall": 1.0,
+            "post_beam_L": 1.0,
+            "post_beam_t": 0.5,
+            "post_deflection": 0.18,
+            "post_strain": 0.13503,
+            "post_undercut": 0.0
+          },
+          "passed": false
+        }
+      },
+      "detail": "built lid: body nylon over each snap hook and over the hinge lip (undercut), beam \u2265 JLC 1 wall, strain 1.5\u00b7t\u00b7y/L\u00b2 of the built beam \u2264 0.04 (PA12 repeated snap)",
+      "numbers": {
+        "ant_beam_L": 1.0,
+        "ant_beam_t": 0.5,
+        "ant_deflection": 0.18,
+        "ant_strain": 0.13503,
+        "ant_undercut": 0.0,
+        "hinge_lip_undercut": 0.0,
+        "jlc_min_wall": 1.0,
+        "post_beam_L": 1.0,
+        "post_beam_t": 0.5,
+        "post_deflection": 0.18,
+        "post_strain": 0.13503,
+        "post_undercut": 0.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "V2_CONTACT_STACK": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "board_underside": 4.81,
+            "floor_y": 1.5,
+            "lid_over_SIG1": 8.0,
+            "ring_t": 0.31,
+            "stack_top_y": 4.81,
+            "standoff_h": 3.0,
+            "tip_below_top": 0.81
+          },
+          "passed": true
+        }
+      },
+      "detail": "measured floor + flex ring + brass standoff: top at or under the board underside and under the lid over SIG1; the screw tip ends inside the standoff",
+      "numbers": {
+        "board_underside": 4.81,
+        "floor_y": 1.5,
+        "lid_over_SIG1": 8.0,
+        "ring_t": 0.31,
+        "stack_top_y": 4.81,
+        "standoff_h": 3.0,
+        "tip_below_top": 0.81
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_EDGE_radii": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "flat_stations": 4.0,
+            "lid_rim_R": 0.8,
+            "medial_fillet": 1.5,
+            "min_rise_over_3mm": 0.0,
+            "stations": 6.0
+          },
+          "passed": false
+        }
+      },
+      "detail": "plan v2 \u00a77: no planar facet over 3 mm on the lid (top sampled 3 mm apart at 7 stations), outside edges R \u2265 1.0 (lid rim is the built LID_EDGE fillet)",
+      "numbers": {
+        "flat_stations": 4.0,
+        "lid_rim_R": 0.8,
+        "medial_fillet": 1.5,
+        "min_rise_over_3mm": 0.0,
+        "stations": 6.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "V2_HARNESS": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "reserve_mm": 100.0
+          },
+          "passed": false
+        }
+      },
+      "detail": "NOT_MEASURED: 100 \u00b1 3 mm cell leads are a routed length, not a solid envelope",
+      "numbers": {
+        "reserve_mm": 100.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "V2_LID_band": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "LID_Y": 8.0,
+            "lid_underside_y": 8.0
+          },
+          "passed": true
+        }
+      },
+      "detail": "lid underside over the board mid-point, measured on the seated lid",
+      "numbers": {
+        "LID_Y": 8.0,
+        "lid_underside_y": 8.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_M1_gate": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "M1": 52.0,
+            "TOTAL_CHORD": 47.9005,
+            "gate": 50.9005,
+            "m1_minus_3": 49.0
+          },
+          "passed": true
+        }
+      },
+      "detail": "M1 versus TOTAL_CHORD + 3 on the built path (Q34 blank, default.toml M1)",
+      "numbers": {
+        "M1": 52.0,
+        "TOTAL_CHORD": 47.9005,
+        "gate": 50.9005,
+        "m1_minus_3": 49.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_MODULE_envelope": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "antenna_body_mm3": 3.7167,
+            "body_mm3": 0.0,
+            "lid_mm3": 0.0,
+            "y0": 5.32,
+            "y1": 7.62
+          },
+          "passed": true
+        }
+      },
+      "detail": "v2 module box holds no nylon; antenna_body_mm3 is nylon inside the keep-out prism over the board (reported, not gated: the keep-out is no copper, not air)",
+      "numbers": {
+        "antenna_body_mm3": 3.7167,
+        "body_mm3": 0.0,
+        "lid_mm3": 0.0,
+        "y0": 5.32,
+        "y1": 7.62
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_RECESS": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "floor_web": 1.5,
+            "recess": 0.0
+          },
+          "passed": false
+        }
+      },
+      "detail": "NOT_MEASURED: 0.5 floor recess and 1.0 residual web (C15) are not on the order-1 solid",
+      "numbers": {
+        "floor_web": 1.5,
+        "recess": 0.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "V2_RING_seat": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "REF_hole_open": 1.0,
+            "REF_seat_d": 6.4,
+            "REF_well_air": 1.0,
+            "SIG1_hole_open": 1.0,
+            "SIG1_seat_d": 6.4,
+            "SIG1_well_air": 1.0,
+            "SIG2_hole_open": 1.0,
+            "SIG2_seat_d": 6.4,
+            "SIG2_well_air": 1.0,
+            "hole": 2.7,
+            "ring_t": 0.31
+          },
+          "passed": true
+        }
+      },
+      "detail": "ring-pad seat: air over the floor at each site, \u00d82.7 hole through the 1.5 wall, seat \u00d8 measured on the solid \u2265 \u00d86.1 ring outline + 0.3 print",
+      "numbers": {
+        "REF_hole_open": 1.0,
+        "REF_seat_d": 6.4,
+        "REF_well_air": 1.0,
+        "SIG1_hole_open": 1.0,
+        "SIG1_seat_d": 6.4,
+        "SIG1_well_air": 1.0,
+        "SIG2_hole_open": 1.0,
+        "SIG2_seat_d": 6.4,
+        "SIG2_well_air": 1.0,
+        "hole": 2.7,
+        "ring_t": 0.31
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_STACK": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "lid_over_module": 8.0,
+            "module_lid_gap": 0.38,
+            "module_top_y": 7.62,
+            "outer_lid": 9.0,
+            "outer_zero": 8.62,
+            "stack": 6.12
+          },
+          "passed": true
+        }
+      },
+      "detail": "module top (ring + standoff + board + module above the floor) under the lid underside probed over the module centre",
+      "numbers": {
+        "lid_over_module": 8.0,
+        "module_lid_gap": 0.38,
+        "module_top_y": 7.62,
+        "outer_lid": 9.0,
+        "outer_zero": 8.62,
+        "stack": 6.12
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_STANDOFF": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "REF_body_mm3": 0.0,
+            "REF_well_af": 5.3006,
+            "REF_well_corner_r": 3.0599,
+            "SIG1_body_mm3": 0.0,
+            "SIG1_well_af": 5.3006,
+            "SIG1_well_corner_r": 3.0599,
+            "SIG2_body_mm3": 0.0,
+            "SIG2_well_af": 5.3005,
+            "SIG2_well_corner_r": 3.0599,
+            "probe_y": 2.81,
+            "standoff_h": 3.0,
+            "top_y": 4.81
+          },
+          "passed": true
+        }
+      },
+      "detail": "5 AF brass standoff: prism from the ring to the standoff top holds no nylon; well AF \u2212 0.3 \u2265 5 (fit) and well AF + 0.3 < 5.774 across corners (no turn)",
+      "numbers": {
+        "REF_body_mm3": 0.0,
+        "REF_well_af": 5.3006,
+        "REF_well_corner_r": 3.0599,
+        "SIG1_body_mm3": 0.0,
+        "SIG1_well_af": 5.3006,
+        "SIG1_well_corner_r": 3.0599,
+        "SIG2_body_mm3": 0.0,
+        "SIG2_well_af": 5.3005,
+        "SIG2_well_corner_r": 3.0599,
+        "probe_y": 2.81,
+        "standoff_h": 3.0,
+        "top_y": 4.81
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_SWITCH_reach": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "lid_over_switch": 8.5,
+            "membrane": 0.5,
+            "recess": 0.5
+          },
+          "passed": true
+        }
+      },
+      "detail": "blind recess in the lid over the recovery switch, no through-hole",
+      "numbers": {
+        "lid_over_switch": 8.5,
+        "membrane": 0.5,
+        "recess": 0.5
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_TAB_envelope": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "REF_body_mm3": 0.0,
+            "SIG1_body_mm3": 0.0,
+            "SIG2_body_mm3": 0.0
+          },
+          "passed": true
+        }
+      },
+      "detail": "v2 flex tabs 2.5 \u00d7 0.31 with \u00d85 rings, on the floor, hold no nylon",
+      "numbers": {
+        "REF_body_mm3": 0.0,
+        "SIG1_body_mm3": 0.0,
+        "SIG2_body_mm3": 0.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_TOTAL_CHORD": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "BODY_ARC": 48.4,
+            "CREASE_BOW": 3.0,
+            "TOTAL_CHORD": 47.9005,
+            "packing_TOTAL_CHORD": 47.9005
+          },
+          "passed": true
+        }
+      },
+      "detail": "TOTAL_CHORD of the path that built this solid equals the packing layout's",
+      "numbers": {
+        "BODY_ARC": 48.4,
+        "CREASE_BOW": 3.0,
+        "TOTAL_CHORD": 47.9005,
+        "packing_TOTAL_CHORD": 47.9005
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_USB_end": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "hook_u_max_on_face": 6.3921,
+            "ligament_SIG1_collar_s": 15.6503,
+            "ligament_hook": -0.8921,
+            "mouth_recess": -4.8,
+            "opening_air": 1.0,
+            "opening_u0": 5.5,
+            "outer_face_s": -1.0,
+            "plug_cell_mm3": 0.0,
+            "plug_x": 12.0,
+            "plug_y": 6.5,
+            "plug_z": 15.0,
+            "receptacle_s0": -5.8,
+            "receptacle_s1": 1.5,
+            "recess": 1.0
+          },
+          "passed": false
+        }
+      },
+      "detail": "USB-C hook-end end face: opening 9.0 \u00d7 3.5 open, receptacle mouth \u2265 1.0 behind the outer face (measured face vs packing usb box), ligament \u2265 1.5 from the opening to the hook measured on the face with the hook in the body frame, plug volume clear of the cell",
+      "numbers": {
+        "hook_u_max_on_face": 6.3921,
+        "ligament_SIG1_collar_s": 15.6503,
+        "ligament_hook": -0.8921,
+        "mouth_recess": -4.8,
+        "opening_air": 1.0,
+        "opening_u0": 5.5,
+        "outer_face_s": -1.0,
+        "plug_cell_mm3": 0.0,
+        "plug_x": 12.0,
+        "plug_y": 6.5,
+        "plug_z": 15.0,
+        "receptacle_s0": -5.8,
+        "receptacle_s1": 1.5,
+        "recess": 1.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "V2_USB_medial": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "recess": 1.0
+          },
+          "passed": false
+        }
+      },
+      "detail": "NOT_MEASURED: the closer uses the hook-end end face (plan v2 \u00a75.4 fallback); see V2_USB_end",
+      "numbers": {
+        "recess": 1.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    },
+    "V2_WALL_minima": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "WALL_MEDIAL": 1.5,
+            "anterior_wall": 1.5,
+            "posterior_wall": 1.5,
+            "slot_clear_s_cad": 0.2,
+            "slot_clear_u": 0.2,
+            "slot_clear_u_cad": 0.2,
+            "slot_clear_y_cad": 0.15,
+            "slot_floor_y": 1.5,
+            "slot_open": 1.0,
+            "slot_pack_vol_mm3": 0.814,
+            "slot_wall_s_left": 2.3,
+            "slot_wall_s_right": 2.3,
+            "slot_width": 2.8999,
+            "snap_residual": 1.1,
+            "usb_ligament_hook": -0.8921
+          },
+          "passed": false
+        }
+      },
+      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0 beside it; flex clearance 0.2 mm per side in u on REF_end_wall_slot",
+      "numbers": {
+        "WALL_MEDIAL": 1.5,
+        "anterior_wall": 1.5,
+        "posterior_wall": 1.5,
+        "slot_clear_s_cad": 0.2,
+        "slot_clear_u": 0.2,
+        "slot_clear_u_cad": 0.2,
+        "slot_clear_y_cad": 0.15,
+        "slot_floor_y": 1.5,
+        "slot_open": 1.0,
+        "slot_pack_vol_mm3": 0.814,
+        "slot_wall_s_left": 2.3,
+        "slot_wall_s_right": 2.3,
+        "slot_width": 2.8999,
+        "snap_residual": 1.1,
+        "usb_ligament_hook": -0.8921
+      },
+      "numbers_from": "body_full_p15",
+      "passed": false
+    }
+  },
+  "stage_b_failing": [
+    "V2_CLOSURE",
+    "V2_EDGE_radii",
+    "V2_USB_end",
+    "V2_WALL_minima"
+  ],
+  "stage_b_not_measured": [
+    "CABLE_EXIT_cavity",
+    "CLOSURE_PASSED",
+    "KEEPOUT_REF_air",
+    "KEEPOUT_SIGNAL_air",
+    "TAB_envelope_air",
+    "V2_ADJUSTMENT",
+    "V2_HARNESS",
+    "V2_RECESS",
+    "V2_USB_medial"
+  ],
+  "stage_b_passed": false,
+  "variant_preload_built": {
+    "body_full_p15": {
+      "HOOK_PRELOAD": 1.5,
+      "VARIANT": "full"
+    }
+  },
+  "views": {
+    "drawing.pdf": {
+      "bytes": 74272,
+      "sha256": "42957eba6e90385f4c478b0153683818b69b728bc225e87bef95157a84755c8c"
+    },
+    "render_lateral.png": {
+      "bytes": 124723,
+      "sha256": "bc2587f8c65adbc8f39abf6711d5286b66241eb7f578b7c87d7569c9c2b2a74e"
+    },
+    "render_medial.png": {
+      "bytes": 124685,
+      "sha256": "640baef1cc258399dc03613cfcb07ed24bef8d6562c87332040bcef3d4f6e2c4"
+    }
+  },
+  "views_commit": "c68d4b2839c9ebc031d8a04376656b290656e677",
+  "views_hash_rule": "SHA-256 of raw file bytes. PNG tIME/tEXt/zTXt/iTXt/eXIf rewritten; Creation Time text and PDF CreationDate/ModDate/ID pinned to 2026-09-16T00:00:00Z. Same pin as the solids hash_rule timestamp.",
+  "walls": {
+    "anterior side wall": 1.5,
+    "floor (WALL_MEDIAL)": 1.5,
+    "hook": 3.5,
+    "lid plate": 1.0,
+    "lip above TONGUE_SLOT": 1.1,
+    "posterior side wall": 1.5,
+    "tail below TONGUE_SLOT": 7.0,
+    "tail below web pocket": 6.8,
+    "top end wall": 1.5,
+    "top end wall at LIP_GROOVE": 1.0
+  },
+  "winner": "A_501015_series_w20_y8_iII_s3",
+  "wire_channel": {
+    "1.0": {
+      "end_distance": 2.697382270332185,
+      "end_inside": 1.0,
+      "physical_opening": 1.0891129737581813,
+      "s_entry": 39.444431136002066,
+      "s_opening": 1.0555688639979337,
+      "u": 9.3
+    },
+    "3.0": {
+      "end_distance": 2.8438853421996373,
+      "end_inside": 1.0,
+      "physical_opening": 0.9382694314928568,
+      "s_entry": 39.64373902907198,
+      "s_opening": 0.8562609709280196,
+      "u": 9.3
+    },
+    "8.0": {
+      "end_distance": 3.2322079006469013,
+      "end_inside": 1.0,
+      "physical_opening": 0.5372829739143715,
+      "s_entry": 40.07504885935971,
+      "s_opening": 0.4249511406402888,
+      "u": 9.3
+    },
+    "clamped": {
+      "end_distance": 2.8438853421996373,
+      "end_inside": 1.0,
+      "physical_opening": 0.9382694314928568,
+      "s_entry": 39.64373902907198,
+      "s_opening": 0.8562609709280196,
+      "u": 9.3
+    }
+  }
+}
