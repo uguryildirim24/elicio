@@ -563,5 +563,130 @@ class PlacementV2Tests(unittest.TestCase):
             self.assertIn("elicio packing v2 A_501015_series_w20_y7_iII_s3", out.read_text(encoding="utf-8"))
 
 
+class PlacementWP11bTests(unittest.TestCase):
+    """WP11b: DTP arc-plus under interface II, and the REF tab route (Q55, Q59)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.dtp = cls.v2.run_dtp_arc_plus()
+
+    def spec(self, **kwargs):
+        base = dict(
+            arch="A",
+            cell="dtp",
+            layout="series",
+            width=20.0,
+            lid_y=8.0,
+            arc_plus=1.5,
+            iface="II",
+            standoff=3.0,
+            recess=0.0,
+        )
+        base.update(kwargs)
+        return self.v2.V2Spec(
+            base["arch"],
+            base["cell"],
+            base["layout"],
+            base["width"],
+            base["lid_y"],
+            base["arc_plus"],
+            base["iface"],
+            base["standoff"],
+            base["recess"],
+        )
+
+    def test_dtp_arc_plus_matrix_is_48_runs_and_none_close(self) -> None:
+        rows = self.dtp
+        self.assertEqual(len(rows), 48)
+        self.assertEqual(len(self.v2.dtp_arc_plus_specs()), 48)
+        self.assertTrue(all(r.spec.cell == "dtp" and r.spec.iface == "II" for r in rows))
+        self.assertTrue(all(r.spec.layout == "series" for r in rows))
+        self.assertEqual(sorted({r.spec.arc_plus for r in rows}), [1.5, 3.0])
+        self.assertEqual(sorted({r.spec.standoff for r in rows}), [3.0, 4.0])
+        self.assertFalse(any(r.closes for r in rows))
+
+    def test_dtp_w20_y8_s3_a1_5_antenna_gap_is_4_15(self) -> None:
+        result = self.v2.run_spec(self.spec(arc_plus=1.5, lid_y=8.0, standoff=3.0, width=20.0))
+        self.assertFalse(result.closes)
+        self.assertEqual(result.first_conflict, "cell to antenna zone 4.15 < 5 mm")
+        self.assertAlmostEqual(result.total_chord, 49.4157, places=3)
+        self.assertGreater(result.total_chord, self.v2.M1_DEFAULT - 3.0)
+
+    def test_dtp_arc_plus_3_0_chord_exceeds_m1_by_1_93(self) -> None:
+        result = self.v2.run_spec(self.spec(arc_plus=3.0, lid_y=8.0, standoff=3.0, width=20.0))
+        self.assertFalse(result.closes)
+        self.assertAlmostEqual(result.total_chord, 50.9301, places=3)
+        self.assertAlmostEqual(result.total_chord - (self.v2.M1_DEFAULT - 3.0), 1.9301, places=3)
+        winner = self.v2.run_spec(self.v2.stage_b_winner_spec())
+        self.assertAlmostEqual(result.total_chord - winner.total_chord, 3.0295, places=3)
+
+    def test_round5_ref_tab_is_still_the_straight_floor_path(self) -> None:
+        result = self.v2.run_spec(self.v2.stage_b_winner_spec())
+        ref = result.tabs["REF"].points
+        self.assertEqual(len(ref), 2)
+        self.assertAlmostEqual(ref[0][0], 8.5)
+        self.assertAlmostEqual(ref[0][1], 43.0)
+        self.assertAlmostEqual(ref[1][0], 8.5)
+        self.assertAlmostEqual(ref[1][1], 36.8)
+        self.assertAlmostEqual(self.v2.TAB_T, 0.31)
+        self.assertAlmostEqual(self.v2.FOAM, 0.5)
+        self.assertAlmostEqual(self.v2.BEND_R, 1.0)
+        self.assertAlmostEqual(self.v2.BOARD_BEND_R, 1.5)
+
+    def test_ref_tab_along_floor_crosses_end_wall_at_38_2(self) -> None:
+        routes = {r.name: r for r in self.v2.ref_tab_routes()}
+        floor = routes["along_floor"]
+        self.assertFalse(floor.in_cavity)
+        self.assertTrue(floor.end_wall_crosses)
+        self.assertEqual(floor.end_wall_where, "s 38.20–39.25 at u 8.50")
+        self.assertAlmostEqual(floor.min_wall_distance_mm, 0.0)
+        self.assertAlmostEqual(floor.min_side_wall_mm, 5.75)
+        self.assertAlmostEqual(floor.length_added_mm, 0.0)
+        self.assertAlmostEqual(floor.length_mm, 6.2)
+        self.assertAlmostEqual(floor.y0, 1.5)
+        self.assertAlmostEqual(floor.y1, 1.81)
+
+    def test_ref_tab_lateral_and_over_pocket_also_leave_the_cavity(self) -> None:
+        routes = {r.name: r for r in self.v2.ref_tab_routes()}
+        lat = routes["along_lateral_wall"]
+        air = routes["over_pocket_air"]
+        self.assertFalse(lat.in_cavity)
+        self.assertTrue(lat.end_wall_crosses)
+        self.assertAlmostEqual(lat.min_side_wall_mm, 0.0)
+        self.assertAlmostEqual(lat.length_added_mm, 11.5)
+        self.assertTrue(lat.bend_ok)
+        self.assertFalse(air.in_cavity)
+        self.assertTrue(air.end_wall_crosses)
+        self.assertAlmostEqual(air.y0, 7.3)
+        self.assertAlmostEqual(air.y1, 7.61)
+        self.assertIsNone(self.v2.best_ref_tab_route())
+
+    def test_ref_end_wall_slot_is_2_5_by_1_05_by_0_31(self) -> None:
+        slot = self.v2.ref_end_wall_slot()
+        self.assertAlmostEqual(slot["u0"], 7.25)
+        self.assertAlmostEqual(slot["u1"], 9.75)
+        self.assertAlmostEqual(slot["s0"], 38.2)
+        self.assertAlmostEqual(slot["s1"], 39.25)
+        self.assertAlmostEqual(slot["y0"], 1.5)
+        self.assertAlmostEqual(slot["y1"], 1.81)
+        self.assertAlmostEqual(slot["width"], 2.5)
+        self.assertAlmostEqual(slot["through"], 1.05)
+        self.assertAlmostEqual(slot["height"], 0.31)
+
+    def test_packing_doc_has_dtp_and_ref_tables(self) -> None:
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("## 1b. DTP301120 arc-plus under interface II (WP11b)", text)
+        self.assertIn("### REF tab route (WP11b, Q59)", text)
+        self.assertIn("`REF_end_wall_slot`", text)
+        self.assertIn("cell to antenna zone 4.15 < 5 mm", text)
+        rows = getattr(PlacementV2Tests, "rows", None)
+        generated = self.v2.packing_markdown(
+            rows if rows is not None else self.v2.run_matrix(include_arc=False)
+        )
+        self.assertEqual(text, generated)
+
+
 if __name__ == "__main__":
     unittest.main()
