@@ -110,11 +110,18 @@ brief in full and do it", nothing owed from me until their pushes.
   --routed` exit 0, stiffeners ≤ 3 (Q60), decoupling (Q68), standby load
   (Q65), BOM re-read (Q63), G7 joint inputs. Report
   `.reports/WP12b-report.md` (expected) → `DONE WP12b`.
-- **w4 → WP13b receiver** (`tasks/WP13b-receiver.md`), branch `lane/w4`.
-  `elicio receive` and `receive-check` with bleak behind a fake transport,
-  `firmware/src/board_pins.h` aligned to the newest §9 map on `lane/w2`,
-  `docs/fab/receiver-v2.md` (expected). Report `.reports/WP13b-report.md`
-  (expected) → `DONE WP13b`.
+- **w4 → WP13b receiver**: LANDED, `DONE WP13b` at `e7c366a` on
+  `lane/w4` (five commits, tree clean, report
+  `.worktrees/w4/.reports/WP13b-report.md` present, 179 tests OK with 21
+  skips, `arduino-cli compile` exit 0). Delivered
+  `src/elicio/receiver_v2.py` (absent on main), `elicio receive` and
+  `receive-check` in the CLI, `tests/test_receiver_v2.py` (absent on
+  main) with fixtures, `firmware/src/board_pins.h` aligned to board-v2 §9
+  (w2's table matches), `docs/fab/receiver-v2.md` (absent on main), the
+  `ble` extra in `pyproject.toml` (a seam with w9, which installed
+  matplotlib without editing it). Two decisions for the reviewer: the
+  dropout rule in `receive-check` against montage §8 line 3.4, and a
+  Feather stand-in pin variant. w4 idles; nothing queued.
 - **w9 → WP15 Rolf's sheets v2**: LANDED, `DONE WP15` at `018ac58` on
   `lane/w9` (four commits, tree clean, report
   `.worktrees/w9/.reports/WP15-report.md` present, 173 tests OK with 21
