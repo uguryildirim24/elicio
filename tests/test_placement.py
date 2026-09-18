@@ -1129,5 +1129,95 @@ class PlacementWP11dTests(unittest.TestCase):
         self.assertGreaterEqual(len(v2c), 1)
 
 
+class PlacementWP11eTests(unittest.TestCase):
+    """WP11e: flat pattern, pin table v2, J4 NPTH keep-out (Q85)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.mod = cls.v2._layout_v2c_mod()
+        cls.lay = cls.mod.wp12d_norec_layout(cls.v2)
+
+    def test_norec_cell_still_places_all_64(self) -> None:
+        self.assertIsNotNone(self.lay)
+        self.assertEqual(self.lay.missing, [])
+        self.assertEqual(self.lay.first_blocking, "")
+        self.assertGreaterEqual(self.lay.placed, 64)
+
+    def test_flat_pattern_does_not_self_overlap(self) -> None:
+        hits = self.mod.flat_pattern_hits(self.v2, self.lay)
+        self.assertEqual(hits, [])
+
+    def test_flat_ring_centres_outside_every_courtyard(self) -> None:
+        pads = self.mod.neck_flat_pads(
+            self.v2, self.lay.island, self.lay.sig1_strip, self.lay.sig2_strip
+        )
+        skip = {"P1", "P2", "P3", "P4", "P5"}
+        for ref, (u, s) in pads.items():
+            for p in self.lay.parts:
+                if p.ref in skip:
+                    continue
+                self.assertFalse(
+                    self.mod._centre_in_courtyard(u, s, p),
+                    f"{ref} flat ({u:.2f}, {s:.2f}) inside {p.ref} at ({p.u:.2f}, {p.s:.2f})",
+                )
+        u1 = next(p for p in self.lay.parts if p.ref == "U1")
+        self.assertFalse(self.mod._centre_in_courtyard(pads["P2"][0], pads["P2"][1], u1))
+        self.assertAlmostEqual(pads["P1"][0], self.v2.CONTACT_1[0], places=2)
+        self.assertAlmostEqual(pads["P2"][0], self.v2.CONTACT_2[0], places=2)
+        bs0 = self.lay.island[2]
+        self.assertAlmostEqual(pads["P1"][1], bs0 - self.lay.sig1_strip, places=2)
+        self.assertAlmostEqual(pads["P2"][1], bs0 - self.lay.sig2_strip, places=2)
+        self.assertNotAlmostEqual(pads["P2"][1], self.v2.CONTACT_2[1], places=2)
+        rows = list(self.mod._pin_table_v2_parts(self.v2, self.lay))
+        self.assertEqual(len(rows), 68)
+        p2 = next(r for r in rows if r[0] == "P2")
+        self.assertAlmostEqual(p2[3], pads["P2"][1], places=2)
+
+    def test_j4_npth_empty_on_bottom(self) -> None:
+        self.assertGreaterEqual(len(self.lay.j4_npth), 2)
+        keep = self.mod.j4_npth_keep()
+        for p in self.lay.parts:
+            if p.face != "bottom":
+                continue
+            for hu, hs in self.lay.j4_npth:
+                hole = self.v2.Box("J4_NPTH", hu, hs, keep, keep, -1.0, 20.0, "top")
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), hole, 0.0),
+                    f"{p.ref} on B.Cu in J4 NPTH ({hu:.2f}, {hs:.2f})",
+                )
+
+    def test_folded_site_table_equals_section_5_contacts(self) -> None:
+        folded = self.mod.folded_pad_sites(self.v2, self.lay.width, False)
+        self.assertAlmostEqual(folded["P1"][0], self.v2.CONTACT_1[0], places=2)
+        self.assertAlmostEqual(folded["P1"][1], self.v2.CONTACT_1[1], places=2)
+        self.assertAlmostEqual(folded["P2"][0], self.v2.CONTACT_2[0], places=2)
+        self.assertAlmostEqual(folded["P2"][1], self.v2.CONTACT_2[1], places=2)
+        self.assertAlmostEqual(folded["P3"][0], self.v2.CONTACT_REF[0], places=2)
+        self.assertAlmostEqual(folded["P3"][1], self.v2.CONTACT_REF[1], places=2)
+        p4, p5 = self.mod.charge_pad_sites(self.lay.width)
+        self.assertAlmostEqual(folded["P4"][0], p4[0], places=2)
+        self.assertAlmostEqual(folded["P4"][1], p4[1], places=2)
+        self.assertAlmostEqual(folded["P5"][0], p5[0], places=2)
+        self.assertAlmostEqual(folded["P5"][1], p5[1], places=2)
+        for ref in ("P1", "P2", "P3", "P4", "P5"):
+            self.assertAlmostEqual(folded[ref][2], self.v2.FLOOR_Y, places=2)
+
+    def test_packing_doc_has_section_5d(self) -> None:
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("## 5d. Flat pattern and pin table v2", text)
+        self.assertIn("Pin table v2 — flat PCB coordinates", text)
+        self.assertIn("Folded sites for the shell", text)
+        self.assertIn("J4 NPTH keep-out both sides", text)
+        self.assertIn("| H1 |", text)
+        self.assertIn("| H2 |", text)
+        self.assertIn("FLAT PCB (Q85)", text)
+        self.assertIn("placement_v2c_process_norec_w22_c47.90_two.svg", text)
+        v2c_dir = Path(__file__).resolve().parents[1] / "docs" / "fab" / "cad" / "v2c"
+        v2c = {p.name for p in v2c_dir.glob("placement_v2c_*.svg")}
+        self.assertLessEqual(len(v2c), 4)
+
+
 if __name__ == "__main__":
     unittest.main()

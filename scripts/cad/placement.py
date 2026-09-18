@@ -2069,7 +2069,7 @@ def main(argv: list[str] | None = None) -> int:
         help="write the v2 SVG of every run (864 files, about 109 MB; use --out-dir, never commit, Q56)",
     )
     parser.add_argument("--out-dir", type=Path, default=None, help="folder for --all/--kept-drawings/--all-drawings")
-    parser.add_argument("--packing-doc", action="store_true", help="regenerate docs/fab/packing-v2.md from the v2 matrix")
+    parser.add_argument("--packing-doc", action="store_true", help="regenerate docs/fab/packing-v2.md from the v2 matrix (§5c grid and §5d flat pattern)")
     parser.add_argument(
         "--dtp-arc",
         action="store_true",
@@ -2098,7 +2098,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--layout-v2c",
         action="store_true",
-        help="run WP11d layout grid (both edge readings, two widths, two chords, two sides)",
+        help="run WP11d/WP11e layout grid (both edge readings, two widths, two chords, two sides; Q85 flat pattern)",
     )
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)

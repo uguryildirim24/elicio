@@ -81,6 +81,7 @@ class LayoutV2c:
     hole_sites: tuple[tuple[float, float], ...] = ()
     sig1_strip: float = 10.71
     sig2_strip: float = 21.81
+    j4_npth: tuple[tuple[float, float], ...] = ()
 
 
 _CACHE: dict[tuple, LayoutV2c] | None = None
@@ -302,6 +303,170 @@ def fold_choice(v2: Any, spec: Any) -> tuple[str, dict[str, Any], float]:
 def charge_pad_sites(width: float) -> tuple[tuple[float, float], tuple[float, float]]:
     """Q81: two tail-end charging pads, in the side walls, clear of REF at (8.5, 43)."""
     return ((0.75, CHARGE_PAD_S), (width - 0.75, CHARGE_PAD_S))
+
+
+# Tag-Connect TC2030-IDC-NL NPTH pads in hardware/board/elicio-v2.kicad_pcb (J4).
+# The KiCad footprint has three NPTH, drill 0.9906. min_hole_clearance is 0.20
+# in elicio-v2.kicad_pro.
+J4_NPTH_LOCAL = ((-2.54, 0.0), (2.54, -1.016), (2.54, 1.016))
+J4_NPTH_DRILL = 0.9906
+J4_HOLE_CLEARANCE = 0.20
+
+
+def fold_arc_mm(v2: Any) -> float:
+    """180° at R 1.5: πR. Q83 strip lengths use this, not the midplane of the 0.31 stack."""
+    return math.pi * v2.BOARD_BEND_R
+
+
+def j4_npth_spec() -> tuple[tuple[tuple[float, float], ...], float, float]:
+    """NPTH locals, drill, and hole clearance, read from the KiCad files when present."""
+    root = Path(__file__).resolve().parents[2]
+    pads = list(J4_NPTH_LOCAL)
+    drill = J4_NPTH_DRILL
+    clr = J4_HOLE_CLEARANCE
+    pcb = root / "hardware" / "board" / "elicio-v2.kicad_pcb"
+    pro = root / "hardware" / "board" / "elicio-v2.kicad_pro"
+    if pcb.is_file():
+        text = pcb.read_text(encoding="utf-8")
+        found: list[tuple[float, float]] = []
+        d_found: float | None = None
+        for block in text.split("(footprint "):
+            if '(property "Reference" "J4"' not in block and "(property \"Reference\" \"J4\"" not in block:
+                continue
+            for m in re.finditer(
+                r'\(pad "" np_thru_hole circle\s+\(at ([-\d.]+) ([-\d.]+)',
+                block,
+            ):
+                found.append((float(m.group(1)), float(m.group(2))))
+            dm = re.search(r"np_thru_hole circle.*?\(drill ([-\d.]+)\)", block, re.S)
+            if dm:
+                d_found = float(dm.group(1))
+            break
+        if found:
+            pads = found
+        if d_found is not None:
+            drill = d_found
+    if pro.is_file():
+        pm = re.search(r'"min_hole_clearance"\s*:\s*([0-9.]+)', pro.read_text(encoding="utf-8"))
+        if pm:
+            clr = float(pm.group(1))
+    return tuple(pads), drill, clr
+
+
+def j4_npth_world(u: float, s: float, rot: float) -> tuple[tuple[float, float], ...]:
+    pads, _drill, _clr = j4_npth_spec()
+    rad = math.radians(rot)
+    c, si = math.cos(rad), math.sin(rad)
+    out: list[tuple[float, float]] = []
+    for px, py in pads:
+        out.append((u + px * c - py * si, s + px * si + py * c))
+    return tuple(out)
+
+
+def j4_npth_keep() -> float:
+    _pads, drill, clr = j4_npth_spec()
+    return drill + 2.0 * clr
+
+
+def neck_flat_pads(
+    v2: Any, island: tuple[float, float, float, float], sig1_strip: float, sig2_strip: float
+) -> dict[str, tuple[float, float]]:
+    """Ring centres in PCB (flat) coordinates. SIG1/SIG2 leave the island neck toward −s."""
+    _u0, _u1, bs0, _bs1 = island
+    return {
+        "P1": (v2.CONTACT_1[0], bs0 - sig1_strip),
+        "P2": (v2.CONTACT_2[0], bs0 - sig2_strip),
+        "P3": (v2.CONTACT_REF[0], v2.CONTACT_REF[1]),
+    }
+
+
+def folded_pad_sites(v2: Any, width: float, receptacle: bool) -> dict[str, tuple[float, float, float]]:
+    """Shell sites (u, s, y). y is the ring seat on the inner floor."""
+    y = v2.FLOOR_Y
+    out: dict[str, tuple[float, float, float]] = {
+        "P1": (v2.CONTACT_1[0], v2.CONTACT_1[1], y),
+        "P2": (v2.CONTACT_2[0], v2.CONTACT_2[1], y),
+        "P3": (v2.CONTACT_REF[0], v2.CONTACT_REF[1], y),
+    }
+    if not receptacle:
+        p4, p5 = charge_pad_sites(width)
+        out["P4"] = (p4[0], p4[1], y)
+        out["P5"] = (p5[0], p5[1], y)
+    return out
+
+
+def _xy_overlap(
+    u: float, s: float, wu: float, ws: float,
+    ou: float, os: float, owu: float, ows: float,
+    margin: float = 0.0,
+) -> bool:
+    if (u + wu / 2.0 + margin) <= (ou - owu / 2.0) or (ou + owu / 2.0 + margin) <= (u - wu / 2.0):
+        return False
+    if (s + ws / 2.0 + margin) <= (os - ows / 2.0) or (os + ows / 2.0 + margin) <= (s - ws / 2.0):
+        return False
+    return True
+
+
+def _centre_in_courtyard(u: float, s: float, p: Any) -> bool:
+    return abs(p.u - u) <= p.wu / 2.0 + 1e-9 and abs(p.s - s) <= p.ws / 2.0 + 1e-9
+
+
+def flat_strip_box(
+    v2: Any, name: str, pad: tuple[float, float], s_attach: float
+) -> tuple[str, float, float, float, float]:
+    """Strip rectangle from the island edge to the flat ring centre (u, s, wu, ws)."""
+    u, s_pad = pad
+    return (name, u, (s_attach + s_pad) / 2.0, v2.TAB_W, abs(s_attach - s_pad))
+
+
+def flat_pattern_hits(v2: Any, lay: LayoutV2c) -> list[str]:
+    """2D: strips vs leftover/pocket parts, rings vs other courtyards, strips vs strips."""
+    pads = neck_flat_pads(v2, lay.island, lay.sig1_strip, lay.sig2_strip)
+    _u0, _u1, bs0, bs1 = lay.island
+    cr_u, cr_s = v2.KICAD_COURTYARD["RING_PAD_D5_H2.7"]
+    hits: list[str] = []
+    strips = [
+        flat_strip_box(v2, "SIG1", pads["P1"], bs0),
+        flat_strip_box(v2, "SIG2", pads["P2"], bs0),
+        flat_strip_box(v2, "REF", pads["P3"], bs1),
+    ]
+    for i, a in enumerate(strips):
+        for b in strips[i + 1 :]:
+            if _xy_overlap(a[1], a[2], a[3], a[4], b[1], b[2], b[3], b[4]):
+                hits.append(f"strip {a[0]} overlaps strip {b[0]}")
+    ring_names = ("P1", "P2", "P3")
+    for i, ra in enumerate(ring_names):
+        for rb in ring_names[i + 1 :]:
+            if _xy_overlap(pads[ra][0], pads[ra][1], cr_u, cr_s, pads[rb][0], pads[rb][1], cr_u, cr_s):
+                hits.append(f"flat {ra} courtyard overlaps flat {rb}")
+    skip = {"P1", "P2", "P3", "P4", "P5"}
+    leftover_or_pocket = []
+    for p in lay.parts:
+        if p.ref in skip:
+            continue
+        in_left = _inside(p.u, p.s, p.wu, p.ws, lay.leftover, slack=0.4)
+        in_pocket = p.s + p.ws / 2.0 <= bs0 + 0.3
+        if p.face == "hook":
+            continue
+        if in_left or in_pocket:
+            leftover_or_pocket.append(p)
+    for name, su, ss, wu, ws in strips:
+        for p in leftover_or_pocket:
+            if _xy_overlap(su, ss, wu, ws, p.u, p.s, p.wu, p.ws):
+                hits.append(f"strip {name} crosses {p.ref} on {p.face}")
+        for p in leftover_or_pocket:
+            if name == "REF":
+                continue
+            ru, rs = pads["P1" if name == "SIG1" else "P2"]
+            if _xy_overlap(ru, rs, cr_u, cr_s, p.u, p.s, p.wu, p.ws):
+                hits.append(f"flat {name} ring crosses {p.ref} on {p.face}")
+    for ref, (u, s) in pads.items():
+        for p in lay.parts:
+            if p.ref in skip or p.face == "hook":
+                continue
+            if _centre_in_courtyard(u, s, p):
+                hits.append(f"{ref} flat centre inside {p.ref} courtyard")
+    return hits
 
 
 def find_hole_sites(
@@ -585,6 +750,22 @@ def search_layout_v2c(
         second_side.append(ref)
         return True
 
+    # Q85: neck-end strips occupy leftover/pocket XY on both sides so parts cannot sit on them.
+    # Only the no-receptacle cell is the flat-pattern build (Q81). J1 on the hook sits in that XY.
+    if not receptacle:
+        flat_pads = neck_flat_pads(v2, island, float(fold_nums["SIG1_strip"]), float(fold_nums["SIG2_strip"]))
+        cr_u, cr_s = v2.KICAD_COURTYARD["RING_PAD_D5_H2.7"]
+        for name, s_attach, pref in (
+            ("SIG1", bs0, "P1"),
+            ("SIG2", bs0, "P2"),
+            ("REF", bs1, "P3"),
+        ):
+            _n, su, ss, wu, ws = flat_strip_box(v2, name, flat_pads[pref], s_attach)
+            occupied.append(v2.Box(f"FLATSTRIP_{name}", su, ss, wu, ws, -1.0, 20.0, "floor"))
+            occupied.append(
+                v2.Box(f"FLATRING_{name}", flat_pads[pref][0], flat_pads[pref][1], cr_u, cr_s, -1.0, 20.0, "floor")
+            )
+
     # Q82: SW1 keeps the lid-recess leftover. Then holes, then J4.
     if not try_top("SW1", [leftover_i, side_i], near=((leftover[0] + leftover[1]) / 2.0, (leftover[2] + leftover[3]) / 2.0), notes="lid recess"):
         if not try_top("SW1", [pocket_i], notes="lid, pocket island"):
@@ -606,9 +787,23 @@ def search_layout_v2c(
             v2.Box(f"HOLE_M{i}", hu, hs, v2.BOSS_HOLE_KEEP, v2.BOSS_HOLE_KEEP, y_air0, y_top + 8.0, "floor")
         )
 
-    if try_top("J4", [leftover_i, side_i], near=(bu1 - 3.5, (leftover[2] + leftover[3]) / 2.0), notes="TC2030 leftover; keep-out is a board no-part zone"):
+    j4_npth: tuple[tuple[float, float], ...] = ()
+    j4_note = (
+        "TC2030 leftover; NPTH keep-out both sides (Q85)"
+        if not receptacle
+        else "TC2030 leftover; keep-out is a board no-part zone"
+    )
+    if try_top("J4", [leftover_i, side_i], near=(bu1 - 3.5, (leftover[2] + leftover[3]) / 2.0), notes=j4_note):
         j4p = next(p for p in parts if p.ref == "J4")
         occupied.append(v2.Box("J4_keepout", j4p.u, j4p.s, j4p.wu + 1.0, j4p.ws + 1.0, y_top, y_top + 8.0, "top"))
+        # Q85 both-side hole keep is for the board the build carries (no receptacle).
+        if not receptacle:
+            j4_npth = j4_npth_world(j4p.u, j4p.s, j4p.rot)
+            keep = j4_npth_keep()
+            for i, (hu, hs) in enumerate(j4_npth, 1):
+                occupied.append(v2.Box(f"J4_NPTH{i}", hu, hs, keep, keep, -1.0, 20.0, "top"))
+        else:
+            j4_npth = j4_npth_world(j4p.u, j4p.s, j4p.rot)
     else:
         missing.append("J4")
 
@@ -862,6 +1057,52 @@ def search_layout_v2c(
             ),
         )
     )
+    j4_bot_hits = []
+    keep_j4 = j4_npth_keep()
+    if not receptacle:
+        for p in parts:
+            if p.face != "bottom":
+                continue
+            for i, (hu, hs) in enumerate(j4_npth, 1):
+                hole = v2.Box(f"J4_NPTH{i}", hu, hs, keep_j4, keep_j4, -1.0, 20.0, "top")
+                if v2._overlap(v2._part_box(p, 0.0, 1.0), hole, 0.0):
+                    j4_bot_hits.append(p.ref)
+        rules.append(
+            (
+                "J4 NPTH keep-out both sides (Q85)",
+                j4 is not None and not j4_bot_hits,
+                (
+                    f"{len(j4_npth)} holes, keep {keep_j4:.2f} mm; B.Cu empty"
+                    if j4 is not None and not j4_bot_hits
+                    else (
+                        f"B.Cu in J4 holes: {', '.join(j4_bot_hits[:8])}"
+                        if j4_bot_hits
+                        else "J4 not placed"
+                    )
+                ),
+            )
+        )
+    scratch = LayoutV2c(
+        edge=edge, width=width, chord=chord, sides="two" if two_sides else "top",
+        island=island, leftover=leftover, island_mm2=0.0, leftover_mm2=0.0,
+        island_fill=0.0, leftover_fill=0.0, extra_u=0.0, extra_s=0.0, under_clear_mm=0.0,
+        placed=0, missing=[], second_side=[], first_blocking="", parts=parts,
+        sig1_strip=float(fold_nums["SIG1_strip"]), sig2_strip=float(fold_nums["SIG2_strip"]),
+        j4_npth=j4_npth,
+    )
+    fp_hits = flat_pattern_hits(v2, scratch) if not receptacle else []
+    if not receptacle:
+        rules.append(
+            (
+                "flat pattern non-overlap (Q85)",
+                not fp_hits,
+                (
+                    "strips and flat rings clear leftover/pocket parts and each other"
+                    if not fp_hits
+                    else "; ".join(fp_hits[:8])
+                ),
+            )
+        )
     placed_bom = sum(1 for p in parts if p.ref in table and p.ref not in skip_refs)
     rules.append(
         (
@@ -903,6 +1144,7 @@ def search_layout_v2c(
         hole_sites=tuple(hole_sites),
         sig1_strip=float(fold_nums["SIG1_strip"]),
         sig2_strip=float(fold_nums["SIG2_strip"]),
+        j4_npth=j4_npth,
     )
 
 
@@ -1192,6 +1434,8 @@ def section_5c(v2: Any) -> list[str]:
         )
         lines.append("")
 
+    lines.extend(section_5d(v2, rows))
+
     lines.append(
         "Drawings (at most four, Q56) live under `docs/fab/cad/v2c/` so the round-5 14-file "
         "`placement_v2_*.svg` set in `docs/fab/cad/v1/` stays pinned."
@@ -1199,6 +1443,202 @@ def section_5c(v2: Any) -> list[str]:
     names = [f"`{_drawing_name(lay)}`" for lay in pick_v2c_drawings(v2)]
     if names:
         lines.append("This package keeps " + ", ".join(names) + ".")
+    lines.append("")
+    return lines
+
+
+def _refkey(r: str) -> tuple:
+    m = re.match(r"([A-Za-z]+)(\d+)", r)
+    return (m.group(1), int(m.group(2))) if m else (r, 0)
+
+
+def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
+    """WP11e: flat pattern, pin table v2, folded-site table, J4 NPTH keep-out (Q85)."""
+    lines: list[str] = []
+    lay = smallest_full(rows, "process", receptacle=False)
+    lines.append("## 5d. Flat pattern and pin table v2 (WP11e, Q85)")
+    lines.append("")
+    if lay is None:
+        lines.append(
+            "No all-64 process-edge cell exists, so there is no pin table v2."
+        )
+        lines.append("")
+        return lines
+    arc = fold_arc_mm(v2)
+    midplane = math.pi * (v2.BOARD_BEND_R + v2.TAB_T / 2.0)
+    _u0, _u1, bs0, bs1 = lay.island
+    pads = neck_flat_pads(v2, lay.island, lay.sig1_strip, lay.sig2_strip)
+    folded = folded_pad_sites(v2, lay.width, False)
+    cr_u, cr_s = v2.KICAD_COURTYARD["RING_PAD_D5_H2.7"]
+    fp_hits = flat_pattern_hits(v2, lay)
+    neck_ok = not fp_hits
+    drawing = _drawing_name(lay)
+    lines.append(
+        f"Build cell: process-edge, width {lay.width:g}, chord {lay.chord:.2f}, {lay.sides} sides, "
+        f"fold {lay.fold}, no receptacle (Q81). Island u {lay.island[0]:.2f}–{lay.island[1]:.2f}, "
+        f"s {bs0:.2f}–{bs1:.2f}. Leftover s {lay.leftover[2]:.2f}–{lay.leftover[3]:.2f}. "
+        f"The flex board is drawn flat. The §5c pin table still lists P1–P3 at the folded "
+        f"(shell) sites; pin table v2 below is what the board lane pins."
+    )
+    lines.append("")
+    lines.append(
+        f"Fold allowance: inner R {v2.BOARD_BEND_R:.1f} mm, stack {v2.TAB_T:.2f} mm "
+        f"(PI {v2.FLEX:g} + FR4 {v2.STIFFENER_TAB:g}). Arc at R is πR = {arc:.2f} mm. "
+        f"Midplane arc π(R + t/2) = {midplane:.2f} mm. Q83 strip lengths use πR, so "
+        f"SIG1 {lay.sig1_strip:.2f} mm and SIG2 {lay.sig2_strip:.2f} mm stay. "
+        f"Flat length = folded run + πR. Folded run SIG1 = {v2.CONTACT_1[1] - bs0:.2f} mm, "
+        f"SIG2 = {v2.CONTACT_2[1] - bs0:.2f} mm."
+    )
+    lines.append("")
+    lines.append(
+        "Flat-to-folded mapping (neck-end, Q83): each SIG strip leaves the island at "
+        f"(contact u, s={bs0:.2f}) toward −s. The ring centre in PCB coordinates is "
+        f"(contact u, s0 − L_flat). A 180° fold at R 1.5 at the neck puts the ring on the "
+        f"floor at the contact site. REF does not take that fold: it already leaves the "
+        f"island high-s end (s={bs1:.2f}) through the end-wall slot, so P3 flat = P3 folded. "
+        "P4 and P5 sit on the tail of the flat board; flat = folded."
+    )
+    lines.append("")
+    lines.append("| strip | attach (u, s) | flat ring (u, s) | flat rectangle centre wu × ws | folded run | L_flat |")
+    lines.append("|---|---|---|---|---:|---:|")
+    attach_u = {
+        "SIG1": v2.CONTACT_1[0],
+        "SIG2": v2.CONTACT_2[0],
+        "REF": v2.CONTACT_REF[0],
+    }
+    for name, pref, s_att, run in (
+        ("SIG1", "P1", bs0, v2.CONTACT_1[1] - bs0),
+        ("SIG2", "P2", bs0, v2.CONTACT_2[1] - bs0),
+        ("REF", "P3", bs1, v2.CONTACT_REF[1] - bs1),
+    ):
+        _n, su, ss, wu, ws = flat_strip_box(v2, name, pads[pref], s_att)
+        pu, ps = pads[pref]
+        L = abs(s_att - ps)
+        lines.append(
+            f"| {name} | ({attach_u[name]:.2f}, {s_att:.2f}) "
+            f"| ({pu:.2f}, {ps:.2f}) | ({su:.2f}, {ss:.2f}) {wu:.2f} × {ws:.2f} | {run:.2f} | {L:.2f} |"
+        )
+    lines.append("")
+    if neck_ok:
+        lines.append(
+            "2D check: the flat pattern does not self-overlap. No SIG or REF strip crosses a "
+            "part on either side of the leftover or the pocket. P1–P3 flat centres sit outside "
+            "every other courtyard. Neck-end is the exit. Side-wall pockets stay refused "
+            f"(remaining wall {lay.wall_left:.2f} mm < 1.0)."
+        )
+    else:
+        lines.append(
+            "Neck-end cannot host both strips beside J4, SW1 and the leftover/pocket parts: "
+            + "; ".join(fp_hits[:12])
+            + ". Next exit: strips leave the island high-s end and fold under the tail "
+            "(side-edge pockets of Q74 stay refused by the 0.65 wall)."
+        )
+    lines.append("")
+    lines.append(
+        f"Flat-pattern drawing: `docs/fab/cad/v2c/{drawing}` "
+        "(strips and ring pads in PCB coordinates; at most four drawings, Q56)."
+    )
+    lines.append("")
+    n_rows = len(list(_pin_table_v2_parts(v2, lay)))
+    lines.append(
+        f"### Pin table v2 — flat PCB coordinates "
+        f"(width {lay.width:g}, chord {lay.chord:.2f}, {lay.sides} sides, fold {lay.fold})"
+    )
+    lines.append("")
+    lines.append(
+        f"{n_rows} rows (66 footprints including P4/P5, plus H1 and H2). Side column as in §5c. Pad-to-outline ≥ 0.30. "
+        "Holes at the Q82 sites. SW1 in the lid recess. Contact variant A. "
+        "P1 and P2 are the FLAT ring centres (not the folded sites WP12d pinned). "
+        "P4 and P5 keep RING_PAD_D5_H2.7 courtyards on the tail. "
+        "The board lane pins this table within 0.1 mm. The shell lane ignores it and "
+        "takes the folded-site table."
+    )
+    lines.append("")
+    lines.extend(_pin_table_v2(v2, lay))
+    lines.append("### Folded sites for the shell (u, s, y)")
+    lines.append("")
+    lines.append(
+        "Contact sites are unchanged from §5. y is the ring seat on the inner floor "
+        f"({v2.FLOOR_Y:.2f} mm). WP14 keeps these numbers."
+    )
+    lines.append("")
+    lines.append("| pad | net | u | s | y | courtyard | notes |")
+    lines.append("|---|---|---:|---:|---:|---|---|")
+    nets = {
+        "P1": "SIG1",
+        "P2": "SIG2",
+        "P3": "REF",
+        "P4": "CHARGE_VBUS",
+        "P5": "CHARGE_GND",
+    }
+    notes = {
+        "P1": "folded seat after the neck 180° fold",
+        "P2": "folded seat after the neck 180° fold",
+        "P3": "REF_end_wall_slot; flat = folded",
+        "P4": "tail; flat = folded (Q81)",
+        "P5": "tail; flat = folded (Q81)",
+    }
+    for ref, (u, s, y) in folded.items():
+        lines.append(
+            f"| {ref} | {nets[ref]} | {u:.2f} | {s:.2f} | {y:.2f} | "
+            f"{cr_u:.2f} × {cr_s:.2f} | {notes[ref]} |"
+        )
+    lines.append("")
+    _pads, drill, clr = j4_npth_spec()
+    keep = j4_npth_keep()
+    lines.append("### J4 NPTH keep-out both sides (Q85)")
+    lines.append("")
+    j4p = next((p for p in lay.parts if p.ref == "J4"), None)
+    lines.append(
+        f"Tag-Connect TC2030-IDC-NL in `hardware/board/elicio-v2.kicad_pcb`: "
+        f"{len(_pads)} NPTH, drill {drill:.4f} mm. "
+        f"`elicio-v2.kicad_pro` min_hole_clearance {clr:.2f} mm. "
+        f"Keep-out diameter = drill + 2 × clearance = {keep:.2f} mm. "
+        "No B.Cu footprint may enter that zone. Same-face courtyard keep-out on F.Cu stands."
+    )
+    lines.append("")
+    lines.append("| hole | u | s | drill | keep | sides |")
+    lines.append("|---|---:|---:|---:|---:|---|")
+    if j4p is not None:
+        for i, (hu, hs) in enumerate(lay.j4_npth, 1):
+            lines.append(
+                f"| J4-NPTH{i} | {hu:.2f} | {hs:.2f} | {drill:.4f} | {keep:.2f} | F.Cu and B.Cu |"
+            )
+    lines.append("")
+    return lines
+
+
+def _pin_table_v2_parts(v2: Any, lay: LayoutV2c):
+    pads = neck_flat_pads(v2, lay.island, lay.sig1_strip, lay.sig2_strip)
+    for p in sorted(lay.parts, key=lambda x: _refkey(x.ref)):
+        if p.ref in pads and p.ref in {"P1", "P2"}:
+            u, s = pads[p.ref]
+            note = p.notes + "; FLAT PCB (Q85); folded site in the shell table"
+            yield (p.ref, p.face, u, s, p.rot, p.wu, p.ws, note)
+        else:
+            yield (p.ref, p.face, p.u, p.s, p.rot, p.wu, p.ws, p.notes)
+    for i, (hu, hs) in enumerate(lay.hole_sites, 1):
+        yield (
+            f"H{i}",
+            "both",
+            hu,
+            hs,
+            0.0,
+            v2.BOSS_HOLE_KEEP,
+            v2.BOSS_HOLE_KEEP,
+            "Ø2.7 island hole (Q82); keep 3.30; both sides",
+        )
+
+
+def _pin_table_v2(v2: Any, lay: LayoutV2c) -> list[str]:
+    lines = [
+        "| ref | side | u | s | rot | courtyard wu × ws | notes |",
+        "|---|---|---:|---:|---:|---:|---|",
+    ]
+    for ref, face, u, s, rot, wu, ws, notes in _pin_table_v2_parts(v2, lay):
+        lines.append(
+            f"| {ref} | {face} | {u:.2f} | {s:.2f} | {rot:g} | {wu:.2f} × {ws:.2f} | {notes} |"
+        )
     lines.append("")
     return lines
 
@@ -1256,8 +1696,14 @@ def write_v2c_drawings(v2: Any, dest_dir: Path | None = None) -> list[Path]:
 def _svg_for(lay: LayoutV2c) -> str:
     u0, u1, s0, s1 = lay.island
     pad = 8.0
+    by = {p.ref: p for p in lay.parts}
+    extra_s = []
+    if "P1" in by:
+        extra_s.append(s0 - lay.sig1_strip)
+    if "P2" in by:
+        extra_s.append(s0 - lay.sig2_strip)
     min_u, max_u = min(u0, -6.0) - pad, max(u1, 22.0) + pad
-    min_s, max_s = min(s0, -8.0) - pad, max(s1, 50.0) + pad
+    min_s, max_s = min(s0, -8.0, *extra_s) - pad, max(s1, 50.0) + pad
     w, h = max_u - min_u, max_s - min_s
     scale = 12.0
     sw, sh = w * scale, h * scale
@@ -1283,6 +1729,19 @@ def _svg_for(lay: LayoutV2c) -> str:
         f'<rect x="{x0:.1f}" y="{y0:.1f}" width="{(u1-u0)*scale:.1f}" height="{(s1-s0)*scale:.1f}" '
         f'fill="#fff" stroke="#111" stroke-width="1.2"/>'
     )
+    if lay.fold == "neck" and "P1" in by and "P2" in by:
+        for ref, length in (("P1", lay.sig1_strip), ("P2", lay.sig2_strip)):
+            p = by[ref]
+            fu, fs = p.u, s0 - length
+            parts.append(rect(fu, (s0 + fs) / 2.0, 2.5, abs(s0 - fs), "#f3d27a", "#a67c00"))
+            parts.append(rect(fu, fs, 6.40, 6.40, "#c45c26", "#7a2e0b"))
+            tx, ty = xy(fu, fs)
+            parts.append(
+                f'<text x="{tx:.1f}" y="{ty:.1f}" font-size="7" text-anchor="middle" fill="#fff">{ref}flat</text>'
+            )
+        if "P3" in by:
+            p3 = by["P3"]
+            parts.append(rect(p3.u, (s1 + p3.s) / 2.0, 2.5, abs(s1 - p3.s), "#f3d27a", "#a67c00"))
     colors = {"top": "#6b4c9a", "bottom": "#2a6f97", "hook": "#c45c26", "floor": "#888"}
     for p in lay.parts:
         parts.append(rect(p.u, p.s, p.wu, p.ws, colors.get(p.face, "#999"), "#111"))
@@ -1292,6 +1751,8 @@ def _svg_for(lay: LayoutV2c) -> str:
         )
     for hu, hs in lay.hole_sites:
         parts.append(rect(hu, hs, 3.30, 3.30, "#f7f4ef", "#b33"))
+    for i, (hu, hs) in enumerate(lay.j4_npth, 1):
+        parts.append(rect(hu, hs, j4_npth_keep(), j4_npth_keep(), "none", "#b33"))
     parts.append(
         f'<text x="12" y="16" font-size="11" fill="#111">{lay.edge} {"usb" if lay.receptacle else "norec"} '
         f"w{lay.width:g} chord {lay.chord:.2f} {lay.sides} {lay.placed}/{lay.bom_n} fold {lay.fold}</text>"
