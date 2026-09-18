@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T23:37:59-04:00",
+ "generated": "2026-09-18T00:32:37-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -47,7 +47,7 @@
    ],
    "name": "w2",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pB",
    "tab_id": "w1B:tB",
    "tab_label": "w2",
@@ -56,7 +56,7 @@
    "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
    "tokens": {
     "done": "1",
-    "lane": "WP12b",
+    "lane": "WP12c",
     "parent": "w1B:p1"
    },
    "title": "Lane W2 Instructions"
@@ -139,7 +139,7 @@
    ],
    "name": "w3",
    "kind": "cursor",
-   "status": "done",
+   "status": "working",
    "pane_id": "w1B:pR",
    "tab_id": "w1B:tR",
    "tab_label": "w3",
@@ -171,6 +171,8 @@
    "cwd": "/home/user/projects/elicio/.worktrees/review",
    "session_id": "42f60552-fa09-49cb-9bc4-c72a5afbeb97",
    "tokens": {
+    "done": "1",
+    "lane": "review-r6",
     "parent": "w1B:p1"
    },
    "title": "Review round 6"
@@ -198,28 +200,28 @@
   "repo": "/home/user/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "58ae5b8 Round 6: record the reviewer's decisions 69 to 76 and the coordinator's Q77 (footprint collisions) with the readings the build follows; WP14b brief",
+   "e2c7f09 docs(tasks): WP11c brief, pack with the real footprint courtyards",
+   "7d5443c review-r6: merge lane/w2 at e3e085b (queued BOM note landed after the pin); handoff notes it",
+   "d4b5a93 handoff: round 6 review running (rev6 on review/r6), WP12c routing in parallel on lane/w2",
    "b710ed1 docs(tasks): round 6 review brief (review-r6) and WP12c routing brief",
-   "9aa2934 handoff: answer sheet v5 asks the battery route",
-   "cb3bff2 handoff: WP11b fourth DONE at bcecc83 (winner fails with the real 501015 pack; 501012 closes)",
-   "d3e5159 handoff: WP14 second DONE at c3c11d8 (REF slot cut, Q59 checks pass on the shell)",
-   "ed727ea handoff: WP17b second DONE at ba45071 (501015 pack is 17 mm with PCM); rerun to w3",
-   "dd684dd handoff: answer sheet v4 carries the shell renders"
+   "9aa2934 handoff: answer sheet v5 asks the battery route"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/home/user/projects/elicio",
     "branch": "main",
-    "head": "b710ed1",
-    "subject": "docs(tasks): round 6 review brief (review-r6) and WP12c routing brief",
+    "head": "58ae5b8",
+    "subject": "Round 6: record the reviewer's decisions 69 to 76 and the coordinator's Q77 (footprint collisions) with the readings the build follows; WP14b brief",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/review",
     "branch": "review/r6",
-    "head": "a01eb53",
-    "subject": "merge lane/w1-r6 (WP14) into review/r6",
-    "dirty": 0
+    "head": "c7c4e5a",
+    "subject": "review(r6): verdict MERGE-AFTER-DECISION, gates, defects, \u00a77 look, decisions 69\u201376",
+    "dirty": 14
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w1",
@@ -231,8 +233,8 @@
    {
     "path": "/home/user/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "480e355",
-    "subject": "board(v2b): placed from the packing, routed, released",
+    "head": "f4376ca",
+    "subject": "merge origin/lane/w2: restore e3e085b after the WP12c reset",
     "dirty": 0
    },
    {
@@ -265,9 +267,9 @@
    }
   ],
   "branches": [
-   "review/r6",
    "main",
    "lane/w2",
+   "review/r6",
    "lane/w3",
    "lane/w1-r6",
    "lane/w5",
@@ -284,6 +286,8 @@
  },
  "files": {
   "briefs": [
+   "tasks/WP14b-shell-v2b.md",
+   "tasks/WP11c-courtyards.md",
    "tasks/review-r6.md",
    "tasks/WP12c-route.md",
    "tasks/WP17b-research-v4.md",
@@ -293,9 +297,7 @@
    "tasks/WP11b-packing-followups.md",
    "tasks/WP14-shell-v2.md",
    "tasks/review-r5.md",
-   "tasks/WP17-research-v3.md",
-   "tasks/WP16-record.md",
-   "tasks/WP13-firmware.md"
+   "tasks/WP17-research-v3.md"
   ],
   "verdicts": [
    "tasks/reviews/code-r5.md",
