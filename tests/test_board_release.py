@@ -15,47 +15,24 @@ RELEASE = ROOT / "scripts" / "board" / "release.py"
 SCH = ROOT / "hardware" / "board" / "elicio-v2.kicad_sch"
 PCB = ROOT / "hardware" / "board" / "elicio-v2.kicad_pcb"
 
-PACKING = ROOT / "docs" / "fab" / "packing-v2.md"
-
-# Reference designator per packing-v2.md §5 bullet (the name the bullet
-# starts with). Review r6: the test reads the centres from §5 itself.
-PACKING_REFS = {
-    "Module Raytac": "U1",
-    "ADS1292": "U2",
-    "BQ25100": "U3",
-    "TLV71330": "U4",
-    "USBLC6-2SC6": "U5",
-    "PESD5V0L1UL": "D1",
-    "USB-C": "J1",
-    "JST-SH": "J2",
-    "Bench header": "J3",
-    "Recovery switch": "SW1",
-}
-
+PACKING = ROOT / "hardware" / "board" / "packing_5c_norec.md"
 
 def packing_section5_centres() -> dict[str, tuple[float, float]]:
-    """Named SMT centres from packing-v2.md §5 bullets, keyed by reference."""
+    """Named SMT centres from the vendored §5c no-receptacle pin table."""
     text = PACKING.read_text(encoding="utf-8")
-    start = text.index("## 5. Layout for the board lane")
-    end = text.index("\n## 6.", start)
-    section = text[start:end]
     out: dict[str, tuple[float, float]] = {}
-    for line in section.splitlines():
-        if not line.startswith("- "):
+    for line in text.splitlines():
+        if not line.startswith("|"):
             continue
-        for name, ref in PACKING_REFS.items():
-            if line[2:].startswith(name):
-                m = re.search(r"centre \(([-\d.]+), ([-\d.]+)\)", line)
-                if m:
-                    out[ref] = (float(m.group(1)), float(m.group(2)))
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 5 or cells[0] in {"ref", "---"} or cells[0].startswith("---"):
+            continue
+        ref = cells[0]
+        try:
+            out[ref] = (float(cells[2]), float(cells[3]))
+        except ValueError:
+            continue
     return out
-
-
-def packing_ref_ring() -> tuple[float, float]:
-    text = PACKING.read_text(encoding="utf-8")
-    m = re.search(r"^- REF: \(([-\d.]+), ([-\d.]+)\)", text, re.M)
-    assert m, "packing-v2.md §5 has no REF tab line"
-    return float(m.group(1)), float(m.group(2))
 
 
 def kicad_missing_message() -> str:
@@ -158,17 +135,28 @@ class PackingAgreementTests(unittest.TestCase):
             if at and ref:
                 found[ref.group(1)] = (float(at.group(1)), float(at.group(2)))
         packing = packing_section5_centres()
-        self.assertEqual(sorted(packing), sorted(PACKING_REFS.values()))
-        # The REF ring is drawn at its folded site (along_floor); SIG1/SIG2
-        # rings are unfolded off the island and are not compared here.
-        packing["P3"] = packing_ref_ring()
+        self.assertIn("U1", packing)
+        self.assertNotIn("J1", packing)
+        self.assertNotIn("U5", packing)
+        self.assertIn("P4", packing)
+        self.assertIn("P5", packing)
         for ref, (px, py) in packing.items():
+            if ref.startswith("H"):
+                continue
             self.assertIn(ref, found, ref)
             x, y = found[ref]
             dist = ((x - px) ** 2 + (y - py) ** 2) ** 0.5
             self.assertLessEqual(
                 dist, 0.1, f"{ref} pcb=({x},{y}) packing=({px},{py}) d={dist}"
             )
+        self.assertIn("H1", found)
+        self.assertIn("H2", found)
+        self.assertLessEqual(
+            ((found["H1"][0] - 13.45) ** 2 + (found["H1"][1] - 17.70) ** 2) ** 0.5, 0.1
+        )
+        self.assertLessEqual(
+            ((found["H2"][0] - 17.95) ** 2 + (found["H2"][1] - 17.70) ** 2) ** 0.5, 0.1
+        )
 
 
 class Wp12cRoutedAssertionTests(unittest.TestCase):

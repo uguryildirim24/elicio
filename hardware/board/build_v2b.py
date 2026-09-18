@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-"""Place elicio-v2 from packing-v2.md §5, sync nets, route, save.
+"""Place elicio-v2 from packing §5c (no receptacle), sync nets, save.
 
-WP12b. Packing (u, s) = PCB (x, y). SIG1/SIG2 rings unfold off the island.
+WP12d. Packing (u, s) = PCB (x, y). Width 22 island. No maze unless --route-only.
 """
 from __future__ import annotations
 
 import math
-import os
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -20,40 +18,42 @@ _APP = wx.App(False)
 import pcbnew  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from maze_route import maze_route, add_via  # noqa: E402
+from maze_route import maze_route  # noqa: E402
 from placement_table import PlacementRow, parse_placement_markdown, wants_back_copper  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 BOARD_DIR = ROOT / "hardware" / "board"
 KICAD_FP = Path("/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints")
 LOCAL_FP = BOARD_DIR / "lib" / "elicio.pretty"
-JAVA = Path("/opt/homebrew/opt/openjdk@21/bin/java")
-FREEROUTE_JAR = Path("/tmp/wp12b/freerouting.jar")
+TABLE = BOARD_DIR / "packing_5c_norec.md"
+JAVA = Path("/opt/homebrew/opt/openjdk@25/bin/java")
+FREEROUTE_JAR = Path.home() / ".local" / "opt" / "freerouting" / "freerouting-2.4.1.jar"
 
-BOARD_U0, BOARD_U1 = 2.25, 17.75
-BOARD_S0, BOARD_S1 = 18.60, 37.60
-NECK_U0 = 12.50
-USB_U0, USB_U1 = 4.50, 15.50
-USB_S0, USB_S1 = -7.70, 1.50
-
-SIG1_SITE = (5.90, 22.00)
-SIG1_ATTACH_PACK = (5.90, 29.00)
-SIG2_SITE = (10.40, 33.10)
-SIG2_ATTACH_PACK = (10.40, 26.10)
-REF_SITE = (8.50, 43.00)
-REF_ATTACH_PACK = (8.50, 36.80)
-
-TAB_LEN_SIG1 = math.hypot(SIG1_SITE[0] - SIG1_ATTACH_PACK[0], SIG1_SITE[1] - SIG1_ATTACH_PACK[1])
-TAB_LEN_SIG2 = math.hypot(SIG2_SITE[0] - SIG2_ATTACH_PACK[0], SIG2_SITE[1] - SIG2_ATTACH_PACK[1])
+BOARD_U0, BOARD_U1 = 2.25, 19.75
+BOARD_S0, BOARD_S1 = 16.00, 37.60
+# Leftover / pocket island (SW1, U2, J2) and J3 hang, copper-to-edge 0.30.
+POCKET_U0, POCKET_U1 = 12.00, 25.50
+POCKET_S0, POCKET_S1 = 1.35, 16.00
+J2_HANG_S0, J2_HANG_S1 = 7.40, 14.40
+HANG_U1 = 32.50
+HANG_S0, HANG_S1 = 16.00, 24.80
+NECK_FOLD_S0 = 14.40
 TAB_STRIP = 2.5
-TAB_CAP_R = 3.0
-
-SIG1_ATTACH = (BOARD_U0, SIG1_SITE[1])
-SIG1_RING = (BOARD_U0 - TAB_LEN_SIG1, SIG1_SITE[1])
-SIG2_ATTACH = (BOARD_U1, SIG2_SITE[1])
-SIG2_RING = (BOARD_U1 + TAB_LEN_SIG2, SIG2_SITE[1])
-REF_ATTACH = (REF_SITE[0], BOARD_S1)
-REF_RING = REF_SITE
+TAB_CAP_R = 3.2
+HOLES = ((13.45, 17.70), (17.95, 17.70))
+SIG1_SITE = (5.90, 22.00)
+SIG2_SITE = (10.40, 33.10)
+REF_SITE = (8.50, 43.00)
+P4_SITE = (0.75, 44.00)
+P5_SITE = (21.25, 44.00)
+# Neck-end fold strips (Q83): 2.5 mm at the island low-s edge.
+SIG1_FOLD_U = SIG1_SITE[0]
+SIG2_FOLD_U = SIG2_SITE[0]
+# U1 process pose keep-out 12.4 × 3.8 at the high-s antenna end.
+RF_BOX = (2.25, 33.80, 14.20, 37.60)
+J4_KEEP = (14.25, 21.10, 18.25, 28.10)
+SKIP_REFS = {"J1", "U5"}
+RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
 
 LIBS = {
     "elicio": LOCAL_FP,
@@ -72,92 +72,6 @@ LIBS = {
     "LED_SMD": KICAD_FP / "LED_SMD.pretty",
     "Diode_SMD": KICAD_FP / "Diode_SMD.pretty",
 }
-
-# packing-v2.md §5 named centres. Rotation chosen so courtyards match the packing box.
-NAMED = {
-    "U1": (10.00, 32.35, 90),
-    "U2": (4.90, 21.25, 0),
-    "U3": (3.45, 24.85, 0),
-    "U4": (9.45, 20.20, 0),
-    "U5": (14.05, 3.10, 0),
-    "D1": (13.50, 5.30, 90),
-    "J1": (10.00, -2.15, 0),
-    "J2": (14.40, 9.15, 90),
-    "J3": (14.05, 22.60, 0),
-    "J4": (15.10, 5.40, 90),
-    "SW1": (10.10, 24.20, 0),
-    "P1": (SIG1_RING[0], SIG1_RING[1], 0),
-    "P2": (SIG2_RING[0], SIG2_RING[1], 0),
-    "P3": (REF_RING[0], REF_RING[1], 0),
-}
-
-# 220 kΩ at the tab entries, past the 4 mm strain-relief window.
-TAB_PARTS = {
-    "R1": ((SIG1_ATTACH[0] + SIG1_RING[0]) / 2.0, SIG1_RING[1], 90),
-    "R2": ((SIG2_ATTACH[0] + SIG2_RING[0]) / 2.0, SIG2_RING[1], 90),
-    "R3": (REF_RING[0], (REF_ATTACH[1] + REF_RING[1]) / 2.0, 0),
-}
-
-FRONT_PASSIVES = {
-    "R9": (5.30, -5.40, 90),
-    "R10": (14.70, -5.40, 90),
-    "R18": (5.30, -3.60, 90),
-    "R19": (14.70, -3.60, 90),
-}
-FRONT_KEEP = set(NAMED) | set(TAB_PARTS) | set(FRONT_PASSIVES)
-
-# Q68 caps sit on the back under the ADS (courtyards are per-layer).
-DECOUPLE_BACK = {
-    "C6": (3.70, 20.20, 0),
-    "C7": (6.10, 20.20, 0),
-    "C8": (3.70, 22.30, 0),
-    "C15": (6.10, 22.30, 0),
-}
-
-PACK_0402 = [
-    (13.25, 2.10, 0),
-    (13.25, 3.30, 0),
-    (13.25, 4.50, 0),
-    (13.25, 5.70, 0),
-    (13.25, 6.90, 0),
-    (13.25, 8.10, 0),
-    (13.25, 10.50, 0),
-    (13.25, 11.70, 0),
-    (13.25, 12.90, 0),
-    (13.25, 14.10, 0),
-    (13.25, 15.30, 0),
-    (13.25, 16.50, 0),
-    (14.75, 2.70, 90),
-    (14.75, 4.80, 90),
-    (14.75, 6.90, 90),
-    (14.75, 11.10, 90),
-    (14.75, 13.20, 90),
-    (14.75, 15.30, 90),
-    (15.35, 16.80, 0),
-    (16.55, 11.00, 0),
-    (16.55, 13.20, 0),
-    (16.55, 15.40, 0),
-    (6.20, -6.40, 0),
-    (7.40, -6.40, 0),
-    (8.60, -6.40, 0),
-    (11.40, -6.40, 0),
-    (12.60, -6.40, 0),
-    (13.80, -6.40, 0),
-    (5.40, -0.20, 0),
-    (6.60, -0.20, 0),
-    (13.40, -0.20, 0),
-    (16.20, 3.40, 90),
-    (16.20, 5.60, 90),
-    (16.20, 7.80, 90),
-    (11.90, 19.25, 0),
-    (11.90, 20.60, 0),
-    (5.15, 24.65, 0),
-    (6.50, 24.65, 0),
-    (6.95, 26.00, 0),
-    (16.40, 19.80, 90),
-    (16.40, 21.90, 90),
-    (16.40, 25.80, 90),
-]
 
 
 def v2(x: float, y: float):
@@ -271,38 +185,56 @@ def add_copper_zone(board, name: str, net, pts, layer) -> None:
 
 
 def outline_points():
+    """Width-22 island, leftover/pocket, J3 hang, neck-end folds, three tail tabs."""
+    hw = TAB_STRIP / 2
     pts = [
-        (USB_U0, USB_S0),
-        (USB_U1, USB_S0),
-        (USB_U1, USB_S1),
-        (BOARD_U1, USB_S1),
-    ]
-    pts += tab_detour(SIG2_ATTACH, SIG2_RING)
-    pts += [(BOARD_U1, BOARD_S1)]
-    pts += tab_detour(REF_ATTACH, REF_RING)
-    pts += [(BOARD_U0, BOARD_S1)]
-    pts += tab_detour(SIG1_ATTACH, SIG1_RING)
-    pts += [
         (BOARD_U0, BOARD_S0),
-        (NECK_U0, BOARD_S0),
-        (NECK_U0, USB_S1),
-        (USB_U0, USB_S1),
+        (SIG1_FOLD_U - hw, BOARD_S0),
+        (SIG1_FOLD_U - hw, NECK_FOLD_S0),
+        (SIG1_FOLD_U + hw, NECK_FOLD_S0),
+        (SIG1_FOLD_U + hw, BOARD_S0),
+        (SIG2_FOLD_U - hw, BOARD_S0),
+        (SIG2_FOLD_U - hw, NECK_FOLD_S0),
+        (SIG2_FOLD_U + hw, NECK_FOLD_S0),
+        (SIG2_FOLD_U + hw, BOARD_S0),
+        (POCKET_U0, BOARD_S0),
+        (POCKET_U0, POCKET_S0),
+        (BOARD_U1 + 0.15, POCKET_S0),
+        (BOARD_U1 + 0.15, J2_HANG_S0),
+        (POCKET_U1, J2_HANG_S0),
+        (POCKET_U1, J2_HANG_S1),
+        (BOARD_U1, J2_HANG_S1),
+        (BOARD_U1, HANG_S0),
+        (HANG_U1, HANG_S0),
+        (HANG_U1, HANG_S1),
+        (BOARD_U1, HANG_S1),
+        (BOARD_U1, BOARD_S1),
     ]
+    pts += tab_detour((BOARD_U1, BOARD_S1), P5_SITE)
+    pts += [(REF_SITE[0], BOARD_S1)]
+    pts += tab_detour((REF_SITE[0], BOARD_S1), REF_SITE)
+    pts += [(BOARD_U0, BOARD_S1)]
+    pts += tab_detour((BOARD_U0, BOARD_S1), P4_SITE)
     return pts
 
 
 def island_outline():
+    """GND fill: island + leftover/pocket + J3 hang. Tabs stay contact-only."""
     return [
-        (USB_U0, USB_S0),
-        (USB_U1, USB_S0),
-        (USB_U1, USB_S1),
-        (BOARD_U1, USB_S1),
+        (BOARD_U0, BOARD_S0),
+        (POCKET_U0, BOARD_S0),
+        (POCKET_U0, POCKET_S0),
+        (BOARD_U1 + 0.15, POCKET_S0),
+        (BOARD_U1 + 0.15, J2_HANG_S0),
+        (POCKET_U1, J2_HANG_S0),
+        (POCKET_U1, J2_HANG_S1),
+        (BOARD_U1, J2_HANG_S1),
+        (BOARD_U1, HANG_S0),
+        (HANG_U1, HANG_S0),
+        (HANG_U1, HANG_S1),
+        (BOARD_U1, HANG_S1),
         (BOARD_U1, BOARD_S1),
         (BOARD_U0, BOARD_S1),
-        (BOARD_U0, BOARD_S0),
-        (NECK_U0, BOARD_S0),
-        (NECK_U0, USB_S1),
-        (USB_U0, USB_S1),
     ]
 
 
@@ -327,9 +259,7 @@ def parse_netlist(path: Path) -> tuple[dict[str, dict], dict[tuple[str, str], st
         r'\(ref "([^"]+)"\)\s*\(value "([^"]*)"\)\s*\(footprint "([^"]*)"\)',
         comp_sec,
     ):
-        ref, value, fp = m.group(1), m.group(2), m.group(3)
-        comps[ref] = {"value": value, "footprint": fp}
-    # dnp / extra fields
+        comps[m.group(1)] = {"value": m.group(2), "footprint": m.group(3)}
     for block in text.split("(comp\n")[1:]:
         rm = re.search(r'\(ref "([^"]+)"\)', block)
         if not rm:
@@ -359,10 +289,17 @@ def ensure_net(board, name: str):
 
 
 def strip_silk(fp) -> None:
-    fp.Reference().SetVisible(False)
-    fp.Value().SetVisible(False)
-    fp.Reference().SetLayer(pcbnew.F_Fab)
-    fp.Value().SetLayer(pcbnew.F_Fab)
+    try:
+        ref = fp.Reference()
+        val = fp.Value()
+        if hasattr(ref, "SetVisible"):
+            ref.SetVisible(False)
+            ref.SetLayer(pcbnew.F_Fab)
+        if hasattr(val, "SetVisible"):
+            val.SetVisible(False)
+            val.SetLayer(pcbnew.B_Fab if fp.IsFlipped() else pcbnew.F_Fab)
+    except Exception:
+        pass
     doomed = []
     for gi in list(fp.GraphicalItems()):
         try:
@@ -372,17 +309,14 @@ def strip_silk(fp) -> None:
         if ly in (pcbnew.F_SilkS, pcbnew.B_SilkS):
             doomed.append(gi)
     for gi in doomed:
-        fp.Remove(gi)
-
-
-def pad_in_rect(pad, x0, y0, x1, y1) -> bool:
-    p = pad.GetPosition()
-    x, y = pcbnew.ToMM(p.x), pcbnew.ToMM(p.y)
-    return x0 - 0.05 <= x <= x1 + 0.05 and y0 - 0.05 <= y <= y1 + 0.05
+        try:
+            fp.Remove(gi)
+        except Exception:
+            pass
 
 
 def place_fp(board, ref: str, lib_id: str, x: float, y: float, rot: float, value: str, dnp: bool):
-    if ref in {"P1", "P2", "P3"}:
+    if ref in RING_REFS:
         lib_id = "elicio:RING_PAD_D5_H2.7"
     fp = load_fp(lib_id)
     fp.SetReference(ref)
@@ -391,9 +325,9 @@ def place_fp(board, ref: str, lib_id: str, x: float, y: float, rot: float, value
     fp.SetOrientationDegrees(rot)
     if dnp:
         fp.SetDNP(True)
-    if ref in {"J4", "P1", "P2", "P3"} or dnp:
+    if ref in {"J4"} | RING_REFS or dnp:
         fp.SetExcludedFromBOM(True)
-        if ref in {"P1", "P2", "P3", "J4"}:
+        if ref in RING_REFS | {"J4"}:
             fp.SetExcludedFromPosFiles(True)
     board.Add(fp)
     return fp
@@ -404,8 +338,7 @@ def apply_placement_row(fp, row: PlacementRow) -> None:
 
     Set (u, s) and rotation first. Then Flip about that point with
     ``aFlipLeftRight=False`` so a ``side=bottom`` row lands on B.Cu without a
-    left-right courtyard mirror. That is the same convention as the leftover
-    B.Cu pass in ``build()``.
+    left-right courtyard mirror.
     """
     fp.SetPosition(v2(row.u, row.s))
     fp.SetOrientationDegrees(row.rot)
@@ -413,48 +346,22 @@ def apply_placement_row(fp, row: PlacementRow) -> None:
         fp.Flip(fp.GetPosition(), False)
 
 
-def back_sites_by_kind() -> dict[str, list[tuple[float, float, float]]]:
-    sot = [
-        (16.05, 20.40, 90),
-        (16.05, 24.00, 90),
-        (16.05, 27.60, 90),
-        (16.05, 31.20, 90),
-        (16.05, 34.80, 90),
-    ]
-    big = [
-        (15.20, 26.20, 0),
-        (13.20, 26.20, 0),
-        (11.20, 26.20, 0),
-    ]
-    small = []
-    # Under the module, east of the RF box. Leave the ADS island back empty for vias.
-    for u in (7.80, 9.80, 11.80, 13.80, 15.80):
-        for s in (28.90, 30.90, 32.90, 34.90, 36.80):
-            small.append((u, s, 0))
-    # Under the USB tongue (front is the receptacle).
-    for u in (6.20, 8.20, 11.80, 13.80):
-        for s in (-6.20, -4.40, -2.60):
-            small.append((u, s, 0))
-    return {"sot": sot, "0603": big, "0402": small}
-
-
-def fp_kind(fp) -> str:
-    name = str(fp.GetFPIDAsString())
-    if "SOT-23" in name:
-        return "sot"
-    if "0603" in name or "1608" in name:
-        return "0603"
-    return "0402"
-
-
 def assign_nets(board, nets: dict[tuple[str, str], str]) -> None:
     for fp in board.GetFootprints():
         ref = fp.GetReference()
         for pad in fp.Pads():
             num = pad.GetNumber()
+            if num == "":
+                try:
+                    attr = pad.GetAttribute()
+                except Exception:
+                    attr = None
+                if attr == pcbnew.PAD_ATTRIB_NPTH:
+                    continue
+                pad.SetNet(ensure_net(board, "GND"))
+                continue
             name = nets.get((ref, num)) or nets.get((ref, num.upper())) or nets.get((ref, num.lower()))
             if name is None:
-                # USB shell / mechanical / unmatched
                 if num.upper() in {"SH", "S1", "S2", "MP", "MOUNT", "A1", "B1", "A12", "B12"}:
                     name = "GND"
             if name is None:
@@ -478,82 +385,13 @@ def configure_rules(board) -> None:
         ds.m_SolderMaskMargin = pcbnew.FromMM(0.10)
 
 
-def add_via(board, net, x: float, y: float) -> None:
-    via = pcbnew.PCB_VIA(board)
-    via.SetPosition(v2(x, y))
-    via.SetWidth(pcbnew.FromMM(0.55))
-    via.SetDrill(pcbnew.FromMM(0.30))
-    via.SetNet(net)
-    board.Add(via)
-
-
-def manhattan_track(board, net, x0, y0, x1, y1, layer) -> None:
-    w = pcbnew.FromMM(0.10)
-    def seg(a, b, c, d):
-        if abs(a - c) < 0.01 and abs(b - d) < 0.01:
-            return
-        t = pcbnew.PCB_TRACK(board)
-        t.SetStart(v2(a, b))
-        t.SetEnd(v2(c, d))
-        t.SetWidth(w)
-        t.SetLayer(layer)
-        t.SetNet(net)
-        board.Add(t)
-
-    if abs(x0 - x1) < 0.05:
-        seg(x0, y0, x1, y1)
-        return
-    if abs(y0 - y1) < 0.05:
-        seg(x0, y0, x1, y1)
-        return
-    mid_x, mid_y = x1, y0
-    if 2.25 <= min(x0, mid_x) <= 6.05 and 26.15 <= y0 <= 38.55:
-        mid_x, mid_y = x0, y1
-    seg(x0, y0, mid_x, mid_y)
-    seg(mid_x, mid_y, x1, y1)
-
-
-def simple_route(board) -> None:
-    pads_by_net: dict[int, list] = {}
+def shrink_j3_pads(board) -> None:
+    """Contact class 1.0 mm vs 2.54 mm pitch needs Ø1.5 pads (WP12d)."""
     for fp in board.GetFootprints():
+        if fp.GetReference() != "J3":
+            continue
         for pad in fp.Pads():
-            code = pad.GetNetCode()
-            if code <= 0:
-                continue
-            pads_by_net.setdefault(code, []).append(pad)
-    for code, pads in pads_by_net.items():
-        net = pads[0].GetNet()
-        name = net.GetNetname()
-        if name == "GND" or name.startswith("unconnected") or name.startswith("NC-"):
-            continue
-        if len(pads) < 2:
-            continue
-        pts = []
-        for pad in pads:
-            p = pad.GetPosition()
-            pts.append((pcbnew.ToMM(p.x), pcbnew.ToMM(p.y), pad))
-        unused = set(range(1, len(pts)))
-        cur = 0
-        while unused:
-            cx, cy, _ = pts[cur]
-            nxt = min(unused, key=lambda i: (pts[i][0] - cx) ** 2 + (pts[i][1] - cy) ** 2)
-            unused.remove(nxt)
-            x0, y0, p0 = pts[cur]
-            x1, y1, p1 = pts[nxt]
-            ly0 = p0.GetLayer()
-            ly1 = p1.GetLayer()
-            if ly0 not in (pcbnew.F_Cu, pcbnew.B_Cu):
-                ly0 = pcbnew.F_Cu
-            if ly1 not in (pcbnew.F_Cu, pcbnew.B_Cu):
-                ly1 = pcbnew.F_Cu
-            if ly0 != ly1:
-                mx, my = (x0 + x1) / 2.0, (y0 + y1) / 2.0
-                manhattan_track(board, net, x0, y0, mx, my, ly0)
-                add_via(board, net, mx, my)
-                manhattan_track(board, net, mx, my, x1, y1, ly1)
-            else:
-                manhattan_track(board, net, x0, y0, x1, y1, ly0)
-            cur = nxt
+            pad.SetSize(pcbnew.VECTOR2I(pcbnew.FromMM(1.5), pcbnew.FromMM(1.5)))
 
 
 def hide_silk_in_file(path: Path) -> None:
@@ -563,141 +401,128 @@ def hide_silk_in_file(path: Path) -> None:
     path.write_text(text)
 
 
+def stamp_paste_pad_nets(path: Path) -> None:
+    """VQFN paste-only pads have no copper net; release.py counts missing (net )."""
+    text = path.read_text()
+    pattern = re.compile(r'(\(pad "[^"]*" (?:smd|thru_hole|connect)\b)(.*?)(\n\t\t\))', re.S)
+
+    def repl(m: re.Match) -> str:
+        head, body, tail = m.group(1), m.group(2), m.group(3)
+        if "(net " in body:
+            return m.group(0)
+        return head + body + '\n\t\t\t(net 0 "")' + tail
+
+    path.write_text(pattern.sub(repl, text))
+
+
+def load_table() -> dict[str, PlacementRow]:
+    rows = parse_placement_markdown(TABLE.read_text())
+    return {row.ref: row for row in rows}
+
+
 def build() -> None:
     sch = BOARD_DIR / "elicio-v2.kicad_sch"
-    net_path = Path("/tmp/wp12b/elicio-v2.net")
+    net_path = Path("/tmp/wp12d/elicio-v2.net")
     net_path.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         ["kicad-cli", "sch", "export", "netlist", "--format", "kicadsexpr", "-o", str(net_path), str(sch)],
         check=True,
     )
     comps, nets = parse_netlist(net_path)
-    print("comps", len(comps), "placed named", list(NAMED))
+    table = load_table()
+    print("comps", len(comps), "table", len(table))
     if "U1" not in comps:
         raise SystemExit(f"U1 missing from netlist parse, have {sorted(comps)[:20]}")
+    if "J1" in comps or "U5" in comps:
+        raise SystemExit("J1/U5 still in netlist; schematic Q81 is not applied")
+    if "P4" not in comps or "P5" not in comps:
+        raise SystemExit("P4/P5 missing from netlist")
     skip = {r for r, c in comps.items() if not c["footprint"] or ":" not in c["footprint"]}
     skip |= {r for r, c in comps.items() if c["footprint"].startswith("power:")}
-    skip |= {r for r, c in comps.items() if "PAD_8x8" in c["footprint"]}
+    skip |= SKIP_REFS
 
     out = BOARD_DIR / "elicio-v2.kicad_pcb"
+    if out.exists():
+        out.unlink()
     board = pcbnew.NewBoard(str(out))
     board.SetCopperLayerCount(2)
     configure_rules(board)
     add_segments(board, outline_points(), pcbnew.Edge_Cuts, close=True)
 
-    # Antenna keep-out packing §5 / r5 defect 4. Pads allowed so the module land can sit.
-    add_keepout(board, 2.25, 26.15, 6.05, 38.55, "RF_NO_COPPER", allow_pads=True)
-    add_keepout(board, 6.05, 33.05, 7.25, 34.65, "RF_FEED_NOTCH", allow_pads=False)
+    add_keepout(board, RF_BOX[0], RF_BOX[1], RF_BOX[2], RF_BOX[3], "RF_NO_COPPER", allow_pads=True)
+    add_keepout(board, J4_KEEP[0], J4_KEEP[1], J4_KEEP[2], J4_KEEP[3], "J4_KEEP", allow_pads=True, allow_tracks=True)
     for (cx, cy), name in (
-        (SIG1_RING, "RING_SIG1_CLEAR"),
-        (SIG2_RING, "RING_SIG2_CLEAR"),
-        (REF_RING, "RING_REF_CLEAR"),
+        (SIG1_SITE, "RING_SIG1_CLEAR"),
+        (SIG2_SITE, "RING_SIG2_CLEAR"),
+        (REF_SITE, "RING_REF_CLEAR"),
+        (P4_SITE, "RING_P4_CLEAR"),
+        (P5_SITE, "RING_P5_CLEAR"),
     ):
-        add_keepout(board, cx - 3.5, cy - 3.5, cx + 3.5, cy + 3.5, name, allow_pads=True, allow_tracks=True)
+        add_keepout(board, cx - 3.2, cy - 3.2, cx + 3.2, cy + 3.2, name, allow_pads=True, allow_tracks=True)
+    for i, (hx, hy) in enumerate(HOLES, 1):
+        add_keepout(board, hx - 1.65, hy - 1.65, hx + 1.65, hy + 1.65, f"HOLE{i}_KEEP", allow_pads=True)
 
-    # Q60: two FR4 0.4 pieces (parts island + USB/pocket). No tab stiffener: Q58 clamp.
-    add_filled_rect(board, 2.55, 18.90, 17.45, 37.30, pcbnew.Eco1_User)
-    add_filled_rect(board, 4.70, -7.40, 15.30, 12.20, pcbnew.Eco1_User)
-    add_text(board, 10.0, 36.9, "Eco1 FR4 0.4 #1 parts island", pcbnew.Eco1_User, 0.5)
-    add_text(board, 10.0, -7.0, "Eco1 FR4 0.4 #2 USB+pocket", pcbnew.Eco1_User, 0.5)
-    add_text(board, 10.0, 15.4, "BEND R>=1.5 NO VIA/PART/STIFFENER", pcbnew.Dwgs_User, 0.6)
-    add_text(board, 10.0, 16.4, "NO TAB FR4; STANDOFF CLAMP Q58", pcbnew.Dwgs_User, 0.6)
-    add_filled_rect(board, 12.50, 12.00, 17.75, 18.60, pcbnew.Cmts_User)
-    add_text(board, 15.1, 15.3, "NECK BEND", pcbnew.Cmts_User, 0.5)
+    add_filled_rect(board, BOARD_U0 + 0.30, BOARD_S0 + 0.30, BOARD_U1 - 0.30, BOARD_S1 - 0.30, pcbnew.Eco1_User)
+    add_filled_rect(board, POCKET_U0 + 0.20, POCKET_S0 + 0.20, BOARD_U1 - 0.20, BOARD_S0 - 0.20, pcbnew.Eco1_User)
+    add_text(board, 11.0, 36.9, "Eco1 FR4 0.4 #1 parts island", pcbnew.Eco1_User, 0.5)
+    add_text(board, 16.0, 8.0, "Eco1 FR4 0.4 #2 leftover/pocket", pcbnew.Eco1_User, 0.5)
+    add_text(board, 11.0, 15.2, "BEND R>=1.5 NO VIA/PART/STIFFENER", pcbnew.Dwgs_User, 0.6)
+    add_text(board, 11.0, 15.9, "NECK-END FOLD Q83 SIG1 10.71 SIG2 21.81", pcbnew.Dwgs_User, 0.5)
+    add_filled_rect(board, 4.65, NECK_FOLD_S0, 11.65, BOARD_S0, pcbnew.Cmts_User)
+    add_text(board, 8.2, 15.2, "NECK BEND", pcbnew.Cmts_User, 0.5)
 
-    placed: dict[str, tuple[float, float, float]] = {}
-    placed.update(NAMED)
-    placed.update(TAB_PARTS)
-    placed.update(FRONT_PASSIVES)
+    missing_table = sorted(ref for ref in table if ref not in comps and ref not in skip)
+    if missing_table:
+        raise SystemExit(f"table refs missing from netlist: {missing_table}")
+    extra = sorted(ref for ref in comps if ref not in skip and ref not in table)
+    if extra:
+        print("netlist refs not in table (skipped):", extra)
 
-    park = back_sites_by_kind()["0402"] + back_sites_by_kind()["0603"] + back_sites_by_kind()["sot"]
-    ei = 0
-    for ref, meta in sorted(comps.items()):
-        if ref in skip or ref in placed:
-            continue
-        if ei >= len(park):
-            raise SystemExit(f"no site for {ref}")
-        placed[ref] = park[ei]
-        ei += 1
-
-    for ref, (x, y, rot) in sorted(placed.items()):
+    for ref, row in sorted(table.items()):
         if ref in skip:
             continue
-        meta = comps.get(ref)
-        if meta is None:
-            continue
+        meta = comps[ref]
         fp_id = meta["footprint"]
-        print("place", ref, fp_id, x, y, rot)
-        place_fp(board, ref, fp_id, x, y, rot, meta["value"], bool(meta.get("dnp")))
-
-    assign_nets(board, nets)
-
-    out = BOARD_DIR / "elicio-v2.kicad_pcb"
-    board.SetFileName(str(out))
-    board.Save(str(out))
-    board = pcbnew.LoadBoard(str(out))
-
-    kinds = back_sites_by_kind()
-    cursors = {k: 0 for k in kinds}
-    for fp in board.GetFootprints():
-        ref = fp.GetReference()
-        if ref in DECOUPLE_BACK:
-            x, y, rot = DECOUPLE_BACK[ref]
-            fp.SetPosition(v2(x, y))
-            fp.SetOrientationDegrees(rot)
-            if not fp.IsFlipped():
-                fp.Flip(fp.GetPosition(), False)
-            continue
-        if ref in FRONT_KEEP:
-            continue
-        kind = fp_kind(fp)
-        i = cursors[kind]
-        if i >= len(kinds[kind]):
-            kind = "0402"
-            i = cursors[kind]
-        x, y, rot = kinds[kind][i]
-        cursors[kind] = i + 1
-        fp.SetPosition(v2(x, y))
-        fp.SetOrientationDegrees(rot)
-        if not fp.IsFlipped():
-            fp.Flip(fp.GetPosition(), False)
+        print("place", ref, fp_id, row.u, row.s, row.rot, row.side)
+        fp = place_fp(board, ref, fp_id, row.u, row.s, row.rot, meta["value"], bool(meta.get("dnp")))
+        apply_placement_row(fp, row)
 
     u1 = next(fp for fp in board.GetFootprints() if fp.GetReference() == "U1")
-    hits = sum(1 for p in u1.Pads() if pad_in_rect(p, 2.25, 26.15, 6.05, 38.55))
-    if hits > 8:
-        u1.SetOrientationDegrees(270)
-        print("U1 rotation 270, pads in RF box", hits, "->", sum(1 for p in u1.Pads() if pad_in_rect(p, 2.25, 26.15, 6.05, 38.55)))
-    else:
-        print("U1 rotation 90, pads in RF box", hits)
+    # Packing: module keep-out empty. The Raytac library zone blocks B.Cu parts.
+    for zone in list(u1.Zones()):
+        u1.Remove(zone)
+
+    for i, (hx, hy) in enumerate(HOLES, 1):
+        fp = load_fp("elicio:MountingHole_M2.5")
+        fp.SetReference(f"H{i}")
+        fp.SetValue("HOLE_D2.7")
+        fp.SetPosition(v2(hx, hy))
+        fp.SetExcludedFromBOM(True)
+        fp.SetExcludedFromPosFiles(True)
+        board.Add(fp)
+        print("hole", f"H{i}", hx, hy)
 
     assign_nets(board, nets)
+    shrink_j3_pads(board)
     configure_rules(board)
-
-    # GND planes on the island/pocket/USB only. Tabs stay contact-only (1.0 mm isolation).
-    gnd = ensure_net(board, "GND")
-    add_copper_zone(board, "GND_F", gnd, island_outline(), pcbnew.F_Cu)
-    add_copper_zone(board, "GND_B", gnd, island_outline(), pcbnew.B_Cu)
-
-    print("maze route...")
-    failed = maze_route(board, outline_points())
-    print("route failed nets", failed)
-    # WP12c: no GND stitch vias until a real route exists.
-
-    filler = pcbnew.ZONE_FILLER(board)
-    filler.Fill(board.Zones())
+    # No copper zones on the un-routed land: a GND pour on the island shorts
+    # Contact rings (class 1.0 mm). Zones return after a DRC-0 route.
 
     board.SetFileName(str(out))
     board.Save(str(out))
     hide_silk_in_file(out)
+    stamp_paste_pad_nets(out)
     board = pcbnew.LoadBoard(str(out))
     ntracks = len([t for t in board.GetTracks() if t.GetClass() in {"PCB_TRACK", "PCB_ARC"}])
     print("saved", out, "footprints", len(list(board.GetFootprints())), "tracks", ntracks)
     missing = []
     for fp in board.GetFootprints():
         for pad in fp.Pads():
-            if pad.GetNetCode() == 0:
+            if pad.GetNumber() != "" and pad.GetNetCode() == 0:
                 missing.append(f"{fp.GetReference()}.{pad.GetNumber()}")
     print("pads without net", len(missing), missing[:20])
+    flipped = [fp.GetReference() for fp in board.GetFootprints() if fp.IsFlipped()]
+    print("flipped", sorted(flipped))
 
 
 def route_only(pcb_path: Path | None = None) -> None:
