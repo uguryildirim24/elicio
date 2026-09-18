@@ -450,5 +450,41 @@ A later GND pour plus J3 Contact manhattan produced 15 DRC errors including SIG1
 
 63 unconnected after Q88, locked R1–R3 Contact, and Freerouting with via 0.55/0.30. Remaining rats are U2 QFN escapes, J4 SWD, VBUS P4→island, J3 Contact, and layer stitches. Step 5: stop **un-shorted**, `routed: false`.
 
+## 12. WP12h hand-route (63 rats on the WP12g copper)
+
+Script: `hardware/board/hand_route.py` (KiCad python). Does not wipe tracks. Groups: `vbus`, `j4`, `j3`, `u2`, `stitch`. Default via 0.55/0.30. `--via-extreme` is 0.30/0.10 (JLC 2-layer extreme, extra cost; page line “②Extreme for 2-layer: 0.10mm/0.3mm (extra cost required)”, read 2026-09-18 https://jlcpcb.com/capabilities/flex-pcb-capabilities).
+
+WP12g copper stayed: 421 tracks, 33 vias, DRC 0 errors, 0 shorts, 63 unconnected. Every explicit channel that joined a named pad produced DRC errors. Those traces were not kept. A* on the remaining rats did not close a pair without a DRC rise.
+
+Freerouting 2.4.1 OpenJDK 25, `scripts/board/route_v2.py --work /tmp/wp12h-ext --route --via-extreme`. Fanout 137/230 (59.6 %) in 25.67 s. Auto-route 20 passes, 59 unrouted, 29 violations, 100.66 s. Copy after SES: 504 tracks, 54 vias, DRC **63 errors** (21 `annular_width` + 21 `drill_out_of_range` + 21 `via_diameter`: 0.30/0.10 vias vs board min 0.55/0.30), 56 unconnected, 0 shorts, 0 foreign nets in strips. **Not imported.** Extreme vias need a board-min change; they do not close the named pads.
+
+Default need: track 0.10 + 2 × 0.10 clearance = **0.30 mm**. Contact need: 0.15 + 2 × 0.20 = **0.55 mm**.
+
+### Named pads that cannot close (geometry)
+
+| Pad | Net | Size / layer | Other copper | Remaining gap | Need |
+|---|---|---|---|---|---|
+| P4.1 | VBUS | Ø5.0 RING, F.Cu+B.Cu (37.470, 2.800). Stub ends (26.270, 1.200) | H1 keep east 15.10 and H2 keep west 16.30 (gap 1.20). RLD_FB B.Cu 0.10 at x=15.263. AFE_DRDY_AFE B.Cu 0.10 at x=15.742 | 0.179 mm in the hole gap | 0.30 |
+| P4.1 (east neck) | VBUS | same | H2 keep east 19.60. Edge.Cuts 19.75. Copper-edge 0.30 → track centre ≤ 19.40 | 19.40 is 0.20 mm inside H2 keep | 0.35 to edge |
+| P4.1 (F.Cu hang) | VBUS | same | GND F.Cu 0.10 at y=7.80 (J2). Hang south Edge.Cuts y=7.40. Track centre min 7.75 | 0.05 mm to GND | 0.20 |
+| R16.1 | VBUS | 0402 0.54×0.64 B.Cu (17.590, 23.570) | AFE_DRDY_AFE B.Cu 0.10 at x=17.152 y=23.426–23.863 | 0.118 mm (pad half 0.27 + track half 0.05) | 0.30 |
+| R16.1 | VBUS | same | GND B.Cu 0.10 at x=18.972 y=22.542–26.368 | east approach at y=23.57 crosses that vertical | 0.30 |
+| R16.1 | VBUS | same | Q2_G B.Cu 0.10 at x=17.658 y=24.658–29.902. J4-NPTH3 (16.57–17.96, 21.36–22.75) | 0.068 mm to Q2_G | 0.30 |
+| J4.2 | SWDIO | 0.787×0.787 F.Cu (15.615, 25.870) → U1.51 0.60×0.40 (12.650, 27.500) | SIG2 Contact 0.15 at x=13.500 y=19.50–28.20. AFE_IN1P 0.10 at x=13.173 y=22.08–29.01. J4 keep vias=False x=14.25–18.25 y=21.10–28.10 | via centre needs ≥14.050 and ≤13.975 | empty |
+| J4.4 | SWDCLK | 0.787×0.787 F.Cu (15.615, 24.600) → U1.53 (12.650, 26.700) | same SIG2 / AFE_IN1P / J4 keep | same empty via slot | empty |
+| J3.1 | SIG1 | PTH Ø1.5 (26.110, 20.310) from locked SIG1 (10.190, 19.500) | R4.1 RLD_FB 0.54×0.64 B.Cu (15.190, 19.970). GND B.Cu y=20.578 x=16.78–18.31 | 0.228 mm window | 0.55 Contact |
+| J3.2 | SIG2 | PTH Ø1.5 (26.110, 22.850) from locked SIG2 (16.400, 28.200) | LED_EN B.Cu 0.10 at x=19.327 y=28.447–35.002. GND B.Cu 0.10 at x=18.972 y=22.542–26.368 | 0.355 mm | 0.40 (two Default tracks) |
+| U2.3 | AFE_IN1N | QFN 0.775×0.200 F.Cu (13.143, 9.680), 0.40 mm pitch | neighbour pads 0.20 mm wide leave 0.20 mm between pads | 0.20 mm | via 0.55 or 0.30 does not fit between pads |
+| U2.4 | AFE_IN1P | (13.143, 10.080) | same QFN pitch | 0.20 mm | same |
+| U3.A2 | VBUS | DSBGA 0.25×0.25 F.Cu (15.880, 30.450), 0.40 mm pitch | 0.55 via; extreme 0.30 vs pad 0.25 + 2×0.10 | 0.40 mm pitch | 0.45 |
+
+Unused ADS1292R pads (no net to route; named, left open): U2.1 PGA1N, U2.2 PGA1P, U2.7 PGA2N, U2.8 PGA2P, U2.17 CLK, U2.25 GPIO2, U2.26 GPIO1.
+
+The other rats in the 63 are F.Cu↔B.Cu stitches of the same nets (GND, +3V0, +VDD, VBAT, nRESET, SPI, U3 TS/ISET/PRETERM). They need a via slot that the named geometry above already fills.
+
+### First structural reason
+
+63 unconnected after scripted hand-route attempts on the WP12g copper. Packing must move H1/H2 (hole gap), J4 (via slot vs SIG2), or the east 0402 row (R16 vs AFE_DRDY and GND). This lane does not move packing. Step 5: stop **un-shorted**, `routed: false`.
+
 
 
