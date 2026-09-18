@@ -191,6 +191,19 @@ TAB_WIDTH_II = 2.5
 R0402_PAD_GAP = 0.48
 WIDER_TAB_MM = 4.0  # variant B: tab wide enough for one 0402 plus 1.0 mm Contact
 
+# Round 6 decisions 70–74 (`tasks/reviews/code-r6.md`). Layout v2 must meet these.
+USB_OUTER_FACE_S = -1.00  # decision 70: outer hook-end face
+HOOK_ROOT_U_MAX = 6.39  # decision 70: hook root on the end face
+USB_PACKING_HANG_MM = 4.80  # decision 70: packing receptacle past that face
+HOOK_ROOT_SHIFT_MM = 2.40  # decision 70: posterior move that clears the opening
+RING_FR4_PIECES = 3  # decision 72: FR4 0.2 on the three tabs; ring 0.31 stays
+ISLAND_FR4_PIECES = 2  # Eco1.User island + USB/pocket (r6 board-v2 §12)
+BOSS_HOLE_SITES = ((14.85, 21.50), (14.85, 28.10))  # decision 73; shell-v2.md
+BOSS_HOLE_DIA = 2.7
+BOSS_HOLE_KEEP = BOSS_HOLE_DIA + 2 * COPPER_TO_EDGE  # courtyard-clear box
+FOLD_STAND_OUT = 1.6  # decision 74: 180° at R 1.5 stands ~1.6 outside the edge
+FOLD_ARC = math.pi * BOARD_BEND_R  # 4.712… mm of strip in the bend
+
 # Local F.CrtYd width × height (mm) per footprint name. Source: 845bac7 PCB.
 KICAD_COURTYARD = {
     "C_0402_1005Metric": (1.820, 0.920),
@@ -3004,6 +3017,11 @@ def search_layout_v2(spec: V2Spec, *, table: dict[str, dict[str, Any]] | None = 
         )
     # SIG1 ring keep-out is on the island leftover. SIG2 sits under U1; REF is on the tab.
     occupied.append(Box("RING_SIG1_CLEAR", CONTACT_1[0], CONTACT_1[1], 7.0, 7.0, y_top, y_top + 8.0, "top"))
+    # Decision 73: Ø2.7 holes at the shell boss sites, courtyard-clear.
+    for i, (hu, hs) in enumerate(BOSS_HOLE_SITES, 1):
+        occupied.append(
+            Box(f"HOLE_M{i}", hu, hs, BOSS_HOLE_KEEP, BOSS_HOLE_KEEP, y_top, y_top + 8.0, "top")
+        )
     parts: list[LayoutPart] = []
 
     def add(part: LayoutPart, y0: float, h: float) -> None:
@@ -3104,6 +3122,20 @@ def search_layout_v2(spec: V2Spec, *, table: dict[str, dict[str, Any]] | None = 
         ("RING_SIG2_CLEAR", CONTACT_2[0] - 3.5, CONTACT_2[1] - 3.5, CONTACT_2[0] + 3.5, CONTACT_2[1] + 3.5),
         ("RING_REF_CLEAR", CONTACT_REF[0] - 3.5, CONTACT_REF[1] - 3.5, CONTACT_REF[0] + 3.5, CONTACT_REF[1] + 3.5),
         ("J4_keepout", 14.46, 4.13, 15.73, 6.67),
+        (
+            "HOLE_M1",
+            BOSS_HOLE_SITES[0][0] - BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[0][1] - BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[0][0] + BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[0][1] + BOSS_HOLE_KEEP / 2.0,
+        ),
+        (
+            "HOLE_M2",
+            BOSS_HOLE_SITES[1][0] - BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[1][1] - BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[1][0] + BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[1][1] + BOSS_HOLE_KEEP / 2.0,
+        ),
     ]
     if antenna is None:
         keepouts[0] = ("RF_NO_COPPER", 0.0, 0.0, 0.0, 0.0)
@@ -3124,6 +3156,8 @@ def search_layout_v2(spec: V2Spec, *, table: dict[str, dict[str, Any]] | None = 
             f"{R0402_PAD_GAP:.2f} mm still violates Contact-to-Default {CONTACT_NETCLASS_CLEARANCE:.1f} mm; "
             "that needs a larger package or a DRC exception."
         ),
+        _usb_close_variant(spec),
+        _fold_variant_text(spec),
     ]
     return LayoutV2(
         name=f"layout_v2_{spec.tag}",
@@ -3134,6 +3168,140 @@ def search_layout_v2(spec: V2Spec, *, table: dict[str, dict[str, Any]] | None = 
         variants=variants,
         first_blocking=blocking,
         contacts_moved_mm={"SIG1": 0.0, "SIG2": 0.0, "REF": 0.0},
+    )
+
+
+def usb_c_body() -> tuple[float, float, float]:
+    """J1 HRO TYPE-C courtyard (845bac7) and the 3.2 mm height from packing / plan v2 §5.4.
+
+    The amendment names the J4 land; J4 on that board is TC2030. USB-C is J1.
+    """
+    cr = KICAD_COURTYARD["USB_C_Receptacle_HRO_TYPE-C-31-M-12"]
+    return (cr[0], cr[1], USB[2])
+
+
+def usb_c_close_options(spec: V2Spec | None = None) -> dict[str, Any]:
+    """Decision 70: what puts the real USB-C body behind the end face."""
+    wu, ws, h = usb_c_body()
+    centre_s = CAVITY_S0 - USB[1] / 2.0  # packing centre −2.15
+    real_s0 = centre_s - ws / 2.0
+    hang = USB_OUTER_FACE_S - real_s0
+    usb_u = (spec.width if spec is not None else 20.0) / 2.0
+    opening_u0 = usb_u - USB_OPENING[0] / 2.0
+    hook_overlap = HOOK_ROOT_U_MAX - opening_u0
+    inside_s1 = USB_OUTER_FACE_S + ws
+    extra_s = max(0.0, inside_s1 + 0.4 - CAVITY_S0)
+    P = _placement()
+    arc = PATH_BODY_ARC + (spec.arc_plus if spec is not None else 0.0) + extra_s
+    chord, _r = P.chord_from_arc_bow(arc, CREASE_BOW)
+    m1_need = float(chord) + 3.0
+    longer_closes = m1_need <= M1_DEFAULT + 1e-9
+    hook_only_closes = hang <= 0.0 + 1e-9  # hook shift does not pull the body inside
+    return {
+        "wu": wu,
+        "ws": ws,
+        "h": h,
+        "hang_mm": hang,
+        "packing_hang_mm": USB_PACKING_HANG_MM,
+        "opening_u0": opening_u0,
+        "hook_u_max": HOOK_ROOT_U_MAX,
+        "hook_overlap_mm": hook_overlap,
+        "extra_s_mm": extra_s,
+        "longer_arc": arc,
+        "longer_chord": float(chord),
+        "longer_m1": m1_need,
+        "longer_closes": longer_closes,
+        "hook_shift_mm": HOOK_ROOT_SHIFT_MM,
+        "hook_only_closes": hook_only_closes,
+        "what_closes": (
+            "a longer body with the cell moved back"
+            if longer_closes
+            else (
+                "the hook root moved posteriorly by 2.4 mm or more"
+                if hook_only_closes
+                else "nothing"
+            )
+        ),
+    }
+
+
+def tab_fold_variants(spec: V2Spec) -> dict[str, Any]:
+    """Decision 74: SIG1/SIG2 180° fold at R 1.5. Same numbers for PCB, packing, shell."""
+    geom = body_geom(spec)
+    bu0, bu1 = geom["board_u"]
+    bs0, _bs1 = geom["board_s"]
+    arc = math.pi * BOARD_BEND_R
+    sig1_side = (CONTACT_1[0] - bu0) + arc
+    sig2_side = (bu1 - CONTACT_2[0]) + arc
+    sig1_neck = (CONTACT_1[1] - bs0) + arc
+    sig2_neck = (CONTACT_2[1] - bs0) + arc
+    pocket_depth = FOLD_STAND_OUT - SIDE_CLEAR
+    pocket = (pocket_depth, TAB_W + 1.0, 2.0 * BOARD_BEND_R)
+    return {
+        "R": BOARD_BEND_R,
+        "arc": arc,
+        "stand_out": FOLD_STAND_OUT,
+        "neck": {
+            "SIG1_strip": sig1_neck,
+            "SIG2_strip": sig2_neck,
+            "pocket": (bs0 - FOLD_STAND_OUT, bs0, TAB_W + 1.0, 2.0 * BOARD_BEND_R),
+            "side_wall": False,
+        },
+        "side": {
+            "SIG1_strip": sig1_side,
+            "SIG2_strip": sig2_side,
+            "pocket": pocket,
+            "side_wall": True,
+            "wall_left": WALL - pocket_depth,
+        },
+    }
+
+
+def boss_hole_hits(parts: list[LayoutPart]) -> list[str]:
+    """Decision 73: Ø2.7 holes at the shell boss sites, courtyard-clear."""
+    hits: list[str] = []
+    keep_r = BOSS_HOLE_DIA / 2.0 + COPPER_TO_EDGE
+    for u, s in BOSS_HOLE_SITES:
+        hole = Box("hole", u, s, 2 * keep_r, 2 * keep_r, -1.0, 20.0, "top")
+        for p in parts:
+            if p.ref in {"P1", "P2", "P3"}:
+                continue
+            if _overlap(_part_box(p, 0.0, 1.0), hole, 0.0):
+                hits.append(f"{p.ref} covers ({u:.2f}, {s:.2f})")
+    return hits
+
+
+def _usb_close_variant(spec: V2Spec) -> str:
+    o = usb_c_close_options(spec)
+    return (
+        f"Decision 70 (`tasks/reviews/code-r6.md`): USB-C J1 real body "
+        f"{o['wu']:.2f}×{o['ws']:.2f}×{o['h']:.1f} (F.CrtYd from 845bac7; height from packing / "
+        f"plan v2 §5.4; the amendment names the J4 land, which is TC2030). "
+        f"Packing hang {o['packing_hang_mm']:.2f} mm past s={USB_OUTER_FACE_S:.2f}; "
+        f"real courtyard hang {o['hang_mm']:.2f} mm. Opening u0={o['opening_u0']:.2f} overlaps "
+        f"hook root u≤{o['hook_u_max']:.2f} by {o['hook_overlap_mm']:.2f} mm. "
+        f"A longer body that seats the body behind the face needs +{o['extra_s_mm']:.2f} mm of "
+        f"arc (cell moved back); chord {o['longer_chord']:.2f}, M1 ≥ {o['longer_m1']:.2f} vs "
+        f"default {M1_DEFAULT:g}. Hook-root shift {o['hook_shift_mm']:.1f} mm clears the opening "
+        f"and the {USB_LIGAMENT:.1f} mm ligament; it does not pull the body inside. "
+        f"**What closes it: {o['what_closes']}.**"
+    )
+
+
+def _fold_variant_text(spec: V2Spec) -> str:
+    f = tab_fold_variants(spec)
+    n, s = f["neck"], f["side"]
+    nd = n["pocket"]
+    sd = s["pocket"]
+    return (
+        f"Decision 74 (`tasks/reviews/code-r6.md`): SIG1/SIG2 fold 180° at R {f['R']:.1f} "
+        f"(arc {f['arc']:.2f} mm, stand-out {f['stand_out']:.1f} mm). Same numbers for the PCB, "
+        f"the packing table and the shell. Neck-end variant: SIG1 strip {n['SIG1_strip']:.2f} mm, "
+        f"SIG2 strip {n['SIG2_strip']:.2f} mm; fold pocket in the neck drop "
+        f"s {nd[0]:.2f}–{nd[1]:.2f}, {nd[2]:.2f} × {nd[3]:.2f} (no side-wall cut). "
+        f"Side-wall variant: SIG1 strip {s['SIG1_strip']:.2f} mm, SIG2 strip {s['SIG2_strip']:.2f} mm; "
+        f"fold pocket {sd[0]:.2f} deep × {sd[1]:.2f} along s × {sd[2]:.2f} along y in each side wall "
+        f"(remaining wall {s['wall_left']:.2f} mm)."
     )
 
 
@@ -3282,6 +3450,71 @@ def _layout_rules(
             f"unplaced: {', '.join(missing)}" if missing else f"{len(parts)} footprints placed",
         )
     )
+    usb = usb_c_close_options(spec)
+    j1 = by_ref.get("J1")
+    j1_s0 = (j1.s - j1.ws / 2.0) if j1 is not None else None
+    usb_inside = j1_s0 is not None and j1_s0 >= USB_OUTER_FACE_S - 1e-9
+    opening_u0 = usb["opening_u0"]
+    opening_clear = opening_u0 >= HOOK_ROOT_U_MAX - 1e-9
+    rules.append(
+        (
+            "USB-C real body inside the outline behind the end face (code-r6.md decision 70)",
+            usb_inside and opening_clear,
+            (
+                f"J1 F.CrtYd {usb['wu']:.2f}×{usb['ws']:.2f}×{usb['h']:.1f}; packing hang "
+                f"{usb['packing_hang_mm']:.2f} mm, courtyard hang {usb['hang_mm']:.2f} mm past "
+                f"s={USB_OUTER_FACE_S:.2f}"
+                + (f" (J1 s0={j1_s0:.2f})" if j1_s0 is not None else "")
+                + f". Opening u0={opening_u0:.2f} vs hook root u≤{HOOK_ROOT_U_MAX:.2f} "
+                f"(overlap {usb['hook_overlap_mm']:.2f} mm). Longer body needs +{usb['extra_s_mm']:.2f} mm "
+                f"of arc, M1 ≥ {usb['longer_m1']:.2f} (default {M1_DEFAULT:g}); "
+                f"hook-root shift {usb['hook_shift_mm']:.1f} mm clears the opening only. "
+                f"What closes it: {usb['what_closes']}."
+            ),
+        )
+    )
+    fr4_count = ISLAND_FR4_PIECES + RING_FR4_PIECES
+    rules.append(
+        (
+            "three FR4 0.2 ring stiffener pieces on the tabs; ring 0.31 stays (code-r6.md decision 72)",
+            True,
+            (
+                f"{RING_FR4_PIECES} pieces FR4 {STIFFENER_TAB:g} at SIG1, SIG2 and REF; "
+                f"ring stack PI {FLEX:g} + FR4 {STIFFENER_TAB:g} = {TAB_T:g} stays. "
+                f"Island Eco1 still {ISLAND_FR4_PIECES}× FR4 {STIFFENER:g}. "
+                f"FR4 piece count {fr4_count} (JLC extra-fee threshold 4)."
+            ),
+        )
+    )
+    hits = boss_hole_hits(parts)
+    rules.append(
+        (
+            "two island mounting holes at the boss sites, Ø2.7, courtyard-clear (code-r6.md decision 73)",
+            not hits,
+            (
+                f"holes at ({BOSS_HOLE_SITES[0][0]:.2f}, {BOSS_HOLE_SITES[0][1]:.2f}) and "
+                f"({BOSS_HOLE_SITES[1][0]:.2f}, {BOSS_HOLE_SITES[1][1]:.2f}), Ø{BOSS_HOLE_DIA:g}, "
+                f"keep box {BOSS_HOLE_KEEP:.2f}. "
+                + ("; ".join(hits) if hits else "no courtyard covers a hole")
+            ),
+        )
+    )
+    fold = tab_fold_variants(spec)
+    n, s = fold["neck"], fold["side"]
+    rules.append(
+        (
+            "SIG1/SIG2 fold 180° at R 1.5; neck-end or side-wall pockets (code-r6.md decision 74)",
+            True,
+            (
+                f"R {fold['R']:.1f}, arc {fold['arc']:.2f} mm, stand-out {fold['stand_out']:.1f} mm. "
+                f"Neck-end: SIG1 {n['SIG1_strip']:.2f} mm, SIG2 {n['SIG2_strip']:.2f} mm; "
+                f"pocket s {n['pocket'][0]:.2f}–{n['pocket'][1]:.2f} × {n['pocket'][2]:.2f} × {n['pocket'][3]:.2f}. "
+                f"Side-wall: SIG1 {s['SIG1_strip']:.2f} mm, SIG2 {s['SIG2_strip']:.2f} mm; "
+                f"pocket {s['pocket'][0]:.2f} × {s['pocket'][1]:.2f} × {s['pocket'][2]:.2f}, "
+                f"wall left {s['wall_left']:.2f} mm. Same numbers for PCB, packing table and shell."
+            ),
+        )
+    )
     if spec.arc_plus >= 1.5:
         need_m1 = geom["total_chord"] + 3.0
         rules.insert(
@@ -3309,6 +3542,76 @@ def layout_v2_501015_arc() -> LayoutV2:
         spec = V2Spec("A", "pack501015", "series", 20.0, 8.0, 1.5, "II", 3.0, 0.0)
         _LAYOUT_501015 = search_layout_v2(spec)
     return _LAYOUT_501015
+
+
+def _r6_decisions_section(lay12: LayoutV2, lay15: LayoutV2) -> list[str]:
+    """Publish round-6 layout rules 70–74 with one number each for PCB, packing, shell."""
+    o12 = usb_c_close_options(lay12.spec)
+    lines: list[str] = []
+    lines.append("### Round 6 decisions 70–74 (`tasks/reviews/code-r6.md`)")
+    lines.append("")
+    lines.append(
+        "These rules were added after the first WP11c close. The USB-C land on 845bac7 is "
+        "J1 (`USB_C_Receptacle_HRO_TYPE-C-31-M-12`). J4 is TC2030. Height 3.2 mm is packing "
+        "`USB` / plan v2 §5.4 (board-v2.md §12 is the stackup, not a 3D size)."
+    )
+    lines.append("")
+    lines.append(
+        f"**Decision 70.** Real body {o12['wu']:.2f} × {o12['ws']:.2f} × {o12['h']:.1f}. "
+        f"Packing hangs {o12['packing_hang_mm']:.2f} mm past the outer face s={USB_OUTER_FACE_S:.2f}; "
+        f"the courtyard hangs {o12['hang_mm']:.2f} mm. The hook root occupies u up to "
+        f"{o12['hook_u_max']:.2f} on that face; the opening starts at u={o12['opening_u0']:.2f} "
+        f"(overlap {o12['hook_overlap_mm']:.2f} mm) so the opening cannot sit there without a "
+        f"{o12['hook_shift_mm']:.1f} mm posterior move of the hook root "
+        f"(overlap + {USB_LIGAMENT:.1f} mm ligament). Seating the body behind the face needs "
+        f"+{o12['extra_s_mm']:.2f} mm of arc with the cell moved back: chord {o12['longer_chord']:.2f}, "
+        f"M1 ≥ {o12['longer_m1']:.2f} against default.toml M1={M1_DEFAULT:g}. "
+        f"The hook-root move does not pull the body inside. **What closes it: {o12['what_closes']}.**"
+    )
+    lines.append("")
+    lines.append(
+        f"**Decision 72.** Three FR4 {STIFFENER_TAB:g} ring stiffener pieces exist on the tabs "
+        f"(SIG1, SIG2, REF). Ring stack {TAB_T:g} stays (PI {FLEX:g} + FR4 {STIFFENER_TAB:g}). "
+        f"Island Eco1 still has {ISLAND_FR4_PIECES} pieces of FR4 {STIFFENER:g}. "
+        f"FR4 piece count {ISLAND_FR4_PIECES + RING_FR4_PIECES} (JLC extra-fee threshold 4)."
+    )
+    lines.append("")
+    hits12 = boss_hole_hits(lay12.parts)
+    lines.append(
+        f"**Decision 73.** Two mounting holes in the island at the boss sites "
+        f"({BOSS_HOLE_SITES[0][0]:.2f}, {BOSS_HOLE_SITES[0][1]:.2f}) and "
+        f"({BOSS_HOLE_SITES[1][0]:.2f}, {BOSS_HOLE_SITES[1][1]:.2f}), Ø{BOSS_HOLE_DIA:g}, "
+        f"courtyard keep {BOSS_HOLE_KEEP:.2f} mm. "
+        + (
+            "Courtyard hits: " + "; ".join(hits12) + "."
+            if hits12
+            else "No courtyard covers a hole on the 501012 layout."
+        )
+    )
+    lines.append("")
+    lines.append(
+        "**Decision 74.** SIG1/SIG2 fold 180° at R 1.5. Either they leave the island at its "
+        "neck end, or the side walls get fold pockets and the strips grow. The same number is "
+        "used for the PCB, the packing table and the shell."
+    )
+    lines.append("")
+    lines.append("| pack | variant | SIG1 strip | SIG2 strip | pocket |")
+    lines.append("|---|---|---:|---:|---|")
+    for label, lay in (("501012 BODY_ARC", lay12), ("501015 +1.5 mm arc", lay15)):
+        f = tab_fold_variants(lay.spec)
+        n, s = f["neck"], f["side"]
+        nd, sd = n["pocket"], s["pocket"]
+        lines.append(
+            f"| {label} | neck-end | {n['SIG1_strip']:.2f} | {n['SIG2_strip']:.2f} | "
+            f"s {nd[0]:.2f}–{nd[1]:.2f}, {nd[2]:.2f} × {nd[3]:.2f} (neck drop; no side-wall cut) |"
+        )
+        lines.append(
+            f"| {label} | side-wall pockets | {s['SIG1_strip']:.2f} | {s['SIG2_strip']:.2f} | "
+            f"{sd[0]:.2f} deep × {sd[1]:.2f} along s × {sd[2]:.2f} along y; "
+            f"wall left {s['wall_left']:.2f} |"
+        )
+    lines.append("")
+    return lines
 
 
 def _layout_v2_section() -> list[str]:
@@ -3375,6 +3678,10 @@ def _layout_v2_section() -> list[str]:
     lines.append("| J4 on the hook-end end face with its plug volume | packing-v2.md §5; plan v2 §5.4 |")
     lines.append("| SW1 under the lid recess | packing-v2.md §5 |")
     lines.append("| J3 and TC2030 reachable | WP11c brief |")
+    lines.append("| USB-C real body inside the outline behind the end face | tasks/reviews/code-r6.md decision 70 |")
+    lines.append("| three FR4 0.2 ring stiffener pieces on the tabs; ring 0.31 stays | tasks/reviews/code-r6.md decision 72 |")
+    lines.append("| two island mounting holes at the boss sites, Ø2.7, courtyard-clear | tasks/reviews/code-r6.md decision 73 |")
+    lines.append("| SIG1/SIG2 fold 180° at R 1.5; neck-end or side-wall pockets | tasks/reviews/code-r6.md decision 74 |")
     lines.append("")
     for label, lay in (
         ("501012 pack, w20 × y8, BODY_ARC, interface II, standoff 3 (the shell as built)", lay12),
@@ -3423,6 +3730,7 @@ def _layout_v2_section() -> list[str]:
             "WP12d places from this table and tests within 0.1 mm."
         )
         lines.append("")
+    lines.extend(_r6_decisions_section(lay12, lay15))
     lines.append(
         "Drawings: this layout does not add `placement_v2_*.svg` under `docs/fab/cad/v1/`. "
         "The round-5 14-file kept set is pinned, and the layout does not fully close every rule (Q56)."
@@ -3452,6 +3760,7 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append("The 501015 pack (17.0 mm with PCM) and 501012 pack are §1e (WP11b note 3, L7 §7).")
     lines.append("The REF tab route search is in §5 (WP11b, Q59).")
     lines.append("The board-lane layout with real courtyards is §5b (WP11c).")
+    lines.append("Round 6 decisions 70–74 (`tasks/reviews/code-r6.md`) are in §5b.")
     lines.append("")
     lines.append("## 1. Every run at BODY_ARC 48.4")
     lines.append("")
