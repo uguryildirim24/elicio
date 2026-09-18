@@ -124,7 +124,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w1 WP14d, w3 WP11e, w2 WP12e), WP12d landed un-routed, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11e, w2 WP12e), WP14d landed, WP12d landed un-routed, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -160,40 +160,26 @@ fast-forwarded to `110a79b`.
   on the tail); the tail-end-face option was not built. w1 idles; next
   WP14d after `DONE WP11d` (bosses to §5c's hole sites, neck-end strip
   channels or pockets, the USB wall or the two tail charging pads, Q81).
-- **w1 → WP14d shell v2d** (`tasks/WP14d-shell-v2d.md`, main `d67e534`):
-  RUNNING since 02:10 on `lane/w1-r6` on top of `7d111c6` (told to `git
-  merge main` first): width 22 on §5c (height 9.0 unchanged), the two
-  island bosses at §5c's hole sites with a table-reading check, neck-end
-  strips, two tail charging contacts at §5c's P4/P5 sites measured as
-  `V2_CHARGE_pads`, no USB opening (`V2_USB_end` NOT_APPLICABLE by name,
-  Q81). Reads §5c on `lane/w3` and reports the sha it used; if w3's last
-  nudge turn moves a number it used, a WP14e follows. Waits for nothing
-  from me. Report `.worktrees/w1/.reports/WP14d-report.md` (expected) →
-  `DONE WP14d`.
-- **w3 → WP11c courtyards** (`tasks/WP11c-courtyards.md`): LANDED, `DONE
-  WP11c` at `1897df0` on `lane/w3` (two commits on top of `bcecc83`, tree
-  clean, report `.worktrees/w3/.reports/WP11c-report.md` present, 187
-  tests OK). `scripts/cad/placement_v2.py` reads the 66 real courtyards
-  from the WP12b board (test pins them within 0.05); §5b published: on the
-  w20 × y8 body with the 501012 pack 42 of 66 footprints place, the first
-  rule that cannot be met is "JLC assembly edge 2.5 mm" read as body to
-  the board's own outline (U1 sits at 0.00 from the island edge; U5,
-  Q1–Q5, R13–R30 unplaced; search single-sided); the 17.0 pack fails the
-  M1 gate first. Five decisions asked → Q78 (edge rule and area), Q79
-  (Contact variant A), Q80 (USB-C keeps the hook end, TC2030 to the
-  leftover), recorded at `7983847`; the 17 mm pack stays under Q69.
-- **w3 → WP11c amendment** (the round 6 note "decisions 70–74", queued
-  behind WP11c): LANDED, `DONE WP11c` at `5f864bf` on `lane/w3` (report
-  `.worktrees/w3/.reports/WP11c-report.md` rewritten, 191 tests OK).
-  Numbers: USB-C J1 (10.64 × 9.42 × 3.2) hangs 5.86 past the hook-end
-  face, a 2.4 hook-root move clears the opening only, seating it needs
-  +7.32 arc (chord 55.29, M1 ≥ 58.29): nothing closes at M1 52 → Q81
-  (no receptacle, two tail charging contacts and a magnetic cable until
-  M1 is measured; USB-C returns at M1 ≥ 58.5); U1 covers boss site
-  (14.85, 28.10) and HOLE_M1 takes SW1's site → Q82 (bosses follow the
-  holes); side-wall fold pockets leave a 0.65 wall → Q83 (neck-end
-  strips, 501012 body SIG1 10.71 / SIG2 21.81); three FR4 ring pieces
-  fine (count 5). Recorded at `a3960d6`.
+- **w1 → WP14d shell v2d** (`tasks/WP14d-shell-v2d.md`): LANDED,
+  `DONE WP14d` at `ecfff54` on `lane/w1-r6` (tree clean, report
+  `.worktrees/w1/.reports/WP14d-report.md` present, full suite exit 0
+  under `LC_ALL=C`, shell class 7 tests OK, order 1 byte-identical, Stage
+  B v2 unchanged). Built: width 22 from §5c read at `e1f1d6f` (the same
+  sites as `c6bd2fe`): cavity u 1.50–20.50, island u 2.25–19.75 × s
+  16.00–37.60, 501012, bosses at (13.45, 17.70) and (17.95, 17.70) with
+  `V2_BOSS_sites` parsing the table, neck-end strips SIG1 10.71 / SIG2
+  21.81 with 1.50 side walls, two flush charging pads at P4/P5,
+  `V2_USB_end` NOT_APPLICABLE (Q81), closure engagement 4.30, boss wall
+  6.45, lateral 20 samples 0 pits, edge radii 7 stations. Solids commit
+  `f52afc5`, stamped on both renders; `829aeba` is the named commit;
+  `ecfff54` is a one-line UTF-8 read fix after which the solids were not
+  rebuilt (the stamp rule is manifest.commit = solids commit, so this is
+  consistent, but the reviewer checks it). I viewed both renders: the
+  P4/P5 domes sit at the tail corners and protrude past the body
+  silhouette because §5c put them at u 0.75 and 21.25, inside the 1.5 mm
+  side walls (the report says so); WP11e was told to move them inside the
+  cavity range, then w1 gets a WP14e to follow the v2 folded sites. w1
+  idle on `lane/w1-r6`.
 - **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): LANDED, `DONE
   WP11d` four times on `lane/w3`, final `c6bd2fe` (tree clean, report
   `.worktrees/w3/.reports/WP11d-report.md` present, tests OK).
@@ -261,14 +247,13 @@ fast-forwarded to `110a79b`.
   line (trap recorded); the reviewer notes it. BOM 57. 14 CAD test
   failures in its venv (pins), as before.
 - **w2 → WP12e route v2** (`tasks/WP12e-route-v2.md`, main `aea2345`):
-  RUNNING since 03:20 on `lane/w2` on top of `1e055de` (told to `git
-  merge main` first): the Q84 Contact rule as DRC rule areas (1.0 mm on
-  strips, ring pads and tail pads; board default on the island) with a
-  test, the parser for pin table v2 (flat coordinates, J4 both-side
-  keep-out); then it STOPS with `WAITING WP12e pin table v2` unless I
-  have sent the line "pin table v2" plus the sha (after `DONE WP11e`);
-  then re-pin on the flat pattern, route on OpenJDK 25 to DRC 0, or stop
-  un-shorted with a truthful commit message. Report
+  started 03:20 on `lane/w2`; WAITING since 03:50: it pushed `WAITING
+  WP12e pin table v2` with steps 1 and 2 committed at `2b4808d` (Q84
+  Contact rule areas, the pin-table-v2 parser, main merged, tree
+  clean). It waits for my prompt with the line "pin table v2" plus the
+  sha of w3's WP11e commit; then it re-pins on the flat pattern, routes
+  on OpenJDK 25 to DRC 0, or stops un-shorted with a truthful commit
+  message. Report
   `.worktrees/w2/.reports/WP12e-report.md` (expected) → `DONE WP12e`.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
@@ -350,15 +335,26 @@ Outside those:
    (Pro amendment, Rolf's call); WP14c's screw well on the medial tail
    vs the REF contact and skin (Q17), and whether a well against skin
    collects sweat (the tail-end-face variant is the alternative).
+   Round 7 additions: WP14d built the P4/P5 charging domes inside the
+   1.5 mm side walls at §5c's sites (u 0.75 / 21.25), protruding past
+   the silhouette (WP11e moves them, WP14e follows); its render stamp is
+   the solids commit `f52afc5` while HEAD `ecfff54` is a one-line read
+   fix; it read §5c at `e1f1d6f`, the same sites as `c6bd2fe`. WP12d's
+   last commit message says "routed" on an un-routed tree, and its
+   `packing_5c_norec.md` copy of the table goes stale once v2 lands
+   (absent on main). The §5c pin table mixed folded and flat coordinates
+   (Q85); the review checks that v2, the board and the shell each use the
+   right one.
 
 ## Next
 
-- Idle until `DONE WP14d` (w1), `DONE WP11e` (w3), `DONE WP12e` or
-  `WAITING WP12e pin table v2` (w2), or BLOCKED/GONE for any (a DONE is
-  checked: report present, tree clean; then read); on `DONE WP11e` send
-  w2 the line "pin table v2" plus the sha and check whether the folded
-  sites w1 used moved (if so, a WP14e); when WP14d, WP11e and WP12e have
-  landed, open review r7: a review worktree (expected) at
+- Idle until `DONE WP11e` (w3), `DONE WP12e` or `WAITING WP12e pin table
+  v2` (w2), or BLOCKED/GONE for any (a DONE is checked: report present,
+  tree clean; then read); on `DONE WP11e` send w2 the line "pin table
+  v2" plus the sha and brief w1 a WP14e (expected) at
+  `tasks/WP14e-shell-v2e.md` (expected) to follow the v2 folded sites
+  (P4/P5 move inside the cavity range at least); when WP11e, WP12e and
+  WP14e have landed, open review r7: a review worktree (expected) at
   `.worktrees/review` (expected) on a round 7 review branch cut from
   main, a fresh Opus 5 high pane, brief (expected) at `tasks/review-r7.md`
   (expected) from `tasks/review-code-template.md` with the seams in Open
