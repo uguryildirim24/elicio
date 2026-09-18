@@ -931,7 +931,7 @@
     "total_chord": 47.900523407445874
   },
   "closure_passed": false,
-  "commit": "a83e13b86b5c83aad3a7c238d7b0540fff90d8d4",
+  "commit": "825793e58b7e4dfc48d4b6751053703843f7caa8",
   "contact_source": "interface II flex tabs under standoffs (WP11 turn 07)",
   "contact_stack": {
     "board_underside_y": 4.3,
@@ -1354,7 +1354,7 @@
     ]
   },
   "params_file": "scripts/cad/params/shell_v2.toml",
-  "params_sha256": "7c14904a2c6dc0ad49ffbf6349f508a87dc77beb0a13b95164ecd7aa681f0b63",
+  "params_sha256": "2288910d47a116aea488d75612473cf18d475a74e0018419c562f2e17aefb2f9",
   "parts": [
     "body_full_p15",
     "lid"
@@ -2368,19 +2368,19 @@
   },
   "views": {
     "drawing.pdf": {
-      "bytes": 77598,
-      "sha256": "590632b9b0f9aa529d151c276d6d7c7a8e8f7b6636d72bd78872b731da6ac593"
+      "bytes": 77731,
+      "sha256": "33771d35efbb02e9bc85b3717c955d455fe5fc299ab0a76c073a3ff4f7bc0c96"
     },
     "render_lateral.png": {
-      "bytes": 135953,
-      "sha256": "31c70de42408f1bef319c1a18feafedf1e3e1b3bbbb4789e7a3d98b6e320b3ee"
+      "bytes": 136278,
+      "sha256": "db152a0035d73ea90a136661595f1ad655de0a72ecadeb854cdc752edcba3362"
     },
     "render_medial.png": {
-      "bytes": 165296,
-      "sha256": "5e1d5c38dda063155ee871939c114792e4c600aba20218822a4e3abb080a4b17"
+      "bytes": 164757,
+      "sha256": "3202b9138e1e96c25b2255a7e4adaed74378690f27f7339bb2c6b22fc5f6e27b"
     }
   },
-  "views_commit": "a83e13b86b5c83aad3a7c238d7b0540fff90d8d4",
+  "views_commit": "825793e58b7e4dfc48d4b6751053703843f7caa8",
   "views_hash_rule": "SHA-256 of raw file bytes. PNG tIME/tEXt/zTXt/iTXt/eXIf rewritten; Creation Time text and PDF CreationDate/ModDate/ID pinned to 2026-09-16T00:00:00Z. Same pin as the solids hash_rule timestamp.",
   "walls": {
     "anterior side wall": 1.5,
