@@ -895,7 +895,7 @@
     "total_chord": 47.900523407445874
   },
   "closure_passed": false,
-  "commit": "unknown",
+  "commit": "f52afc5b7b25eb1562aaf916858b9def935d0179",
   "contact_source": "interface II flex tabs under standoffs (WP11 turn 07)",
   "contact_stack": {
     "board_underside_y": 4.3,
@@ -2249,6 +2249,22 @@
       "VARIANT": "full"
     }
   },
+  "views": {
+    "drawing.pdf": {
+      "bytes": 77017,
+      "sha256": "c6f385c2797eda8255a9ac27d71ac44cb92d3cfb5d6b59b7fdea979ecd174399"
+    },
+    "render_lateral.png": {
+      "bytes": 138617,
+      "sha256": "9c63813f32a75f112eb1ccf1126a4f9af9193e25cb40111aba48d91ee9a61325"
+    },
+    "render_medial.png": {
+      "bytes": 152362,
+      "sha256": "d03fd795afd5694c2ecf28de467d5ae465b18bbb8e6af19efbb56def37a249fe"
+    }
+  },
+  "views_commit": "f52afc5b7b25eb1562aaf916858b9def935d0179",
+  "views_hash_rule": "SHA-256 of raw file bytes. PNG tIME/tEXt/zTXt/iTXt/eXIf rewritten; Creation Time text and PDF CreationDate/ModDate/ID pinned to 2026-09-16T00:00:00Z. Same pin as the solids hash_rule timestamp.",
   "walls": {
     "anterior side wall": 1.5,
     "floor (WALL_MEDIAL)": 1.5,
