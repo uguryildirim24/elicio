@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T20:12:54-04:00",
+ "generated": "2026-09-17T20:14:15-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -104,7 +104,7 @@
    ],
    "name": "w9",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pE",
    "tab_id": "w1B:tE",
    "tab_label": "w9",
@@ -112,6 +112,8 @@
    "cwd": "/home/user/projects/elicio/.worktrees/w9",
    "session_id": "ea20ccc0-04da-408f-a016-57766846ee99",
    "tokens": {
+    "done": "1",
+    "lane": "WP16",
     "parent": "w1B:p1"
    },
    "title": "Lane W9 Instructions"
@@ -134,28 +136,28 @@
   "repo": "/home/user/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "ac35231 Q50, Q51: interface I closes nowhere, the build switches to interface II; HANDOFF after WP11's first DONE",
    "a3b5428 HANDOFF: mark expected files and the review branch so the checker passes",
    "c057aba HANDOFF: plan v2 signed off; round 5 lanes WP11, WP12, WP13, WP16, WP17 in flight; pro closed",
    "401f92d Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
    "ef369bd plan-v2 SIGNED OFF (turn 10, Pro) with entry 28's sixteen edits applied (turn 11)",
-   "fd0712e plan-v2 turn 10 (pro)",
-   "e65233f HANDOFF: plan v2 at turn 10 (Pro); WP11 fifth DONE expected"
+   "fd0712e plan-v2 turn 10 (pro)"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/home/user/projects/elicio",
     "branch": "main",
-    "head": "a3b5428",
-    "subject": "HANDOFF: mark expected files and the review branch so the checker passes",
-    "dirty": 2
+    "head": "ac35231",
+    "subject": "Q50, Q51: interface I closes nowhere, the build switches to interface II; HANDOFF after WP11's first DONE",
+    "dirty": 1
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w1",
     "branch": "lane/w1",
     "head": "43a982a",
     "subject": "packing(v2): which architectures close",
-    "dirty": 1
+    "dirty": 3
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w2",
@@ -169,7 +171,7 @@
     "branch": "lane/w4",
     "head": "401f92d",
     "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
-    "dirty": 1
+    "dirty": 2
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w5",
@@ -181,18 +183,18 @@
    {
     "path": "/home/user/projects/elicio/.worktrees/w9",
     "branch": "lane/w9",
-    "head": "401f92d",
-    "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
-    "dirty": 2
+    "head": "cc22134",
+    "subject": "record(v2): requirement 5 titanium, plan v2 decisions, ledger skeleton",
+    "dirty": 0
    }
   ],
   "branches": [
+   "lane/w9",
    "main",
    "lane/w1",
    "lane/w5",
    "lane/w2",
    "lane/w4",
-   "lane/w9",
    "review/r4",
    "review/r3",
    "review/r2",
