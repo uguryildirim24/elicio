@@ -26,7 +26,7 @@ DSN_DEFAULT_WIDTH = "100"
 DSN_DEFAULT_CLEAR = "100"
 DSN_CONTACT_WIDTH = "150"
 DSN_CONTACT_CLEAR = "200"
-DSN_VIA = "Via[0-1]_700:300_um"
+DSN_VIA = "Via[0-1]_550:300_um"
 
 FREEROUTE_FLAGS = [
     "--gui.enabled=false",
@@ -133,7 +133,7 @@ def main() -> int:
     if missing:
         sys.stderr.write("DSN class check failed: " + "; ".join(missing) + "\n")
         return 1
-    print("DSN class check OK: Default 100/100 um, Contact 150/200 um, via 700:300 um")
+    print("DSN class check OK: Default 100/100 um, Contact 150/200 um, via 550:300 um")
     if args.dsn_check and not args.route and not args.import_owned:
         return 0
     if args.route:

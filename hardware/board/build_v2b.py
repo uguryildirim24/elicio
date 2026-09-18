@@ -34,7 +34,7 @@ TABLE = BOARD_DIR / "packing_v2_flat.md"
 V2_TABLE = TABLE
 FLEX_TRACK = 0.10
 FLEX_CLEAR = 0.10
-FLEX_VIA_D = 0.70
+FLEX_VIA_D = 0.55
 FLEX_VIA_DRILL = 0.30
 CONTACT_TRACK = 0.15
 CONTACT_CLEAR = 0.20
@@ -492,7 +492,7 @@ def configure_rules(board) -> None:
     ds.m_MinClearance = pcbnew.FromMM(FLEX_CLEAR)
     ds.m_ViasMinSize = pcbnew.FromMM(FLEX_VIA_D)
     ds.m_ViasMinDrill = pcbnew.FromMM(FLEX_VIA_DRILL)
-    ds.m_ViasMinAnnularWidth = pcbnew.FromMM(0.18)
+    ds.m_ViasMinAnnularWidth = pcbnew.FromMM(0.12)
     ds.m_CopperEdgeClearance = pcbnew.FromMM(0.30)
     ds.m_HoleToHoleMin = pcbnew.FromMM(0.25)
     ds.m_MinThroughDrill = pcbnew.FromMM(FLEX_VIA_DRILL)
@@ -503,7 +503,7 @@ def configure_rules(board) -> None:
 
 
 def apply_flex_netclasses(board) -> None:
-    """JLC 2-layer flex 1 oz: track/space 0.10, via 0.70/0.30. Contact 0.15/0.20."""
+    """JLC 2-layer flex 1 oz: track/space 0.10, via 0.55/0.30. Contact 0.15/0.20."""
     ns = board.GetDesignSettings().m_NetSettings
     default = ns.GetDefaultNetclass()
     default.SetTrackWidth(pcbnew.FromMM(FLEX_TRACK))
@@ -929,6 +929,13 @@ if __name__ == "__main__":
         ses = Path(rest[0]) if rest else Path("/tmp/wp12f/elicio-v2.ses")
         pcb = Path(rest[1]) if len(rest) > 1 else BOARD_DIR / "elicio-v2.kicad_pcb"
         import_ses(pcb, ses)
+    elif "--apply-rules" in args:
+        out = BOARD_DIR / "elicio-v2.kicad_pcb"
+        board = pcbnew.LoadBoard(str(out))
+        configure_rules(board)
+        board.SetFileName(str(out))
+        board.Save(str(out))
+        print("applied rules", out, "via", FLEX_VIA_D, FLEX_VIA_DRILL)
     elif "--pre-route" in args:
         out = BOARD_DIR / "elicio-v2.kicad_pcb"
         board = pcbnew.LoadBoard(str(out))
