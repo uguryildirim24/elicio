@@ -432,7 +432,7 @@ def check_session(session_dir: Path) -> dict[str, object]:
     # only when scored. Line 3.4 is marked "revised" (its dropout half keeps
     # the original rail/flat rule), so a dropout is reported with its own
     # exit code, not as a same-criterion failure (review r6; whether a 3.4
-    # dropout stops S2 is decision 76 in tasks/reviews/code-r6.md).
+    # dropout stops S2 is decision 75 in tasks/reviews/code-r6.md).
     ok = len(dropouts) == 0 and not same_fail
     if same_fail:
         exit_code = EXIT_SAME_CRITERION_FAILED

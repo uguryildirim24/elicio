@@ -542,7 +542,7 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
         ax.annotate(
             "USB-C 9.0 × 3.5 on the hook-end end face (plan v2 §5.4 fallback).\n"
             "Receptacle sits 4.8 outside the face; the hook fills 0.9 of the\n"
-            "opening. V2_USB_end fails (review r6, decision 71).",
+            "opening. V2_USB_end fails (review r6, decision 70).",
             xy=usb,
             xytext=(usb[0] + 28.0, usb[1] - 14.0),
             fontsize=8,
@@ -551,7 +551,7 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
         )
         tail = at(10.0, 39.4, lid_y + 0.5)
         ax.annotate(
-            "hinge lip in the tail plus two snaps: no undercut,\nthe lid lifts off. V2_CLOSURE fails (decision 72).",
+            "hinge lip in the tail plus two snaps: no undercut,\nthe lid lifts off. V2_CLOSURE fails (decision 71).",
             xy=tail,
             xytext=(tail[0] + 16.0, tail[1] - 4.0),
             fontsize=8,
@@ -912,7 +912,7 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
             f"chord gate: M1 ≥ {gate['gate']:.3f}",
             f"solids commit {commit}   date {date}",
             "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
-            "Closure: hinge lip plus two snaps, no undercut; V2_CLOSURE fails (shell-v2.md §2, code-r6 decision 72).",
+            "Closure: hinge lip plus two snaps, no undercut; V2_CLOSURE fails (shell-v2.md §2, code-r6 decision 71).",
             "USB-C on the hook-end end face. No text on the outside. Q59: packing-v2.md §5 REF_end_wall_slot.",
             *("  " + row for row in fillet_summary(manifest)),
             "Rolf approves the two renders before any shell order. Nothing is ordered here.",

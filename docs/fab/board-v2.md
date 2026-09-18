@@ -8,11 +8,11 @@ Interface: **II** (plan v2 §5.3 fallback). WP11 packing winner `A_501015_series
 Project: `hardware/board/elicio-v2.kicad_pro`.
 The schematic contract is the review-r5 sheet plus WP12b Q68 (10 µF + 0.1 µF on AVDD and on DVDD). The land is a 2-layer flex with two FR4 0.4 stiffeners and three ring-pad tabs.
 
-Packing (u, s) = PCB (x, y). Named SMT centres follow `packing-v2.md` §5 (within 0.1 mm; `tests/test_board_release.py`). SIG1/SIG2 rings are unfolded off the island so the Gerber is flat. WP11b `lane/w3` §5 REF tab search (Q59) left the packing tab unchanged (`along_floor` (8.50, 43.00) → (8.50, 36.80)). This board uses that path. SMT centres match merged `packing-v2.md` §5. Review r6 decision 70: that placement cannot be built. At `845bac7` with zero tracks, DRC reports 128 errors and 132 unconnected, because footprint courtyards collide (the packing envelopes are smaller than the footprints). Re-pack from the real courtyards (WP11c) before routing.
+Packing (u, s) = PCB (x, y). Named SMT centres follow `packing-v2.md` §5 (within 0.1 mm; `tests/test_board_release.py`). SIG1/SIG2 rings are unfolded off the island so the Gerber is flat. WP11b `lane/w3` §5 REF tab search (Q59) left the packing tab unchanged (`along_floor` (8.50, 43.00) → (8.50, 36.80)). This board uses that path. SMT centres match merged `packing-v2.md` §5. Review r6 decision 77: that placement cannot be built. At `845bac7` with zero tracks, DRC reports 128 errors and 132 unconnected, because footprint courtyards collide (the packing envelopes are smaller than the footprints). Re-pack from the real courtyards (WP11c) before routing.
 
 | Item | PCB centre (u, s) | `packing-v2.md` §5 centre | Size / note |
 |---|---|---|---|
-| Board zone | u 2.25–17.75, s 18.60–37.60 | same | PI 0.11 + FR4 0.4 at parts. Packing and the shell take the rings as PI 0.11 + FR4 0.2 = 0.31; this Gerber has no ring FR4 (§12), so its rings are 0.11. Review r6 decision 73 |
+| Board zone | u 2.25–17.75, s 18.60–37.60 | same | PI 0.11 + FR4 0.4 at parts. Packing and the shell take the rings as PI 0.11 + FR4 0.2 = 0.31; this Gerber has no ring FR4 (§12), so its rings are 0.11. Review r6 decision 72 |
 | Module U1 | (10.00, 32.35) rot 90° | (10.00, 32.35) | 15.50 × 10.50 × 2.3, length along u; 0 pads in the RF box |
 | Antenna keep-out | u 2.25–6.05, s 26.15–38.55 | same | no extra copper; module pads allowed |
 | ADS1292 U2 | (4.90, 21.25) | (4.90, 21.25) | VQFN-32 4×4 courtyard in a 5×5 packing box |
@@ -266,7 +266,7 @@ A board that uses B is a different placement, not a stuffing option on this land
 
 ## 11. Contacts — interface II (this board)
 
-The whole board is a 2-layer polyimide flex with FR4 stiffeners under the parts. Three flex tabs each end in a ring pad Ø5.0 mm with a Ø2.7 mm hole. The ring is ENIG on both copper layers. The brass standoff bottom face is the contact. An ISO 7380 M2.5×4 screw from outside passes the 1.5 floor and the ring into the standoff's female thread and clamps the ring between floor and standoff. No nut (plan v2 §5.3). Stack: floor 1.5 + ring 0.31 (PI 0.11 + FR4 0.2) + standoff 3.0 = y 4.81 in packing and the shell. Review r6: this Gerber draws no ring FR4 (§12), so as drawn the ring is 0.11, the standoff top lands at 4.61 and the island hangs 0.2 above it; either three FR4 0.2 ring pieces (count 5, over JLC's extra-fee threshold of 4) or a shell 0.2 lower closes it (decision 73 in `tasks/reviews/code-r6.md`). With the 0.31 ring, where the board island rests on the standoff tops; the screw projects 2.5 past the floor and ends 0.81 below the standoff top (`packing-v2.md` §5, Stage B `V2_CONTACT_STACK`). The lane's DIN 439 nut stack (2.50) was v1's.
+The whole board is a 2-layer polyimide flex with FR4 stiffeners under the parts. Three flex tabs each end in a ring pad Ø5.0 mm with a Ø2.7 mm hole. The ring is ENIG on both copper layers. The brass standoff bottom face is the contact. An ISO 7380 M2.5×4 screw from outside passes the 1.5 floor and the ring into the standoff's female thread and clamps the ring between floor and standoff. No nut (plan v2 §5.3). Stack: floor 1.5 + ring 0.31 (PI 0.11 + FR4 0.2) + standoff 3.0 = y 4.81 in packing and the shell. Review r6: this Gerber draws no ring FR4 (§12), so as drawn the ring is 0.11, the standoff top lands at 4.61 and the island hangs 0.2 above it; either three FR4 0.2 ring pieces (count 5, over JLC's extra-fee threshold of 4) or a shell 0.2 lower closes it (decision 72 in `tasks/reviews/code-r6.md`). With the 0.31 ring, where the board island rests on the standoff tops; the screw projects 2.5 past the floor and ends 0.81 below the standoff top (`packing-v2.md` §5, Stage B `V2_CONTACT_STACK`). The lane's DIN 439 nut stack (2.50) was v1's.
 
 | Pad | Net | Folded site (packing) | Packing attach | Unfolded ring (this Gerber) |
 |---|---|---|---|---|
@@ -282,9 +282,9 @@ Bend radius: packing R ≥ 1.0 mm. JLC 2-layer static bend ≥ 10 × finished th
 
 Each ring has a 7.0 × 7.0 mm other-net keep-out (1.0 mm beyond the Ø5.0 land). Pads themselves are allowed.
 
-There are no separate M2.5 boss holes. The ring holes are the fasteners. Review r6: the shell still carries two printed bosses with pilots at (14.85, 21.50) and (14.85, 28.10), under J3 and under U1; nothing on this board can screw into them, and P3 (s 43.00) is past the island's end (s 37.60), so the island rests on two standoffs. Retention of the island is decision 74.
+There are no separate M2.5 boss holes. The ring holes are the fasteners. Review r6: the shell still carries two printed bosses with pilots at (14.85, 21.50) and (14.85, 28.10), under J3 and under U1; nothing on this board can screw into them, and P3 (s 43.00) is past the island's end (s 37.60), so the island rests on two standoffs. Retention of the island is decision 73.
 
-Fold (review r6): SIG1 and SIG2 leave the island edges on 7.0 mm strips and fold 180° at R 1.5 to reach the packing sites. A 180° fold at R 1.5 stands about 1.6 mm outside the edge, and the island edge is 0.75 mm from the cavity wall; the flat length from the edge to the ring centre is about 8.5, not 7.0. P1's packing attach (5.90, 29.00) is inside the antenna keep-out. Decision 75.
+Fold (review r6): SIG1 and SIG2 leave the island edges on 7.0 mm strips and fold 180° at R 1.5 to reach the packing sites. A 180° fold at R 1.5 stands about 1.6 mm outside the edge, and the island edge is 0.75 mm from the cavity wall; the flat length from the edge to the ring centre is about 8.5, not 7.0. P1's packing attach (5.90, 29.00) is inside the antenna keep-out. Decision 74.
 
 G7 joint inputs (this board):
 
@@ -327,7 +327,7 @@ Source: https://jlcpcb.com/capabilities/flex-pcb-capabilities read 2026-09-17. S
 | Bend | 2-layer ≥ 10 × thickness (static) | 1.1 mm at 0.11; this board uses 1.5 mm |
 | Passives | 0402 minimum | Plan |
 | Stiffener at parts | FR4 0.4 mm on Eco1.User (packing: 0.11 + 0.4 = 0.51, review r5) | JLC FR4 list is 0.1 / 0.2 / 0.4, no 0.3 |
-| Stiffener at tabs | none drawn (Q58 clamp; Q60 merge). Packing, the shell and §11's stack take FR4 0.2 at the rings; decision 73 | JLC FR4 0.2 mm exists; Eco2.User unused |
+| Stiffener at tabs | none drawn (Q58 clamp; Q60 merge). Packing, the shell and §11's stack take FR4 0.2 at the rings; decision 72 | JLC FR4 0.2 mm exists; Eco2.User unused |
 
 PI stiffener catalogue: 0.1 / 0.15 / 0.20 / 0.225 / 0.25 mm. Stainless 0.1 / 0.2 / 0.3 mm. FR4 0.1 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.2 / 1.6 mm. WP11's 0.3 mm FR4 is **not** on that list; review r5 took 0.4 and moved the packing numbers with it. No request was sent.
 
@@ -473,7 +473,7 @@ https://jlcpcb.com/help/article/fpc-extra-charges (re-read 2026-09-17, last upda
 - Small batch / mass: "when there are 4pcs or more stiffeners on the board, or the total stiffener area on both sides is no less than 90% of the board area, extra cost is required."
 - Stacked: "When you need to stack up stiffeners in the same location, there will be an additional cost of $8.14+$24.44/m² for every extra stiffener."
 
-This drawing has **two** FR4 0.4 pieces (Eco1.User: island + USB/pocket). No tab FR4 (Q58 clamp). Count = 2, under the extra-stiffener rule. Review r6: packing and the shell assume FR4 0.2 at the three rings; drawing them makes the count 5, which is over the threshold (decision 73).
+This drawing has **two** FR4 0.4 pieces (Eco1.User: island + USB/pocket). No tab FR4 (Q58 clamp). Count = 2, under the extra-stiffener rule. Review r6: packing and the shell assume FR4 0.2 at the three rings; drawing them makes the count 5, which is over the threshold (decision 72).
 
 L7 §3.1 also lists FR4 **0.3 mm** on the stiffener catalogue. This land still uses 0.4 mm (review r5 / packing). A 0.3 mm change is WP11/WP14.
 

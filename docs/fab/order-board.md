@@ -90,7 +90,7 @@ fills this after WP12b/WP14", wait.
 | Surface | ENIG, 1 u" or 2 u" as the checkout offers (HASL is not offered on FPC) | plan v2 §9; `board-v2.md` §11 |
 | Copper / stack | PI 0.11 mm, FR4 0.4 mm at parts, FR4 0.2 mm at the rings | `packing-v2.md` §5 |
 | Coverlay | Yellow; opening 0.1 mm one-sided | `board-v2.md` §12 |
-| Stiffeners | 2 × FR4 0.4 (Eco1: parts island, USB/pocket). Three FR4 0.2 ring pieces would make 5 and cross the fee threshold of 4 (decision 73) | `board-v2.md` §12, §18 |
+| Stiffeners | 2 × FR4 0.4 (Eco1: parts island, USB/pocket). Three FR4 0.2 ring pieces would make 5 and cross the fee threshold of 4 (decision 72) | `board-v2.md` §12, §18 |
 | Extra-stiffener fee | none at 2 pieces; at 5, the figure the checkout shows | `board-v2.md` §18 |
 | Assembly | Standard PCBA, sides per placement (two-sided assumed) | plan v2 §9 |
 | Fixture | Flexible PCB, 2 fixtures for 1–29 pcs, $24.63 each, $49.25 | `board-v2.md` §18, jlcpcb.com/help/article/pcb-assembly-price read 2026-09-17 |
