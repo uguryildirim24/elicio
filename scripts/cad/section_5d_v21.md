@@ -94,7 +94,7 @@ Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_t
 
 ### Folded sites for the shell (u, s, y)
 
-Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner floor (1.50 mm). P4 and P5 sit on the hook-end medial floor (not the tail, not the 1.5 mm side walls). Whole Ø5 copper is ahead of the tail loft (s + 2.5 ≤ 45.5). Pad-to-outline ≥ 0.30. Nylon between pads ≥ 3 mm. Edge-to-edge ≥ 2 mm to the REF Ø6.4 dome (8.50, 43.00) and the Ø5 screw head (14.50, 41.00). Two Ø5 pads cannot meet those rules on the tail; largest tail pair Ø2.1. WP14 follows these sites. Flat centres are in pin table v2.1.
+Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner floor (1.50 mm). P4 and P5 sit on the hook-end medial floor (not the tail, not the 1.5 mm side walls). Whole Ø5 copper is ahead of the tail loft (s + 2.5 ≤ 45.5). Pad-to-outline ≥ 0.30. Nylon between pads ≥ 3 mm. Edge-to-edge ≥ 2 mm to the REF Ø6.4 dome (8.50, 43.00) and the Ø5 screw head (16.50, 41.00). Two Ø5 pads cannot meet those rules on the tail; largest tail pair Ø2.1. WP14 follows these sites. Flat centres are in pin table v2.1.
 
 | pad | net | u | s | y | courtyard | notes |
 |---|---|---:|---:|---:|---|---|
