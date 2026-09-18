@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T20:07:49-04:00",
+ "generated": "2026-09-17T20:08:38-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -132,28 +132,28 @@
   "repo": "/home/user/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "c057aba HANDOFF: plan v2 signed off; round 5 lanes WP11, WP12, WP13, WP16, WP17 in flight; pro closed",
    "401f92d Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
    "ef369bd plan-v2 SIGNED OFF (turn 10, Pro) with entry 28's sixteen edits applied (turn 11)",
    "fd0712e plan-v2 turn 10 (pro)",
    "e65233f HANDOFF: plan v2 at turn 10 (Pro); WP11 fifth DONE expected",
-   "c08b71f plan-v2 turn 09: interface I under Pro's acceptance contract; standoff 3.0/4.0 per C14; cell clearance rule; C15, C16",
-   "a6b9a24 plan-v2 turn 08 (pro)"
+   "c08b71f plan-v2 turn 09: interface I under Pro's acceptance contract; standoff 3.0/4.0 per C14; cell clearance rule; C15, C16"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/home/user/projects/elicio",
     "branch": "main",
-    "head": "401f92d",
-    "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
-    "dirty": 2
+    "head": "c057aba",
+    "subject": "HANDOFF: plan v2 signed off; round 5 lanes WP11, WP12, WP13, WP16, WP17 in flight; pro closed",
+    "dirty": 1
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w1",
     "branch": "lane/w1",
-    "head": "0135bab",
-    "subject": "docs(tasks): WP11 packing v2, which architecture closes",
-    "dirty": 440
+    "head": "43a982a",
+    "subject": "packing(v2): which architectures close",
+    "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w2",
@@ -185,12 +185,12 @@
    }
   ],
   "branches": [
+   "lane/w1",
+   "main",
    "lane/w5",
    "lane/w2",
    "lane/w4",
    "lane/w9",
-   "main",
-   "lane/w1",
    "review/r4",
    "review/r3",
    "review/r2",
