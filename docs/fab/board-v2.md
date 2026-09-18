@@ -106,7 +106,7 @@ ESD actually on this board: the electrode paths have the 220 kΩ series resistor
 
 ## 4. Gate G4 — first-load net map
 
-Target runs from its own cell, off-body, electrodes disconnected. TC2030-IDC-NL keyed orientation. Raspberry Pi Debug Probe, 3.3 V I/O, ground first. +VDD is 3.0 V only once firmware has written UICR REGOUT0 = 3.0 V: an erased nRF52840 in high-voltage mode starts REG0 at 1.8 V, so on first load the target is at 1.8 V (`firmware-v2.md`). The probe's 3.3 V high into a 1.8 V or 3.0 V target is above or at the nRF52840's VDD + 0.3 V pin limit. Compatibility is **not** inferred; G4 has to verify both directions at the powered target's actual voltage.
+Target runs from its own cell, off-body, electrodes disconnected. TC2030-IDC-NL keyed orientation. Raspberry Pi Debug Probe, 3.3 V I/O, ground first. +VDD is 3.0 V only once firmware has written UICR REGOUT0 = 3.0 V: an erased nRF52840 in high-voltage mode starts REG0 at 1.8 V, so on first load the target is at 1.8 V (`firmware-v2.md`). The probe's 3.3 V high into a 1.8 V or 3.0 V target is above or at the nRF52840's VDD + 0.3 V pin limit. Compatibility is **not** inferred; G4 has to verify both directions at the powered target's actual voltage. The probe's documentation page states only "The probe operates at 3.3V nominal I/O voltage." (raspberrypi.com/documentation/microcontrollers/debug-probe.html, re-read 2026-09-17); it gives no target-voltage limit in either direction, so WP17's 0–3.63 V is UNVERIFIED and not used here.
 
 | IDC | TC2030 pin | Net | Probe (proposed) | Rule |
 |---|---|---|---|---|
@@ -178,6 +178,7 @@ Iq: tens of µA class (SBVS195). Dropout as in §6. AVDD = DVDD = +3V0. **Per AD
 ## 8. Module, RF keep-out, USB, cell connector
 
 - Module: Raytac MDBT50Q-1MV2, footprint `RF_Module:Raytac_MDBT50Q`, LCSC **C5118826** (C5142646 was 404). HV mode: VDDH = VBAT, 10 µH DCCH → +VDD **per Raytac spec 8.1**. Centre **(10.00, 32.35)** mm in packing (u, s). Body 15.50 × 10.50, length along u. KiCad rotation 90° so that 15.5 mm lies on u, which puts the footprint's antenna end at low u.
+- Module sourcing (Q54, review r5): two routes, no design change. (1) JLC global sourcing, if the part is quotable in JLC's library without a request; (2) consignment: Rolf buys the modules at DigiKey or Mouser and ships them to JLC, which adds one parcel and JLC's consignment fee, both to be quoted from pages at G3. The LCSC number is **UNVERIFIED (2026-09-17)**: this lane read C5118826 and says C5142646 was 404; WP17 lists C5142646 as extended/consigned and out of stock. Neither page was re-read by the review. `orders-v2.md` carries the Raytac line.
 - RF no-copper: rule area u 2.25–6.00, s 26.15–38.55 (3.8 × 12.4) on every copper layer at that antenna end, plus a top-layer feed-notch area u 6.05–7.25, s 33.05–34.65. `packing-v2.md` §5 gives the same pose (u 2.25–6.05). The lane also drew u 3.80–16.20, s 33.80–37.60, the length-along-s rectangle, which covered 15 module pads; review r5 removed it. R11–R13, C2 and U4 still sit in the u-end area on this PCB (DRC `items_not_allowed`).
 - USB-C: 16-pin HRO TYPE-C-31-M-12 land, LCSC C223907, 5.1 kΩ on CC1 and CC2, USBLC6-2SC6 on D+/D−, PESD5V0L1UL on VBUS (cathode to VBUS). Centre **(10.00, −2.15)** mm. It hangs off the **hook-end end face** (plan v2 §5.4 fallback). Recess 1.0, ligaments 1.5, plug volume 12 × 6.5 × 15. The medial opening is not cut on the order-1 solid.
 - Cell: JST-SH SM02B-SRSS-TB placed in the pocket at **(14.40, 4.65)** mm on this PCB (packing r5: (14.40, 9.15)) (SparkFun PRT-25270 page, 2026-09-17; that page's “2 mm pitch” text is wrong — SH is 1.00 mm). Silkscreen `J2 BAT+ pin1` is against the connector contacts, not a wire colour. JST-PH S2B-PH-SM4-TB is in `lib/` as the G1b alternate, unplaced. Cell 501015 10.4 × 15.6 × 5.2 plus foam 0.5, centre (7.00, 9.30); the flex neck stays to the right of that pocket. The 501015 harness length 100 ± 3 mm is **NOT_MEASURED** as a solid (`packing-v2.md` §7). **G1b.**
@@ -296,7 +297,7 @@ Review r5: three codes were each on two different values (C25803 on 220 kΩ R1�
 
 | Ref | MPN / value | LCSC | Tier (when read) | Notes |
 |---|---|---|---|---|
-| U1 | MDBT50Q-1MV2 | C5118826 | — | Consignment candidate; LCSC page existed |
+| U1 | MDBT50Q-1MV2 | C5118826 (UNVERIFIED; WP17 says C5142646) | — | Q54: JLC global sourcing or consignment from DigiKey/Mouser (§8) |
 | U2 | ADS1292IRSMT | C89288 | — | Non-R, VQFN-32. L5's C134015/C2841443 were wrong parts |
 | U3 | BQ25100YFPR | C527572 | Extended | OOS / high when last read |
 | U4 | TLV71330PDBVR | C2863702 | Extended | Stock existed |
