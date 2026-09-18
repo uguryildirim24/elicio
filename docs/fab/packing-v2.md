@@ -2052,7 +2052,7 @@ Q81 is settled: the build carries this cell. J1 and U5 are absent. P4 and P5 are
 | R21 | bottom | 17.08 | 34.77 | 0 | 1.86 × 0.94 | passive, second side |
 | R22 | bottom | 17.08 | 35.97 | 0 | 1.86 × 0.94 | passive, second side |
 | R23 | bottom | 18.32 | 21.10 | 0 | 1.86 × 0.94 | passive, second side |
-| R24 | bottom | 18.49 | 22.57 | 90 | 0.94 × 1.86 | passive, second side |
+| R24 | bottom | 18.75 | 22.37 | 0 | 1.86 × 0.94 | passive, second side |
 | R25 | bottom | 7.82 | 17.23 | 90 | 0.94 × 1.86 | passive, second side |
 | R26 | bottom | 14.21 | 21.63 | 90 | 0.94 × 1.86 | passive, second side |
 | R27 | bottom | 18.22 | 25.23 | 90 | 0.94 × 1.86 | passive, second side |
@@ -2144,7 +2144,7 @@ Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_t
 | R21 | bottom | 17.08 | 34.77 | 0 | 1.86 × 0.94 | passive, second side |
 | R22 | bottom | 17.08 | 35.97 | 0 | 1.86 × 0.94 | passive, second side |
 | R23 | bottom | 18.32 | 21.10 | 0 | 1.86 × 0.94 | passive, second side |
-| R24 | bottom | 18.49 | 22.57 | 90 | 0.94 × 1.86 | passive, second side |
+| R24 | bottom | 18.75 | 22.37 | 0 | 1.86 × 0.94 | passive, second side |
 | R25 | bottom | 7.82 | 17.23 | 90 | 0.94 × 1.86 | passive, second side |
 | R26 | bottom | 14.21 | 21.63 | 90 | 0.94 × 1.86 | passive, second side |
 | R27 | bottom | 18.22 | 25.23 | 90 | 0.94 × 1.86 | passive, second side |
@@ -2185,7 +2185,7 @@ Tag-Connect TC2030-IDC-NL from `git show 30ca79d:hardware/board/elicio-v2.kicad_
 | J4-NPTH2 | 15.234 | 22.060 | 0.9906 | 1.39 | F.Cu and B.Cu |
 | J4-NPTH3 | 17.266 | 22.060 | 0.9906 | 1.39 | F.Cu and B.Cu |
 
-Q87 fold from pin table v2: R23 from (18.28, 21.17) rot 0 to (18.32, 21.10) rot 0 (+0.04 u, -0.07 s); R24 from (18.28, 22.37) rot 0 to (18.49, 22.57) rot 90 (+0.21 u, +0.20 s); R26 from (14.22, 21.63) rot 90 to (14.21, 21.63) rot 90 (-0.01 u, +0.00 s). WP12e zero-track DRC (route.md §9) asked R24 +0.46 u (pad vs hole); route.md §10 was not on lane/w2 at this pass. Packing keep is pad vs the Ø1.39 circle. The reviewer reconciles within 0.1 mm; the board is copper truth.
+Q87 fold from pin table v2: R23 from (18.28, 21.17) rot 0 to (18.32, 21.10) rot 0 (+0.04 u, -0.07 s); R24 from (18.28, 22.37) rot 0 to (18.75, 22.37) rot 0 (+0.47 u, +0.00 s); R26 from (14.22, 21.63) rot 90 to (14.21, 21.63) rot 90 (-0.01 u, +0.00 s). WP12e zero-track DRC (route.md §9) asked R24 +0.46 u (pad vs hole). Packing keep is pad vs the Ø1.39 circle. Review r7 reconciled R24 to the board's copper (Q87: the board is the truth): the board site (18.75, 22.37) rot 0 clears the J4 holes and every courtyard, and J3's hang continues the outline past u 19.75 at that s. The nearest-site fold alone gives (18.49, 22.57) rot 90; the packing row moved, not the board.
 
 
 Drawings (at most four, Q56) live under `docs/fab/cad/v2c/` so the round-5 14-file `placement_v2_*.svg` set in `docs/fab/cad/v1/` stays pinned.
