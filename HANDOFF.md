@@ -99,16 +99,16 @@ on a removed key.
   expected); `pro-mcp start --name pro` reopens the remembered chat when
   the next spec dialogue needs it.
 - **w1** (cursor `cursor-grok-4.6-xhigh`, `lane/w1`): WP11 packing v2
-  (`tasks/WP11-packing-v2.md`), prompted 2026-09-17 ~18:45, still on its
-  first turn (worktree dirty, no commit yet), with four coordinator notes
-  queued that each run as a new turn after a DONE: note 1 (~20:10, drop
-  C, corrected heights, lids 6.0–9.0, harness and medial envelopes), note
-  2 (~21:30, standoff and pin arrays, since superseded), note 3 (~19:36,
-  board on standoff tops per turn 07, standoffs 3.0/3.5, cell under the
-  board), note 4 (~19:56, standoffs 3.0/3.5/4.0, positive cell clearance
-  or a 0.5 floor recess, module stack per candidate). Expect FIVE
-  `DONE WP11` pushes; the last one's report and `docs/fab/packing-v2.md` (expected)
-  (expected on `lane/w1`) feed D-1 (Q38) and WP12's outline.
+  (`tasks/WP11-packing-v2.md`). First `DONE WP11` at `43a982a` (~20:08)
+  covered the brief and coordinator notes 1 to 3 in one turn: 432 runs,
+  `docs/fab/packing-v2.md` on `lane/w1` (absent on main); interface I
+  closes 0/288, interface II closes in four layouts (Raytac, 501015,
+  series, width 20, standoff 3.0, LID_Y 7.0–9.0; Stage B winner
+  `A_501015_series_w20_y8_iII_s3`); USB on the hook-end end face; 144
+  tests OK; order 1 byte-identical. Note 4 (~19:56: standoffs 3.0/3.5/4.0,
+  cell clearance, 0.5 floor recess) is still queued and runs as a second
+  turn: expect ONE more `DONE WP11`. Recorded as Q50 and Q51; the build
+  switched to interface II (w2 told at ~20:45).
 - **w2** (cursor, `lane/w2`, fast-forwarded to `401f92d`): WP12 board v2
   (`tasks/WP12-board.md`), prompted ~20:20: installs KiCad 10.0.6 by
   brew cask (Q46), builds the KiCad project, `scripts/board/release.py` (expected),
@@ -133,7 +133,7 @@ on a removed key.
   in `docs/fab/L5-research-v2.md` (absent on main). agy status is unreliable; its DONE push
   is the only signal. Report `.reports/WP17-report.md` (expected).
 
-Round 5 review: when WP11's fifth DONE and WP12, WP13, WP16 and WP17 have
+Round 5 review: when WP11's second DONE and WP12, WP13, WP16 and WP17 have
 all landed (a lane that pushes WAITING is recorded and the review opens
 without it), create the round 5 review branch (expected, not created yet) from `main`,
 a fresh Opus 5 high reviewer from `tasks/review-code-template.md` as
@@ -160,11 +160,12 @@ and gates G1–G8 for the build. Outside those:
    WP17 (same branch) and spot-checks the quotes.
 2. The answer sheet's questions 2 to 4 are answered but superseded (no
    gauge order, no breadboard); the banner on the sheet says so. A v3 of
-   the sheet with Q38, Q41, Q46, Q47 in plain words is owed.
-3. The vault holds rounds 1 to 4 (page `Wiki/projects/Elicio.md`); Rolf's
-   answers, plan v2 and its sign-off are filed back in the run started
-   after this checkpoint (or not yet, if the run is absent from the vault's
-   log).
+   the sheet with Q38 (9.0 outer at width 20 is the smallest body that
+   closes), Q41, Q46, Q47 in plain words is owed after round 5 lands, when
+   the ledger has numbers.
+3. The vault holds rounds 1 to 4 and plan v2's sign-off (page
+   `Wiki/projects/Elicio.md`, vault main `c21a0b9`); WP11's result and
+   round 5 are not filed back yet.
 4. Idle lane tabs stay open with their agents; start lines are in the
    briefs and the Herdr section. The `pro` tab is closed.
 5. The `lane/w5` branch now has a merge commit from `main` (`305fe1f`)
@@ -174,7 +175,7 @@ and gates G1–G8 for the build. Outside those:
 ## Next
 
 - Idle until a DONE lands (check report file and clean tree, read the
-  report); when the fifth `DONE WP11` and WP12, WP13, WP16, WP17 have all
+  report); when the second `DONE WP11` and WP12, WP13, WP16, WP17 have all
   landed or pushed WAITING, open the round 5 review as described under In
   flight.
 
