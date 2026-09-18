@@ -198,15 +198,20 @@ fast-forwarded to `110a79b`.
   `c6bd2fe`; w1's WP14d numbers (pads, holes, strips) did not move, so
   no WP14e. w3 idles; merges in round 7's review.
 - **w3 → WP11e flat pattern** (`tasks/WP11e-flat-pattern.md`, main
-  `aea2345`): RUNNING since 03:20 on `lane/w3` on top of `c6bd2fe` (told
-  to `git merge main` first): the flat (unfolded) pattern of the build's
-  cell with the strips and ring pads in PCB coordinates leaving the
-  island's neck end, non-overlap proven, or the next exit with numbers;
-  pin table v2 (flat coordinates plus side) and a separate folded-site
-  table for the shell; J4's NPTH holes a both-side keep-out; every rule
-  re-checked. Waits for nothing from me. Report
-  `.worktrees/w3/.reports/WP11e-report.md` (expected) → `DONE WP11e`;
-  then I send w2 the line "pin table v2" plus the sha.
+  `aea2345`): first pass LANDED, `DONE WP11e` at `723e74c` on `lane/w3`
+  (tree clean, report `.worktrees/w3/.reports/WP11e-report.md` present,
+  228 tests OK, packing doc byte-identical, drawings 4). Built §5d: the
+  flat pattern (neck-end exit, 180° fold at R 1.5, arc 4.71; SIG1 flat
+  ring (5.90, 5.29) L 10.71, SIG2 flat ring (10.40, −5.81) L 21.81, REF
+  along the floor to (8.50, 43.00), no self-overlap, no strip over a
+  part), pin table v2 with 68 rows in flat coordinates plus side, the
+  folded-site table for the shell (unchanged contact sites), J4's
+  THREE NPTH (drill 0.99, keep Ø1.39) as a both-side keep-out with no
+  B.Cu part inside. Not yet done: my mid-turn addendum (P4/P5 out of
+  the 1.5 mm side walls, inside the cavity u range) is running as its
+  second turn (status working at 04:05); its DONE brings the final v2
+  sha. Only then do I send w2 "pin table v2" plus that sha and brief
+  w1's WP14e on the new P4/P5 folded sites.
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
   WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
   package commit, tree clean, report
