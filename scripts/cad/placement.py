@@ -2095,6 +2095,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run WP11c real-courtyard layout on the 501012 w20 y8 body (and the 17 mm +1.5 case)",
     )
+    parser.add_argument(
+        "--layout-v2c",
+        action="store_true",
+        help="run WP11d layout grid (both edge readings, two widths, two chords, two sides)",
+    )
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
     if args.packing_doc:
@@ -2154,6 +2159,19 @@ def main(argv: list[str] | None = None) -> int:
                 f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
                 f"outer={row.outer_at_lid:.1f} first={row.first_conflict or '—'}"
             )
+        return 0
+    if args.layout_v2c:
+        v2 = _v2()
+        mod = v2._layout_v2c_mod()
+        rows = mod.run_v2c_grid(v2)
+        for lay in rows:
+            print(
+                f"{lay.edge} w{lay.width:g} c{lay.chord:.2f} {lay.sides} "
+                f"placed={lay.placed}/66 extra_u={lay.extra_u:+.2f} extra_s={lay.extra_s:+.2f} "
+                f"second={len(lay.second_side)} blocking={lay.first_blocking.split(':')[0] if lay.first_blocking else '—'}"
+            )
+        drawn = mod.write_v2c_drawings(v2)
+        print(f"drawings={len(drawn)}")
         return 0
     if args.layout_v2:
         v2 = _v2()

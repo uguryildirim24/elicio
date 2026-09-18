@@ -3761,6 +3761,7 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append("The REF tab route search is in §5 (WP11b, Q59).")
     lines.append("The board-lane layout with real courtyards is §5b (WP11c).")
     lines.append("Round 6 decisions 70–74 (`tasks/reviews/code-r6.md`) are in §5b.")
+    lines.append("The layout grid under both edge readings is §5c (WP11d).")
     lines.append("")
     lines.append("## 1. Every run at BODY_ARC 48.4")
     lines.append("")
@@ -4059,6 +4060,7 @@ def packing_markdown(rows: list[V2Result]) -> str:
             lines.append(f"{' and '.join(others)} do not close. There is no board-lane layout for them.")
     lines.append("")
     lines.extend(_layout_v2_section())
+    lines.extend(_layout_v2c_section())
     lines.append("## 6. Winners sent to Stage B (at most six)")
     lines.append("")
     if closed:
@@ -4195,3 +4197,21 @@ def write_packing_doc(path: Path | None = None, *, include_arc: bool = False) ->
     dest = path or (ROOT / "docs" / "fab" / "packing-v2.md")
     dest.write_text(packing_markdown(run_matrix(include_arc=include_arc)), encoding="utf-8")
     return dest
+
+
+def _layout_v2c_mod():
+    path = Path(__file__).with_name("layout_v2c.py")
+    name = "elicio_cad_layout_v2c"
+    mod = sys.modules.get(name)
+    if mod is not None:
+        return mod
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec is not None and spec.loader is not None
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _layout_v2c_section() -> list[str]:
+    return _layout_v2c_mod().section_5c(sys.modules[__name__])
