@@ -63,6 +63,30 @@ class BoardReleaseTests(unittest.TestCase):
             self.assertGreater(len(rows), 0)
             designators = [r.get("Designator") or r.get("Reference") for r in rows]
             self.assertEqual(len(set(designators)), len(designators))
+            # Review r5: ERC is clean (no lib_symbol_mismatch), DRC is counted
+            # and the summary says the board is not routed.
+            self.assertEqual(summary["erc_warnings"], 0)
+            self.assertIs(summary["routed"], False)
+            for key in ("drc_errors", "drc_warnings", "unconnected_items", "pcb_tracks", "pcb_pads_without_net"):
+                self.assertIsInstance(summary[key], int, key)
+            self.assertGreater((out / "elicio-v2.step").stat().st_size, 0)
+
+    def test_routed_release_fails_closed_on_this_board(self) -> None:
+        if shutil.which("kicad-cli") is None:
+            self.fail(kicad_missing_message())
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "release"
+            proc = subprocess.run(
+                [sys.executable, str(RELEASE), "--board-dir", str(SCH.parent), "--out", str(out), "--routed"],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 1, proc.stdout[-2000:])
+            self.assertIn("routed release refused", proc.stderr)
+            summary = json.loads((out / "summary.json").read_text())
+            self.assertIs(summary["routed"], True)
+            self.assertEqual(summary["pcb_tracks"], 0)
 
 
 if __name__ == "__main__":

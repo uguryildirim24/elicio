@@ -2177,7 +2177,7 @@
 		)
 		(embedded_fonts no)
 	)
-(symbol "Regulator_Linear:TLV71330PDBV"
+(symbol "elicio:TLV71330PDBV"
 		(pin_names
 			(offset 0.254)
 		)
@@ -3790,7 +3790,7 @@
 		)
 		(embedded_fonts no)
 	)
-(symbol "Transistor_FET:AO3401A"
+(symbol "elicio:AO3401A"
 		(pin_names
 			(hide yes)
 		)
@@ -4104,7 +4104,7 @@
 		)
 		(embedded_fonts no)
 	)
-(symbol "Transistor_FET:2N7002"
+(symbol "elicio:2N7002"
 		(pin_names
 			(offset 0)
 			(hide yes)
@@ -4405,7 +4405,7 @@
 		)
 		(embedded_fonts no)
 	)
-(symbol "Power_Protection:USBLC6-2SC6"
+(symbol "elicio:USBLC6-2SC6"
 		(pin_names
 			(hide yes)
 		)
@@ -5936,7 +5936,7 @@
 		)
 		(embedded_fonts no)
 	)
-(symbol "Diode:PESD5V0L1UL"
+(symbol "elicio:PESD5V0L1UL"
 		(pin_numbers
 			(hide yes)
 		)
@@ -6469,9 +6469,17 @@
 		(at 71.12 106.68)
 		(uuid "bd96c411-08b8-4a07-8d94-b8d904604269")
 	)
-	(no_connect
-		(at 30.48 60.96)
-		(uuid "5e2d75dc-a3ae-4987-9f30-2ebb160c9057")
+	(global_label "LED_EN"
+		(shape input)
+		(at 30.48 60.96 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "03230cb3-5753-4567-a5c0-e4403ed6d550")
 	)
 	(no_connect
 		(at 30.48 63.5)
@@ -7463,7 +7471,7 @@
 		(uuid "6c7ab868-4f8b-4fd9-b6a5-ed16ad2cb01c")
 	)
 	(symbol
-		(lib_id "Regulator_Linear:TLV71330PDBV")
+		(lib_id "elicio:TLV71330PDBV")
 		(at 91.44 165.1 0)
 		(unit 1)
 		(body_style 1)
@@ -8016,7 +8024,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54:PinHeader_1x03_P2.54mm_Horizontal"
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Horizontal"
 			(at 203.2 139.7 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8392,7 +8400,7 @@
 		(uuid "5ba44097-3ffa-42e9-9179-759a3a1a2a99")
 	)
 	(symbol
-		(lib_id "Transistor_FET:AO3401A")
+		(lib_id "elicio:AO3401A")
 		(at 91.44 139.7 0)
 		(unit 1)
 		(body_style 1)
@@ -8521,7 +8529,7 @@
 		(uuid "e6a28e65-bad5-4bdc-910b-11fd3f1a64e4")
 	)
 	(symbol
-		(lib_id "Transistor_FET:2N7002")
+		(lib_id "elicio:2N7002")
 		(at 114.3 139.7 0)
 		(unit 1)
 		(body_style 1)
@@ -8650,7 +8658,7 @@
 		(uuid "341e89c3-ccd2-4c85-aab8-cd74ef667685")
 	)
 	(symbol
-		(lib_id "Transistor_FET:2N7002")
+		(lib_id "elicio:2N7002")
 		(at 137.16 139.7 0)
 		(unit 1)
 		(body_style 1)
@@ -8779,7 +8787,7 @@
 		(uuid "a9a25ca3-a962-4373-b5b6-90bcac69b300")
 	)
 	(symbol
-		(lib_id "Transistor_FET:2N7002")
+		(lib_id "elicio:2N7002")
 		(at 160.02 165.1 0)
 		(unit 1)
 		(body_style 1)
@@ -8871,7 +8879,7 @@
 			)
 		)
 	)
-	(global_label "ISET"
+	(global_label "LED_EN"
 		(shape input)
 		(at 154.94 165.1 0)
 		(fields_autoplaced yes)
@@ -8908,7 +8916,7 @@
 		(uuid "d5936454-39d4-4c97-9260-5702616dce54")
 	)
 	(symbol
-		(lib_id "Power_Protection:USBLC6-2SC6")
+		(lib_id "elicio:USBLC6-2SC6")
 		(at 165.1 50.8 0)
 		(unit 1)
 		(body_style 1)
@@ -9082,7 +9090,7 @@
 		(uuid "07af2a9b-bddf-4465-91ed-842e8b8ceb2e")
 	)
 	(symbol
-		(lib_id "Diode:PESD5V0L1UL")
+		(lib_id "elicio:PESD5V0L1UL")
 		(at 137.16 50.8 0)
 		(unit 1)
 		(body_style 1)
@@ -9626,7 +9634,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" ""
 			(at 177.8 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9729,7 +9737,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" ""
 			(at 190.5 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9832,7 +9840,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" ""
 			(at 203.2 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9935,7 +9943,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25765"
+		(property "LCSC" ""
 			(at 165.1 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11068,7 +11076,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1525"
+		(property "LCSC" ""
 			(at 76.2 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11377,7 +11385,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" ""
 			(at 76.2 139.7 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11480,7 +11488,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" ""
 			(at 101.6 139.7 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11583,7 +11591,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" ""
 			(at 127.0 127.0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11686,7 +11694,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25765"
+		(property "LCSC" ""
 			(at 139.7 127.0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11995,7 +12003,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25765"
+		(property "LCSC" ""
 			(at 101.6 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12098,7 +12106,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25765"
+		(property "LCSC" ""
 			(at 114.3 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12136,7 +12144,7 @@
 		)
 		(uuid "600b3d44-c338-4907-9fda-7f0341dd5a0e")
 	)
-	(global_label "BAT_MEAS_LO"
+	(global_label "GND"
 		(shape input)
 		(at 114.3 54.61 90)
 		(fields_autoplaced yes)
@@ -12407,7 +12415,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1525"
+		(property "LCSC" ""
 			(at 139.7 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12510,7 +12518,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1525"
+		(property "LCSC" ""
 			(at 152.4 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12819,7 +12827,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1525"
+		(property "LCSC" ""
 			(at 241.3 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12922,7 +12930,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1525"
+		(property "LCSC" ""
 			(at 25.4 38.1 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13334,7 +13342,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25765"
+		(property "LCSC" ""
 			(at 195.58 165.1 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13360,7 +13368,7 @@
 			)
 		)
 	)
-	(global_label "VBAT"
+	(global_label "VBUS"
 		(shape input)
 		(at 195.58 161.29 270)
 		(fields_autoplaced yes)
@@ -13437,7 +13445,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" ""
 			(at 127.0 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13540,7 +13548,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" ""
 			(at 139.7 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13978,7 +13986,7 @@
 			)
 		)
 	)
-	(global_label "CHG_MON"
+	(global_label "LED_EN"
 		(shape input)
 		(at 177.8 34.29 270)
 		(fields_autoplaced yes)
@@ -14209,7 +14217,7 @@
 		(uuid "0a897203-5465-4a56-8e97-352149684ae8")
 	)
 	(symbol
-		(lib_id "Transistor_FET:2N7002")
+		(lib_id "elicio:2N7002")
 		(at 127.0 38.1 0)
 		(unit 1)
 		(body_style 1)
@@ -14217,7 +14225,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "e720d75c-0bd9-415e-8c67-5e96b711a6c0")
 		(property "Reference" "Q5"
 			(at 127.0 38.1 0)
@@ -14325,7 +14333,7 @@
 		)
 		(uuid "389f3b3d-288f-4d80-9d08-6a3d5a0bef34")
 	)
-	(global_label "BAT_MEAS_LO"
+	(global_label "GND"
 		(shape input)
 		(at 129.54 33.02 270)
 		(fields_autoplaced yes)
