@@ -28,6 +28,12 @@ CELLS = ("dtp", "501015")
 LAYOUTS = ("series", "stacked")
 WIDTHS = (18.0, 19.0, 20.0)
 LID_YS = (6.0, 6.5, 7.0, 8.0, 8.5, 9.0)
+# WP11b note 2: bigger box for buyable cells only. Not in the 864-run matrix.
+BUYABLE_EXT_WIDTHS = (20.0, 21.0, 22.0)
+BUYABLE_EXT_LID_YS = (9.5, 10.0, 10.5)
+BUYABLE_EXT_CELLS = ("dtp", "jauch")
+ALLOWED_WIDTHS = tuple(dict.fromkeys((*WIDTHS, *BUYABLE_EXT_WIDTHS)))
+ALLOWED_LID_YS = tuple(dict.fromkeys((*LID_YS, *BUYABLE_EXT_LID_YS)))
 ARC_STEPS = (0.0, 1.5, 3.0)
 IFACES = ("I", "II")
 STANDOFFS = (3.0, 3.5, 4.0)
@@ -203,10 +209,10 @@ class V2Spec:
             raise ValueError(f"cell must be {'|'.join(CELL)}, got {self.cell!r}")
         if self.layout not in LAYOUTS:
             raise ValueError(f"layout must be series|stacked, got {self.layout!r}")
-        if self.width not in WIDTHS:
-            raise ValueError(f"width must be 18|19|20, got {self.width!r}")
-        if self.lid_y not in LID_YS:
-            raise ValueError(f"lid-y must be 6.0–9.0 in 0.5 steps, got {self.lid_y!r}")
+        if self.width not in ALLOWED_WIDTHS:
+            raise ValueError(f"width must be 18–22, got {self.width!r}")
+        if self.lid_y not in ALLOWED_LID_YS:
+            raise ValueError(f"lid-y must be 6.0–10.5 in 0.5 steps, got {self.lid_y!r}")
         if self.arc_plus not in ARC_STEPS:
             raise ValueError(f"arc-plus must be 0|1.5|3.0, got {self.arc_plus!r}")
         if self.iface not in IFACES:
@@ -774,6 +780,43 @@ def run_jauch_series() -> list[V2Result]:
     if _JAUCH_ROWS is None:
         _JAUCH_ROWS = [run_spec(s) for s in jauch_specs()]
     return _JAUCH_ROWS
+
+
+def buyable_ext_specs() -> list[V2Spec]:
+    """WP11b note 2: DTP and Jauch, bigger lid and width, same round-5 checker."""
+    specs: list[V2Spec] = []
+    for cell in BUYABLE_EXT_CELLS:
+        for width in BUYABLE_EXT_WIDTHS:
+            for lid_y in BUYABLE_EXT_LID_YS:
+                for standoff in DTP_ARC_STANDOFFS:
+                    for arc_plus in ARC_STEPS:
+                        specs.append(
+                            V2Spec("A", cell, "series", width, lid_y, arc_plus, "II", standoff, 0.0)
+                        )
+    return specs
+
+
+_BUYABLE_EXT_ROWS: list[V2Result] | None = None
+
+
+def run_buyable_ext() -> list[V2Result]:
+    global _BUYABLE_EXT_ROWS
+    if _BUYABLE_EXT_ROWS is None:
+        _BUYABLE_EXT_ROWS = [run_spec(s) for s in buyable_ext_specs()]
+    return _BUYABLE_EXT_ROWS
+
+
+def _brief_box_conflict(text: str) -> bool:
+    return text == "body outside the ≤ 9.0 high and 20 wide cap"
+
+
+def packing_conflicts(r: V2Result) -> list[str]:
+    """Round-5 conflicts except the plan's ≤9×20 box, which this search leaves."""
+    return [c for c in r.conflicts if not _brief_box_conflict(c)]
+
+
+def packs_outside_brief_box(r: V2Result) -> bool:
+    return not packing_conflicts(r)
 
 
 def _place_cell(spec: V2Spec, geom: dict[str, Any], module: Box | None) -> Box:
@@ -2095,6 +2138,109 @@ def _jauch_section(winner_chord: float) -> list[str]:
     return lines
 
 
+def _never_clears_families(rows: list[V2Result]) -> list[str]:
+    keys: list[set[str]] = []
+    for r in rows:
+        pc = packing_conflicts(r)
+        keys.append({conflict_family(c) for c in pc})
+    if not keys:
+        return []
+    common = set.intersection(*keys)
+    return sorted(common)
+
+
+def _buyable_ext_section(winner_chord: float, winner_row: V2Result | None) -> list[str]:
+    """WP11b note 2: DTP and Jauch at LID_Y 9.5–10.5 and width 20–22."""
+    rows = run_buyable_ext()
+    winner_outer = winner_row.outer_at_lid if winner_row is not None else 9.0
+    winner_lid = winner_row.spec.lid_y if winner_row is not None else 8.0
+    winner_width = winner_row.spec.width if winner_row is not None else 20.0
+    lines: list[str] = []
+    lines.append("## 1d. Bigger body for the two buyable cells (WP11b note 2)")
+    lines.append("")
+    lines.append(
+        "DTP301120 and LP501218JH only. Series, interface II, architecture A, foam 0.5, "
+        "standoffs 3 and 4, BODY_ARC and arc-plus +1.5 and +3.0. LID_Y 9.5, 10.0 and 10.5; "
+        "widths 20, 21 and 22. Conflict logic is the round 5 checker (no new constants). "
+        f"{len(rows)} runs. The plan's ≤ 9.0 high and 20 wide cap still records a conflict; "
+        "a run packs here if that cap is the only remaining conflict, so the table can "
+        "answer how much bigger a buyable cell needs."
+    )
+    lines.append("")
+    lines.append(
+        "| cell | standoff | width | lid | outer | arc+ | packs | first packing conflict | TOTAL_CHORD | M1 gate |"
+    )
+    lines.append("|---|---:|---:|---:|---:|---:|---|---|---:|---:|")
+    for r in rows:
+        spec = r.spec
+        pc = packing_conflicts(r)
+        packs = not pc
+        first = "—" if packs else _md_cell(pc[0])
+        lines.append(
+            f"| {CELL[spec.cell]['name']} | {spec.standoff:g} | {spec.width:g} | {spec.lid_y:g} | "
+            f"{r.outer_at_lid:.1f} | {spec.arc_plus:g} | {'yes' if packs else 'no'} | {first} | "
+            f"{r.total_chord:.2f} | {r.m1_gate:.2f} |"
+        )
+    lines.append("")
+    n_full = sum(1 for r in rows if r.closes)
+    n_pack = sum(1 for r in rows if packs_outside_brief_box(r))
+    lines.append(
+        f"{n_full} of {len(rows)} close under every round-5 check (including the ≤9×20 cap). "
+        f"{n_pack} of {len(rows)} pack if that cap is set aside. No new drawing: Q56 keeps closers only."
+    )
+    for cell_key, label in (("dtp", "DTP301120"), ("jauch", "LP501218JH")):
+        cr = [r for r in rows if r.spec.cell == cell_key]
+        packed = [r for r in cr if packs_outside_brief_box(r)]
+        never = _never_clears_families(cr)
+        lines.append("")
+        if packed:
+            packed.sort(
+                key=lambda r: (r.spec.width, r.spec.lid_y, r.spec.arc_plus, r.spec.standoff, r.total_chord)
+            )
+            best = packed[0]
+            hcost = best.outer_at_lid - winner_outer
+            ccost = best.total_chord - winner_chord
+            wcost = best.spec.width - winner_width
+            lines.append(
+                f"- **{label}**: smallest packing body `{best.spec.tag}`. "
+                f"Width {best.spec.width:g} ({wcost:+.0f} mm vs winner {winner_width:g}), "
+                f"LID_Y {best.spec.lid_y:g} (winner {winner_lid:g}), "
+                f"outer thickness {best.outer_at_lid:.1f} ({hcost:+.1f} mm vs winner {winner_outer:.1f}), "
+                f"TOTAL_CHORD {best.total_chord:.2f} against M1−3 = {M1_DEFAULT - 3.0:.2f} "
+                f"({ccost:+.2f} mm vs winner {winner_chord:.2f})."
+            )
+        else:
+            plus0 = next(r for r in cr if r.spec.arc_plus == 0.0)
+            plus3 = next(r for r in cr if r.spec.arc_plus == 3.0)
+            fams = ", ".join(f"`{f}`" for f in never) if never else "none"
+            hmax = max(r.outer_at_lid for r in cr)
+            lines.append(
+                f"- **{label}**: no body packs. Family that never clears: {fams}. "
+                f"Height cost: no closer; the search reaches LID_Y 10.5, outer {hmax:.1f} "
+                f"({hmax - winner_outer:+.1f} mm vs winner outer {winner_outer:.1f}). "
+                f"Chord cost: no closer; BODY_ARC TOTAL_CHORD {plus0.total_chord:.2f} "
+                f"(same as the 501015 winner {winner_chord:.2f}); +3.0 mm of arc is "
+                f"{plus3.total_chord:.2f} ({plus3.total_chord - winner_chord:+.2f} mm) and fails "
+                f"M1−3 = {M1_DEFAULT - 3.0:.2f}."
+            )
+    fam_counts: dict[str, int] = {}
+    for r in rows:
+        pc = packing_conflicts(r)
+        if pc:
+            key = conflict_family(pc[0])
+            fam_counts[key] = fam_counts.get(key, 0) + 1
+    if fam_counts:
+        lines.append("")
+        lines.append("First packing-conflict families (numbers masked), failing bigger-box runs:")
+        lines.append("")
+        lines.append("| family | runs |")
+        lines.append("|---|---:|")
+        for fam, n in sorted(fam_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+            lines.append(f"| {_md_cell(fam)} | {n} |")
+    lines.append("")
+    return lines
+
+
 def _buyable_cell_compare_section(matrix_rows: list[V2Result], winner_chord: float) -> list[str]:
     """Smallest closer per cell: 501015, DTP301120, Jauch LP501218JH."""
     dtp_rows = [r for r in matrix_rows if r.spec.cell == "dtp" and r.spec.iface == "II" and r.spec.layout == "series"]
@@ -2139,6 +2285,50 @@ def _buyable_cell_compare_section(matrix_rows: list[V2Result], winner_chord: flo
             jauch_rows,
         )
     )
+    lines.append("")
+    ext = run_buyable_ext()
+    winner_hit = _smallest_closed(rows_501015)
+    winner_outer = winner_hit.outer_at_lid if winner_hit is not None else 9.0
+    lines.append(
+        "Extended (WP11b note 2): LID_Y 9.5, 10.0 and 10.5; widths 20, 21 and 22. "
+        "A run packs if the only extra conflict is the plan's ≤ 9.0 high and 20 wide cap."
+    )
+    lines.append("")
+    lines.append(
+        "| cell | box | smallest closer | width | lid | outer | TOTAL_CHORD | height vs winner | chord vs winner | never-clears family |"
+    )
+    lines.append("|---|---|---|---:|---:|---:|---:|---:|---:|---|")
+    if winner_hit is not None:
+        lines.append(
+            f"| 501015 | ≤9×20 | `{winner_hit.spec.tag}` | {winner_hit.spec.width:g} | "
+            f"{winner_hit.spec.lid_y:g} | {winner_hit.outer_at_lid:.1f} | {winner_hit.total_chord:.2f} | "
+            f"— | — | — |"
+        )
+    else:
+        lines.append("| 501015 | ≤9×20 | none | — | — | — | — | — | — | — |")
+    for cell_key, label in (("dtp", "DTP301120"), ("jauch", "LP501218JH")):
+        cr = [r for r in ext if r.spec.cell == cell_key]
+        packed = [r for r in cr if packs_outside_brief_box(r)]
+        never = ", ".join(f"`{f}`" for f in _never_clears_families(cr)) if cr else "—"
+        if packed:
+            packed.sort(
+                key=lambda r: (r.spec.width, r.spec.lid_y, r.spec.arc_plus, r.spec.standoff, r.total_chord)
+            )
+            best = packed[0]
+            lines.append(
+                f"| {label} | lid 9.5–10.5, w 20–22 | `{best.spec.tag}` | {best.spec.width:g} | "
+                f"{best.spec.lid_y:g} | {best.outer_at_lid:.1f} | {best.total_chord:.2f} | "
+                f"{best.outer_at_lid - winner_outer:+.1f} mm | "
+                f"{best.total_chord - winner_chord:+.2f} mm | — |"
+            )
+        else:
+            hmax = max(r.outer_at_lid for r in cr)
+            plus3 = next(r for r in cr if r.spec.arc_plus == 3.0)
+            ccost = plus3.total_chord - winner_chord
+            lines.append(
+                f"| {label} | lid 9.5–10.5, w 20–22 | none | — | — | {hmax:.1f} | — | "
+                f"{hmax - winner_outer:+.1f} mm still open | +0 / {ccost:+.2f} mm, no closer | {never} |"
+            )
     lines.append("")
     return lines
 
@@ -2219,6 +2409,7 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append("Interface II is the flex-tab fallback.")
     lines.append("Arc-plus for the DTP301120 under interface II is §1b (WP11b, Q55).")
     lines.append("The Jauch LP501218JH under interface II is §1c (WP11b, L7-research-v4.md §2).")
+    lines.append("A bigger lid and width for the two buyable cells is §1d (WP11b note 2).")
     lines.append("The REF tab route search is in §5 (WP11b, Q59).")
     lines.append("")
     lines.append("## 1. Every run at BODY_ARC 48.4")
@@ -2249,6 +2440,7 @@ def packing_markdown(rows: list[V2Result]) -> str:
     winner_chord = winner_row.total_chord if winner_row is not None else 47.9005
     lines.extend(_dtp_arc_plus_section(winner_chord))
     lines.extend(_jauch_section(winner_chord))
+    lines.extend(_buyable_ext_section(winner_chord, winner_row))
     lines.extend(_buyable_cell_compare_section(rows, winner_chord))
     lines.append("## 2. Clearance, stack, and first-conflict families")
     lines.append("")
