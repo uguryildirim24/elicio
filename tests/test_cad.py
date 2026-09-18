@@ -881,7 +881,11 @@ SHELL_FILE = ROOT / "scripts" / "cad" / "params" / "shell_v2.toml"
 
 class CadShellV2Tests(unittest.TestCase):
     def test_q71_screw_engagement_constant(self) -> None:
-        self.assertGreaterEqual(CAD.SHELL_SCREW_ENGAGE, 2.0)
+        self.assertGreaterEqual(CAD.SHELL_SCREW_ENGAGE, 4.0)
+        self.assertGreaterEqual(CAD.SHELL_SCREW_BOSS_WALL, 1.4)
+        self.assertGreaterEqual(CAD.SHELL_SCREW_BOSS_OD, 5.0)
+        self.assertAlmostEqual(CAD.SHELL_PILOT, 2.10)
+        self.assertAlmostEqual(CAD.SHELL_SCREW_PILOT, 2.10)
         self.assertGreaterEqual(CAD.SHELL_LID_RIM_T, 1.0)
         self.assertGreaterEqual(CAD.SHELL_LID_RIM_R, 1.0)
 
@@ -964,15 +968,35 @@ class CadShellV2BuildTests(unittest.TestCase):
             self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
         self.assertTrue(rows["V2_CLOSURE"].passed, rows["V2_CLOSURE"].numbers)
         self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["hinge_lip_undercut"], 1.0)
-        self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["screw_engagement"], 2.0)
-        self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["boss_wall"], 1.0)
+        self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["screw_engagement"], 4.0)
+        self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["boss_wall"], 1.4)
+        self.assertEqual(rows["V2_CLOSURE"].numbers["well_on_medial"], 1.0)
+        self.assertTrue(rows["V2_LATERAL_unbroken"].passed, rows["V2_LATERAL_unbroken"].numbers)
+        self.assertEqual(rows["V2_LATERAL_unbroken"].numbers["pits"], 0.0)
+        self.assertEqual(rows["V2_LATERAL_unbroken"].numbers["old_lid_well_solid"], 1.0)
+        self.assertTrue(rows["V2_BOSS_pilot"].passed, rows["V2_BOSS_pilot"].numbers)
+        self.assertAlmostEqual(rows["V2_BOSS_pilot"].numbers["tail_pilot_d"], 2.10, delta=0.08)
+        self.assertGreaterEqual(rows["V2_BOSS_pilot"].numbers["tail_wall"], 1.4)
+        self.assertGreaterEqual(rows["V2_BOSS_pilot"].numbers["tail_od"], 5.0)
+        island = [
+            key[: -len("_pilot_d")]
+            for key in rows["V2_BOSS_pilot"].numbers
+            if key.endswith("_pilot_d") and key != "tail_pilot_d"
+        ]
+        self.assertEqual(len(island), 2, island)
+        for name in island:
+            self.assertAlmostEqual(
+                rows["V2_BOSS_pilot"].numbers[f"{name}_pilot_d"], 2.10, delta=0.08
+            )
+            self.assertGreaterEqual(rows["V2_BOSS_pilot"].numbers[f"{name}_wall"], 1.4)
+            self.assertGreaterEqual(rows["V2_BOSS_pilot"].numbers[f"{name}_od"], 5.0)
         self.assertTrue(rows["V2_EDGE_radii"].passed, rows["V2_EDGE_radii"].numbers)
         self.assertEqual(rows["V2_EDGE_radii"].numbers["flat_stations"], 0.0)
         self.assertGreaterEqual(rows["V2_EDGE_radii"].numbers["lid_rim_R"], 0.95)
         self.assertTrue(rows["V2_WALL_minima"].passed, rows["V2_WALL_minima"].numbers)
         self.assertFalse(rows["V2_USB_end"].passed)
         self.assertTrue(rows["V2_USB_end"].detail.startswith("NOT_MEASURED"), rows["V2_USB_end"].detail)
-        self.assertIn("packing §5b", rows["V2_USB_end"].detail)
+        self.assertIn("packing §5c", rows["V2_USB_end"].detail)
         self.assertIn("Q70", rows["V2_USB_end"].detail)
         stand = rows["V2_STANDOFF"].numbers
         for site in ("SIG1", "SIG2", "REF"):
@@ -1024,6 +1048,26 @@ class CadShellV2BuildTests(unittest.TestCase):
         self.assertEqual(hashes[0], hashes[1])
         committed = json.loads((CAD.V2_DIR / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(hashes[0], committed["files"])
+
+
+@unittest.skipUnless(HAS_RENDER, "needs the cad extra: matplotlib and trimesh")
+class CadShellV2StampTests(unittest.TestCase):
+    def test_stamp_text_equals_manifest_commit(self) -> None:
+        render = load_render_mod()
+        payload = json.loads((CAD.V2_DIR / "manifest.json").read_text(encoding="utf-8"))
+        commit = payload["commit"]
+        self.assertRegex(commit, r"^[0-9a-f]{40}$")
+        date = render.git_commit_date(commit)
+        self.assertEqual(
+            render.stamp_label(commit, date),
+            f"solids commit {commit[:12]}  {date}",
+        )
+        dirty = "0123456789abcdef0123456789abcdef01234567 dirty"
+        self.assertEqual(
+            render.stamp_label(dirty, "2026-09-18"),
+            "solids commit 0123456789ab dirty  2026-09-18",
+        )
+        self.assertEqual(render.solids_stamp_commit(payload, CAD.V2_DIR), commit)
 
 
 if __name__ == "__main__":

@@ -583,7 +583,7 @@
       "passed": true
     },
     {
-      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0; hinge outer wall \u2265 1.0; USB opening waits for packing \u00a75b",
+      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0; hinge outer wall \u2265 1.0; USB opening waits for packing \u00a75c",
       "name": "V2_WALL_minima",
       "numbers": {
         "WALL_MEDIAL": 1.5,
@@ -656,7 +656,7 @@
       "passed": false
     },
     {
-      "detail": "NOT_MEASURED: medial USB is not cut; hook-end opening waits for packing \u00a75b, Q70",
+      "detail": "NOT_MEASURED: medial USB is not cut; hook-end opening waits for packing \u00a75c, Q70",
       "name": "V2_USB_medial",
       "numbers": {
         "recess": 1.0
@@ -735,7 +735,7 @@
       "passed": true
     },
     {
-      "detail": "NOT_MEASURED: V2_USB_end (waits for packing \u00a75b, Q70); hook-end wall left solid",
+      "detail": "NOT_MEASURED: V2_USB_end (waits for packing \u00a75c, Q70); hook-end wall left solid",
       "name": "V2_USB_end",
       "numbers": {
         "wall_closed": 1.0
@@ -754,18 +754,18 @@
       "passed": true
     },
     {
-      "detail": "Q71: hinge lip at the hook-end wall (body nylon over the lip) plus one concealed ISO 7380 M2.5\u00d74 at the tail; engagement and boss wall measured. S4 two-finger pull and 0.5 m drop are qualitative (plan v2 \u00a77)",
+      "detail": "Q71: hinge lip at the hook-end wall (body nylon over the lip) plus one concealed ISO 7380 M2.5\u00d74 at the medial tail; engagement and boss wall measured. S4 two-finger pull and 0.5 m drop are qualitative (plan v2 \u00a77)",
       "name": "V2_CLOSURE",
       "numbers": {
-        "boss_wall": 3.1275,
-        "head_below_lid": 1.75,
+        "boss_wall": 3.0775,
         "hinge_lip_in": 1.0,
         "hinge_lip_undercut": 1.0,
-        "screw_engagement": 4.0,
+        "screw_engagement": 4.3,
         "screw_hole_air": 1.0,
         "screw_s": 41.0,
         "screw_u": 14.5,
-        "screw_well_air": 1.0
+        "screw_well_air": 1.0,
+        "well_on_medial": 1.0
       },
       "passed": true
     },
@@ -778,6 +778,32 @@
         "medial_fillet": 1.5,
         "min_rise_over_3mm": 0.0302,
         "stations": 6.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "Q71: no hole, well or pit opens on the lateral lid surface (lid top sampled 3 mm apart; old lid-well site is nylon)",
+      "name": "V2_LATERAL_unbroken",
+      "numbers": {
+        "old_lid_well_solid": 1.0,
+        "pits": 0.0,
+        "samples": 18.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "L8 \u00a74: CAD pilot \u00d82.10, boss OD \u2265 5.0, radial wall \u2265 1.4 at the tail closure boss and the two island bosses; island drop is V2_BOSS",
+      "name": "V2_BOSS_pilot",
+      "numbers": {
+        "boss_1_od": 5.0,
+        "boss_1_pilot_d": 2.0999,
+        "boss_1_wall": 1.45,
+        "boss_2_od": 5.0,
+        "boss_2_pilot_d": 2.0999,
+        "boss_2_wall": 1.45,
+        "tail_od": 5.935,
+        "tail_pilot_d": 2.0999,
+        "tail_wall": 1.9175
       },
       "passed": true
     },
@@ -800,7 +826,7 @@
       "detail": "body_full_p15",
       "name": "watertight",
       "numbers": {
-        "bytes": 2586484.0
+        "bytes": 2677284.0
       },
       "passed": true
     },
@@ -823,7 +849,7 @@
     "total_chord": 47.900523407445874
   },
   "closure_passed": false,
-  "commit": "c68d4b2839c9ebc031d8a04376656b290656e677",
+  "commit": "bb0c788b8d34b1d098feab73a60fa1a2f7be8c3d",
   "contact_source": "interface II flex tabs under standoffs (WP11 turn 07)",
   "contact_stack": {
     "board_underside_y": 4.3,
@@ -924,28 +950,28 @@
   },
   "files": {
     "body_full_p15.3mf": {
-      "bytes": 683639,
-      "sha256": "43d96b97d7c03ecd1e82789f64f55bbcbb9d17f3c302eae296bd6a33ef34baa7"
+      "bytes": 708053,
+      "sha256": "677f5239cfd1b366a0a82f3ebccde5111a36ff54616731f3844b68816c794226"
     },
     "body_full_p15.step": {
-      "bytes": 1222816,
-      "sha256": "c2a0ac31fae11afc40001f19d3082a76026863387b166526aa133f1b20329d08"
+      "bytes": 1246348,
+      "sha256": "1449937c99f10280096360b2811ecb694d40e98e496b392d402334b7364864de"
     },
     "body_full_p15.stl": {
-      "bytes": 2586484,
-      "sha256": "c854347a37d620b3f2f7071ecc33d9ba97b45cd8a1570e9eb9bdf01f1760dc3c"
+      "bytes": 2677284,
+      "sha256": "27d105b8ea4d669155fdf85e7ad181c74fcb7db6ef4805799b3d6031fb75c9a3"
     },
     "lid.3mf": {
-      "bytes": 78764,
-      "sha256": "e50c79037c1c063a52825381637a42d17f8a7e2eed75039b642c9bb145a19bb0"
+      "bytes": 58153,
+      "sha256": "b26547acae316858186643a95dcd9345ed55163dbbc9e546456d9c5c3ef2c596"
     },
     "lid.step": {
-      "bytes": 775556,
-      "sha256": "fa780ddb5d33b0a90c41344d749b0d0d65f147a06bce1e6d9fc223a1ae686aed"
+      "bytes": 532201,
+      "sha256": "c2a1dbc9c72e272c824220ad175def820d55ea6e345a61e57929c547a64871d2"
     },
     "lid.stl": {
-      "bytes": 292184,
-      "sha256": "46203624bcde57445cb5f17a5bd665788bf3cf3603773df5153db420c82df462"
+      "bytes": 208684,
+      "sha256": "9177160ad9695f3bd84d00c9eea20aa8d550691aca4d7fdca9e1e0929d94c185"
     }
   },
   "fits": [
@@ -1062,7 +1088,7 @@
   },
   "notes": {
     "body_full_p15": {
-      "closure": "Q71: hinge lip at the hook-end wall plus one concealed ISO 7380 M2.5\u00d74 at u=14.5 s=41; engagement 4 mm. S4 pull and drop qualitative",
+      "closure": "Q71: hinge lip at the hook-end wall plus one concealed ISO 7380 M2.5\u00d74 on the medial tail at u=14.5 s=41; pilot \u00d82.1, boss OD 5, engagement 4 mm. S4 pull and drop qualitative",
       "emboss": "none (plan v2 \u00a77: no text outside)",
       "fillets": [
         "\u00a73.5 step 2 tip round 4.0 applied",
@@ -1090,8 +1116,10 @@
         "q59_pack_vol_mm3": 0.814,
         "q59_removed_mm3": 1.8134,
         "q59_slot": "REF_end_wall_slot",
-        "screw_bearing": 1.0,
+        "screw_boss_od": 5.0,
         "screw_engage": 4.0,
+        "screw_face": "medial",
+        "screw_pilot": 2.1,
         "screw_s": 41.0,
         "screw_u": 14.5,
         "standoff_top_y": 4.81,
@@ -1225,7 +1253,7 @@
     ]
   },
   "params_file": "scripts/cad/params/shell_v2.toml",
-  "params_sha256": "8aaefc1372f7ca81521405d060ec298cffcfda1cbce661259f3cc7f56da018ea",
+  "params_sha256": "ba59d9c15d764e0deb68626dc00eb7541c4ecfc7ddc61ad81c67a7bea154e687",
   "parts": [
     "body_full_p15",
     "lid"
@@ -1538,6 +1566,38 @@
       "numbers_from": "body_full_p15",
       "passed": true
     },
+    "V2_BOSS_pilot": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "boss_1_od": 5.0,
+            "boss_1_pilot_d": 2.0999,
+            "boss_1_wall": 1.45,
+            "boss_2_od": 5.0,
+            "boss_2_pilot_d": 2.0999,
+            "boss_2_wall": 1.45,
+            "tail_od": 5.935,
+            "tail_pilot_d": 2.0999,
+            "tail_wall": 1.9175
+          },
+          "passed": true
+        }
+      },
+      "detail": "L8 \u00a74: CAD pilot \u00d82.10, boss OD \u2265 5.0, radial wall \u2265 1.4 at the tail closure boss and the two island bosses; island drop is V2_BOSS",
+      "numbers": {
+        "boss_1_od": 5.0,
+        "boss_1_pilot_d": 2.0999,
+        "boss_1_wall": 1.45,
+        "boss_2_od": 5.0,
+        "boss_2_pilot_d": 2.0999,
+        "boss_2_wall": 1.45,
+        "tail_od": 5.935,
+        "tail_pilot_d": 2.0999,
+        "tail_wall": 1.9175
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
     "V2_CELL_CLEARANCE": {
       "bodies": {
         "body_full_p15": {
@@ -1586,30 +1646,30 @@
       "bodies": {
         "body_full_p15": {
           "numbers": {
-            "boss_wall": 3.1275,
-            "head_below_lid": 1.75,
+            "boss_wall": 3.0775,
             "hinge_lip_in": 1.0,
             "hinge_lip_undercut": 1.0,
-            "screw_engagement": 4.0,
+            "screw_engagement": 4.3,
             "screw_hole_air": 1.0,
             "screw_s": 41.0,
             "screw_u": 14.5,
-            "screw_well_air": 1.0
+            "screw_well_air": 1.0,
+            "well_on_medial": 1.0
           },
           "passed": true
         }
       },
-      "detail": "Q71: hinge lip at the hook-end wall (body nylon over the lip) plus one concealed ISO 7380 M2.5\u00d74 at the tail; engagement and boss wall measured. S4 two-finger pull and 0.5 m drop are qualitative (plan v2 \u00a77)",
+      "detail": "Q71: hinge lip at the hook-end wall (body nylon over the lip) plus one concealed ISO 7380 M2.5\u00d74 at the medial tail; engagement and boss wall measured. S4 two-finger pull and 0.5 m drop are qualitative (plan v2 \u00a77)",
       "numbers": {
-        "boss_wall": 3.1275,
-        "head_below_lid": 1.75,
+        "boss_wall": 3.0775,
         "hinge_lip_in": 1.0,
         "hinge_lip_undercut": 1.0,
-        "screw_engagement": 4.0,
+        "screw_engagement": 4.3,
         "screw_hole_air": 1.0,
         "screw_s": 41.0,
         "screw_u": 14.5,
-        "screw_well_air": 1.0
+        "screw_well_air": 1.0,
+        "well_on_medial": 1.0
       },
       "numbers_from": "body_full_p15",
       "passed": true
@@ -1681,6 +1741,26 @@
       },
       "numbers_from": "body_full_p15",
       "passed": false
+    },
+    "V2_LATERAL_unbroken": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "old_lid_well_solid": 1.0,
+            "pits": 0.0,
+            "samples": 18.0
+          },
+          "passed": true
+        }
+      },
+      "detail": "Q71: no hole, well or pit opens on the lateral lid surface (lid top sampled 3 mm apart; old lid-well site is nylon)",
+      "numbers": {
+        "old_lid_well_solid": 1.0,
+        "pits": 0.0,
+        "samples": 18.0
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
     },
     "V2_LID_band": {
       "bodies": {
@@ -1937,7 +2017,7 @@
           "passed": false
         }
       },
-      "detail": "NOT_MEASURED: V2_USB_end (waits for packing \u00a75b, Q70); hook-end wall left solid",
+      "detail": "NOT_MEASURED: V2_USB_end (waits for packing \u00a75c, Q70); hook-end wall left solid",
       "numbers": {
         "wall_closed": 1.0
       },
@@ -1953,7 +2033,7 @@
           "passed": false
         }
       },
-      "detail": "NOT_MEASURED: medial USB is not cut; hook-end opening waits for packing \u00a75b, Q70",
+      "detail": "NOT_MEASURED: medial USB is not cut; hook-end opening waits for packing \u00a75c, Q70",
       "numbers": {
         "recess": 1.0
       },
@@ -1982,7 +2062,7 @@
           "passed": true
         }
       },
-      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0; hinge outer wall \u2265 1.0; USB opening waits for packing \u00a75b",
+      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0; hinge outer wall \u2265 1.0; USB opening waits for packing \u00a75c",
       "numbers": {
         "WALL_MEDIAL": 1.5,
         "anterior_wall": 1.5,

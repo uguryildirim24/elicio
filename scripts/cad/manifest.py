@@ -320,8 +320,10 @@ STAGE_B_V2_CHECKS = (
 # WP14 shell-v2 rows (measured on the wearable body).
 SHELL_CHECKS = (
     "V2_BOSS",
+    "V2_BOSS_pilot",
     "V2_CLOSURE",
     "V2_EDGE_radii",
+    "V2_LATERAL_unbroken",
     "V2_RING_seat",
     "V2_SWITCH_reach",
     "V2_USB_end",

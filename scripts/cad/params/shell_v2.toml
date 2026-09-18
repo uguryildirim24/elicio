@@ -11,8 +11,10 @@
 # - V2_* layout: Rolf's pick among the closers (packing-v2.md §3).
 # - TAB_HEIGHT: Q22 (v1 TE 31428; v2 tabs: V2_TAB_envelope).
 # - CABLE_EXIT_S: review r4 decision 24.
-# - CLOSURE_PASSED: false (E1 dropped, Q28). Q71: concealed tail M2.5
-#   plus a hinge lip at the hook end; no snaps. See docs/fab/shell-v2.md.
+# - CLOSURE_PASSED: false (E1 dropped, Q28). Q71: concealed medial-tail
+#   M2.5 (head well off the lateral lid) plus a hinge lip at the hook
+#   end; no snaps. CAD pilots Ø2.10, boss OD ≥ 5.0 (L8 §4). See
+#   docs/fab/shell-v2.md.
 # - Q76: circular hook root blending into the elliptical tube.
 # - M1 (default.toml 52): Q34.
 # - CONTACT_*: WP7a / Stage S2 contact sites.
