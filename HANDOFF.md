@@ -115,11 +115,19 @@ brief in full and do it", nothing owed from me until their pushes.
   `firmware/src/board_pins.h` aligned to the newest §9 map on `lane/w2`,
   `docs/fab/receiver-v2.md` (expected). Report `.reports/WP13b-report.md`
   (expected) → `DONE WP13b`.
-- **w9 → WP15 Rolf's sheets v2** (`tasks/WP15-sheets-v2.md`), branch
-  `lane/w9`. `measure.md` v2, `template.pdf` (expected) from
-  `scripts/sheets/template.py` (expected), `order-board.md`, `order-shell.md`, `order-parts.md`,
-  `assemble.md` (all expected), ledger kept honest. Report
-  `.reports/WP15-report.md` (expected) → `DONE WP15`.
+- **w9 → WP15 Rolf's sheets v2**: LANDED, `DONE WP15` at `018ac58` on
+  `lane/w9` (four commits, tree clean, report
+  `.worktrees/w9/.reports/WP15-report.md` present, 173 tests OK with 21
+  skips for missing CAD extras). Delivered, all absent on main until the
+  r6 merge: `docs/fab/measure.md` v2 (exists on main in v1),
+  `docs/fab/template.pdf` (absent on main),
+  `docs/fab/sheets/m1.svg` to m8 (absent on main),
+  `scripts/sheets/template.py` (absent on main),
+  `docs/fab/order-board.md` (absent on main),
+  `docs/fab/order-shell.md` (absent on main),
+  `docs/fab/order-parts.md` (absent on main),
+  `docs/fab/assemble.md` (absent on main). Vendor fields wait on WP12b
+  and WP14 and say so. w9 idles; nothing queued.
 - **w5 → WP17b research v4** (`tasks/WP17b-research-v4.md`), agy on
   `lane/w5`. Probe VTref facts (Q64), a cell in ones (Q55), JLC fee pages
   (Q60/Q67/Q65), the UNVERIFIED BOM lines (Q63), MJF colours (Q30), the
