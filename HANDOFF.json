@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-18T14:27:23-04:00",
+ "generated": "2026-09-18T14:52:11-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
   "id": "w1B",
   "label": "elicio",
-  "tabs": 3
+  "tabs": 2
  },
  "coordinator": {
   "pane_id": "w1B:p1",
@@ -26,7 +26,7 @@
    ],
    "name": "w1",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pA",
    "tab_id": "w1B:tA",
    "tab_label": "w1",
@@ -40,28 +40,6 @@
     "waiting": "flat pattern v3"
    },
    "title": "Lane W1 Instructions"
-  },
-  {
-   "start_args": [
-    "--resume",
-    "137b6bf4-e654-4a43-bc69-e0421552a50c"
-   ],
-   "name": "w2",
-   "kind": "cursor",
-   "status": "working",
-   "pane_id": "w1B:pB",
-   "tab_id": "w1B:tB",
-   "tab_label": "w2",
-   "pane_label": null,
-   "cwd": "/home/user/projects/elicio/.worktrees/w2",
-   "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
-   "tokens": {
-    "done": "1",
-    "lane": "WP12i",
-    "parent": "w1B:p1",
-    "waiting": "pin table v3"
-   },
-   "title": "Lane W2 Instructions"
   }
  ],
  "unlinked_agents": [],
@@ -69,7 +47,7 @@
   {
    "workspace_id": "w16",
    "label": "flyonenomics",
-   "status": "done"
+   "status": "working"
   },
   {
    "workspace_id": "w1E",
@@ -79,42 +57,42 @@
   {
    "workspace_id": "w1F",
    "label": "adeherdr",
-   "status": "working"
+   "status": "done"
   }
  ],
  "git": {
   "repo": "/home/user/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "ee00fe1 handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps",
+   "c817086 handoff: WP11g landed at ab9ce95 with the Q98 channels (H1 13.23, J4 16.52 rot 90, keep-out list); w1 and w2 released on v3; w3 tab closed; fresh snapshot",
    "2113b6d handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded",
    "b424478 handoff: WP11g first DONE at 78ab3f7 (pin table v3: posterior-wall pads, J2 inside, J3 break-off, R9/R10 out); second turn running for the Q98 channels; w1/w2 held until then",
    "06a317d handoff: w4, w5, w9 tabs closed (Rolf: close out agents not running); lane/w4 dbeeafa kept unmerged for r8; fresh herdr snapshot",
-   "4f82c6b handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected",
-   "a74fbca handoff: r8 seams gain the moved well and tail boss, U2 pitch and U3 swap, the Q98 channel rows",
-   "7dbe1b9 handoff: WP14f first half at 89279c2 (Q89 built, V2_CLOSURE passes, well at u 16.50), w1 WAITING for flat pattern v3; Round 8 note; r8 seam on the tail boss"
+   "4f82c6b handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/home/user/projects/elicio",
     "branch": "main",
-    "head": "2113b6d",
-    "subject": "handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded",
+    "head": "ee00fe1",
+    "subject": "handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w1",
     "branch": "lane/w1-r6",
-    "head": "89279c2",
-    "subject": "shell(v2f): stamp the Q89 lid-boss solids on the views",
+    "head": "938984e",
+    "subject": "wip(WP14f): wall P4/P5 CAD and \u00a75e checks against pin table v3 ab9ce95",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "03f031c",
-    "subject": "board(v3): RSM land, R9/R10 DNP, Q94 stiffeners, Q97 tests; wait for pin table v3",
-    "dirty": 0
+    "head": "3a27ffd",
+    "subject": "wip(WP12i): v3 land locked; hand_route interrupted",
+    "dirty": 1
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w3",
@@ -146,10 +124,10 @@
    }
   ],
   "branches": [
-   "lane/w3",
-   "main",
-   "lane/w2",
    "lane/w1-r6",
+   "lane/w2",
+   "main",
+   "lane/w3",
    "lane/w4",
    "lane/w5",
    "lane/w9",
