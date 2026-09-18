@@ -19,6 +19,10 @@ V2C_WIDTHS = (20.0, 22.0)
 V2C_CHORDS = (V2C_CHORD_AS_BUILT, V2C_CHORD_M1)
 V2C_EDGES = ("process", "body")
 V2C_SIDES = ("top", "two")
+V2C_RECEPTACLE = (True, False)
+V2C_WALL_MIN = 1.0
+# Q81: two charging pads on the tail (same RING_PAD construction as the EMG domes).
+CHARGE_PAD_S = 44.00
 
 FOOTPRINT_H = {
     "C_0402_1005Metric": 0.50,
@@ -67,6 +71,11 @@ class LayoutV2c:
     contacts_moved_mm: dict[str, float] = field(
         default_factory=lambda: {"SIG1": 0.0, "SIG2": 0.0, "REF": 0.0}
     )
+    receptacle: bool = True
+    bom_n: int = 66
+    fold: str = "neck"
+    wall_left: float = 0.65
+    hole_sites: tuple[tuple[float, float], ...] = ()
 
 
 _CACHE: dict[tuple, LayoutV2c] | None = None
@@ -239,6 +248,54 @@ def _u1_poses(v2: Any, geom: dict[str, Any], edge: str) -> list[tuple[float, flo
     return out
 
 
+def fold_choice(v2: Any, spec: Any) -> tuple[str, dict[str, Any], float]:
+    """Q83: neck-end is the default. Side-wall pockets only if remaining wall ≥ 1.0."""
+    f = v2.tab_fold_variants(spec)
+    wall_left = float(f["side"]["wall_left"])
+    if spec.width + 1e-9 >= 22.0 and wall_left + 1e-9 >= V2C_WALL_MIN:
+        return "side", f["side"], wall_left
+    return "neck", f["neck"], wall_left
+
+
+def charge_pad_sites(width: float) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Q81: two tail-end charging pads, in the side walls, clear of REF at (8.5, 43)."""
+    return ((0.75, CHARGE_PAD_S), (width - 0.75, CHARGE_PAD_S))
+
+
+def find_hole_sites(
+    v2: Any,
+    island: tuple[float, float, float, float],
+    occupied: list[Any],
+    *,
+    y0: float,
+    y1: float,
+    prefer: tuple[float, float, float, float] | None = None,
+    step: float = 0.5,
+) -> list[tuple[float, float]]:
+    """Q82: two Ø2.7 holes (keep 3.30) where courtyards allow. Prefer not leftover."""
+    bu0, bu1, bs0, bs1 = island
+    ku = v2.BOSS_HOLE_KEEP
+    found: list[tuple[float, float]] = []
+
+    def try_region(r: tuple[float, float, float, float]) -> None:
+        u0, u1, s0, s1 = r
+        uu = u0 + ku / 2.0
+        while uu <= u1 - ku / 2.0 + 1e-9 and len(found) < 2:
+            ss = s0 + ku / 2.0
+            while ss <= s1 - ku / 2.0 + 1e-9 and len(found) < 2:
+                cand = v2.Box("HOLE", uu, ss, ku, ku, y0, y1, "floor")
+                if not any(v2._overlap(cand, other, 0.0) for other in occupied):
+                    if all(math.hypot(uu - hu, ss - hs) >= ku + 1.0 for hu, hs in found):
+                        found.append((uu, ss))
+                ss += step
+            uu += step
+
+    if prefer is not None and prefer[1] - prefer[0] > ku and prefer[3] - prefer[2] > ku:
+        try_region(prefer)
+    try_region(island)
+    return found
+
+
 def search_layout_v2c(
     v2: Any,
     edge: str,
@@ -246,6 +303,7 @@ def search_layout_v2c(
     chord: float,
     two_sides: bool,
     *,
+    receptacle: bool = True,
     table: dict[str, dict[str, Any]] | None = None,
 ) -> LayoutV2c:
     table = table if table is not None else v2.kicad_part_table()
@@ -258,25 +316,34 @@ def search_layout_v2c(
     y_und = geom["board_underside"]
     y_air0, y_air1 = v2.FLOOR_Y, y_und
     cell = v2._place_cell(spec, geom, None)
-    usb_u = (bu0 + bu1) / 2.0
-    usb_s = v2.CAVITY_S0 - v2.USB[1] / 2.0
-    usb = v2.Box("usb_c", usb_u, usb_s, v2.USB[0], v2.USB[1], v2.USB_RECESS, v2.USB_RECESS + v2.USB[2], "hook")
-    usb_wall = "hook-end end face (occupant, Q80)"
+    fold_name, fold_nums, wall_left = fold_choice(v2, spec)
+    skip_refs = set() if receptacle else {"J1", "U5"}
+    bom_n = len(table) - len(skip_refs)
+    usb = None
+    usb_wall = "none (Q81 no receptacle)"
+    if receptacle:
+        usb_u = (bu0 + bu1) / 2.0
+        usb_s = v2.CAVITY_S0 - v2.USB[1] / 2.0
+        usb = v2.Box("usb_c", usb_u, usb_s, v2.USB[0], v2.USB[1], v2.USB_RECESS, v2.USB_RECESS + v2.USB[2], "hook")
+        usb_wall = "hook-end end face (occupant, Q80)"
 
     occupied: list[Any] = [cell]
-    # Rings, bosses and tab roots occupy the under-board air and the top keep-out.
+    # Rings and tab roots occupy the under-board air. Holes wait until after SW1 (Q82).
     for name, site in (("RING_SIG1", v2.CONTACT_1), ("RING_SIG2", v2.CONTACT_2)):
         occupied.append(v2.Box(name, site[0], site[1], 7.0, 7.0, y_air0, y_top + 8.0, "floor"))
     occupied.append(
         v2.Box("RING_REF", v2.CONTACT_REF[0], v2.CONTACT_REF[1], 7.0, 7.0, y_air0, y_top + 8.0, "floor")
     )
-    for i, (hu, hs) in enumerate(v2.BOSS_HOLE_SITES, 1):
-        occupied.append(
-            v2.Box(f"HOLE_M{i}", hu, hs, v2.BOSS_HOLE_KEEP, v2.BOSS_HOLE_KEEP, y_air0, y_top + 8.0, "floor")
-        )
-    occupied.append(v2.Box("TABROOT_SIG1", bu0 + 2.0, v2.CONTACT_1[1], 4.0, v2.TAB_W, y_air0, y_air1, "floor"))
-    occupied.append(v2.Box("TABROOT_SIG2", bu1 - 2.0, v2.CONTACT_2[1], 4.0, v2.TAB_W, y_air0, y_air1, "floor"))
+    if fold_name == "neck":
+        occupied.append(v2.Box("TABROOT_SIG1", v2.CONTACT_1[0], bs0 + 1.0, v2.TAB_W, 2.0, y_air0, y_air1, "floor"))
+        occupied.append(v2.Box("TABROOT_SIG2", v2.CONTACT_2[0], bs0 + 1.0, v2.TAB_W, 2.0, y_air0, y_air1, "floor"))
+    else:
+        occupied.append(v2.Box("TABROOT_SIG1", bu0 + 2.0, v2.CONTACT_1[1], 4.0, v2.TAB_W, y_air0, y_air1, "floor"))
+        occupied.append(v2.Box("TABROOT_SIG2", bu1 - 2.0, v2.CONTACT_2[1], 4.0, v2.TAB_W, y_air0, y_air1, "floor"))
     occupied.append(v2.Box("TABROOT_REF", v2.CONTACT_REF[0], bs1 - 2.0, v2.TAB_W, 4.0, y_air0, y_air1, "floor"))
+    if not receptacle:
+        for i, site in enumerate(charge_pad_sites(width), 1):
+            occupied.append(v2.Box(f"RING_CHG{i}", site[0], site[1], 7.0, 7.0, y_air0, y_top + 8.0, "floor"))
 
     parts: list[Any] = []
     missing: list[str] = []
@@ -348,6 +415,22 @@ def search_layout_v2c(
     ):
         add(v2._make_part(ref, table, site[0], site[1], 0.0, "floor", note), v2.FLOOR_Y, v2.TAB_T)
 
+    if not receptacle:
+        cr = v2.KICAD_COURTYARD["RING_PAD_D5_H2.7"]
+        pad = v2.KICAD_PAD_EXTENT["RING_PAD_D5_H2.7"]
+        for ref, site, note in (
+            ("P4", charge_pad_sites(width)[0], "CHARGE_VBUS tail pad (Q81)"),
+            ("P5", charge_pad_sites(width)[1], "CHARGE_GND tail pad (Q81)"),
+        ):
+            add(
+                v2.LayoutPart(
+                    ref, "RING_PAD_D5_H2.7", site[0], site[1], 0.0,
+                    cr[0], cr[1], pad[0], pad[1], cr[0], cr[1], "floor", note,
+                ),
+                v2.FLOOR_Y,
+                v2.TAB_T,
+            )
+
     def sizes_for(ref: str) -> list[tuple[float, float, float]]:
         row = table[ref]
         out = []
@@ -384,16 +467,32 @@ def search_layout_v2c(
         second_side.append(ref)
         return True
 
-    # J4 on leftover (Q80) before SW1 so the keep-out still has room.
+    # Q82: SW1 keeps the lid-recess leftover. Then holes, then J4.
+    if not try_top("SW1", [leftover_i, side_i], near=((leftover[0] + leftover[1]) / 2.0, (leftover[2] + leftover[3]) / 2.0), notes="lid recess"):
+        if not try_top("SW1", [pocket_i], notes="lid, pocket island"):
+            missing.append("SW1")
+
+    hole_blockers = [b for b in occupied if not str(b.name).startswith("RING_")]
+    sw1p = next((p for p in parts if p.ref == "SW1"), None)
+    sw1_on_left = (
+        sw1p is not None and _inside(sw1p.u, sw1p.s, sw1p.wu, sw1p.ws, leftover)
+    )
+    prefer = leftover_i if not sw1_on_left else side_i
+    if prefer[1] - prefer[0] <= v2.BOSS_HOLE_KEEP or prefer[3] - prefer[2] <= v2.BOSS_HOLE_KEEP:
+        prefer = side_i if not sw1_on_left else leftover_i
+    hole_sites = find_hole_sites(
+        v2, island, hole_blockers, y0=y_air0, y1=y_top + 8.0, prefer=prefer
+    )
+    for i, (hu, hs) in enumerate(hole_sites, 1):
+        occupied.append(
+            v2.Box(f"HOLE_M{i}", hu, hs, v2.BOSS_HOLE_KEEP, v2.BOSS_HOLE_KEEP, y_air0, y_top + 8.0, "floor")
+        )
+
     if try_top("J4", [leftover_i, side_i], near=(bu1 - 3.5, (leftover[2] + leftover[3]) / 2.0), notes="TC2030 leftover; keep-out is a board no-part zone"):
         j4p = next(p for p in parts if p.ref == "J4")
         occupied.append(v2.Box("J4_keepout", j4p.u, j4p.s, j4p.wu + 1.0, j4p.ws + 1.0, y_top, y_top + 8.0, "top"))
     else:
         missing.append("J4")
-
-    if not try_top("SW1", [leftover_i, side_i], near=((leftover[0] + leftover[1]) / 2.0, (leftover[2] + leftover[3]) / 2.0), notes="lid recess"):
-        if not try_top("SW1", [pocket_i], notes="lid, pocket island"):
-            missing.append("SW1")
 
     if "U2" not in {p.ref for p in parts}:
         if not try_top("U2", [pocket_i, leftover_i, side_i], notes="ADS1292"):
@@ -403,13 +502,14 @@ def search_layout_v2c(
     named = [
         ("U3", "BQ25100"),
         ("U4", "TLV71330"),
-        ("U5", "USBLC6"),
         ("J2", "JST-SH"),
         ("J3", "bench header"),
         ("D1", "PESD VBUS"),
         ("L1", "10 µH"),
         ("D2", "LED"),
     ]
+    if receptacle:
+        named.insert(2, ("U5", "USBLC6"))
     for q in ("Q1", "Q2", "Q3", "Q4", "Q5"):
         named.append((q, "SOT-23"))
     for ref, note in named:
@@ -436,7 +536,7 @@ def search_layout_v2c(
                 if not try_bottom(ref, "220 kΩ variant A, second side"):
                     missing.append(ref)
 
-    rest = [r for r in table if r not in {p.ref for p in parts} and r[0] in "CR"]
+    rest = [r for r in table if r not in {p.ref for p in parts} and r[0] in "CR" and r not in skip_refs]
     rest.sort(key=lambda r: (r[0], int("".join(ch for ch in r if ch.isdigit()) or "0")))
     for ref in rest:
         if not try_top(ref, top_regions, notes="passive"):
@@ -445,7 +545,7 @@ def search_layout_v2c(
 
     still = list(missing)
     for ref in still:
-        if ref in {"U1", "J1", "P1", "P2", "P3"}:
+        if ref in {"U1", "J1", "P1", "P2", "P3"} or ref in skip_refs:
             continue
         if try_top(ref, top_regions, notes="last-chance top"):
             missing.remove(ref)
@@ -467,7 +567,7 @@ def search_layout_v2c(
     if edge == "process":
         off = []
         for p in parts:
-            if p.ref in {"J1", "J2", "J3", "P1", "P2", "P3"} or p.face in {"hook", "floor"}:
+            if p.ref in {"J1", "J2", "J3", "P1", "P2", "P3", "P4", "P5"} or p.face in {"hook", "floor"}:
                 continue
             rgn = island if p.face in {"top", "bottom"} else island
             if p.face == "top" and p.s < bs0 - 0.2:
@@ -502,7 +602,7 @@ def search_layout_v2c(
     for p in parts:
         if p.face not in {"top", "bottom"}:
             continue
-        if p.ref in {"J1", "P1", "P2", "P3"}:
+        if p.ref in {"J1", "P1", "P2", "P3", "P4", "P5"}:
             continue
         if p.u - p.wu / 2.0 > bu1 - 0.05:
             continue
@@ -565,13 +665,27 @@ def search_layout_v2c(
         )
     )
     j1 = by_ref.get("J1")
-    rules.append(
-        (
-            "J1 USB-C on the hook-end face (Q80 / Q70)",
-            j1 is not None and j1.face in {"hook", "top"},
-            f"J1 at ({j1.u:.2f}, {j1.s:.2f}) {j1.face}" if j1 else "J1 not placed",
+    if receptacle:
+        rules.append(
+            (
+                "J1 USB-C on the hook-end face (Q80 / Q70)",
+                j1 is not None and j1.face in {"hook", "top"},
+                f"J1 at ({j1.u:.2f}, {j1.s:.2f}) {j1.face}" if j1 else "J1 not placed",
+            )
         )
-    )
+    else:
+        p4, p5 = by_ref.get("P4"), by_ref.get("P5")
+        rules.append(
+            (
+                "no receptacle: J1 and U5 absent, two tail charging pads (Q81)",
+                j1 is None and "U5" not in by_ref and p4 is not None and p5 is not None,
+                (
+                    f"P4 CHARGE_VBUS ({p4.u:.2f}, {p4.s:.2f}); P5 CHARGE_GND ({p5.u:.2f}, {p5.s:.2f})"
+                    if p4 and p5
+                    else "P4/P5 missing"
+                ),
+            )
+        )
     j4 = by_ref.get("J4")
     rules.append(
         (
@@ -590,18 +704,31 @@ def search_layout_v2c(
     )
     hits = []
     keep_r = v2.BOSS_HOLE_DIA / 2.0 + v2.COPPER_TO_EDGE
-    for hu, hs in v2.BOSS_HOLE_SITES:
+    hole_ok = len(hole_sites) >= 2
+    for hu, hs in hole_sites:
         hole = v2.Box("hole", hu, hs, 2 * keep_r, 2 * keep_r, -1.0, 20.0, "top")
         for p in parts:
-            if p.ref in {"P1", "P2", "P3"}:
+            if p.ref in {"P1", "P2", "P3", "P4", "P5"} or p.face == "floor":
                 continue
             if v2._overlap(v2._part_box(p, 0.0, 1.0), hole, 0.0):
                 hits.append(f"{p.ref}@({hu:.2f},{hs:.2f})")
+                hole_ok = False
+    sw1_on_hole = False
+    if sw1 is not None:
+        for hu, hs in hole_sites:
+            hole = v2.Box("hole", hu, hs, v2.BOSS_HOLE_KEEP, v2.BOSS_HOLE_KEEP, -1.0, 20.0, "top")
+            if v2._overlap(v2._part_box(sw1, 0.0, 1.0), hole, 0.0):
+                sw1_on_hole = True
     rules.append(
         (
-            "two Ø2.7 island holes at the boss sites, courtyard-clear (Q73)",
-            not hits,
-            "; ".join(hits) if hits else "holes clear",
+            "two Ø2.7 island holes where courtyards allow, keep 3.30 (Q82)",
+            hole_ok and not sw1_on_hole,
+            (
+                "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in hole_sites)
+                + ("; SW1 overlaps a hole" if sw1_on_hole else "")
+                if hole_sites
+                else "no courtyard-clear site for two holes"
+            ),
         )
     )
     rules.append(
@@ -611,33 +738,29 @@ def search_layout_v2c(
             "SIG1, SIG2, REF FR4 0.2; stack 0.31; island Eco1 still 2× FR4 0.4",
         )
     )
-    fold = v2.tab_fold_variants(spec)
-    sfold = fold["side"]
     rules.append(
         (
-            "tab fold pockets (Q74); same numbers for PCB, packing, shell",
+            "tab fold (Q83): neck-end default; side-wall pockets only if remaining wall ≥ 1.0",
             True,
             (
-                f"R 1.5; SIG1 strip {sfold['SIG1_strip']:.2f} mm, SIG2 strip {sfold['SIG2_strip']:.2f} mm; "
-                f"pocket {sfold['pocket'][0]:.2f}×{sfold['pocket'][1]:.2f}×{sfold['pocket'][2]:.2f}"
+                f"{fold_name}; remaining wall {wall_left:.2f} mm; "
+                f"SIG1 strip {fold_nums['SIG1_strip']:.2f} mm, SIG2 strip {fold_nums['SIG2_strip']:.2f} mm"
             ),
         )
     )
+    placed_bom = sum(1 for p in parts if p.ref in table and p.ref not in skip_refs)
     rules.append(
         (
-            "every WP12b footprint placed",
-            not missing,
-            f"{len(parts)}/66" if not missing else f"unplaced: {', '.join(missing)}",
+            "every required footprint placed",
+            not missing and placed_bom >= bom_n,
+            f"{placed_bom}/{bom_n}" if not missing else f"unplaced: {', '.join(missing)}",
         )
     )
     blocking = next((f"{n}: {why}" for n, ok, why in rules if not ok), "")
-    keepouts = [
-        ("RF_NO_COPPER", *ant) if ant is not None else ("RF_NO_COPPER", 0, 0, 0, 0),
-        ("HOLE_M1", v2.BOSS_HOLE_SITES[0][0] - v2.BOSS_HOLE_KEEP / 2.0, v2.BOSS_HOLE_SITES[0][1] - v2.BOSS_HOLE_KEEP / 2.0,
-         v2.BOSS_HOLE_SITES[0][0] + v2.BOSS_HOLE_KEEP / 2.0, v2.BOSS_HOLE_SITES[0][1] + v2.BOSS_HOLE_KEEP / 2.0),
-        ("HOLE_M2", v2.BOSS_HOLE_SITES[1][0] - v2.BOSS_HOLE_KEEP / 2.0, v2.BOSS_HOLE_SITES[1][1] - v2.BOSS_HOLE_KEEP / 2.0,
-         v2.BOSS_HOLE_SITES[1][0] + v2.BOSS_HOLE_KEEP / 2.0, v2.BOSS_HOLE_SITES[1][1] + v2.BOSS_HOLE_KEEP / 2.0),
-    ]
+    keepouts = [("RF_NO_COPPER", *ant) if ant is not None else ("RF_NO_COPPER", 0.0, 0.0, 0.0, 0.0)]
+    for i, (hu, hs) in enumerate(hole_sites, 1):
+        k = v2.BOSS_HOLE_KEEP / 2.0
+        keepouts.append((f"HOLE_M{i}", hu - k, hs - k, hu + k, hs + k))
     return LayoutV2c(
         edge=edge,
         width=width,
@@ -652,13 +775,18 @@ def search_layout_v2c(
         extra_u=extra_u,
         extra_s=extra_s,
         under_clear_mm=clr["air_mm"],
-        placed=len(parts),
+        placed=placed_bom,
         missing=missing,
         second_side=second_side,
         first_blocking=blocking,
         parts=parts,
         rules=rules,
         keepouts=keepouts,
+        receptacle=receptacle,
+        bom_n=bom_n,
+        fold=fold_name,
+        wall_left=wall_left,
+        hole_sites=tuple(hole_sites),
     )
 
 
@@ -668,24 +796,34 @@ def run_v2c_grid(v2: Any) -> list[LayoutV2c]:
         return list(_CACHE.values())
     table = v2.kicad_part_table()
     cache: dict[tuple, LayoutV2c] = {}
-    for edge in V2C_EDGES:
-        for width in V2C_WIDTHS:
-            for chord in V2C_CHORDS:
-                for two in (False, True):
-                    key = (edge, width, chord, two)
-                    cache[key] = search_layout_v2c(v2, edge, width, chord, two, table=table)
+    for rec in V2C_RECEPTACLE:
+        for edge in V2C_EDGES:
+            for width in V2C_WIDTHS:
+                for chord in V2C_CHORDS:
+                    for two in (False, True):
+                        key = (edge, width, chord, two, rec)
+                        cache[key] = search_layout_v2c(
+                            v2, edge, width, chord, two, receptacle=rec, table=table
+                        )
     _CACHE = cache
     return list(cache.values())
 
 
-def v2c_cell(v2: Any, edge: str, width: float, chord: float, two_sides: bool) -> LayoutV2c:
+def v2c_cell(
+    v2: Any, edge: str, width: float, chord: float, two_sides: bool, receptacle: bool = True
+) -> LayoutV2c:
     run_v2c_grid(v2)
     assert _CACHE is not None
-    return _CACHE[(edge, width, chord, two_sides)]
+    return _CACHE[(edge, width, chord, two_sides, receptacle)]
 
 
-def smallest_full(rows: list[LayoutV2c], edge: str) -> LayoutV2c | None:
-    cands = [r for r in rows if r.edge == edge and r.placed >= 66]
+def smallest_full(
+    rows: list[LayoutV2c], edge: str, *, receptacle: bool | None = True
+) -> LayoutV2c | None:
+    cands = [r for r in rows if r.edge == edge]
+    if receptacle is not None:
+        cands = [r for r in cands if r.receptacle is receptacle]
+    cands = [r for r in cands if r.placed >= r.bom_n and not r.missing]
     if not cands:
         return None
     cands.sort(key=lambda r: (0 if r.sides == "top" else 1, r.width, r.chord))
@@ -693,9 +831,9 @@ def smallest_full(rows: list[LayoutV2c], edge: str) -> LayoutV2c | None:
 
 
 def wp12d_layout(v2: Any) -> LayoutV2c | None:
-    """Process-edge, width 20, chord 47.90, two sides — if it places all 66."""
-    lay = v2c_cell(v2, "process", 20.0, V2C_CHORD_AS_BUILT, True)
-    if lay.placed >= 66:
+    """Process-edge, width 20, chord 47.90, two sides, with receptacle — if it places all 66."""
+    lay = v2c_cell(v2, "process", 20.0, V2C_CHORD_AS_BUILT, True, True)
+    if lay.placed >= lay.bom_n and not lay.missing:
         return lay
     return None
 
@@ -716,21 +854,41 @@ def section_5c(v2: Any) -> list[str]:
     rows = run_v2c_grid(v2)
     table = v2.kicad_part_table()
     spec20, geom20 = v2c_geom(v2, 20.0, V2C_CHORD_AS_BUILT)
-    spec22, geom22 = v2c_geom(v2, 22.0, V2C_CHORD_AS_BUILT)
-    spec49, geom49 = v2c_geom(v2, 20.0, V2C_CHORD_M1)
+    _spec22, geom22 = v2c_geom(v2, 22.0, V2C_CHORD_AS_BUILT)
+    _spec49, geom49 = v2c_geom(v2, 20.0, V2C_CHORD_M1)
     clr = under_board_clearance(v2, geom20)
+    fold20 = fold_choice(v2, spec20)
     lines: list[str] = []
     lines.append("## 5c. Layout grid v2c — edge rule both ways, two sides (WP11d)")
     lines.append("")
     lines.append(
         "501012 pack only (Q69). Contact sites as in §5. Contact variant A (Q79): R1–R3 on the "
         "island at the tab roots, one Contact trace per 2.5 mm tab, no other part on a tab. "
-        "J1 USB-C stays on the hook-end face with its receptacle body as an occupant (Q80, Q70). "
         "J4 (TC2030) is on the leftover; its keep-out is a board no-part zone (Q80). "
-        "Three FR4 0.2 ring pieces (Q72). Two Ø2.7 holes at the boss sites (Q73). "
-        "Tab fold is the side-wall pocket variant (Q74). SW1 under the lid. "
-        "Module keep-out empty. Copper-to-edge 0.30. Courtyard-to-courtyard ≥ 0 with the 0.10 mask margin. "
-        "Q78, Q79 and Q80 are on main."
+        "Three FR4 0.2 ring pieces (Q72). SW1 under the lid. Module keep-out empty. "
+        "Copper-to-edge 0.30. Courtyard-to-courtyard ≥ 0 with the 0.10 mask margin. "
+        "Q78–Q83 are on main."
+    )
+    lines.append("")
+    lines.append(
+        "Q81: each edge/width/chord/side cell is run twice. With a receptacle, J1 USB-C stays "
+        "on the hook-end face (Q80) and U5 stays. With no receptacle, J1 and U5 leave the BOM "
+        "(64 footprints) and two charging pads sit on the tail end (same RING_PAD Ø5 as the EMG "
+        "domes, VBUS and GND). Growing the body to M1 ≥ 58.3 seats USB-C inside; dropping the "
+        "receptacle is the other reading until Rolf measures M1."
+    )
+    lines.append("")
+    lines.append(
+        "Q82: the two Ø2.7 island holes (keep 3.30) sit where the courtyards allow. The bosses "
+        "follow the holes. SW1 keeps the lid-recess leftover; a hole does not take that site."
+    )
+    lines.append("")
+    lines.append(
+        f"Q83: neck-end strips are the default fold. Side-wall pockets only in a cell whose "
+        f"remaining wall is ≥ {V2C_WALL_MIN:.1f} mm. At width 20 the extra 2 mm of a width-22 "
+        f"body is island, not wall: remaining wall after a 0.85 mm pocket is {fold20[2]:.2f} mm "
+        f"(under 1.0), so every cell in this grid uses neck-end strips "
+        f"(SIG1 {fold20[1]['SIG1_strip']:.2f} mm, SIG2 {fold20[1]['SIG2_strip']:.2f} mm)."
     )
     lines.append("")
     lines.append("### Island and leftover sizes")
@@ -760,49 +918,73 @@ def section_5c(v2: Any) -> list[str]:
         "a boss, a standoff or a tab root."
     )
     lines.append("")
-    lines.append("### The 16 cells")
-    lines.append("")
-    lines.append(
-        "| edge | width | chord | sides | placed / 66 | first rule that cannot be met | "
-        "island mm² | leftover mm² | island fill | leftover fill | extra u | extra s | second side |"
-    )
-    lines.append("|---|---:|---:|---|---:|---|---:|---:|---:|---:|---:|---:|---|")
-    for lay in rows:
-        first = lay.first_blocking.split(":")[0] if lay.first_blocking else "—"
-        ss = ", ".join(lay.second_side) if lay.second_side else "—"
-        lines.append(
-            f"| {lay.edge} | {lay.width:g} | {lay.chord:.2f} | {lay.sides} | {lay.placed} | {first} | "
-            f"{lay.island_mm2:.1f} | {lay.leftover_mm2:.1f} | {100*lay.island_fill:.0f}% | "
-            f"{100*lay.leftover_fill:.0f}% | {lay.extra_u:+.2f} | {lay.extra_s:+.2f} | {ss} |"
-        )
-    lines.append("")
-    for edge, title in (
-        ("process", "Process-edge reading (Q78): courtyard inside the outline, copper-to-edge 0.30"),
-        ("body", "Body-to-outline 2.5 mm reading (board-v2.md §12 / L6)"),
-    ):
-        lines.append(f"### {title}")
+
+    def _table(subset: list[LayoutV2c], heading: str) -> None:
+        lines.append(f"### {heading}")
         lines.append("")
-        full = smallest_full(rows, edge)
-        if full is not None:
-            lines.append(
-                f"Smallest configuration that places all 66: width {full.width:g}, chord {full.chord:.2f}, "
-                f"sides {full.sides}. Island {full.island[0]:.2f}–{full.island[1]:.2f} × "
-                f"{full.island[2]:.2f}–{full.island[3]:.2f}."
+        lines.append(
+            "| edge | width | chord | sides | fold | placed / N | first rule that cannot be met | "
+            "island mm² | leftover mm² | holes | extra u | extra s | second side |"
+        )
+        lines.append("|---|---:|---:|---|---|---:|---|---:|---:|---|---:|---:|---|")
+        for lay in subset:
+            first = lay.first_blocking.split(":")[0] if lay.first_blocking else "—"
+            ss = ", ".join(lay.second_side) if lay.second_side else "—"
+            holes = (
+                "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in lay.hole_sites)
+                if lay.hole_sites
+                else "—"
             )
-        else:
-            best = max((r for r in rows if r.edge == edge), key=lambda r: (r.placed, -r.width, -r.chord))
-            short_mm2, left = _shortfall(best, table)
             lines.append(
-                f"None of the eight cells places all 66. Best is width {best.width:g}, chord {best.chord:.2f}, "
-                f"sides {best.sides}: {best.placed}/66. Unplaced: {', '.join(best.missing) if best.missing else '—'}. "
-                f"Courtyard area still to place {sum(table[r]['cr_w']*table[r]['cr_h'] for r in best.missing):.1f} mm²; "
-                f"shortfall versus free leftover (and half the island on two sides) is {short_mm2:.1f} mm²."
+                f"| {lay.edge} | {lay.width:g} | {lay.chord:.2f} | {lay.sides} | {lay.fold} | "
+                f"{lay.placed}/{lay.bom_n} | {first} | {lay.island_mm2:.1f} | {lay.leftover_mm2:.1f} | "
+                f"{holes} | {lay.extra_u:+.2f} | {lay.extra_s:+.2f} | {ss} |"
             )
         lines.append("")
 
+    rec_rows = [r for r in rows if r.receptacle]
+    norec_rows = [r for r in rows if not r.receptacle]
+    _table(rec_rows, "The 16 cells with USB-C receptacle (Q80)")
+    _table(norec_rows, "The 16 cells with no receptacle (Q81)")
+
+    for rec, rec_title, subset in (
+        (True, "with USB-C receptacle (J1 and U5 on the BOM, 66 footprints)", rec_rows),
+        (False, "with no receptacle (J1 and U5 off the BOM, 64 footprints, two tail pads)", norec_rows),
+    ):
+        for edge, title in (
+            ("process", "Process-edge reading (Q78)"),
+            ("body", "Body-to-outline 2.5 mm reading (board-v2.md §12 / L6)"),
+        ):
+            lines.append(f"### {title}, {rec_title}")
+            lines.append("")
+            full = smallest_full(subset, edge, receptacle=rec)
+            n = 66 if rec else 64
+            if full is not None:
+                holes = "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in full.hole_sites) or "—"
+                lines.append(
+                    f"Smallest configuration that places all {n}: width {full.width:g}, chord {full.chord:.2f}, "
+                    f"sides {full.sides}, fold {full.fold}. Island {full.island[0]:.2f}–{full.island[1]:.2f} × "
+                    f"{full.island[2]:.2f}–{full.island[3]:.2f}. Hole sites (Q82, for the shell bosses): {holes}."
+                )
+            else:
+                best = max(
+                    (r for r in subset if r.edge == edge),
+                    key=lambda r: (r.placed, -r.width, -r.chord),
+                )
+                short_mm2, _left = _shortfall(best, table)
+                miss_area = sum(table[r]["cr_w"] * table[r]["cr_h"] for r in best.missing)
+                lines.append(
+                    f"None of the eight cells places all {n}. Best is width {best.width:g}, chord {best.chord:.2f}, "
+                    f"sides {best.sides}: {best.placed}/{best.bom_n}. Unplaced: "
+                    f"{', '.join(best.missing) if best.missing else '—'}. "
+                    f"Courtyard area still to place {miss_area:.1f} mm²; "
+                    f"shortfall versus free leftover (and half the island on two sides) is {short_mm2:.1f} mm²."
+                )
+            lines.append("")
+
     wp12 = wp12d_layout(v2)
     if wp12 is not None:
-        lines.append("### WP12d placement (process-edge, width 20, chord 47.90, two sides)")
+        lines.append("### WP12d placement (process-edge, width 20, chord 47.90, two sides, receptacle)")
         lines.append("")
         lines.append(
             "This cell places all 66. The board lane pins this table within 0.1 mm. "
@@ -812,33 +994,44 @@ def section_5c(v2: Any) -> list[str]:
         lines.extend(_placement_table(wp12))
     else:
         lines.append(
-            "Process-edge at width 20, chord 47.90, two sides does not place all 66, so there is no "
-            "WP12d pin table from that cell."
+            "Process-edge at width 20, chord 47.90, two sides, with a receptacle, does not place all 66, "
+            "so there is no WP12d pin table from that cell."
         )
         lines.append("")
-        proc = smallest_full(rows, "process")
+        proc = smallest_full(rows, "process", receptacle=True)
         if proc is not None:
+            holes = "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in proc.hole_sites) or "—"
             lines.append(
-                f"### Smallest process-edge layout that places all 66 "
-                f"(width {proc.width:g}, chord {proc.chord:.2f}, {proc.sides} sides)"
+                f"### Smallest process-edge layout with a receptacle that places all 66 "
+                f"(width {proc.width:g}, chord {proc.chord:.2f}, {proc.sides} sides, fold {proc.fold})"
             )
             lines.append("")
             lines.append(
-                "The board lane can pin this table within 0.1 mm if the body grows to width 22. "
-                "Contact sites are unchanged. Copper-to-edge 0.30 still fails on a few pads; "
-                "U1 still covers the Ø2.7 boss holes (Q73)."
+                f"The board lane can pin this table within 0.1 mm if the body grows to width {proc.width:g}. "
+                f"Contact sites are unchanged. Hole sites (Q82): {holes}."
             )
             lines.append("")
             lines.extend(_placement_table(proc))
+        norec = smallest_full(rows, "process", receptacle=False)
+        if norec is not None:
+            holes = "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in norec.hole_sites) or "—"
+            lines.append(
+                f"### Smallest process-edge layout with no receptacle that places all 64 "
+                f"(width {norec.width:g}, chord {norec.chord:.2f}, {norec.sides} sides, fold {norec.fold})"
+            )
+            lines.append("")
+            lines.append(
+                f"J1 and U5 are absent. P4 and P5 are the tail charging pads (Q81). "
+                f"Hole sites (Q82): {holes}."
+            )
+            lines.append("")
+            lines.extend(_placement_table(norec))
     lines.append("")
     lines.append(
         "Drawings (at most four, Q56) live under `docs/fab/cad/v2c/` so the round-5 14-file "
         "`placement_v2_*.svg` set in `docs/fab/cad/v1/` stays pinned."
     )
-    names = [
-        f"`placement_v2c_{lay.edge}_w{lay.width:g}_c{lay.chord:.2f}_{lay.sides}.svg`"
-        for lay in pick_v2c_drawings(v2)
-    ]
+    names = [f"`{_drawing_name(lay)}`" for lay in pick_v2c_drawings(v2)]
     if names:
         lines.append("This package keeps " + ", ".join(names) + ".")
     return lines
@@ -863,20 +1056,23 @@ def _placement_table(lay: LayoutV2c) -> list[str]:
     return lines
 
 
+def _drawing_name(lay: LayoutV2c) -> str:
+    rec = "usb" if lay.receptacle else "norec"
+    return f"placement_v2c_{lay.edge}_{rec}_w{lay.width:g}_c{lay.chord:.2f}_{lay.sides}.svg"
+
+
 def pick_v2c_drawings(v2: Any) -> list[LayoutV2c]:
-    """At most four new drawings (Q56). Closers, or the best cell per edge reading."""
+    """At most four new drawings (Q56): best/full cell per (edge × receptacle)."""
     rows = run_v2c_grid(v2)
     picked: list[LayoutV2c] = []
-    for edge in V2C_EDGES:
-        full = smallest_full(rows, edge)
-        if full is not None:
-            picked.append(full)
-        else:
-            best = max((r for r in rows if r.edge == edge), key=lambda r: (r.placed, -r.width, -r.chord))
-            picked.append(best)
-    wp = wp12d_layout(v2)
-    if wp is not None and wp not in picked:
-        picked.insert(0, wp)
+    for rec in (True, False):
+        for edge in V2C_EDGES:
+            full = smallest_full(rows, edge, receptacle=rec)
+            if full is not None:
+                picked.append(full)
+            else:
+                group = [r for r in rows if r.edge == edge and r.receptacle is rec]
+                picked.append(max(group, key=lambda r: (r.placed, -r.width, -r.chord)))
     return picked[:4]
 
 
@@ -885,8 +1081,7 @@ def write_v2c_drawings(v2: Any, dest_dir: Path | None = None) -> list[Path]:
     dest.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
     for lay in pick_v2c_drawings(v2):
-        name = f"placement_v2c_{lay.edge}_w{lay.width:g}_c{lay.chord:.2f}_{lay.sides}.svg"
-        path = dest / name
+        path = dest / _drawing_name(lay)
         path.write_text(_svg_for(lay), encoding="utf-8")
         written.append(path)
     return written
@@ -896,7 +1091,7 @@ def _svg_for(lay: LayoutV2c) -> str:
     u0, u1, s0, s1 = lay.island
     pad = 8.0
     min_u, max_u = min(u0, -6.0) - pad, max(u1, 22.0) + pad
-    min_s, max_s = min(s0, -8.0) - pad, max(s1, 45.0) + pad
+    min_s, max_s = min(s0, -8.0) - pad, max(s1, 50.0) + pad
     w, h = max_u - min_u, max_s - min_s
     scale = 12.0
     sw, sh = w * scale, h * scale
@@ -914,7 +1109,7 @@ def _svg_for(lay: LayoutV2c) -> str:
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{sw:.0f}" height="{sh:.0f}" '
         f'viewBox="0 0 {sw:.1f} {sh:.1f}">',
-        f"<title>v2c {lay.edge} w{lay.width:g} c{lay.chord:.2f} {lay.sides} {lay.placed}/66</title>",
+        f"<title>v2c {lay.edge} {'usb' if lay.receptacle else 'norec'} w{lay.width:g} c{lay.chord:.2f} {lay.sides} {lay.placed}/{lay.bom_n}</title>",
         '<rect width="100%" height="100%" fill="#f7f4ef"/>',
     ]
     x0, y0 = xy(u0, s1)
@@ -929,9 +1124,11 @@ def _svg_for(lay: LayoutV2c) -> str:
         parts.append(
             f'<text x="{tx:.1f}" y="{ty:.1f}" font-size="7" text-anchor="middle" fill="#fff">{p.ref}</text>'
         )
+    for hu, hs in lay.hole_sites:
+        parts.append(rect(hu, hs, 3.30, 3.30, "#f7f4ef", "#b33"))
     parts.append(
-        f'<text x="12" y="16" font-size="11" fill="#111">{lay.edge} w{lay.width:g} chord {lay.chord:.2f} '
-        f"{lay.sides} {lay.placed}/66</text>"
+        f'<text x="12" y="16" font-size="11" fill="#111">{lay.edge} {"usb" if lay.receptacle else "norec"} '
+        f"w{lay.width:g} chord {lay.chord:.2f} {lay.sides} {lay.placed}/{lay.bom_n} fold {lay.fold}</text>"
     )
     parts.append("</svg>")
     return "\n".join(parts) + "\n"

@@ -908,7 +908,7 @@ class PlacementWP11cTests(unittest.TestCase):
 
 
 class PlacementWP11dTests(unittest.TestCase):
-    """WP11d: 16-cell layout grid, both edge readings, two sides."""
+    """WP11d: 32-cell layout grid, both edge readings, two sides, Q81–Q83."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -917,24 +917,42 @@ class PlacementWP11dTests(unittest.TestCase):
         cls.rows = cls.mod.run_v2c_grid(cls.v2)
 
     def test_grid_has_sixteen_cells(self) -> None:
-        self.assertEqual(len(self.rows), 16)
-        keys = {(r.edge, r.width, round(r.chord, 2), r.sides) for r in self.rows}
-        self.assertEqual(len(keys), 16)
+        self.assertEqual(len(self.rows), 32)
+        keys = {
+            (r.edge, r.width, round(r.chord, 2), r.sides, r.receptacle) for r in self.rows
+        }
+        self.assertEqual(len(keys), 32)
 
     def test_process_w20_chord_4790_two_sides_does_not_place_all_66(self) -> None:
-        lay = self.mod.v2c_cell(self.v2, "process", 20.0, 47.90, True)
+        lay = self.mod.v2c_cell(self.v2, "process", 20.0, 47.90, True, True)
         self.assertLess(lay.placed, 66)
         self.assertAlmostEqual(lay.extra_u, 0.0, places=2)
         self.assertAlmostEqual(lay.extra_s, 0.0, places=2)
         self.assertAlmostEqual(lay.under_clear_mm, 3.31, places=2)
 
+    def test_q81_no_receptacle_cells(self) -> None:
+        norec = [r for r in self.rows if not r.receptacle]
+        self.assertEqual(len(norec), 16)
+        for lay in norec:
+            refs = {p.ref for p in lay.parts}
+            self.assertNotIn("J1", refs)
+            self.assertNotIn("U5", refs)
+            self.assertIn("P4", refs)
+            self.assertIn("P5", refs)
+            self.assertEqual(lay.bom_n, 64)
+
+    def test_q83_neck_end_is_the_default_fold(self) -> None:
+        for lay in self.rows:
+            self.assertEqual(lay.fold, "neck")
+            self.assertLess(lay.wall_left, 1.0)
+
     def test_winning_layout_if_any(self) -> None:
-        win = self.mod.smallest_full(self.rows, "process")
+        win = self.mod.smallest_full(self.rows, "process", receptacle=True)
         wp12 = self.mod.wp12d_layout(self.v2)
         self.assertIsNone(wp12)
         if win is None:
             return
-        self.assertEqual(win.placed, 66)
+        self.assertGreaterEqual(win.placed, win.bom_n)
         self.assertEqual(win.missing, [])
         by = {p.ref: p for p in win.parts}
         for ref in ("R1", "R2", "R3"):
@@ -950,6 +968,17 @@ class PlacementWP11dTests(unittest.TestCase):
                         overlaps.append(f"{a.name}/{b.name}")
         self.assertEqual(overlaps, [])
         bu0, bu1, bs0, bs1 = win.island
+        self.assertEqual(len(win.hole_sites), 2)
+        if "SW1" in by:
+            sw1 = by["SW1"]
+            for hu, hs in win.hole_sites:
+                hole = self.v2.Box(
+                    "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
+                )
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(sw1, 0.0, 1.0), hole, 0.0),
+                    "SW1 overlaps a Q82 hole",
+                )
         for ref in ("R1", "R2", "R3"):
             p = by[ref]
             self.assertTrue(
@@ -962,7 +991,7 @@ class PlacementWP11dTests(unittest.TestCase):
                 self.assertEqual(p.ref, "J1")
                 continue
             if p.face == "floor":
-                self.assertIn(p.ref, {"P1", "P2", "P3"})
+                self.assertIn(p.ref, {"P1", "P2", "P3", "P4", "P5"})
                 continue
             if p.ref in {"J2", "J3"}:
                 continue
@@ -982,15 +1011,17 @@ class PlacementWP11dTests(unittest.TestCase):
                     self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), ring, 0.0),
                     f"{p.ref} over ring {site}",
                 )
-            for hu, hs in self.v2.BOSS_HOLE_SITES:
-                hole = self.v2.Box("hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor")
+            for hu, hs in win.hole_sites:
+                hole = self.v2.Box(
+                    "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
+                )
                 self.assertFalse(
                     self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), hole, 0.0),
-                    f"{p.ref} over boss hole ({hu}, {hs})",
+                    f"{p.ref} over Q82 hole ({hu}, {hs})",
                 )
             for name, u, s, wu, ws in (
-                ("TABROOT_SIG1", bu0 + 2.0, self.v2.CONTACT_1[1], 4.0, self.v2.TAB_W),
-                ("TABROOT_SIG2", bu1 - 2.0, self.v2.CONTACT_2[1], 4.0, self.v2.TAB_W),
+                ("TABROOT_SIG1", self.v2.CONTACT_1[0], bs0 + 1.0, self.v2.TAB_W, 2.0),
+                ("TABROOT_SIG2", self.v2.CONTACT_2[0], bs0 + 1.0, self.v2.TAB_W, 2.0),
                 ("TABROOT_REF", self.v2.CONTACT_REF[0], bs1 - 2.0, self.v2.TAB_W, 4.0),
             ):
                 root = self.v2.Box(name, u, s, wu, ws, -1.0, 20.0, "floor")
@@ -1006,7 +1037,11 @@ class PlacementWP11dTests(unittest.TestCase):
         self.assertIn("Q78", text)
         self.assertIn("Q79", text)
         self.assertIn("Q80", text)
+        self.assertIn("Q81", text)
+        self.assertIn("Q82", text)
+        self.assertIn("Q83", text)
         self.assertIn("| process | 20 | 47.90 | two |", text)
+        self.assertIn("The 16 cells with no receptacle", text)
         self.assertIn("docs/fab/cad/v2c/", text)
         v1_v2 = {p.name for p in self.v2.V2_DRAW_DIR.glob("placement_v2_*.svg")}
         self.assertEqual(len(v1_v2), 14)
