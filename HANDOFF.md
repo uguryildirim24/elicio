@@ -121,7 +121,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11d with the queued addendum), WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w1, w2, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11d, first pass landed, two queued turns), WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w1, w2, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -181,21 +181,23 @@ fast-forwarded to `110a79b`.
   holes); side-wall fold pockets leave a 0.65 wall → Q83 (neck-end
   strips, 501012 body SIG1 10.71 / SIG2 21.81); three FR4 ring pieces
   fine (count 5). Recorded at `a3960d6`.
-- **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`, main
-  `7983847`): RUNNING since 01:05 on `lane/w3` (merged main at
-  `57c03ad`, on top of `5f864bf`): the 16-cell grid: edge rule as
-  process edge vs board outline, width 20 and 22, chord 47.90 and 49.00,
-  top only vs two sides with the clearance under the board measured from
-  the stack; 501012 pack only, Q79 and Q80 fixed, Q72–Q74 occupants;
-  publishes §5c with the placement table if a cell places all 66. An
-  addendum is queued behind this turn (01:25): no-receptacle cells (Q81),
-  island holes where the courtyards allow with the sites published (Q82),
-  neck-end strips as the default fold (Q83); it runs as a second turn
-  and pushes a second `DONE WP11d`. Waits for nothing from me. Report
-  (expected) `.worktrees/w3/.reports/WP11d-report.md` → `DONE WP11d`
-  (twice); then WP12d (w2) pins §5c and WP14d (w1) cuts the USB wall or
-  the contact pads, the pockets or the neck strips, and moves the
-  bosses.
+- **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): first `DONE
+  WP11d` at `e2a0e01` on `lane/w3` (two package commits on the main merge
+  `57c03ad`, tree clean, report `.worktrees/w3/.reports/WP11d-report.md`
+  present, 219 tests OK). `scripts/cad/layout_v2c.py` (absent on main),
+  §5c generated, two drawings under `docs/fab/cad/v2c/` (absent on
+  main). Grid: process-edge reading, width 20 two-sided 54/66, width 22
+  two-sided 66/66 (36 parts on the second side, under-board air 3.31,
+  residual copper-to-edge misses on D1, C3, C10, C11, C12, U1 over a
+  Q73 boss site); chord 49.00 changes little; body-outline reading at
+  best 32/66, J4 never fits. Noted in open-questions at `0f09c19`. Two
+  queued turns follow on the same lane: the Q81–Q83 addendum
+  (no-receptacle cells, Q82 hole sites, neck-end strips) and the pin-table
+  note (nudge the five edge parts to 0.30, holes at the Q82 sites, publish
+  the pin table for the smallest all-66 cell with the receptacle and, if
+  one exists at width 20, without it). Each pushes another `DONE WP11d`.
+  Waits for nothing from me. After the last one: settle Q78's width and
+  Q81's variant, brief WP12d (w2) and WP14d (w1).
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
   WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
   package commit, tree clean, report
@@ -301,17 +303,18 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP11d` (w3, expected twice: the grid, then the queued
-  addendum), or BLOCKED/GONE for it (a DONE is checked: report present,
-  tree clean; then read); after the second `DONE WP11d` settle Q78's
-  width and Q81's variant in open-questions from the process-edge cells
-  of the grid, then brief WP12d for w2 on §5c (OpenJDK 25 router, sides,
-  Q79/Q80 or the no-receptacle variant) and WP14d for w1 (bosses to §5c's
-  hole sites, neck-end strip channels or pockets, the USB wall or the two
-  tail pads); when WP11d, WP12d and WP14d have landed (WP11c, WP13c,
-  WP14b, WP14c, WP17c, WP12d-prep already have), open review r7 with a
-  brief (expected) at `tasks/review-r7.md` (expected), from
-  `tasks/review-code-template.md`.
+- Idle until the next `DONE WP11d` from w3 (two more expected: the
+  Q81–Q83 addendum, then the pin-table note), or BLOCKED/GONE for it (a
+  DONE is checked: report present, tree clean; then read); after the
+  last one settle Q78's width (20 with the tail contacts if a
+  no-receptacle cell places all 66, else 22) and Q81's variant in
+  open-questions, then brief WP12d for w2 on the §5c pin table (the
+  OpenJDK router, sides, Q79/Q80 or the no-receptacle BOM) and WP14d
+  for w1 (width, bosses to §5c's hole sites, neck-end strip channels,
+  the USB wall or the two tail pads); when WP11d, WP12d and WP14d have
+  landed (WP11c, WP13c, WP14b, WP14c, WP17c, WP12d-prep already have),
+  open review r7 with a brief (expected) at `tasks/review-r7.md`
+  (expected), from `tasks/review-code-template.md`.
 
 ## Traps
 
