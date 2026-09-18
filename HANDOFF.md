@@ -121,7 +121,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11d, w1 WP14c, w2 WP12d-prep), WP11c, WP13c, WP14b and WP17c landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11d, w1 WP14c), WP11c, WP13c, WP14b, WP17c and WP12d-prep landed, w2, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -189,16 +189,28 @@ fast-forwarded to `110a79b`.
   (twice); then WP12d (w2) pins §5c and WP14d (w1) cuts the USB wall or
   the contact pads, the pockets or the neck strips, and moves the
   bosses.
-- **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`, main `7b23eb5`):
-  RUNNING since 01:15 on `lane/w2` on top of `f4376ca` (told to `git merge
-  main` first; the branch holds WP12c, `hardware/board/route.md` (absent
-  on main), not yet merged): prove Freerouting 2.4.1 headless writes a
-  SES on this Mac (evidence only, not imported), `build_v2b.py` accepts a
-  `side` column for two-sided placement with a synthetic-table test, the
-  ten-line WP12d plan for Q79/Q80 in route.md; no copper, board file
-  unchanged. Waits for nothing from me. Report
-  `.worktrees/w2/.reports/WP12d-prep-report.md` (expected) → `DONE WP12d-prep`; then
-  WP12d proper on §5c after `DONE WP11d`.
+- **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
+  WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
+  package commit, tree clean, report
+  `.worktrees/w2/.reports/WP12d-prep-report.md` present). Freerouting
+  2.4.1 headless WRITES a SES on this Mac, but the release jar is class
+  file 69 and needs OpenJDK 25 (the lane installed Homebrew `openjdk@25`,
+  keg-only; Q46 lets Rolf veto); Java 21 refuses it, so L8 §3's "Java 21"
+  is wrong (seam for the reviewer). Run: 39.5 s, 5 passes, 60 wires, 19
+  vias, 80 nets unrouted and 148 violations because the placement still
+  collides; SES evidence only under `/tmp/wp12d/` (not imported; the
+  jar lives there too and WP12d must keep it somewhere durable). DSN
+  export is pcbnew's, `kicad-cli` has no specctra subcommand.
+  `hardware/board/placement_table.py` (absent on main) parses a packing
+  table with a `side` column (`face` aliases it) and `build_v2b.py` flips
+  bottom rows; synthetic two-row test green; `route.md` §6 proof table
+  and §7 the ten-line WP12d plan. The board file is unchanged on its
+  branch (still the WP12c zero-track state); `release.py` exit 0 with
+  `routed: false`. Its venv shows 14 CAD test failures (v1 regen hashes,
+  shell identical), the lane's pins as in rounds 5 and 6, not this
+  package's. w2 idles; next WP12d proper on §5c after `DONE WP11d`
+  (place from §5c with sides, R1–R3 on the island, J1/J4 per Q80 or the
+  Q81 no-receptacle variant, route on OpenJDK 25, import, DRC 0).
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
   report `.worktrees/w4/.reports/WP13c-report.md` present, 207 tests OK
@@ -270,17 +282,27 @@ Outside those:
    WP11c's §5b and WP11d's §5c must agree with WP12d's placement and
    WP14b's USB wall on one set of numbers; WP13c's `sidecar.json` fields
    vs WP15's assemble sheet wording.
+   Also: L8 §3 says Freerouting 2.4.1 runs on Java 21; the jar needs
+   OpenJDK 25 (WP12d-prep measured it); L8 §4's screw prices and L7's
+   quotes stay UNVERIFIED; w2's venv fails 14 CAD tests that pass in
+   w1's and the reviewer's (pins); the Q81 no-receptacle variant, if the
+   grid picks it, touches the BOM (J1, U5 out), the schematic (VBUS from
+   two pads), board-v2 §12, the shell (two tail pads) and plan v2 §5.4
+   (Pro amendment, Rolf's call).
 
 ## Next
 
-- Idle until `DONE WP11d` (w3), `DONE WP14c` (w1) or `DONE WP12d-prep`
-  (w2), or BLOCKED/GONE for any (a DONE is checked: report present, tree
-  clean; then read); after `DONE WP11d` settle Q78's width in
-  open-questions from the process-edge cells of the grid (WP17c confirmed
-  that reading), then brief WP12d for w2 on §5c and WP14d for w1 (USB
-  wall, fold pockets, island bosses from §5c); when WP11d, WP14c,
-  WP12d-prep, WP12d and WP14d have landed, open review r7 with a brief
-  at `tasks/review-r7.md` (expected), from `tasks/review-code-template.md`.
+- Idle until `DONE WP11d` (w3, expected twice: the grid, then the queued
+  addendum) or `DONE WP14c` (w1), or BLOCKED/GONE for either (a DONE is
+  checked: report present, tree clean; then read); after the second
+  `DONE WP11d` settle Q78's width and Q81's variant in open-questions
+  from the process-edge cells of the grid, then brief WP12d for w2 on
+  §5c (OpenJDK 25 router, sides, Q79/Q80 or the no-receptacle variant)
+  and WP14d for w1 (bosses to §5c's hole sites, neck-end strip channels
+  or pockets, the USB wall or the two tail pads); when WP11d, WP14c,
+  WP12d and WP14d have landed (WP11c, WP13c, WP14b, WP17c, WP12d-prep
+  already have), open review r7 with a brief (expected) at
+  `tasks/review-r7.md` (expected), from `tasks/review-code-template.md`.
 
 ## Traps
 
