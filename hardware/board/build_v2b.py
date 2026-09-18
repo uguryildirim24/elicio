@@ -35,8 +35,8 @@ BOARD_S0, BOARD_S1 = 16.00, 37.60
 POCKET_U0, POCKET_U1 = 12.00, 25.50
 POCKET_S0, POCKET_S1 = 1.35, 16.00
 J2_HANG_S0, J2_HANG_S1 = 7.40, 14.40
-HANG_U1 = 32.50
-HANG_S0, HANG_S1 = 16.00, 24.80
+HANG_U1 = 33.20
+HANG_S0, HANG_S1 = 16.00, 26.70
 NECK_FOLD_S0 = 14.40
 TAB_STRIP = 2.5
 TAB_CAP_R = 3.2
@@ -199,8 +199,8 @@ def outline_points():
         (SIG2_FOLD_U + hw, BOARD_S0),
         (POCKET_U0, BOARD_S0),
         (POCKET_U0, POCKET_S0),
-        (BOARD_U1 + 0.15, POCKET_S0),
-        (BOARD_U1 + 0.15, J2_HANG_S0),
+        (20.40, POCKET_S0),
+        (20.40, J2_HANG_S0),
         (POCKET_U1, J2_HANG_S0),
         (POCKET_U1, J2_HANG_S1),
         (BOARD_U1, J2_HANG_S1),
@@ -224,8 +224,8 @@ def island_outline():
         (BOARD_U0, BOARD_S0),
         (POCKET_U0, BOARD_S0),
         (POCKET_U0, POCKET_S0),
-        (BOARD_U1 + 0.15, POCKET_S0),
-        (BOARD_U1 + 0.15, J2_HANG_S0),
+        (20.40, POCKET_S0),
+        (20.40, J2_HANG_S0),
         (POCKET_U1, J2_HANG_S0),
         (POCKET_U1, J2_HANG_S1),
         (BOARD_U1, J2_HANG_S1),
@@ -544,9 +544,35 @@ def route_only(pcb_path: Path | None = None) -> None:
     print("saved", out, "tracks", ntracks, "failed", len(failed))
 
 
+def export_dsn(pcb_path: Path, dsn_path: Path) -> None:
+    board = pcbnew.LoadBoard(str(pcb_path))
+    dsn_path.parent.mkdir(parents=True, exist_ok=True)
+    ok = pcbnew.ExportSpecctraDSN(board, str(dsn_path))
+    print("dsn", dsn_path, "ok", ok, "bytes", dsn_path.stat().st_size if dsn_path.exists() else 0)
+
+
+def import_ses(pcb_path: Path, ses_path: Path) -> None:
+    board = pcbnew.LoadBoard(str(pcb_path))
+    ok = pcbnew.ImportSpecctraSES(board, str(ses_path))
+    board.SetFileName(str(pcb_path))
+    board.Save(str(pcb_path))
+    ntracks = len([t for t in board.GetTracks() if t.GetClass() in {"PCB_TRACK", "PCB_ARC"}])
+    nvias = len([t for t in board.GetTracks() if t.GetClass() == "PCB_VIA"])
+    print("imported ses", ses_path, "ok", ok, "tracks", ntracks, "vias", nvias)
+
+
 if __name__ == "__main__":
-    if "--route-only" in sys.argv:
-        rest = [a for a in sys.argv[1:] if a != "--route-only"]
+    args = sys.argv[1:]
+    if "--route-only" in args:
+        rest = [a for a in args if a != "--route-only"]
         route_only(Path(rest[0]) if rest else None)
+    elif "--export-dsn" in args:
+        rest = [a for a in args if a != "--export-dsn"]
+        dsn = Path(rest[0]) if rest else Path("/tmp/wp12d/elicio-v2.dsn")
+        export_dsn(BOARD_DIR / "elicio-v2.kicad_pcb", dsn)
+    elif "--import-ses" in args:
+        rest = [a for a in args if a != "--import-ses"]
+        ses = Path(rest[0]) if rest else Path("/tmp/wp12d/elicio-v2.ses")
+        import_ses(BOARD_DIR / "elicio-v2.kicad_pcb", ses)
     else:
         build()
