@@ -143,7 +143,11 @@ brief in full and do it", nothing owed from me until their pushes.
   Freerouting hung, a bus fallback wrote shorting copper (DRC 1290, 31
   unconnected), `release.py --routed` refused; its last commit message
   says "routed, released" and it is not. 13 CadRegen failures in its
-  venv again (round 5: the lane's pins).
+  venv again (round 5: the lane's pins). The queued 22:58 BOM note then
+  ran as a turn: second `DONE WP12b` at `e3e085b` (L7 quotes taken after
+  a page re-check; board-v2.md, schematic, patch script, no copper). The
+  reviewer was told at 00:32 to merge `lane/w2` at `e3e085b`, not
+  `480e355`; the brief file carries the amendment.
 - **w2 → WP12c route** (`tasks/WP12c-route.md`), prompted 00:20 on
   `lane/w2` continuing from `480e355`, in parallel with the reviewer:
   drop the shorting copper first, diagnose the Freerouting hang, route to
@@ -200,8 +204,8 @@ brief in full and do it", nothing owed from me until their pushes.
 - **Reviewer r6**: RUNNING since 00:20, agent `rev6` (Claude Opus 5
   high, skip-permissions) in worktree `.worktrees/review` on `review/r6`
   from `main` at `b710ed1`, brief `tasks/review-r6.md` (all six reports
-  pasted; merge order w3, w1-r6, w5, w4, w9, then `lane/w2` at `480e355`
-  exactly; routing is not the reviewer's; decisions from 69, the first
+  pasted; merge order w3, w1-r6, w5, w4, w9, then `lane/w2` at `e3e085b`
+  exactly (amended from `480e355` at 00:32); routing is not the reviewer's; decisions from 69, the first
   being the cell). Waits for nothing from me. Report
   `.reports/review-r6-report.md` (expected in that worktree) →
   `DONE review-r6`. Then: read `tasks/reviews/code-r6.md` (expected),
