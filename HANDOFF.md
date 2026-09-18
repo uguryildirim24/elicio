@@ -135,11 +135,22 @@ brief in full and do it", nothing owed from me until their pushes.
   `docs/fab/order-parts.md` (absent on main),
   `docs/fab/assemble.md` (absent on main). Vendor fields wait on WP12b
   and WP14 and say so. w9 idles; nothing queued.
-- **w5 → WP17b research v4** (`tasks/WP17b-research-v4.md`), agy on
-  `lane/w5`. Probe VTref facts (Q64), a cell in ones (Q55), JLC fee pages
-  (Q60/Q67/Q65), the UNVERIFIED BOM lines (Q63), MJF colours (Q30), the
-  E73 drawing. Writes `docs/fab/L7-research-v4.md` (expected). Prompted
-  through `pane run` + enter; status unreliable, only `DONE WP17b` counts.
+- **w5 → WP17b research v4**: LANDED, `DONE WP17b` at `ea3b9bd` on
+  `lane/w5` (one commit, tree clean, report
+  `.worktrees/w5/.reports/WP17b-report.md` present). Delivered
+  `docs/fab/L7-research-v4.md` (absent on main) with 13 UNVERIFIED tags.
+  Findings that moved other lanes: the nRF52840 GPIO absolute maximum is
+  VDD + 0.3 V, so the Raspberry Pi Debug Probe (fixed 3.3 V) cannot touch
+  an erased 1.8 V part; VTref-sensing probes with page prices are the
+  ST-LINK V3 MINIE, Black Magic Probe V2.3 and J-Link EDU Mini (Q64, the
+  reviewer verifies the quotes, Rolf still buys nothing until G4). No
+  501015 cell in ones anywhere (Q55); buyable with drawings: SparkFun
+  DTP301120 and Jauch LP501218JH (bare leads). LCSC resolutions for the
+  UNVERIFIED BOM lines (two codes were invalid, one was a 4-pin part).
+  JLC3DP colours: natural grey or dyed black (Q30). Notes sent 22:58 to
+  w2 (take the BOM codes, fee and datasheet sentences from L7 §3 and §4,
+  state the probe limit in board-v2 §4) and to w3 (add the Jauch cell as
+  a third case). w5 idles; nothing queued.
 - **Reviewer r6**: not started. When all six DONEs are in: `git worktree
   add .worktrees/review -b review/r6 main` (path absent on main, removed
   after r5), brief `tasks/review-r6.md` (expected) from `tasks/review-r5.md`,
