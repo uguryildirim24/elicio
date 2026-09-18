@@ -10,3 +10,4 @@ __pycache__/
 .elicio-recording-replay/
 .worktrees/
 .reports/
+firmware/build/
