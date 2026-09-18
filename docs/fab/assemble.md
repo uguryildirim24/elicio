@@ -161,6 +161,8 @@ Firmware after a bootloader is present: copy the UF2 file to the drive
 that appears (`firmware-v2.md`; plan v2 §8). Recovery: lid off,
 double-press the small switch, copy again (plan v2 §8; Adafruit
 double-reset within 500 ms, `L6-research-v3.md` §6.3).
+When `elicio receive-check` reports a dropout (exit 3), write the count
+in the session note and continue; stop only on exit 1 or 2 (Q75).
 
 ---
 

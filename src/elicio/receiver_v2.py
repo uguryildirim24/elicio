@@ -428,11 +428,8 @@ def check_session(session_dir: Path) -> dict[str, object]:
         for key, value in same.items()
         if key in SAME_CRITERION and value not in {"not_scored", "pass"}
     ]
-    # Montage §8 table: only 3.5–3.10 are marked "same criterion"; they fail
-    # only when scored. Line 3.4 is marked "revised" (its dropout half keeps
-    # the original rail/flat rule), so a dropout is reported with its own
-    # exit code, not as a same-criterion failure (review r6; whether a 3.4
-    # dropout stops S2 is decision 75 in tasks/reviews/code-r6.md).
+    # Montage §8: 3.5–3.10 fail only when scored (exit 1, a stop). Line 3.4
+    # is "revised"; a dropout is exit 3, a report. S2 continues (Q75).
     ok = len(dropouts) == 0 and not same_fail
     if same_fail:
         exit_code = EXIT_SAME_CRITERION_FAILED
@@ -440,14 +437,23 @@ def check_session(session_dir: Path) -> dict[str, object]:
         exit_code = EXIT_DROPOUT_3_4
     else:
         exit_code = EXIT_OK
+    longest_intervals = 0
+    longest_start: int | None = None
+    if dropouts:
+        best = max(dropouts, key=lambda item: int(item["length"]))
+        longest_intervals = int(best["length"]) - 1
+        longest_start = int(best["start_acq"])
     return {
         "sample_count": n,
         "duration_s": duration_s,
         "wraps": sidecar.get("wrap_count", 0),
         "overruns": sidecar.get("overrun_count", 0),
         "losses": sidecar.get("transport_loss_count", 0),
+        "dropout_count": len(dropouts),
         "dropout_stretches": len(dropouts),
         "dropouts": dropouts,
+        "longest_run_intervals": longest_intervals,
+        "longest_run_start_acq": longest_start,
         "same_criterion": same,
         "same_criterion_failed": same_fail,
         "ok": ok,
@@ -710,6 +716,20 @@ def run_receive_check(session_dir: Path) -> int:
         print(json.dumps({"error": "not a session", "missing": missing}, indent=2))
         return EXIT_NOT_A_SESSION
     summary = check_session(session_dir)
+    sidecar_path = session_dir / SIDECAR_NAME
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    sidecar["dropout_count"] = summary["dropout_count"]
+    sidecar["longest_run_intervals"] = summary["longest_run_intervals"]
+    sidecar["longest_run_start_acq"] = summary["longest_run_start_acq"]
+    sidecar_path.write_text(json.dumps(sidecar, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2, sort_keys=True, default=str))
+    if int(summary["dropout_count"]) > 0:
+        print(f"dropout count: {summary['dropout_count']}")
+        print(
+            f"longest run: {summary['longest_run_intervals']} sample intervals "
+            f"beginning at acq_index {summary['longest_run_start_acq']}"
+        )
+    if int(summary["exit_code"]) == EXIT_DROPOUT_3_4:
+        print("S2 continues (Q75); dropout count goes in the session note")
     return int(summary["exit_code"])
 
