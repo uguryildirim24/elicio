@@ -108,6 +108,7 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
 | r7 | Q87 board deviation where the table's hole is wrong; briefs WP12f, WP11f | coordinator | `5b836a2` | `docs/fab/open-questions.md`, `tasks/WP12f-route-v2.md`, `tasks/WP11f-j4-holes.md` |
 | r7 | Q88 Contact creepage at the exposed lands only; WP12g brief; round 7 closed for review | coordinator | `e06262f` | `docs/fab/open-questions.md`, `tasks/WP12g-route-v2-q88.md` |
 | r7 | review r7 brief | coordinator | `d915ee3` | `tasks/review-r7.md` |
+| r8 | WP12g recorded; WP12h brief | coordinator | `fea34f8` | `docs/fab/open-questions.md`, `tasks/WP12h-route-by-hand.md` |
 
 Round 6 gates at merge (`tasks/reviews/code-r6.md`, final `f407b12`): 206
 tests OK none skipped with the cad and ble extras (34 named skips on the
@@ -128,7 +129,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-round 7 closed and under review r7 (rev7), w2 on WP12g (round 8 opener), every other lane idle; WP11f, WP12f and WP14e landed, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+round 7 closed and under review r7 (rev7), w2 on WP12h (round 8; WP12g landed at 8348e62 with DRC 0 and 63 unconnected), every other lane idle; WP11f, WP12f and WP14e landed, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -312,15 +313,26 @@ fast-forwarded to `110a79b`.
   lines) → Q88. Truthful last commit message. Review r7 merges
   `lane/w2` at this sha.
 - **w2 → WP12g route under Q88** (`tasks/WP12g-route-v2-q88.md`, main
-  `e06262f`): RUNNING since 07:15 on `lane/w2` on top of `fbd56e6`
-  (told to `git merge main` first, never rebase; round 8's first
-  package): Contact areas shrunk to the exposed lands plus 1.0 mm, the
-  strips at the class clearance, R24 from v2.1 if it passes on copper,
-  full Contact routes and charge stubs locked, Freerouting with more
-  passes, import into the owned PCB when it improves, hand-fix to DRC 0
-  and 0 unconnected, `release.py --routed`; or stop un-shorted
-  truthfully. Waits for nothing from me. Report (expected)
-  `.worktrees/w2/.reports/WP12g-report.md` (expected) → `DONE WP12g`.
+  `e06262f`): LANDED UN-ROUTED, `DONE WP12g` at `8348e62` on `lane/w2`
+  (tree clean, report `.worktrees/w2/.reports/WP12g-report.md` present,
+  board tests 18 OK, ERC 0). Q88 as 7 × 7 lands around P1–P5, strips at
+  the class clearance; R24 at v2.1's (18.49, 22.57) rot 90 copper-clean
+  (Q87 closed); Contact routes locked ring → strip → R1–R3; Freerouting
+  via 0.55/0.30, 20 passes; owned PCB 421 tracks, 33 vias, DRC 0 errors
+  (3 dangling warnings), 0 shorts, 63 unconnected (U2 QFN escapes, J4
+  SWD, VBUS P4 → island, J3 Contact pads, stitches); a GND pour attempt
+  shorted SIG1/SIG2 and was discarded; `routed: false`, truthful
+  commit. Round 8 work: review r7 does not see it.
+- **w2 → WP12h hand-route** (`tasks/WP12h-route-by-hand.md`, main
+  `fea34f8`): RUNNING since 08:10 on `lane/w2` on top of `8348e62`
+  (told to `git merge main` first, never rebase): keep the WP12g
+  copper, hand-route the 63 rats by script rat by rat (VBUS, J4 SWD,
+  J3 Contact, U2 escapes with the smallest §12 via if needed,
+  stitches), Freerouting only for the remainder with hand routes
+  locked, DRC 0 and 0 unconnected, `release.py --routed`; or name each
+  unroutable pad with its geometry and stop un-shorted truthfully.
+  Waits for nothing from me. Report (expected)
+  `.worktrees/w2/.reports/WP12h-report.md` (expected) → `DONE WP12h`.
 - **rev7 → review r7** (`tasks/review-r7.md`, main `d915ee3`): RUNNING
   since 07:25, Claude Opus 5 high, pane `w1B:pT`, tab `w1B:tT`, worktree
   `.worktrees/review` on `review/r7` (cut from main at `e06262f`,
@@ -425,7 +437,7 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE review-r7` (rev7) or `DONE WP12g` (w2), or
+- Idle until `DONE review-r7` (rev7) or `DONE WP12h` (w2), or
   BLOCKED/GONE for either (a DONE is checked: report present, tree
   clean; then read); on the verdict: record its decisions from 89 in
   open-questions with readings, merge `review/r7` into main (ff when it
@@ -433,7 +445,7 @@ Outside those:
   fast-forward the idle lanes (w3, w1-r6, w4, w5; not w2 while WP12g
   runs, it merges main itself), close the review tab, checkpoint, file
   round 7 back into the vault, refresh the sheet, update the memory
-  pointer; a `DONE WP12g` before the verdict is checked and held for
+  pointer; a `DONE WP12h` before the verdict is checked and held for
   round 8's review.
 
 ## Traps
