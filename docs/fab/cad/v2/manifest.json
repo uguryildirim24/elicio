@@ -441,10 +441,10 @@
       "detail": "\u00d87.5 pocket from the floor to LID_Y is air, the lid stays out, and nylon at least 1.0 thick surrounds it above and below the channel",
       "name": "KEEPOUT_REF_air",
       "numbers": {
-        "pocket_body_mm3": 2.105,
+        "pocket_body_mm3": 2.2987,
         "pocket_lid_mm3": 0.0,
         "pocket_removed_mm3": 287.1612,
-        "wall_band_1mm_missing_mm3": 4.1233
+        "wall_band_1mm_missing_mm3": 2.7503
       },
       "passed": false
     },
@@ -805,12 +805,22 @@
       "passed": true
     },
     {
-      "detail": "side-wall snap residual, USB ligament and Q59 end-wall: \u2265 1.0 at those cuts, \u2265 1.5 elsewhere",
+      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0 beside it; flex clearance 0.2 mm per side in u on REF_end_wall_slot",
       "name": "V2_WALL_minima",
       "numbers": {
         "WALL_MEDIAL": 1.5,
+        "anterior_wall": 1.5,
+        "posterior_wall": 1.5,
+        "slot_clear_s_cad": 0.2,
+        "slot_clear_u": 0.2,
+        "slot_clear_u_cad": 0.2,
+        "slot_clear_y_cad": 0.15,
+        "slot_floor_y": 1.5,
         "slot_open": 1.0,
-        "slot_side_nylon": 1.0,
+        "slot_pack_vol_mm3": 0.814,
+        "slot_wall_s_left": 1.8273,
+        "slot_wall_s_right": 1.879,
+        "slot_width": 2.8999,
         "snap_residual": 1.1,
         "usb_ligament_hook": 1.5
       },
@@ -860,7 +870,7 @@
       "detail": "body_full_p15",
       "name": "watertight",
       "numbers": {
-        "bytes": 2269184.0
+        "bytes": 2256184.0
       },
       "passed": true
     },
@@ -883,7 +893,7 @@
     "total_chord": 47.900523407445874
   },
   "closure_passed": false,
-  "commit": "dbe39ff7447396083dd5a2136ed085e4ab351ca9",
+  "commit": "0c3ab06b79832cf1c99ecf99ef76a51173ff9ef8",
   "contact_source": "interface II flex tabs under standoffs (WP11 turn 07)",
   "contact_stack": {
     "board_underside_y": 4.3,
@@ -984,16 +994,16 @@
   },
   "files": {
     "body_full_p15.3mf": {
-      "bytes": 600732,
-      "sha256": "984b05abc5baae44fb1b957300d4fb9f69bc49b72776f7fc1d2ab9bbe2a9579f"
+      "bytes": 596902,
+      "sha256": "c9d7ce5c701a52fc455569cc123872afad625e0ad85950b84f532da23f5e1415"
     },
     "body_full_p15.step": {
-      "bytes": 1333779,
-      "sha256": "520e4a95b35e92da251de61e4e1bc768ac00356e1911e82e8b86b2e699efa80c"
+      "bytes": 1179755,
+      "sha256": "0e4b977680499e80cc35fbae4798611f233a46ebab4db7d75243610c9bbedcf9"
     },
     "body_full_p15.stl": {
-      "bytes": 2269184,
-      "sha256": "6c456493909bfa7449255fc26b5c0c6f115f11360a06422dce9dad8497f774ea"
+      "bytes": 2256184,
+      "sha256": "1a9a5154044c0bc3cca08928e27ec642897b254ff2b1e85f0eafa6a028890ff7"
     },
     "lid.3mf": {
       "bytes": 173387,
@@ -1131,7 +1141,7 @@
         "\u00a73.5 step 9 hook joint fillet 1.5: no radius builds; left sharp"
       ],
       "hook_stub_in_cavity_removed_mm3": 5.1373,
-      "q59": "WP11b on lane/w3 has not published a cavity-only REF tab; the shell slots the cavity end wall at s 38.2\u201339.25",
+      "q59": "packing-v2.md \u00a75 on lane/w3 at 284ec05 (git show 284ec05): no in-cavity REF tab route; REF_end_wall_slot u 7.25\u20139.75, s 38.20\u201339.25, y 1.50\u20131.81, width 2.50, through 1.05, height 0.31, 0.814 mm\u00b3, plus flex clearance 0.2 mm per side in u, 0.2 mm in s, 0.15 mm in y",
       "shell_measure": {
         "boss_1_s": 21.5,
         "boss_1_u": 14.85,
@@ -1140,13 +1150,18 @@
         "boss_top_y": 4.31,
         "bosses": 2,
         "lid_crown": 0.5,
-        "q59_removed_mm3": 3.6204,
-        "q59_slot": "end wall",
+        "q59_clear_s": 0.2,
+        "q59_clear_u": 0.2,
+        "q59_clear_y": 0.15,
+        "q59_pack_overlap_mm3": 0.885,
+        "q59_pack_vol_mm3": 0.814,
+        "q59_removed_mm3": 1.8134,
+        "q59_slot": "REF_end_wall_slot",
         "standoff_top_y": 4.81,
         "switch_s": 24.2,
         "switch_u": 10.1,
         "usb_opening_removed_mm3": 87.2571,
-        "wp11b_route": "absent"
+        "wp11b_route": "none in cavity"
       },
       "stage_b_cuts": {
         "exit_nylon_in_cavity_mm3": 0.0,
@@ -1272,7 +1287,7 @@
     ]
   },
   "params_file": "scripts/cad/params/shell_v2.toml",
-  "params_sha256": "fa32326e3ae7f2e211d3fb19c5b7c3256a1f6c116f55eefdfbeb85c5c3edf3d4",
+  "params_sha256": "f5882494c9758e418edc66f88ca5d160862a92a41e1d8d0187b83022cdf49f70",
   "parts": [
     "body_full_p15",
     "lid"
@@ -2018,19 +2033,39 @@
         "body_full_p15": {
           "numbers": {
             "WALL_MEDIAL": 1.5,
+            "anterior_wall": 1.5,
+            "posterior_wall": 1.5,
+            "slot_clear_s_cad": 0.2,
+            "slot_clear_u": 0.2,
+            "slot_clear_u_cad": 0.2,
+            "slot_clear_y_cad": 0.15,
+            "slot_floor_y": 1.5,
             "slot_open": 1.0,
-            "slot_side_nylon": 1.0,
+            "slot_pack_vol_mm3": 0.814,
+            "slot_wall_s_left": 1.8273,
+            "slot_wall_s_right": 1.879,
+            "slot_width": 2.8999,
             "snap_residual": 1.1,
             "usb_ligament_hook": 1.5
           },
           "passed": true
         }
       },
-      "detail": "side-wall snap residual, USB ligament and Q59 end-wall: \u2265 1.0 at those cuts, \u2265 1.5 elsewhere",
+      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0 beside it; flex clearance 0.2 mm per side in u on REF_end_wall_slot",
       "numbers": {
         "WALL_MEDIAL": 1.5,
+        "anterior_wall": 1.5,
+        "posterior_wall": 1.5,
+        "slot_clear_s_cad": 0.2,
+        "slot_clear_u": 0.2,
+        "slot_clear_u_cad": 0.2,
+        "slot_clear_y_cad": 0.15,
+        "slot_floor_y": 1.5,
         "slot_open": 1.0,
-        "slot_side_nylon": 1.0,
+        "slot_pack_vol_mm3": 0.814,
+        "slot_wall_s_left": 1.8273,
+        "slot_wall_s_right": 1.879,
+        "slot_width": 2.8999,
         "snap_residual": 1.1,
         "usb_ligament_hook": 1.5
       },
@@ -2055,19 +2090,19 @@
   },
   "views": {
     "drawing.pdf": {
-      "bytes": 74287,
-      "sha256": "ac22067da5f22e267432b8fade74c705ecba54587bc7efae66ffe8fbe09ae540"
+      "bytes": 74580,
+      "sha256": "944233deec243c1428a19bdc26a388a924eff84f01beb83b1604433e872a5d51"
     },
     "render_lateral.png": {
-      "bytes": 120459,
-      "sha256": "c6949191d57e9f8a4bdd818c6eb4a1f8dbb06db4ea26a29441163093f8a93b4e"
+      "bytes": 120530,
+      "sha256": "56fc62c99132ada5e9819752244888c3a07147808b6ef93107916adb6e8d4e5e"
     },
     "render_medial.png": {
-      "bytes": 125989,
-      "sha256": "9c856a3216ba510ffbfd49abf353ec64bb412526b53a01cd006cd95d4308a4c1"
+      "bytes": 126049,
+      "sha256": "6bd2b7c25129845844b1f6be01a90feaca0374820d0fd9a8f9206caf9b50c77d"
     }
   },
-  "views_commit": "dbe39ff7447396083dd5a2136ed085e4ab351ca9",
+  "views_commit": "0c3ab06b79832cf1c99ecf99ef76a51173ff9ef8",
   "views_hash_rule": "SHA-256 of raw file bytes. PNG tIME/tEXt/zTXt/iTXt/eXIf rewritten; Creation Time text and PDF CreationDate/ModDate/ID pinned to 2026-09-16T00:00:00Z. Same pin as the solids hash_rule timestamp.",
   "walls": {
     "anterior side wall": 1.5,
