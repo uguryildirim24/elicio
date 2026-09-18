@@ -2070,11 +2070,34 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--out-dir", type=Path, default=None, help="folder for --all/--kept-drawings/--all-drawings")
     parser.add_argument("--packing-doc", action="store_true", help="regenerate docs/fab/packing-v2.md from the v2 matrix")
+    parser.add_argument(
+        "--dtp-arc",
+        action="store_true",
+        help="run WP11b DTP301120 arc-plus series under interface II and print first conflicts",
+    )
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
     if args.packing_doc:
         path = _v2().write_packing_doc()
         print(f"wrote {path}")
+        return 0
+    v2_missing = all(
+        v is None for v in (args.arch, args.cell, args.layout, args.width, args.lid_y)
+    )
+    run_dtp = args.dtp_arc or (v2_missing and args.arc_plus in (1.5, 3.0) and not args.all and not args.kept_drawings and not args.all_drawings)
+    if run_dtp:
+        v2 = _v2()
+        rows = v2.run_dtp_arc_plus()
+        if not args.dtp_arc or args.arc_plus in (1.5, 3.0):
+            if args.arc_plus in (1.5, 3.0):
+                rows = [r for r in rows if abs(r.spec.arc_plus - args.arc_plus) < 1e-9]
+        closed = sum(1 for r in rows if r.closes)
+        print(f"dtp-arc runs={len(rows)} closed={closed}")
+        for row in rows:
+            print(
+                f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
+                f"first={row.first_conflict}"
+            )
         return 0
     if args.all or args.kept_drawings or args.all_drawings:
         v2 = _v2()
