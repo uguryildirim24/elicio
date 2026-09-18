@@ -205,8 +205,10 @@ Outside those:
 1. `lane/w1` diverged from `main` at `7df78b5` with 864 SVGs (109 MB,
    pushed). Q56: nobody deletes it but Rolf; round 6 work is on `lane/w1-r6`.
 2. The answer sheet (artifact `https://claude.ai/artifact/5e9H1dC5CFHggtiaYtDDeA`)
-   is at version 4 (23:35, the two WP14 renders added to question 2,
-   marked "before review"); version 3 (22:40) brought: M1, body 9.0, ceiling, look and colour,
+   is at version 5 (00:05, question 2b the battery route: marketplace
+   501012 or a factory sample of the 17 mm pack with M1 ≥ 52.5); version
+   4 (23:35) added the two WP14 renders to question 2, marked "before
+   review"; version 3 (22:40) brought: M1, body 9.0, ceiling, look and colour,
    China or not and ship-to, the charging rule, priorities, module route,
    probes owned, tools on the Mac, anything else. Answers land in db doc
    `answers/rolf` (ArtifactData `get`), merged with his earlier fields;
