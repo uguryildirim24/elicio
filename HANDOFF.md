@@ -237,7 +237,21 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   SIG2 run, R16 on B.Cu by a J4 hole, J3 vs Contact clearance, U2 pads
   at 0.20 gap, U3 DSBGA 0.40 pitch); JLC's extreme via 0.10/0.30 tried
   on a copy (56 unconnected, 63 via-rule errors, not imported). → Q98.
-- **w2 → WP12i board v3** (`tasks/WP12i-board-v3.md`, main `27b7991`):
+- **w2 → WP12i board v3** (`tasks/WP12i-board-v3.md`, main `27b7991`): PAUSED at `3a27ffd` (`WIP WP12i` received
+  12:15; report `.worktrees/w2/.reports/WP12i-report.md` present and
+  headed "WIP, stopped"; tree: ?? hardware/board/elicio-v2.good.kicad_pcb, left as the lane's
+  in-progress copper). Tab `w1B:tB` CLOSED 12:15, pane `w1B:pB` closed
+  (GONE expected); branch `lane/w2` kept. Reached: v3 vendored, re-pin
+  on v3 (U2 on B.Cu under SW1), zero-track DRC 0 / 144 unconnected,
+  Contact strips locked at DRC 0 / 143 unconnected (`0da86a0`). Failed,
+  not kept: island SIG2 → R2 and REF → R3 by hand A* (R2.1/R3.1 on u
+  19.07 by the east edge, U4.5 in the way), the J3 pads. Interrupted:
+  the VBUS/J4/U2 hand-route loop, VBUS and nRESET segments in the owned
+  PCB with no DRC after. Resume (its words): DRC or discard that copper,
+  then Freerouting with the strips locked, or name the pads and stop.
+  Restart from the start line in `tasks/WP12i-board-v3.md` (Cursor
+  resume id in `HANDOFF.json`, git `c817086`). Earlier:
+  
   RUNNING since 11:55 on "pin table v3 ab9ce95" (step 3: vendor
   v3 through §5e, re-pin with the Q98 keep-outs, flat outline with the
   charge tab and the J3 break-off cut, lock Contact routes, hand-route
@@ -443,33 +457,31 @@ Outside those:
 checkpoint with:  python3 ~/.claude/skills/save-state/state.py snapshot
 Do not hand-edit ids into it. -->
 
-## Herdr (generated 2026-09-18T14:27:23-04:00 by state.py, herdr 0.9.0, session `default`)
-Workspace `w1B` (elicio), 3 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
+## Herdr (generated 2026-09-18T14:52:11-04:00 by state.py, herdr 0.9.0, session `default`)
+Workspace `w1B` (elicio), 2 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
 Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl`.
 
 ### Workers nested under the coordinator
 | name | kind | status | pane | tab (label) | cwd | tokens | last title |
 |---|---|---|---|---|---|---|---|
-| w1 | cursor | working | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP14f waiting=flat pattern v3 | Lane W1 Instructions |
-| w2 | cursor | working | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP12i waiting=pin table v3 | Lane W2 Instructions |
+| w1 | cursor | done | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP14f waiting=flat pattern v3 | Lane W1 Instructions |
 
 Start lines as they run now (from `pane process-info`), for restarting a worker that is gone:
 
 ```bash
 herdr agent start w1 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume 791832d5-f944-40f4-80ec-82deb5c4efca
-herdr agent start w2 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume 137b6bf4-e654-4a43-bc69-e0421552a50c
 ```
 
-Other workspaces on this server (not yours to touch): `w16` flyonenomics (done), `w1E` jevtest (done), `w1F` adeherdr (working)
+Other workspaces on this server (not yours to touch): `w16` flyonenomics (working), `w1E` jevtest (done), `w1F` adeherdr (done)
 
 ### Git
 Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behind origin/main).
 
 | worktree | branch | head | dirty files | last commit |
 |---|---|---|---|---|
-| `/Users/rolfie/projects/elicio` | `main` | 2113b6d | 0 | handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded |
-| `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | 89279c2 | 0 | shell(v2f): stamp the Q89 lid-boss solids on the views |
-| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 03f031c | 0 | board(v3): RSM land, R9/R10 DNP, Q94 stiffeners, Q97 tests; wait for pin table v3 |
+| `/Users/rolfie/projects/elicio` | `main` | ee00fe1 | 0 | handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps |
+| `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | 938984e | 0 | wip(WP14f): wall P4/P5 CAD and §5e checks against pin table v3 ab9ce95 |
+| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 3a27ffd | 1 | wip(WP12i): v3 land locked; hand_route interrupted |
 | `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | ab9ce95 | 0 | packing(v3): pin table v3 Q98 keep-outs, H1/H2 1.42 mm gap, well at 16.50 |
 | `/Users/rolfie/projects/elicio/.worktrees/w4` | `lane/w4` | dbeeafa | 0 | receiver(v2): montage 3.1–3.3 scored by the pipeline, not receive-check (Q96) |
 | `/Users/rolfie/projects/elicio/.worktrees/w5` | `lane/w5` | facb0c1 | 0 | Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89–Q97 recorded |
@@ -478,12 +490,12 @@ Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behi
 Last commits on the integration branch:
 
 ```
+ee00fe1 handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps
+c817086 handoff: WP11g landed at ab9ce95 with the Q98 channels (H1 13.23, J4 16.52 rot 90, keep-out list); w1 and w2 released on v3; w3 tab closed; fresh snapshot
 2113b6d handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded
 b424478 handoff: WP11g first DONE at 78ab3f7 (pin table v3: posterior-wall pads, J2 inside, J3 break-off, R9/R10 out); second turn running for the Q98 channels; w1/w2 held until then
 06a317d handoff: w4, w5, w9 tabs closed (Rolf: close out agents not running); lane/w4 dbeeafa kept unmerged for r8; fresh herdr snapshot
 4f82c6b handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected
-a74fbca handoff: r8 seams gain the moved well and tail boss, U2 pitch and U3 swap, the Q98 channel rows
-7dbe1b9 handoff: WP14f first half at 89279c2 (Q89 built, V2_CLOSURE passes, well at u 16.50), w1 WAITING for flat pattern v3; Round 8 note; r8 seam on the tail boss
 ```
 
 ### Record files (newest first)
