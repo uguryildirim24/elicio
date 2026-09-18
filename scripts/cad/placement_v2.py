@@ -11,6 +11,7 @@ import importlib.util
 import io
 import math
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -173,6 +174,93 @@ R0402 = (1.80, 0.90)
 N_0402 = 25
 N_SWD = 5
 SWD = (1.0, 1.0)
+
+# WP11c: real F.CrtYd / pad extent from the WP12b board (commit 845bac7).
+# Round-5 packing sizes stay in VQFN/BQ/LDO/... and still drive the 864-run matrix.
+WP12B_REV = "845bac7"
+WP12B_PCB = "hardware/board/elicio-v2.kicad_pcb"
+WP12B_PRO = "hardware/board/elicio-v2.kicad_pro"
+JLC_ASSEMBLY_EDGE = 2.5  # board-v2.md §12 / L6; JLC FPC assembly, body to edge
+COPPER_TO_EDGE = 0.30  # board-v2.md §12; DRC min_copper_edge_clearance
+CONTACT_NETCLASS_CLEARANCE = 1.0  # WP12b elicio-v2.kicad_pro netclass Contact
+SOLDER_MASK_TO_COPPER = 0.05  # WP12b DRC solder_mask_to_copper_clearance
+SOLDER_MASK_BRIDGE_MARGIN = 0.10  # two mask expansions
+COURTYARD_GAP = 0.0
+TAB_WIDTH_II = 2.5
+# 0402 pad centres ±0.51, size 0.54 → inner gap 0.48 (WP12c Contact violation).
+R0402_PAD_GAP = 0.48
+WIDER_TAB_MM = 4.0  # variant B: tab wide enough for one 0402 plus 1.0 mm Contact
+
+# Round 6 decisions 70–74 (`tasks/reviews/code-r6.md`). Layout v2 must meet these.
+USB_OUTER_FACE_S = -1.00  # decision 70: outer hook-end face
+HOOK_ROOT_U_MAX = 6.39  # decision 70: hook root on the end face
+USB_PACKING_HANG_MM = 4.80  # decision 70: packing receptacle past that face
+HOOK_ROOT_SHIFT_MM = 2.40  # decision 70: posterior move that clears the opening
+RING_FR4_PIECES = 3  # decision 72: FR4 0.2 on the three tabs; ring 0.31 stays
+ISLAND_FR4_PIECES = 2  # Eco1.User island + USB/pocket (r6 board-v2 §12)
+BOSS_HOLE_SITES = ((14.85, 21.50), (14.85, 28.10))  # decision 73; shell-v2.md
+BOSS_HOLE_DIA = 2.7
+BOSS_HOLE_KEEP = BOSS_HOLE_DIA + 2 * COPPER_TO_EDGE  # courtyard-clear box
+FOLD_STAND_OUT = 1.6  # decision 74: 180° at R 1.5 stands ~1.6 outside the edge
+FOLD_ARC = math.pi * BOARD_BEND_R  # 4.712… mm of strip in the bend
+
+# Local F.CrtYd width × height (mm) per footprint name. Source: 845bac7 PCB.
+KICAD_COURTYARD = {
+    "C_0402_1005Metric": (1.820, 0.920),
+    "C_0603_1608Metric": (2.960, 1.460),
+    "D_SOD-523": (2.500, 1.400),
+    "LED_0402_1005Metric": (1.860, 0.940),
+    "USB_C_Receptacle_HRO_TYPE-C-31-M-12": (10.640, 9.420),
+    "JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal": (5.800, 6.560),
+    "PinHeader_1x03_P2.54mm_Horizontal": (12.310, 8.620),
+    "Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical": (7.000, 4.000),
+    "L_0603_1608Metric": (2.960, 1.460),
+    "RING_PAD_D5_H2.7": (6.400, 6.400),
+    "SOT-23": (3.860, 3.400),
+    "R_0402_1005Metric": (1.860, 0.940),
+    "SW_Push_1P1T_XKB_TS-1187A": (7.500, 5.600),
+    "Raytac_MDBT50Q": (11.500, 16.500),
+    "VQFN-32-1EP_4x4mm_P0.4mm_EP2.8x2.8mm": (5.260, 5.260),
+    "Texas_YFP0006": (2.960, 3.500),
+    "SOT-23-5": (4.100, 3.400),
+    "SOT-23-6": (4.100, 3.400),
+}
+KICAD_PAD_EXTENT = {
+    "C_0402_1005Metric": (1.520, 0.620),
+    "C_0603_1608Metric": (2.450, 0.950),
+    "D_SOD-523": (2.100, 0.600),
+    "LED_0402_1005Metric": (1.560, 0.640),
+    "USB_C_Receptacle_HRO_TYPE-C-31-M-12": (9.640, 6.620),
+    "JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal": (5.400, 4.775),
+    "PinHeader_1x03_P2.54mm_Horizontal": (1.700, 6.780),
+    "Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical": (6.071, 3.023),
+    "L_0603_1608Metric": (2.450, 0.950),
+    "RING_PAD_D5_H2.7": (5.000, 5.000),
+    "SOT-23": (2.475, 3.375),
+    "R_0402_1005Metric": (1.560, 0.640),
+    "SW_Push_1P1T_XKB_TS-1187A": (7.000, 4.500),
+    "Raytac_MDBT50Q": (10.200, 11.400),
+    "VQFN-32-1EP_4x4mm_P0.4mm_EP2.8x2.8mm": (4.750, 4.750),
+    "Texas_YFP0006": (0.650, 1.050),
+    "SOT-23-5": (3.600, 2.500),
+    "SOT-23-6": (3.600, 2.500),
+}
+# Round-5 packing envelopes used by run_spec (not courtyards). None = not a named packing box.
+ROUND5_XY = {
+    "U1": (10.5, 15.5),
+    "U2": (5.0, 5.0),
+    "U3": (2.10, 1.40),
+    "U4": (3.30, 2.90),
+    "U5": (3.30, 2.90),
+    "D1": (2.20, 1.00),
+    "J1": (8.9, 7.3),
+    "J2": (4.0, 6.0),
+    "J3": (7.6, 2.5),
+    "SW1": (4.5, 4.5),
+    "R1": (1.80, 0.90),
+    "R2": (1.80, 0.90),
+    "R3": (1.80, 0.90),
+}
 
 ROOT = Path(__file__).resolve().parents[2]
 V2_DRAW_DIR = ROOT / "docs" / "fab" / "cad" / "v1"
@@ -2594,6 +2682,1063 @@ def _ref_tab_route_section() -> list[str]:
     return lines
 
 
+# ---------------------------------------------------------------------------
+# WP11c — real courtyards and a board-lane layout (round 7).
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True, slots=True)
+class KicadFootprint:
+    ref: str
+    footprint: str
+    value: str
+    at: tuple[float, float, float]
+    cr_w: float
+    cr_h: float
+    pad_w: float
+    pad_h: float
+
+
+@dataclass(frozen=True, slots=True)
+class LayoutPart:
+    ref: str
+    footprint: str
+    u: float
+    s: float
+    rot: float
+    cr_w: float
+    cr_h: float
+    pad_w: float
+    pad_h: float
+    wu: float
+    ws: float
+    face: str
+    notes: str = ""
+
+
+@dataclass
+class LayoutV2:
+    name: str
+    spec: V2Spec
+    parts: list[LayoutPart]
+    keepouts: list[tuple[str, float, float, float, float]]
+    rules: list[tuple[str, bool, str]]
+    variants: list[str]
+    first_blocking: str
+    contacts_moved_mm: dict[str, float]
+
+
+def _sexp_extract(text: str, start: int) -> tuple[str, int]:
+    depth = 0
+    i = start
+    in_str = False
+    while i < len(text):
+        c = text[i]
+        if in_str:
+            if c == "\\":
+                i += 2
+                continue
+            if c == '"':
+                in_str = False
+        else:
+            if c == '"':
+                in_str = True
+            elif c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    return text[start : i + 1], i + 1
+        i += 1
+    raise ValueError("unbalanced s-expression")
+
+
+_WP12B_PCB_TEXT: str | None = None
+_WP12B_PRO_TEXT: str | None = None
+
+
+def git_show(rev_path: str) -> str:
+    return subprocess.check_output(["git", "show", rev_path], cwd=ROOT, encoding="utf-8")
+
+
+def load_wp12b_pcb() -> str:
+    global _WP12B_PCB_TEXT
+    if _WP12B_PCB_TEXT is None:
+        _WP12B_PCB_TEXT = git_show(f"{WP12B_REV}:{WP12B_PCB}")
+    return _WP12B_PCB_TEXT
+
+
+def load_wp12b_pro() -> str:
+    global _WP12B_PRO_TEXT
+    if _WP12B_PRO_TEXT is None:
+        _WP12B_PRO_TEXT = git_show(f"{WP12B_REV}:{WP12B_PRO}")
+    return _WP12B_PRO_TEXT
+
+
+def contact_netclass_clearance(pro_text: str | None = None) -> float:
+    text = pro_text if pro_text is not None else load_wp12b_pro()
+    for block in re.finditer(r"\{[^{}]+\}", text):
+        chunk = block.group(0)
+        if '"name": "Contact"' not in chunk and '"name":"Contact"' not in chunk:
+            continue
+        match = re.search(r'"clearance":\s*([0-9.]+)', chunk)
+        if match is None:
+            raise ValueError("Contact netclass has no clearance")
+        return float(match.group(1))
+    raise ValueError("Contact netclass missing from WP12b elicio-v2.kicad_pro")
+
+
+def _fp_bbox(pts: list[tuple[float, float]]) -> tuple[float, float]:
+    if not pts:
+        return (0.0, 0.0)
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    return (max(xs) - min(xs), max(ys) - min(ys))
+
+
+def parse_kicad_pcb(text: str) -> list[KicadFootprint]:
+    """Courtyard rectangle and pad extent for every footprint on a KiCad PCB."""
+    out: list[KicadFootprint] = []
+    idx = 0
+    while True:
+        i = text.find("(footprint ", idx)
+        if i < 0:
+            break
+        blob, idx = _sexp_extract(text, i)
+        name_m = re.match(r'\(footprint "([^"]+)"', blob)
+        if name_m is None:
+            continue
+        fpname = name_m.group(1).split(":")[-1]
+        at_m = re.search(r"\(at ([-\d.]+) ([-\d.]+)(?: ([-\d.]+))?\)", blob)
+        ax = float(at_m.group(1)) if at_m else 0.0
+        ay = float(at_m.group(2)) if at_m else 0.0
+        arot = float(at_m.group(3) or 0.0) if at_m else 0.0
+        ref_m = re.search(r'\(property "Reference" "([^"]+)"', blob)
+        val_m = re.search(r'\(property "Value" "([^"]+)"', blob)
+        crd: list[tuple[float, float]] = []
+        gidx = 0
+        while True:
+            j = blob.find("(fp_", gidx)
+            if j < 0:
+                break
+            kind_m = re.match(r"\(fp_(line|rect|circle|poly|arc)\b", blob[j:])
+            if kind_m is None:
+                gidx = j + 4
+                continue
+            g, gidx = _sexp_extract(blob, j)
+            if "F.CrtYd" not in g and "B.CrtYd" not in g:
+                continue
+            kind = kind_m.group(1)
+            if kind in ("line", "rect"):
+                st = re.search(r"\(start ([-\d.]+) ([-\d.]+)\)", g)
+                en = re.search(r"\(end ([-\d.]+) ([-\d.]+)\)", g)
+                if st and en:
+                    crd += [
+                        (float(st.group(1)), float(st.group(2))),
+                        (float(en.group(1)), float(en.group(2))),
+                    ]
+            elif kind == "circle":
+                c = re.search(r"\(center ([-\d.]+) ([-\d.]+)\)", g)
+                e = re.search(r"\(end ([-\d.]+) ([-\d.]+)\)", g)
+                if c and e:
+                    cx, cy = float(c.group(1)), float(c.group(2))
+                    rad = math.hypot(float(e.group(1)) - cx, float(e.group(2)) - cy)
+                    crd += [(cx - rad, cy - rad), (cx + rad, cy + rad)]
+            elif kind == "poly":
+                crd += [(float(a), float(b)) for a, b in re.findall(r"\(xy ([-\d.]+) ([-\d.]+)\)", g)]
+        pad_pts: list[tuple[float, float]] = []
+        pidx = 0
+        while True:
+            j = blob.find("(pad ", pidx)
+            if j < 0:
+                break
+            pblob, pidx = _sexp_extract(blob, j)
+            pat = re.search(r"\(at ([-\d.]+) ([-\d.]+)(?: ([-\d.]+))?\)", pblob)
+            psz = re.search(r"\(size ([-\d.]+) ([-\d.]+)\)", pblob)
+            if pat is None or psz is None:
+                continue
+            px, py = float(pat.group(1)), float(pat.group(2))
+            prot = math.radians(float(pat.group(3) or 0.0))
+            hw, hh = float(psz.group(1)) / 2.0, float(psz.group(2)) / 2.0
+            for cx, cy in ((-hw, -hh), (hw, -hh), (hw, hh), (-hw, hh)):
+                rx = cx * math.cos(prot) - cy * math.sin(prot)
+                ry = cx * math.sin(prot) + cy * math.cos(prot)
+                pad_pts.append((px + rx, py + ry))
+        cr_w, cr_h = _fp_bbox(crd)
+        pad_w, pad_h = _fp_bbox(pad_pts)
+        out.append(
+            KicadFootprint(
+                ref_m.group(1) if ref_m else "?",
+                fpname,
+                val_m.group(1) if val_m else "",
+                (ax, ay, arot),
+                cr_w,
+                cr_h,
+                pad_w,
+                pad_h,
+            )
+        )
+    return out
+
+
+def parse_kicad_keepouts(text: str) -> dict[str, tuple[float, float, float, float]]:
+    """Named zone / keep-out bboxes from the WP12b PCB (board XY = packing u,s)."""
+    out: dict[str, tuple[float, float, float, float]] = {}
+    idx = 0
+    while True:
+        i = text.find("(zone", idx)
+        if i < 0:
+            break
+        if text[i : i + 5] != "(zone" or (len(text) > i + 5 and text[i + 5] not in " \n\t"):
+            idx = i + 5
+            continue
+        blob, idx = _sexp_extract(text, i)
+        if "(keepout" not in blob:
+            continue
+        name_m = re.search(r'\(name "([^"]+)"\)', blob)
+        pts = [(float(a), float(b)) for a, b in re.findall(r"\(xy ([-\d.]+) ([-\d.]+)\)", blob)]
+        if not pts:
+            continue
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        name = name_m.group(1) if name_m else f"unnamed_keepout_{len(out) + 1}"
+        if name.startswith("unnamed_keepout_") and min(xs) > 14.0 and max(xs) < 16.0 and min(ys) > 4.0 and max(ys) < 7.0:
+            name = "J4_USB_C_keepout"
+        out[name] = (min(xs), min(ys), max(xs), max(ys))
+    return out
+
+
+_KICAD_TABLE: dict[str, dict[str, Any]] | None = None
+_LAYOUT_501012: LayoutV2 | None = None
+_LAYOUT_501015: LayoutV2 | None = None
+
+
+def kicad_part_table(fps: list[KicadFootprint] | None = None) -> dict[str, dict[str, Any]]:
+    """Per-reference courtyard / pad sizes plus the round-5 packing column."""
+    global _KICAD_TABLE
+    if fps is None and _KICAD_TABLE is not None:
+        return _KICAD_TABLE
+    rows = fps if fps is not None else parse_kicad_pcb(load_wp12b_pcb())
+    table: dict[str, dict[str, Any]] = {}
+    for fp in rows:
+        cr = KICAD_COURTYARD.get(fp.footprint, (fp.cr_w, fp.cr_h))
+        table[fp.ref] = {
+            "ref": fp.ref,
+            "footprint": fp.footprint,
+            "value": fp.value,
+            "cr_w": cr[0],
+            "cr_h": cr[1],
+            "pad_w": fp.pad_w,
+            "pad_h": fp.pad_h,
+            "round5": ROUND5_XY.get(fp.ref),
+            "wp12b_at": fp.at,
+        }
+    if fps is None:
+        _KICAD_TABLE = table
+    return table
+
+
+def _rot_size(w: float, h: float, rot: float) -> tuple[float, float]:
+    quarter = abs(rot) % 180.0
+    if abs(quarter - 90.0) < 1.0:
+        return (h, w)
+    return (w, h)
+
+
+def _part_box(part: LayoutPart, y0: float, y1: float) -> Box:
+    return Box(part.ref, part.u, part.s, part.wu, part.ws, y0, y1, part.face)
+
+
+def _gap(a: Box, b: Box) -> float:
+    du = max(0.0, max(a.u0 - b.u1, b.u0 - a.u1))
+    ds = max(0.0, max(a.s0 - b.s1, b.s0 - a.s1))
+    if du == 0.0 and ds == 0.0:
+        # overlap: negative inset
+        return -min(a.u1 - b.u0, b.u1 - a.u0, a.s1 - b.s0, b.s1 - a.s0)
+    if du == 0.0:
+        return ds
+    if ds == 0.0:
+        return du
+    return math.hypot(du, ds)
+
+
+def _make_part(ref: str, table: dict[str, dict[str, Any]], u: float, s: float, rot: float, face: str, notes: str = "") -> LayoutPart:
+    row = table[ref]
+    wu, ws = _rot_size(row["cr_w"], row["cr_h"], rot)
+    return LayoutPart(
+        ref,
+        row["footprint"],
+        u,
+        s,
+        rot,
+        row["cr_w"],
+        row["cr_h"],
+        row["pad_w"],
+        row["pad_h"],
+        wu,
+        ws,
+        face,
+        notes,
+    )
+
+
+def _regions_from_geom(geom: dict[str, Any], module: Box, cell: Box) -> dict[str, tuple[float, float, float, float]]:
+    bu0, bu1 = geom["board_u"]
+    bs0, bs1 = geom["board_s"]
+    leftover = (bu0 + 0.15, bu1 - 0.15, bs0 + 0.15, min(module.s0 - 0.55, bs1) - 0.05)
+    side = (module.u1 + 0.05, bu1, max(bs0, module.s0), min(bs1, module.s1))
+    pu0 = cell.u1 + 0.2
+    pu1 = geom["cavity_u"][1] - 0.15
+    ps0 = geom["cavity_s"][0] + 0.15
+    ps1 = geom["rib_s"][0] - 0.15
+    pocket = (pu0, pu1, ps0, ps1)
+    hook = (4.5, 15.5, -7.7, 1.5)
+    hang = (bu1 + 0.2, bu1 + 14.0, leftover[2], leftover[3])
+    sidehang = (geom["cavity_u"][1] - 1.0, geom["cavity_u"][1] + 8.0, pocket[2], pocket[3])
+    return {"leftover": leftover, "side": side, "pocket": pocket, "hook": hook, "hang": hang, "sidehang": sidehang}
+
+
+def search_layout_v2(spec: V2Spec, *, table: dict[str, dict[str, Any]] | None = None) -> LayoutV2:
+    """Place every WP12b footprint on the w20 × y8 shell using real courtyards."""
+    table = table if table is not None else kicad_part_table()
+    geom = body_geom(spec)
+    bu0, bu1 = geom["board_u"]
+    bs0, bs1 = geom["board_s"]
+    module, antenna = _place_module(spec, geom)
+    cell = _place_cell(spec, geom, module)
+    usb, usb_wall = _place_usb(spec, geom, module)
+    y_top = geom["board_top"]
+    y_pocket = FLOOR_Y + BOARD_AT_PARTS
+    regs = _regions_from_geom(geom, module, cell)
+    occupied: list[Box] = [module, cell]
+    if antenna is not None:
+        au0, as0, au1, as1 = antenna
+        occupied.append(
+            Box("RF_NO_COPPER", (au0 + au1) / 2.0, (as0 + as1) / 2.0, au1 - au0, as1 - as0, y_top, y_top + 10.0, "top")
+        )
+    # SIG1 ring keep-out is on the island leftover. SIG2 sits under U1; REF is on the tab.
+    occupied.append(Box("RING_SIG1_CLEAR", CONTACT_1[0], CONTACT_1[1], 7.0, 7.0, y_top, y_top + 8.0, "top"))
+    # Decision 73: Ø2.7 holes at the shell boss sites, courtyard-clear.
+    for i, (hu, hs) in enumerate(BOSS_HOLE_SITES, 1):
+        occupied.append(
+            Box(f"HOLE_M{i}", hu, hs, BOSS_HOLE_KEEP, BOSS_HOLE_KEEP, y_top, y_top + 8.0, "top")
+        )
+    parts: list[LayoutPart] = []
+
+    def add(part: LayoutPart, y0: float, h: float) -> None:
+        parts.append(part)
+        occupied.append(_part_box(part, y0, y0 + h))
+
+    # U1 keeps the packing centre so SIG2 and the antenna keep-out stay.
+    u1 = _make_part("U1", table, module.u, module.s, 90.0, "top", "packing centre; courtyard 11.5×16.5 at rot 90")
+    add(u1, y_top, MODULE["A"]["h"])
+    # J1 USB on the hook-end end face (plan fallback).
+    if usb is not None:
+        j1 = _make_part("J1", table, usb.u, usb.s, 0.0, "top", f"USB {usb_wall}")
+        add(j1, usb.y0, USB[2])
+    # P1–P3 stay on the winner contact sites (folded packing XY).
+    for ref, site, note in (
+        ("P1", CONTACT_1, "SIG1 folded site"),
+        ("P2", CONTACT_2, "SIG2 folded site"),
+        ("P3", CONTACT_REF, "REF site; REF_end_wall_slot"),
+    ):
+        add(_make_part(ref, table, site[0], site[1], 0.0, "floor", note), FLOOR_Y, TAB_T)
+
+    def try_place(ref: str, rots: tuple[float, ...], region_names: tuple[str, ...], y0: float, h: float, near=None, notes="") -> bool:
+        row = table[ref]
+        ranked = []
+        for rn in region_names:
+            u0, u1, s0, s1 = regs[rn]
+            face = {"pocket": "pocket", "hook": "hook", "hang": "top", "sidehang": "pocket"}.get(rn, "top")
+            ranked.append(((u0, u1, s0, s1), y0, face))
+        sizes = []
+        for rot in rots:
+            wu, ws = _rot_size(row["cr_w"], row["cr_h"], rot)
+            sizes.append((wu, ws, rot))
+        for wu, ws, rot in sizes:
+            placed = _find_site(ref, [(wu, ws)], h, ranked, occupied, near=near, step=0.5, margin=SOLDER_MASK_TO_COPPER)
+            if placed is not None:
+                add(
+                    LayoutPart(ref, row["footprint"], placed.u, placed.s, rot, row["cr_w"], row["cr_h"], row["pad_w"], row["pad_h"], wu, ws, placed.face, notes),
+                    placed.y0,
+                    h,
+                )
+                return True
+        return False
+
+    named = [
+        ("U2", (0.0, 90.0), ("pocket", "leftover"), y_top, VQFN[2], (14.0, 8.0), "ADS1292"),
+        ("SW1", (0.0, 90.0), ("leftover",), y_top, SWITCH[2], (13.5, 24.2), "lid recess"),
+        ("J4", (0.0, 90.0), ("leftover", "pocket"), y_top, 2.0, (15.1, 16.8), "TC2030; reachable from the leftover high-u edge"),
+        ("J2", (0.0, 90.0), ("sidehang", "pocket", "leftover"), y_top, JST[2], (20.0, 8.0), "JST-SH; hangs off the pocket high-u wall"),
+        ("U4", (0.0, 90.0), ("leftover", "pocket"), y_top, LDO[2], (9.45, 20.2), "TLV71330"),
+        ("U3", (0.0, 90.0), ("leftover", "pocket"), y_top, BQ[2], (3.45, 16.8), "BQ25100"),
+        ("U5", (0.0, 90.0), ("pocket", "leftover"), y_top, SOT23_6[2], (15.0, 4.0), "USBLC6"),
+        ("D1", (0.0, 90.0), ("pocket", "leftover"), y_top, SOD523[2], (15.0, 5.5), "PESD VBUS"),
+        ("L1", (0.0, 90.0), ("leftover", "pocket"), y_top, 1.0, None, "10 µH"),
+        ("D2", (0.0, 90.0), ("leftover", "pocket"), y_top, 0.5, None, "LED"),
+        ("J3", (0.0, 90.0), ("hang",), y_top, HEADER[2], (bu1 + 7.0, (regs["leftover"][2] + regs["leftover"][3]) / 2.0), "bench header; pins hang off the high-u outline"),
+    ]
+    for q in ("Q1", "Q2", "Q3", "Q4", "Q5"):
+        named.append((q, (0.0, 90.0), ("leftover", "pocket"), y_top, 1.15, None, "SOT-23"))
+    missing: list[str] = []
+    for ref, rots, rns, y0, h, near, notes in named:
+        if not try_place(ref, rots, rns, y0, h, near, notes):
+            missing.append(ref)
+
+    # R1–R3 variant A: island at each tab root, not on the 2.5 mm strip.
+    leftover_reg = regs["leftover"]
+    tab_roots = {
+        "R1": (leftover_reg[0] + 2.0, leftover_reg[2] + 1.5),
+        "R2": (leftover_reg[1] - 2.0, leftover_reg[2] + 1.5),
+        "R3": (CONTACT_REF[0], leftover_reg[3] - 1.0),
+    }
+    for ref, near in tab_roots.items():
+        if not try_place(ref, (0.0, 90.0), ("leftover", "pocket"), y_top, 0.5, near, "220 kΩ variant A: island at tab root"):
+            missing.append(ref)
+
+    # Remaining C/R on leftover then pocket.
+    rest = [r for r in table if r not in {p.ref for p in parts} and r[0] in "CR"]
+    rest.sort(key=lambda r: (r[0], int(re.sub(r"\D", "", r) or "0")))
+    for ref in rest:
+        y0 = y_top
+        regions = ("leftover", "pocket")
+        if ref.startswith("C") and table[ref]["footprint"].startswith("C_0603"):
+            h = 1.0
+        else:
+            h = 0.5
+        if not try_place(ref, (0.0, 90.0), regions, y0, h, None, "passive grid"):
+            if not try_place(ref, (0.0, 90.0), ("pocket", "hook"), y_pocket, h, None, "passive grid, pocket"):
+                missing.append(ref)
+
+    still = list(missing)
+    for ref in still:
+        if try_place(ref, (0.0, 90.0), ("leftover", "pocket"), y_top, 0.5, None, "last-chance"):
+            missing.remove(ref)
+
+    keepouts = [
+        ("RF_NO_COPPER", *antenna) if antenna is not None else ("RF_NO_COPPER", 0, 0, 0, 0),
+        ("RF_FEED_NOTCH", 6.05, 33.05, 7.25, 34.65),
+        ("RING_SIG1_CLEAR", CONTACT_1[0] - 3.5, CONTACT_1[1] - 3.5, CONTACT_1[0] + 3.5, CONTACT_1[1] + 3.5),
+        ("RING_SIG2_CLEAR", CONTACT_2[0] - 3.5, CONTACT_2[1] - 3.5, CONTACT_2[0] + 3.5, CONTACT_2[1] + 3.5),
+        ("RING_REF_CLEAR", CONTACT_REF[0] - 3.5, CONTACT_REF[1] - 3.5, CONTACT_REF[0] + 3.5, CONTACT_REF[1] + 3.5),
+        ("J4_keepout", 14.46, 4.13, 15.73, 6.67),
+        (
+            "HOLE_M1",
+            BOSS_HOLE_SITES[0][0] - BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[0][1] - BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[0][0] + BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[0][1] + BOSS_HOLE_KEEP / 2.0,
+        ),
+        (
+            "HOLE_M2",
+            BOSS_HOLE_SITES[1][0] - BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[1][1] - BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[1][0] + BOSS_HOLE_KEEP / 2.0,
+            BOSS_HOLE_SITES[1][1] + BOSS_HOLE_KEEP / 2.0,
+        ),
+    ]
+    if antenna is None:
+        keepouts[0] = ("RF_NO_COPPER", 0.0, 0.0, 0.0, 0.0)
+    else:
+        keepouts[0] = ("RF_NO_COPPER", antenna[0], antenna[1], antenna[2], antenna[3])
+
+    rules = _layout_rules(spec, geom, parts, module, cell, usb_wall, missing, occupied, antenna)
+    blocking = next((f"{n}: {why}" for n, ok, why in rules if not ok), "")
+    variants = [
+        (
+            f"Contact 1.0 mm (WP12b netclass Contact) cannot hold on a {TAB_WIDTH_II:g} mm tab "
+            f"with an 0402 across it (pad gap {R0402_PAD_GAP:.2f} mm). "
+            "Variant A: R1/R2/R3 on the island at the tab root; each tab carries one Contact trace."
+        ),
+        (
+            f"Variant B: widen each tab to {WIDER_TAB_MM:.1f} mm so an 0402 can sit on the tab "
+            f"with {CONTACT_NETCLASS_CLEARANCE:.1f} mm to other copper. The 0402 pad gap "
+            f"{R0402_PAD_GAP:.2f} mm still violates Contact-to-Default {CONTACT_NETCLASS_CLEARANCE:.1f} mm; "
+            "that needs a larger package or a DRC exception."
+        ),
+        _usb_close_variant(spec),
+        _fold_variant_text(spec),
+    ]
+    return LayoutV2(
+        name=f"layout_v2_{spec.tag}",
+        spec=spec,
+        parts=parts,
+        keepouts=keepouts,
+        rules=rules,
+        variants=variants,
+        first_blocking=blocking,
+        contacts_moved_mm={"SIG1": 0.0, "SIG2": 0.0, "REF": 0.0},
+    )
+
+
+def usb_c_body() -> tuple[float, float, float]:
+    """J1 HRO TYPE-C courtyard (845bac7) and the 3.2 mm height from packing / plan v2 §5.4.
+
+    The amendment names the J4 land; J4 on that board is TC2030. USB-C is J1.
+    """
+    cr = KICAD_COURTYARD["USB_C_Receptacle_HRO_TYPE-C-31-M-12"]
+    return (cr[0], cr[1], USB[2])
+
+
+def usb_c_close_options(spec: V2Spec | None = None) -> dict[str, Any]:
+    """Decision 70: what puts the real USB-C body behind the end face."""
+    wu, ws, h = usb_c_body()
+    centre_s = CAVITY_S0 - USB[1] / 2.0  # packing centre −2.15
+    real_s0 = centre_s - ws / 2.0
+    hang = USB_OUTER_FACE_S - real_s0
+    usb_u = (spec.width if spec is not None else 20.0) / 2.0
+    opening_u0 = usb_u - USB_OPENING[0] / 2.0
+    hook_overlap = HOOK_ROOT_U_MAX - opening_u0
+    inside_s1 = USB_OUTER_FACE_S + ws
+    extra_s = max(0.0, inside_s1 + 0.4 - CAVITY_S0)
+    P = _placement()
+    arc = PATH_BODY_ARC + (spec.arc_plus if spec is not None else 0.0) + extra_s
+    chord, _r = P.chord_from_arc_bow(arc, CREASE_BOW)
+    m1_need = float(chord) + 3.0
+    longer_closes = m1_need <= M1_DEFAULT + 1e-9
+    hook_only_closes = hang <= 0.0 + 1e-9  # hook shift does not pull the body inside
+    return {
+        "wu": wu,
+        "ws": ws,
+        "h": h,
+        "hang_mm": hang,
+        "packing_hang_mm": USB_PACKING_HANG_MM,
+        "opening_u0": opening_u0,
+        "hook_u_max": HOOK_ROOT_U_MAX,
+        "hook_overlap_mm": hook_overlap,
+        "extra_s_mm": extra_s,
+        "longer_arc": arc,
+        "longer_chord": float(chord),
+        "longer_m1": m1_need,
+        "longer_closes": longer_closes,
+        "hook_shift_mm": HOOK_ROOT_SHIFT_MM,
+        "hook_only_closes": hook_only_closes,
+        "what_closes": (
+            "a longer body with the cell moved back"
+            if longer_closes
+            else (
+                "the hook root moved posteriorly by 2.4 mm or more"
+                if hook_only_closes
+                else "nothing"
+            )
+        ),
+    }
+
+
+def tab_fold_variants(spec: V2Spec) -> dict[str, Any]:
+    """Decision 74: SIG1/SIG2 180° fold at R 1.5. Same numbers for PCB, packing, shell."""
+    geom = body_geom(spec)
+    bu0, bu1 = geom["board_u"]
+    bs0, _bs1 = geom["board_s"]
+    arc = math.pi * BOARD_BEND_R
+    sig1_side = (CONTACT_1[0] - bu0) + arc
+    sig2_side = (bu1 - CONTACT_2[0]) + arc
+    sig1_neck = (CONTACT_1[1] - bs0) + arc
+    sig2_neck = (CONTACT_2[1] - bs0) + arc
+    pocket_depth = FOLD_STAND_OUT - SIDE_CLEAR
+    pocket = (pocket_depth, TAB_W + 1.0, 2.0 * BOARD_BEND_R)
+    return {
+        "R": BOARD_BEND_R,
+        "arc": arc,
+        "stand_out": FOLD_STAND_OUT,
+        "neck": {
+            "SIG1_strip": sig1_neck,
+            "SIG2_strip": sig2_neck,
+            "pocket": (bs0 - FOLD_STAND_OUT, bs0, TAB_W + 1.0, 2.0 * BOARD_BEND_R),
+            "side_wall": False,
+        },
+        "side": {
+            "SIG1_strip": sig1_side,
+            "SIG2_strip": sig2_side,
+            "pocket": pocket,
+            "side_wall": True,
+            "wall_left": WALL - pocket_depth,
+        },
+    }
+
+
+def boss_hole_hits(parts: list[LayoutPart]) -> list[str]:
+    """Decision 73: Ø2.7 holes at the shell boss sites, courtyard-clear."""
+    hits: list[str] = []
+    keep_r = BOSS_HOLE_DIA / 2.0 + COPPER_TO_EDGE
+    for u, s in BOSS_HOLE_SITES:
+        hole = Box("hole", u, s, 2 * keep_r, 2 * keep_r, -1.0, 20.0, "top")
+        for p in parts:
+            if p.ref in {"P1", "P2", "P3"}:
+                continue
+            if _overlap(_part_box(p, 0.0, 1.0), hole, 0.0):
+                hits.append(f"{p.ref} covers ({u:.2f}, {s:.2f})")
+    return hits
+
+
+def _usb_close_variant(spec: V2Spec) -> str:
+    o = usb_c_close_options(spec)
+    return (
+        f"Decision 70 (`tasks/reviews/code-r6.md`): USB-C J1 real body "
+        f"{o['wu']:.2f}×{o['ws']:.2f}×{o['h']:.1f} (F.CrtYd from 845bac7; height from packing / "
+        f"plan v2 §5.4; the amendment names the J4 land, which is TC2030). "
+        f"Packing hang {o['packing_hang_mm']:.2f} mm past s={USB_OUTER_FACE_S:.2f}; "
+        f"real courtyard hang {o['hang_mm']:.2f} mm. Opening u0={o['opening_u0']:.2f} overlaps "
+        f"hook root u≤{o['hook_u_max']:.2f} by {o['hook_overlap_mm']:.2f} mm. "
+        f"A longer body that seats the body behind the face needs +{o['extra_s_mm']:.2f} mm of "
+        f"arc (cell moved back); chord {o['longer_chord']:.2f}, M1 ≥ {o['longer_m1']:.2f} vs "
+        f"default {M1_DEFAULT:g}. Hook-root shift {o['hook_shift_mm']:.1f} mm clears the opening "
+        f"and the {USB_LIGAMENT:.1f} mm ligament; it does not pull the body inside. "
+        f"**What closes it: {o['what_closes']}.**"
+    )
+
+
+def _fold_variant_text(spec: V2Spec) -> str:
+    f = tab_fold_variants(spec)
+    n, s = f["neck"], f["side"]
+    nd = n["pocket"]
+    sd = s["pocket"]
+    return (
+        f"Decision 74 (`tasks/reviews/code-r6.md`): SIG1/SIG2 fold 180° at R {f['R']:.1f} "
+        f"(arc {f['arc']:.2f} mm, stand-out {f['stand_out']:.1f} mm). Same numbers for the PCB, "
+        f"the packing table and the shell. Neck-end variant: SIG1 strip {n['SIG1_strip']:.2f} mm, "
+        f"SIG2 strip {n['SIG2_strip']:.2f} mm; fold pocket in the neck drop "
+        f"s {nd[0]:.2f}–{nd[1]:.2f}, {nd[2]:.2f} × {nd[3]:.2f} (no side-wall cut). "
+        f"Side-wall variant: SIG1 strip {s['SIG1_strip']:.2f} mm, SIG2 strip {s['SIG2_strip']:.2f} mm; "
+        f"fold pocket {sd[0]:.2f} deep × {sd[1]:.2f} along s × {sd[2]:.2f} along y in each side wall "
+        f"(remaining wall {s['wall_left']:.2f} mm)."
+    )
+
+
+def _layout_rules(
+    spec: V2Spec,
+    geom: dict[str, Any],
+    parts: list[LayoutPart],
+    module: Box,
+    cell: Box,
+    usb_wall: str | None,
+    missing: list[str],
+    occupied: list[Box],
+    antenna: tuple[float, float, float, float] | None,
+) -> list[tuple[str, bool, str]]:
+    bu0, bu1 = geom["board_u"]
+    bs0, bs1 = geom["board_s"]
+    by_ref = {p.ref: p for p in parts}
+    rules: list[tuple[str, bool, str]] = []
+
+    # JLC 2.5 mm body-to-edge for U1 on this island.
+    u1_body_w, u1_body_l = 10.5, 15.5
+    island_w = bu1 - bu0
+    island_l = bs1 - bs0
+    need_w = u1_body_w + 2 * JLC_ASSEMBLY_EDGE
+    need_l = u1_body_l + 2 * JLC_ASSEMBLY_EDGE
+    jlc_u1 = island_w + 1e-9 >= need_w and island_l + 1e-9 >= need_l
+    # Packing pose is long-along-u (15.5 in 15.5): body-to-edge 0.
+    packing_edge = (island_w - 15.5) / 2.0
+    rules.append(
+        (
+            "JLC FPC assembly edge 2.5 mm (board-v2.md §12 / L6)",
+            False,
+            (
+                f"U1 body 10.5×15.5 at the packing pose (long along u) sits {packing_edge:.2f} mm "
+                f"from the island edge u {bu0:.2f}–{bu1:.2f} (width {island_w:.2f}). "
+                f"JLC wants {JLC_ASSEMBLY_EDGE:.1f} mm. Turning U1 long-along-s needs island "
+                f"{need_w:.1f}×{need_l:.1f}; this island is {island_w:.2f}×{island_l:.2f}, so U1 "
+                "can meet 2.5 mm on the short sides only if nothing else shares that 10.5 mm strip. "
+                "U2 courtyard 5.26 cannot sit beside U1 under that rule. First rule that cannot be met."
+            ),
+        )
+    )
+    # copper-to-edge 0.30 using pad extent
+    copper_fail = []
+    for p in parts:
+        if p.face not in {"top", "pocket"}:
+            continue
+        if p.ref in {"J1", "J2", "J3", "P1", "P2", "P3"} or p.face == "hook":
+            continue  # connector / ring may hang off or sit on a tab
+        if p.u - p.wu / 2.0 > bu1 - 0.05:
+            continue  # hanging off the high-u outline
+        pw, ph = _rot_size(p.pad_w, p.pad_h, p.rot)
+        u0, u1 = p.u - pw / 2.0, p.u + pw / 2.0
+        s0, s1 = p.s - ph / 2.0, p.s + ph / 2.0
+        if p.face == "top":
+            edge = min(u0 - bu0, bu1 - u1, s0 - bs0, bs1 - s1)
+            if edge < COPPER_TO_EDGE - 1e-9:
+                copper_fail.append(f"{p.ref} pad-edge {edge:.3f} < {COPPER_TO_EDGE:.2f}")
+    rules.append(
+        (
+            "copper-to-edge 0.30 (board-v2.md §12)",
+            not copper_fail,
+            "; ".join(copper_fail) if copper_fail else f"on-island pads ≥ {COPPER_TO_EDGE:.2f} mm from the island outline",
+        )
+    )
+    # courtyard overlaps
+    boxes = [b for b in occupied if b.name in by_ref]
+    overlaps = []
+    for i, a in enumerate(boxes):
+        for b in boxes[i + 1 :]:
+            if _overlap(a, b, 0.0):
+                overlaps.append(f"{a.name}/{b.name}")
+    rules.append(
+        (
+            "courtyard-to-courtyard ≥ 0 with solder-mask bridge margin 0.10",
+            not overlaps,
+            "; ".join(overlaps[:12]) if overlaps else "no courtyard overlap among placed parts",
+        )
+    )
+    rules.append(
+        (
+            f"Contact netclass {CONTACT_NETCLASS_CLEARANCE:.1f} mm (WP12b elicio-v2.kicad_pro)",
+            False,
+            (
+                f"R1/R2/R3 0402 pad gap {R0402_PAD_GAP:.2f} mm < {CONTACT_NETCLASS_CLEARANCE:.1f} mm "
+                f"(SIG1–AFE_IN1P, SIG2–AFE_IN1N, REF–RLD_FB). A 2.5 mm tab cannot hold the 0402 "
+                "and that clearance. See variants A and B."
+            ),
+        )
+    )
+    ko_hits = []
+    if antenna is not None:
+        ko = Box("RF_NO_COPPER", (antenna[0] + antenna[2]) / 2.0, (antenna[1] + antenna[3]) / 2.0,
+                 antenna[2] - antenna[0], antenna[3] - antenna[1], -1.0, 20.0, "top")
+        for p in parts:
+            if p.ref == "U1":
+                continue
+            if _overlap(_part_box(p, 0.0, 1.0), ko, 0.0):
+                ko_hits.append(p.ref)
+    rules.append(
+        (
+            "module keep-out empty (RF_NO_COPPER / U1 antenna)",
+            not ko_hits,
+            f"inside RF_NO_COPPER: {', '.join(ko_hits)}" if ko_hits else "no non-U1 footprint in RF_NO_COPPER",
+        )
+    )
+    j4 = by_ref.get("J4")
+    rules.append(
+        (
+            "J4 on the hook-end end face with its plug volume",
+            bool(j4 is not None and j4.face == "hook"),
+            (
+                f"J1 USB wall {usb_wall} (USB courtyard 10.64×9.42 fills that face). "
+                f"J4 at ({j4.u:.2f}, {j4.s:.2f}) rot {j4.rot:g} face {j4.face}"
+                if j4
+                else "J4 not placed"
+            ),
+        )
+    )
+    sw1 = by_ref.get("SW1")
+    sw1_ok = sw1 is not None and sw1.face == "top" and sw1.s >= bs0
+    rules.append(
+        (
+            "SW1 under the lid recess",
+            bool(sw1_ok),
+            f"SW1 at ({sw1.u:.2f}, {sw1.s:.2f}) on the board top" if sw1 else "SW1 not placed",
+        )
+    )
+    j3 = by_ref.get("J3")
+    rules.append(
+        (
+            "J3 and TC2030 reachable",
+            j3 is not None and j4 is not None,
+            (
+                f"J3 ({j3.u:.2f}, {j3.s:.2f}) rot {j3.rot:g}; "
+                f"J4 ({j4.u:.2f}, {j4.s:.2f}) rot {j4.rot:g}"
+                if j3 and j4
+                else f"missing {', '.join(r for r in ('J3', 'J4') if r not in by_ref)}"
+            ),
+        )
+    )
+    rules.append(
+        (
+            "every WP12b footprint placed",
+            not missing,
+            f"unplaced: {', '.join(missing)}" if missing else f"{len(parts)} footprints placed",
+        )
+    )
+    usb = usb_c_close_options(spec)
+    j1 = by_ref.get("J1")
+    j1_s0 = (j1.s - j1.ws / 2.0) if j1 is not None else None
+    usb_inside = j1_s0 is not None and j1_s0 >= USB_OUTER_FACE_S - 1e-9
+    opening_u0 = usb["opening_u0"]
+    opening_clear = opening_u0 >= HOOK_ROOT_U_MAX - 1e-9
+    rules.append(
+        (
+            "USB-C real body inside the outline behind the end face (code-r6.md decision 70)",
+            usb_inside and opening_clear,
+            (
+                f"J1 F.CrtYd {usb['wu']:.2f}×{usb['ws']:.2f}×{usb['h']:.1f}; packing hang "
+                f"{usb['packing_hang_mm']:.2f} mm, courtyard hang {usb['hang_mm']:.2f} mm past "
+                f"s={USB_OUTER_FACE_S:.2f}"
+                + (f" (J1 s0={j1_s0:.2f})" if j1_s0 is not None else "")
+                + f". Opening u0={opening_u0:.2f} vs hook root u≤{HOOK_ROOT_U_MAX:.2f} "
+                f"(overlap {usb['hook_overlap_mm']:.2f} mm). Longer body needs +{usb['extra_s_mm']:.2f} mm "
+                f"of arc, M1 ≥ {usb['longer_m1']:.2f} (default {M1_DEFAULT:g}); "
+                f"hook-root shift {usb['hook_shift_mm']:.1f} mm clears the opening only. "
+                f"What closes it: {usb['what_closes']}."
+            ),
+        )
+    )
+    fr4_count = ISLAND_FR4_PIECES + RING_FR4_PIECES
+    rules.append(
+        (
+            "three FR4 0.2 ring stiffener pieces on the tabs; ring 0.31 stays (code-r6.md decision 72)",
+            True,
+            (
+                f"{RING_FR4_PIECES} pieces FR4 {STIFFENER_TAB:g} at SIG1, SIG2 and REF; "
+                f"ring stack PI {FLEX:g} + FR4 {STIFFENER_TAB:g} = {TAB_T:g} stays. "
+                f"Island Eco1 still {ISLAND_FR4_PIECES}× FR4 {STIFFENER:g}. "
+                f"FR4 piece count {fr4_count} (JLC extra-fee threshold 4)."
+            ),
+        )
+    )
+    hits = boss_hole_hits(parts)
+    rules.append(
+        (
+            "two island mounting holes at the boss sites, Ø2.7, courtyard-clear (code-r6.md decision 73)",
+            not hits,
+            (
+                f"holes at ({BOSS_HOLE_SITES[0][0]:.2f}, {BOSS_HOLE_SITES[0][1]:.2f}) and "
+                f"({BOSS_HOLE_SITES[1][0]:.2f}, {BOSS_HOLE_SITES[1][1]:.2f}), Ø{BOSS_HOLE_DIA:g}, "
+                f"keep box {BOSS_HOLE_KEEP:.2f}. "
+                + ("; ".join(hits) if hits else "no courtyard covers a hole")
+            ),
+        )
+    )
+    fold = tab_fold_variants(spec)
+    n, s = fold["neck"], fold["side"]
+    rules.append(
+        (
+            "SIG1/SIG2 fold 180° at R 1.5; neck-end or side-wall pockets (code-r6.md decision 74)",
+            True,
+            (
+                f"R {fold['R']:.1f}, arc {fold['arc']:.2f} mm, stand-out {fold['stand_out']:.1f} mm. "
+                f"Neck-end: SIG1 {n['SIG1_strip']:.2f} mm, SIG2 {n['SIG2_strip']:.2f} mm; "
+                f"pocket s {n['pocket'][0]:.2f}–{n['pocket'][1]:.2f} × {n['pocket'][2]:.2f} × {n['pocket'][3]:.2f}. "
+                f"Side-wall: SIG1 {s['SIG1_strip']:.2f} mm, SIG2 {s['SIG2_strip']:.2f} mm; "
+                f"pocket {s['pocket'][0]:.2f} × {s['pocket'][1]:.2f} × {s['pocket'][2]:.2f}, "
+                f"wall left {s['wall_left']:.2f} mm. Same numbers for PCB, packing table and shell."
+            ),
+        )
+    )
+    if spec.arc_plus >= 1.5:
+        need_m1 = geom["total_chord"] + 3.0
+        rules.insert(
+            0,
+            (
+                "M1 ≥ TOTAL_CHORD + 3 (Q34); 17 mm pack at +1.5 only if M1 ≥ 52.5",
+                M1_DEFAULT + 1e-9 >= 52.5 and M1_DEFAULT + 1e-9 >= need_m1,
+                f"TOTAL_CHORD {geom['total_chord']:.2f}, need M1 ≥ {need_m1:.2f}; default.toml M1={M1_DEFAULT:g}",
+            ),
+        )
+    return rules
+
+
+def layout_v2_501012() -> LayoutV2:
+    global _LAYOUT_501012
+    if _LAYOUT_501012 is None:
+        spec = V2Spec("A", "pack501012", "series", 20.0, 8.0, 0.0, "II", 3.0, 0.0)
+        _LAYOUT_501012 = search_layout_v2(spec)
+    return _LAYOUT_501012
+
+
+def layout_v2_501015_arc() -> LayoutV2:
+    global _LAYOUT_501015
+    if _LAYOUT_501015 is None:
+        spec = V2Spec("A", "pack501015", "series", 20.0, 8.0, 1.5, "II", 3.0, 0.0)
+        _LAYOUT_501015 = search_layout_v2(spec)
+    return _LAYOUT_501015
+
+
+def _r6_decisions_section(lay12: LayoutV2, lay15: LayoutV2) -> list[str]:
+    """Publish round-6 layout rules 70–74 with one number each for PCB, packing, shell."""
+    o12 = usb_c_close_options(lay12.spec)
+    lines: list[str] = []
+    lines.append("### Round 6 decisions 70–74 (`tasks/reviews/code-r6.md`)")
+    lines.append("")
+    lines.append(
+        "These rules were added after the first WP11c close. The USB-C land on 845bac7 is "
+        "J1 (`USB_C_Receptacle_HRO_TYPE-C-31-M-12`). J4 is TC2030. Height 3.2 mm is packing "
+        "`USB` / plan v2 §5.4 (board-v2.md §12 is the stackup, not a 3D size)."
+    )
+    lines.append("")
+    lines.append(
+        f"**Decision 70.** Real body {o12['wu']:.2f} × {o12['ws']:.2f} × {o12['h']:.1f}. "
+        f"Packing hangs {o12['packing_hang_mm']:.2f} mm past the outer face s={USB_OUTER_FACE_S:.2f}; "
+        f"the courtyard hangs {o12['hang_mm']:.2f} mm. The hook root occupies u up to "
+        f"{o12['hook_u_max']:.2f} on that face; the opening starts at u={o12['opening_u0']:.2f} "
+        f"(overlap {o12['hook_overlap_mm']:.2f} mm) so the opening cannot sit there without a "
+        f"{o12['hook_shift_mm']:.1f} mm posterior move of the hook root "
+        f"(overlap + {USB_LIGAMENT:.1f} mm ligament). Seating the body behind the face needs "
+        f"+{o12['extra_s_mm']:.2f} mm of arc with the cell moved back: chord {o12['longer_chord']:.2f}, "
+        f"M1 ≥ {o12['longer_m1']:.2f} against default.toml M1={M1_DEFAULT:g}. "
+        f"The hook-root move does not pull the body inside. **What closes it: {o12['what_closes']}.**"
+    )
+    lines.append("")
+    lines.append(
+        f"**Decision 72.** Three FR4 {STIFFENER_TAB:g} ring stiffener pieces exist on the tabs "
+        f"(SIG1, SIG2, REF). Ring stack {TAB_T:g} stays (PI {FLEX:g} + FR4 {STIFFENER_TAB:g}). "
+        f"Island Eco1 still has {ISLAND_FR4_PIECES} pieces of FR4 {STIFFENER:g}. "
+        f"FR4 piece count {ISLAND_FR4_PIECES + RING_FR4_PIECES} (JLC extra-fee threshold 4)."
+    )
+    lines.append("")
+    hits12 = boss_hole_hits(lay12.parts)
+    lines.append(
+        f"**Decision 73.** Two mounting holes in the island at the boss sites "
+        f"({BOSS_HOLE_SITES[0][0]:.2f}, {BOSS_HOLE_SITES[0][1]:.2f}) and "
+        f"({BOSS_HOLE_SITES[1][0]:.2f}, {BOSS_HOLE_SITES[1][1]:.2f}), Ø{BOSS_HOLE_DIA:g}, "
+        f"courtyard keep {BOSS_HOLE_KEEP:.2f} mm. "
+        + (
+            "Courtyard hits: " + "; ".join(hits12) + "."
+            if hits12
+            else "No courtyard covers a hole on the 501012 layout."
+        )
+    )
+    lines.append("")
+    lines.append(
+        "**Decision 74.** SIG1/SIG2 fold 180° at R 1.5. Either they leave the island at its "
+        "neck end, or the side walls get fold pockets and the strips grow. The same number is "
+        "used for the PCB, the packing table and the shell."
+    )
+    lines.append("")
+    lines.append("| pack | variant | SIG1 strip | SIG2 strip | pocket |")
+    lines.append("|---|---|---:|---:|---|")
+    for label, lay in (("501012 BODY_ARC", lay12), ("501015 +1.5 mm arc", lay15)):
+        f = tab_fold_variants(lay.spec)
+        n, s = f["neck"], f["side"]
+        nd, sd = n["pocket"], s["pocket"]
+        lines.append(
+            f"| {label} | neck-end | {n['SIG1_strip']:.2f} | {n['SIG2_strip']:.2f} | "
+            f"s {nd[0]:.2f}–{nd[1]:.2f}, {nd[2]:.2f} × {nd[3]:.2f} (neck drop; no side-wall cut) |"
+        )
+        lines.append(
+            f"| {label} | side-wall pockets | {s['SIG1_strip']:.2f} | {s['SIG2_strip']:.2f} | "
+            f"{sd[0]:.2f} deep × {sd[1]:.2f} along s × {sd[2]:.2f} along y; "
+            f"wall left {s['wall_left']:.2f} |"
+        )
+    lines.append("")
+    return lines
+
+
+def _layout_v2_section() -> list[str]:
+    table = kicad_part_table()
+    lay12 = layout_v2_501012()
+    lay15 = layout_v2_501015_arc()
+    lines: list[str] = []
+    lines.append("## 5b. Layout for the board lane, v2 (WP11c)")
+    lines.append("")
+    lines.append(
+        "Real F.CrtYd and pad extents from `git show 845bac7:hardware/board/elicio-v2.kicad_pcb` "
+        "(WP12b after dropping the shorting copper). Round-5 packing envelopes stay in the 864-run "
+        "table. Courtyard-to-courtyard uses a 0.05 mm solder-mask-to-copper margin "
+        f"(DRC; two expansions = {SOLDER_MASK_BRIDGE_MARGIN:.2f} mm pad-to-pad). "
+        f"Contact netclass clearance is {CONTACT_NETCLASS_CLEARANCE:.1f} mm "
+        "(WP12b `elicio-v2.kicad_pro`, nets SIG1/SIG2/REF)."
+    )
+    lines.append("")
+    lines.append("### Part table — KiCad courtyard vs round 5")
+    lines.append("")
+    lines.append(
+        "| ref | footprint | courtyard w × h | pad extent w × h | round-5 packing | Δw | Δh |"
+    )
+    lines.append("|---|---|---:|---:|---:|---:|---:|")
+    def refkey(r: str) -> tuple:
+        m = re.match(r"([A-Za-z]+)(\d+)", r)
+        return (m.group(1), int(m.group(2))) if m else (r, 0)
+    for ref in sorted(table, key=refkey):
+        row = table[ref]
+        r5 = row["round5"]
+        if r5 is None:
+            r5s, dw, dh = "—", "—", "—"
+        else:
+            r5s = f"{r5[0]:.2f} × {r5[1]:.2f}"
+            dw = f"{row['cr_w'] - r5[0]:+.2f}"
+            dh = f"{row['cr_h'] - r5[1]:+.2f}"
+        lines.append(
+            f"| {ref} | {row['footprint']} | {row['cr_w']:.3f} × {row['cr_h']:.3f} | "
+            f"{row['pad_w']:.3f} × {row['pad_h']:.3f} | {r5s} | {dw} | {dh} |"
+        )
+    lines.append("")
+    lines.append("Keep-outs on that board (zone bbox from the same KiCad file):")
+    lines.append("")
+    lines.append("| name | x0 | y0 | x1 | y1 |")
+    lines.append("|---|---:|---:|---:|---:|")
+    for name, (x0, y0, x1, y1) in sorted(parse_kicad_keepouts(load_wp12b_pcb()).items()):
+        lines.append(f"| {name} | {x0:.2f} | {y0:.2f} | {x1:.2f} | {y1:.2f} |")
+    lines.append("")
+    lines.append("### Rules the search must meet")
+    lines.append("")
+    lines.append("| rule | source |")
+    lines.append("|---|---|")
+    lines.append(f"| JLC FPC assembly, body to board edge ≥ {JLC_ASSEMBLY_EDGE:.1f} mm | board-v2.md §12 / L6 |")
+    lines.append(f"| copper to outline ≥ {COPPER_TO_EDGE:.2f} mm | board-v2.md §12; DRC min_copper_edge_clearance |")
+    lines.append(
+        f"| courtyard-to-courtyard ≥ 0, with solder-mask bridge margin "
+        f"{SOLDER_MASK_BRIDGE_MARGIN:.2f} mm | WP11c brief; DRC solder_mask_to_copper_clearance "
+        f"{SOLDER_MASK_TO_COPPER:.2f} mm |"
+    )
+    lines.append(
+        f"| Contact netclass clearance {CONTACT_NETCLASS_CLEARANCE:.1f} mm | WP12b elicio-v2.kicad_pro |"
+    )
+    lines.append("| module keep-out empty of everything | Raytac Spec K; RF_NO_COPPER |")
+    lines.append("| J4 on the hook-end end face with its plug volume | packing-v2.md §5; plan v2 §5.4 |")
+    lines.append("| SW1 under the lid recess | packing-v2.md §5 |")
+    lines.append("| J3 and TC2030 reachable | WP11c brief |")
+    lines.append("| USB-C real body inside the outline behind the end face | tasks/reviews/code-r6.md decision 70 |")
+    lines.append("| three FR4 0.2 ring stiffener pieces on the tabs; ring 0.31 stays | tasks/reviews/code-r6.md decision 72 |")
+    lines.append("| two island mounting holes at the boss sites, Ø2.7, courtyard-clear | tasks/reviews/code-r6.md decision 73 |")
+    lines.append("| SIG1/SIG2 fold 180° at R 1.5; neck-end or side-wall pockets | tasks/reviews/code-r6.md decision 74 |")
+    lines.append("")
+    for label, lay in (
+        ("501012 pack, w20 × y8, BODY_ARC, interface II, standoff 3 (the shell as built)", lay12),
+        ("501015 pack 17.0×10.0×5.0 at +1.5 mm of arc (valid only if M1 ≥ 52.5)", lay15),
+    ):
+        lines.append(f"### {label}")
+        lines.append("")
+        lines.append(
+            f"Spec `{lay.spec.tag}`. TOTAL_CHORD {body_geom(lay.spec)['total_chord']:.2f}. "
+            f"Board u {body_geom(lay.spec)['board_u'][0]:.2f}–{body_geom(lay.spec)['board_u'][1]:.2f}, "
+            f"s {body_geom(lay.spec)['board_s'][0]:.2f}–{body_geom(lay.spec)['board_s'][1]:.2f}."
+        )
+        lines.append("")
+        if lay.first_blocking:
+            lines.append(f"**First rule that cannot be met:** {lay.first_blocking}")
+        else:
+            lines.append("Every listed rule is met.")
+        lines.append("")
+        lines.append("| rule | met | detail |")
+        lines.append("|---|---|---|")
+        for name, ok, why in lay.rules:
+            lines.append(f"| {name} | {'yes' if ok else 'no'} | {why} |")
+        lines.append("")
+        for v in lay.variants:
+            lines.append(f"- {v}")
+        lines.append("")
+        lines.append(
+            "Contact sites are unchanged: SIG1 (5.90, 22.00), SIG2 (10.40, 33.10), "
+            "REF (8.50, 43.00). REF tab (8.50, 43.00) → (8.50, 36.80); `REF_end_wall_slot` is cut."
+        )
+        lines.append("")
+        lines.append(
+            "| ref | u | s | rot | courtyard wu × ws | face | notes |"
+        )
+        lines.append("|---|---:|---:|---:|---:|---|---|")
+        for p in sorted(lay.parts, key=lambda x: refkey(x.ref)):
+            lines.append(
+                f"| {p.ref} | {p.u:.2f} | {p.s:.2f} | {p.rot:g} | "
+                f"{p.wu:.2f} × {p.ws:.2f} | {p.face} | {p.notes} |"
+            )
+        lines.append("")
+        lines.append(
+            "Tab exits (unchanged): SIG1 (5.90, 22.00) → (5.90, 29.00); "
+            "SIG2 (10.40, 33.10) → (10.40, 26.10); REF (8.50, 43.00) → (8.50, 36.80). "
+            "Island outline u 2.25–17.75, s as in the spec row. "
+            "WP12d places from this table and tests within 0.1 mm."
+        )
+        lines.append("")
+    lines.extend(_r6_decisions_section(lay12, lay15))
+    lines.append(
+        "Drawings: this layout does not add `placement_v2_*.svg` under `docs/fab/cad/v1/`. "
+        "The round-5 14-file kept set is pinned, and the layout does not fully close every rule (Q56)."
+    )
+    lines.append("")
+    return lines
+
+
 def packing_markdown(rows: list[V2Result]) -> str:
     """WP11 packing-v2.md body. Plan is not changed."""
     closed = [r for r in rows if r.closes]
@@ -2614,6 +3759,9 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append("A bigger lid and width for the two buyable cells is §1d (WP11b note 2).")
     lines.append("The 501015 pack (17.0 mm with PCM) and 501012 pack are §1e (WP11b note 3, L7 §7).")
     lines.append("The REF tab route search is in §5 (WP11b, Q59).")
+    lines.append("The board-lane layout with real courtyards is §5b (WP11c).")
+    lines.append("Round 6 decisions 70–74 (`tasks/reviews/code-r6.md`) are in §5b.")
+    lines.append("The layout grid under both edge readings is §5c (WP11d).")
     lines.append("")
     lines.append("## 1. Every run at BODY_ARC 48.4")
     lines.append("")
@@ -2911,6 +4059,8 @@ def packing_markdown(rows: list[V2Result]) -> str:
             lines.append("")
             lines.append(f"{' and '.join(others)} do not close. There is no board-lane layout for them.")
     lines.append("")
+    lines.extend(_layout_v2_section())
+    lines.extend(_layout_v2c_section())
     lines.append("## 6. Winners sent to Stage B (at most six)")
     lines.append("")
     if closed:
@@ -3047,3 +4197,21 @@ def write_packing_doc(path: Path | None = None, *, include_arc: bool = False) ->
     dest = path or (ROOT / "docs" / "fab" / "packing-v2.md")
     dest.write_text(packing_markdown(run_matrix(include_arc=include_arc)), encoding="utf-8")
     return dest
+
+
+def _layout_v2c_mod():
+    path = Path(__file__).with_name("layout_v2c.py")
+    name = "elicio_cad_layout_v2c"
+    mod = sys.modules.get(name)
+    if mod is not None:
+        return mod
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec is not None and spec.loader is not None
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _layout_v2c_section() -> list[str]:
+    return _layout_v2c_mod().section_5c(sys.modules[__name__])
