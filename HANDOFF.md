@@ -157,7 +157,19 @@ Round 7 is merged (`facb0c1`); its packages are in Settled. Round 8
 opened 09:05 on four lanes; every brief on main carries its start line.
 
 - **w3 → WP11g flat pattern v3** (`tasks/WP11g-flat-pattern-v3.md`, main
-  `9354834`): RUNNING since 09:05 on `lane/w3` at `facb0c1` (told to
+  `9354834`): FIRST `DONE WP11g` at
+  `78ab3f7` received 11:05 (report present, tree clean, 256 tests OK):
+  pin table v3 in §5e, 66 rows; P4/P5 through the posterior wall u
+  20.50 at s 4.35 / 12.35, y 4.35, heads +u, flat (23.32, 4.35) /
+  (23.32, 12.35); J2 inside at (15.15, 11.35); J3 break-off tab at
+  (28.41, 26.80), cut u 22.25; R9/R10 out; holes unchanged; §5d keeps
+  the frozen v2.1 table for old parsers. SECOND TURN RUNNING (queued
+  addendum): the Q98 channels (H1/H2 apart, via slot beside J4, east
+  0402 row, 0.6 mm around U2/U3/J4) as §5e rows with a test, plus the
+  well site 16.50 in the tail sentence → a second `DONE WP11g`; only
+  then w1 gets the line "flat pattern v3" and w2 the line "pin table v3", each with that sha,
+  because the channels can move H1/H2 and the shell's bosses follow.
+  RUNNING since 09:05 on `lane/w3` at `facb0c1` (told to
   `git merge main` first): which side wall is the posterior edge; P4/P5
   as clamped button heads in that wall beside the cell (Q90, Q93); J2
   inside the cavity and J3 on a break-off tab (Q91, Q92); R9/R10 out
@@ -268,8 +280,8 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP11g` (w3; the second DONE carries the Q98
-  channels), `DONE WP14f` or `WAITING WP14f flat pattern v3` (w1),
+- Idle until the SECOND `DONE WP11g` (w3; the first, `78ab3f7`, is
+  recorded; the second carries the Q98 channels and the well site), `DONE WP14f` or `WAITING WP14f flat pattern v3` (w1),
   `DONE WP12i` or `WAITING WP12i pin table v3` (w2), or BLOCKED/GONE for
   any (a DONE is checked: report present, tree clean; then read); on
   w3's final DONE send w1 "flat pattern v3" plus the sha and w2 "pin
