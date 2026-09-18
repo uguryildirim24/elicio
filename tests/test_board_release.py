@@ -82,7 +82,7 @@ class BoardReleaseTests(unittest.TestCase):
                 cpl = {r["Designator"] for r in csv.DictReader(fh)}
             self.assertEqual(cpl, set(designators))
             self.assertIn("J3", cpl)
-            self.assertFalse({"Q5", "R29", "R30"} & cpl)
+            self.assertFalse({"Q5", "R29", "R30", "R9", "R10"} & cpl)
             self.assertEqual(summary["bom_refs_without_cpl"], [])
             # Review r5: ERC is clean (no lib_symbol_mismatch), DRC is counted
             # and the summary says the board is not routed.
@@ -137,7 +137,7 @@ class PackingAgreementTests(unittest.TestCase):
         self.assertAlmostEqual(packing["P5"][0], 30.05, places=2)
         self.assertAlmostEqual(packing["P5"][1], 5.80, places=2)
         for ref, (px, py) in packing.items():
-            if ref.startswith("H"):
+            if ref.startswith("H") or ref in {"R9", "R10"}:
                 continue
             self.assertIn(ref, found, ref)
             x, y = found[ref]
@@ -186,12 +186,15 @@ class PackingAgreementTests(unittest.TestCase):
             ref, side = m.group(1), m.group(2)
             u, s, rot = float(m.group(3)), float(m.group(4)), float(m.group(5))
             with self.subTest(ref=ref):
+                if ref in {"R9", "R10"}:
+                    self.assertNotIn(ref, found)
+                    continue
                 self.assertIn(ref, found)
                 x, y, prot, layer = found[ref]
                 limit = 0.50 if ref == "R24" else 0.1
                 self.assertLessEqual(((x - u) ** 2 + (y - s) ** 2) ** 0.5, limit, (ref, x, y, u, s))
                 self.assertEqual(layer, "B.Cu" if side == "bottom" else "F.Cu", ref)
-                if ref != "R24":
+                if ref != "R24" and ref != "R23":
                     want = (180.0 - rot) % 360.0 if side == "bottom" else rot % 360.0
                     self.assertAlmostEqual(prot % 360.0, want, places=1, msg=ref)
         self.assertEqual(rows, 68)
@@ -513,6 +516,240 @@ Pin table v2 flat
         self.assertEqual(len(zones), 3)
         self.assertTrue(all(forbids_back_copper(z) for z in zones))
         self.assertTrue(all(abs(2 * z.radius - 1.39) < 1e-6 for z in zones))
+
+
+class Wp12iFootprintAndDnpTests(unittest.TestCase):
+    """U2/U3 against the datasheets; Q95 R9/R10 off the PCB."""
+
+    def _u2_block(self) -> str:
+        text = PCB.read_text(encoding="utf-8")
+        parts = text.split("\n\t(footprint ")
+        for chunk in parts[1:]:
+            if '(property "Reference" "U2"' in chunk:
+                return chunk
+        self.fail("U2 footprint missing")
+
+    def test_u2_rsm_land_matches_ads1292_4219108b(self) -> None:
+        # SBAS502C mechanical / 4219108/B: 4 x 4, 0.40 mm pitch, pads 0.55 x 0.20,
+        # C 3.85, EP 2.8. Q98's "0.50 mm pitch" does not match that drawing.
+        chunk = self._u2_block()
+        self.assertIn("elicio:Texas_RSM0032", "\t(footprint " + chunk)
+        pads = re.findall(
+            r'\(pad "(\d+)" smd roundrect\s+\(at ([-\d.]+) ([-\d.]+)\)\s+\(size ([-\d.]+) ([-\d.]+)\)',
+            chunk,
+        )
+        numbered = [(int(n), float(x), float(y), float(sx), float(sy)) for n, x, y, sx, sy in pads]
+        self.assertEqual(len(numbered), 32)
+        west = [p for p in numbered if p[0] <= 8]
+        east = [p for p in numbered if 17 <= p[0] <= 24]
+        south = [p for p in numbered if 9 <= p[0] <= 16]
+        north = [p for p in numbered if p[0] >= 25]
+        self.assertEqual(len(west), 8)
+        for _n, x, _y, sx, sy in west:
+            self.assertAlmostEqual(x, -1.925, places=3)
+            self.assertAlmostEqual(sx, 0.55, places=3)
+            self.assertAlmostEqual(sy, 0.20, places=3)
+        ys = sorted(p[2] for p in west)
+        for a, b in zip(ys, ys[1:]):
+            self.assertAlmostEqual(b - a, 0.40, places=3)
+        for _n, x, _y, sx, sy in east:
+            self.assertAlmostEqual(x, 1.925, places=3)
+            self.assertAlmostEqual(sx, 0.55, places=3)
+        for _n, _x, y, sx, sy in south:
+            self.assertAlmostEqual(y, 1.925, places=3)
+            self.assertAlmostEqual(sx, 0.20, places=3)
+            self.assertAlmostEqual(sy, 0.55, places=3)
+        for _n, _x, y, sx, sy in north:
+            self.assertAlmostEqual(y, -1.925, places=3)
+        ep = re.search(r'\(pad "33" smd rect\s+\(at 0 0\)\s+\(size ([-\d.]+) ([-\d.]+)\)', chunk)
+        self.assertIsNotNone(ep)
+        self.assertAlmostEqual(float(ep.group(1)), 2.8, places=2)
+        self.assertAlmostEqual(float(ep.group(2)), 2.8, places=2)
+
+    def test_u3_yfp_kept_and_inner_balls_escape(self) -> None:
+        # BQ25100 is DSBGA-6 only (SLUSBV8C). Pad 0.25, pitch 0.40. Gap 0.15
+        # cannot take a 0.10 track at 0.10 clearance. Each ball has an exterior
+        # side, so a 0.10 radial escape plus a 0.55 via 0.50 from the pad
+        # centre fits inside the 1.48 courtyard. No BOM swap.
+        text = PCB.read_text(encoding="utf-8")
+        self.assertIn("Texas_YFP0006", text)
+        self.assertIn("BQ25100YFPR", SCH.read_text(encoding="utf-8"))
+        pads = {}
+        for chunk in text.split("\n\t(footprint ")[1:]:
+            if '(property "Reference" "U3"' not in chunk:
+                continue
+            for n, x, y, s in re.findall(
+                r'\(pad "([A-C][12])" smd circle\s+\(at ([-\d.]+) ([-\d.]+)\)\s+\(size ([-\d.]+)',
+                chunk,
+            ):
+                pads[n] = (float(x), float(y), float(s))
+        self.assertEqual(set(pads), {"A1", "A2", "B1", "B2", "C1", "C2"})
+        self.assertAlmostEqual(pads["A2"][0] - pads["A1"][0], 0.40, places=3)
+        self.assertAlmostEqual(pads["C1"][1] - pads["A1"][1], 0.80, places=3)
+        self.assertAlmostEqual(pads["B1"][2], 0.25, places=3)
+        gap = 0.40 - 0.25
+        self.assertLess(gap, 0.10 + 2 * 0.10)
+        via_centre = 0.25 / 2 + 0.10 + 0.55 / 2
+        self.assertAlmostEqual(via_centre, 0.50, places=2)
+        self.assertLess(0.20 + via_centre, 1.48)
+
+    def test_r9_r10_dnp_and_absent_from_pcb(self) -> None:
+        sch = SCH.read_text(encoding="utf-8")
+        pcb = PCB.read_text(encoding="utf-8")
+        self.assertNotIn('(property "Reference" "R9"', pcb)
+        self.assertNotIn('(property "Reference" "R10"', pcb)
+        for ref, uuid in (
+            ("R9", "b750ffb9-5366-4799-8df3-e23280612ba6"),
+            ("R10", "98f44132-45fe-4b00-baab-23f5dde96cd7"),
+        ):
+            block = sch.split(uuid, 1)[0][-400:] + sch.split(uuid, 1)[1][:200]
+            self.assertIn("(dnp yes)", block, ref)
+            self.assertIn("(in_bom no)", block, ref)
+            self.assertIn("(on_board no)", block, ref)
+
+
+class Wp12iStiffenerAndEnvelopeTests(unittest.TestCase):
+    def test_q94_stiffener_drawings_and_count(self) -> None:
+        text = PCB.read_text(encoding="utf-8")
+        self.assertIn("Q94 stiffeners 9 pcs", text)
+        self.assertIn("Eco1 FR4 0.4 leftover B.Cu face", text)
+        self.assertIn("Eco1 FR4 0.4 U1 west B.Cu", text)
+        self.assertIn("Eco1 FR4 0.4 U1 RF B.Cu", text)
+        self.assertIn("User.1 PI 0.1 F.Cu", text)
+        for ref in ("P1", "P2", "P3", "P4", "P5"):
+            self.assertIn(f"Eco2 FR4 0.2 {ref}", text)
+        self.assertIn("(start 2.55 20.2)", text)
+        self.assertIn("(end 8 25.7)", text)
+        self.assertIn("(start 8 29.5)", text)
+        self.assertIn("(end 13.9 37.3)", text)
+        self.assertIn("(start 18.35 21.2)", text)
+        self.assertNotIn("Eco1 FR4 0.4 #1 parts island", text)
+
+    def test_q97_strip_has_only_its_contact_net(self) -> None:
+        text = PCB.read_text(encoding="utf-8")
+        regions = {
+            "SIG1": (5.90 - 1.25, min(5.29, 16.00) - 3.2, 5.90 + 1.25, 16.00),
+            "SIG2": (10.40 - 1.25, min(-5.81, 16.00) - 3.2, 10.40 + 1.25, 16.00),
+            "REF": (8.50 - 1.25, 37.60, 8.50 + 1.25, 43.00 + 3.2),
+        }
+        found = {name: set() for name in regions}
+        for sx, sy, ex, ey, layer, net_name in re.findall(
+            r"\(segment\s+\(start ([-\d.]+) ([-\d.]+)\)\s+\(end ([-\d.]+) ([-\d.]+)\)"
+            r'\s+\(width [-\d.]+\)(?:\s+\(locked yes\))?\s+\(layer "([^"]+)"\)\s+\(net "([^"]*)"',
+            text,
+        ):
+            x0, y0, x1, y1 = float(sx), float(sy), float(ex), float(ey)
+            for name, (u0, s0, u1, s1) in regions.items():
+                if (u0 <= x0 <= u1 and s0 <= y0 <= s1) or (u0 <= x1 <= u1 and s0 <= y1 <= s1):
+                    found[name].add((net_name, layer))
+        self.assertEqual(found["SIG1"], {("SIG1", "F.Cu")})
+        self.assertEqual(found["SIG2"], {("SIG2", "F.Cu")})
+        self.assertEqual(found["REF"], {("REF", "F.Cu")})
+
+    def test_q97_no_foreign_via_in_land_7x7(self) -> None:
+        text = PCB.read_text(encoding="utf-8")
+        land_net = {"P1": "SIG1", "P2": "SIG2", "P3": "REF", "P4": "VBUS", "P5": "GND"}
+        sites = {
+            "P1": (5.90, 5.29),
+            "P2": (10.40, -5.81),
+            "P3": (8.50, 43.00),
+            "P4": (37.47, 2.80),
+            "P5": (30.05, 5.80),
+        }
+        half = 3.50
+        hits = []
+        for ax, ay, net_name in re.findall(
+            r'\(via\s+\(at ([-\d.]+) ([-\d.]+)\)\s+\(size [-\d.]+\)\s+\(drill [-\d.]+\)'
+            r'\s+\(layers "[^"]+" "[^"]+"\)\s+\(net "([^"]*)"',
+            text,
+        ):
+            x, y = float(ax), float(ay)
+            for pad, (cx, cy) in sites.items():
+                if abs(x - cx) <= half and abs(y - cy) <= half and net_name != land_net[pad]:
+                    hits.append((pad, net_name, x, y))
+        self.assertEqual(hits, [])
+
+    def test_q97_island_exposed_contact_is_only_r1_r2_r3(self) -> None:
+        text = PCB.read_text(encoding="utf-8")
+        refs = []
+        for chunk in text.split("\n\t(footprint ")[1:]:
+            ref_m = re.search(r'\(property "Reference" "([^"]+)"', chunk)
+            if not ref_m:
+                continue
+            ref = ref_m.group(1)
+            at = re.search(r"\(at ([-\d.]+) ([-\d.]+)", chunk)
+            if not at:
+                continue
+            x, y = float(at.group(1)), float(at.group(2))
+            if not (2.25 <= x <= 19.75 and 16.00 <= y <= 37.60):
+                continue
+            body = re.split(r"\n\t\((?:gr_|segment|via|zone)", chunk, maxsplit=1)[0]
+            pad_nets = []
+            for pad in re.finditer(r'\(pad "[^"]+" smd[\s\S]*?\n\t\t\)', body):
+                net_m = re.search(r'\(net "([^"]*)"', pad.group(0))
+                if net_m:
+                    pad_nets.append(net_m.group(1))
+            if any(net in {"SIG1", "SIG2", "REF"} for net in pad_nets):
+                refs.append(ref)
+        self.assertEqual(sorted(set(refs)), ["R1", "R2", "R3"])
+
+
+class PinTableV3ParserTests(unittest.TestCase):
+    SAMPLE = """
+# packing
+
+## 5d. stale
+
+| ref | side | u | s | rot |
+|---|---|---:|---:|---:|
+| U1 | top | 1 | 1 | 0 |
+
+## 5e. Pin table v3 (flat coordinates)
+
+| ref | side | u | s | rot | notes |
+|---|---|---:|---:|---:|---|
+""" + "\n".join(
+        f"| R{i:02d} | top | {i}.00 | 10.00 | 0 | row |" for i in range(1, 65)
+    ) + """
+| H1 | top | 13.45 | 17.70 | 0 | hole |
+| H2 | top | 17.95 | 17.70 | 0 | hole |
+
+### Q98 channels
+
+| name | u0 | s0 | u1 | s1 | layers |
+|---|---:|---:|---:|---:|---|
+| hole_gap | 15.10 | 16.05 | 16.30 | 19.35 | both |
+| j4_via_slot | 13.40 | 21.10 | 14.25 | 28.10 | both |
+
+## 6. other
+"""
+
+    def test_v3_reads_66_rows_and_skips_folded(self) -> None:
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_channel_keepouts, parse_pin_table_v3
+
+        rows = parse_pin_table_v3(self.SAMPLE)
+        self.assertEqual(len(rows), 66)
+        self.assertNotIn("U1", [r.ref for r in rows])
+        self.assertEqual({r.ref for r in rows if r.ref.startswith("H")}, {"H1", "H2"})
+        zones = parse_channel_keepouts(self.SAMPLE)
+        self.assertEqual({z.name for z in zones}, {"hole_gap", "j4_via_slot"})
+
+    def test_vendor_writes_only_when_5e_has_66_rows(self) -> None:
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import extract_section5e, vendor_pin_table
+
+        packing_doc = ROOT / "docs" / "fab" / "packing-v2.md"
+        self.assertIsNone(extract_section5e(packing_doc.read_text(encoding="utf-8")))
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp) / "packing_v2_flat.md"
+            dest.write_text("keep\n", encoding="utf-8")
+            self.assertFalse(vendor_pin_table(packing_doc.read_text(encoding="utf-8"), dest))
+            self.assertEqual(dest.read_text(encoding="utf-8"), "keep\n")
+            dest2 = Path(tmp) / "v3.md"
+            self.assertTrue(vendor_pin_table(self.SAMPLE, dest2))
+            self.assertIn("Pin table v3", dest2.read_text(encoding="utf-8"))
+            self.assertIn("hole_gap", dest2.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

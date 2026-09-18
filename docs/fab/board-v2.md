@@ -336,20 +336,20 @@ Source: https://jlcpcb.com/capabilities/flex-pcb-capabilities read 2026-09-17. S
 | Outline tolerance | ±0.10 mm | ±0.05 mm on request; not requested |
 | Bend | 2-layer ≥ 10 × thickness (static) | 1.1 mm at 0.11; this board uses 1.5 mm |
 | Passives | 0402 minimum | Plan |
-| Stiffener at parts | FR4 0.4 mm on Eco1.User (packing: 0.11 + 0.4 = 0.51, review r5) | JLC FR4 list is 0.1 / 0.2 / 0.4, no 0.3 |
-| Stiffener at tabs | none drawn (Q58 clamp; Q60 merge). Packing, the shell and §11's stack take FR4 0.2 at the rings; decision 72. Review r7: still not drawn on this Gerber | JLC FR4 0.2 mm exists; Eco2.User unused |
+| Stiffener at parts | FR4 0.4 mm on Eco1.User only where that face has no SMT lands (Q94); PI 0.1 on User.1 where FR4 cannot sit | JLC FR4 0.1 / 0.2 / 0.4; PI 0.1 |
+| Stiffener at tabs | Eco2.User: five FR4 0.2 ring pieces at P1–P5, Ø6.4 | JLC FR4 0.2 mm; ring stack 0.31 (decision 72) |
 
 PI stiffener catalogue: 0.1 / 0.15 / 0.20 / 0.225 / 0.25 mm. Stainless 0.1 / 0.2 / 0.3 mm. FR4 0.1 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.2 / 1.6 mm. WP11's 0.3 mm FR4 is **not** on that list; review r5 took 0.4 and moved the packing numbers with it. No request was sent.
 
-Stiffener drawings: Eco1.User = two FR4 0.4 pieces (parts island + leftover/pocket). Eco2.User is unused (no tab FR4: Q58 clamp). Cmts.User = neck-end bend window (Q83). Count = **2** (under JLC's extra-fee threshold of 4). Review r7: both Eco1.User pieces (u 2.55–19.45 × s 16.3–37.3 and u 12.2–19.55 × s 1.55–15.8) cover parts on both faces; a stiffener cannot sit over the lands on its own side, so the two-sided island needs a decision (`tasks/reviews/code-r7.md`). The three ring FR4 0.2 pieces the stack assumes are still undrawn, which makes the count 5 when drawn. JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
+Stiffener drawings (Q94, WP12i): a stiffener sits only on a face that has no SMT lands. Eco1.User = three FR4 0.4 pieces on the B.Cu face (leftover/pocket 12.20–19.55 × 1.55–15.80; under U1 west 2.55–8.00 × 20.20–25.70; under U1 RF 8.00–13.90 × 29.50–37.30). User.1 = one PI 0.1 piece on the F.Cu face east of J4 (18.35–19.45 × 21.20–26.10) where the strip is 1.1 mm and FR4 0.4 cannot sit. Eco2.User = five FR4 0.2 ring pieces, Ø6.4 at P1–P5. Two-sided island cells (Q1–Q4, the east 0402 field, J4) have lands on both faces and take no stiffener. Count = **9** (over JLC's extra-fee threshold of 4). JLC extra-charges page (https://jlcpcb.com/help/article/fpc-extra-charges, re-read 2026-09-18, last updated 2026-09-09): prototype, "when there are 4 or more stiffeners on the board, an extra fee is required." The page does not state the prototype amount; amount **UNVERIFIED**. Stacked stiffeners in the same location are not used ($8.14+$24.44/m² on that page). JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
 
 Two-sided assembly: packing `side=bottom` rows (Q1–Q5, C6–C9, C13–C15, R4–R30) sit on B.Cu. JLC FPC assembly is two-sided when both copper layers carry parts. Copper-to-edge 0.30 everywhere.
 
 Encoded in the board design settings, in `elicio-v2.kicad_pro`, and in `elicio-v2.kicad_dru`.
 
-### Q84 / Q88 — Contact clearance by area
+### Q84 / Q88 / Q97 — Contact clearance by area
 
-1.0 mm is creepage for exposed copper (plan v2 §5.3, Q88). It is not a netclass on the island 0402 that joins SIG1/SIG2/REF to the front end (pad gap 0.48 mm). Coverlaid strips use the Contact class only.
+1.0 mm is creepage for **exposed** copper on the Ø5 lands (board-v2's own number; Q97: not plan v2 §5.3). Coverlaid strips use the Contact class only, one net per strip, both layers kept clear of foreign copper.
 
 | Region | Rule area | Contact-to-anything |
 |---|---|---|
@@ -408,8 +408,8 @@ Blanked / corrected lines from the same day's pages:
 | Ref | MPN / value | LCSC | Tier (when read) | Notes |
 |---|---|---|---|---|
 | U1 | MDBT50Q-1MV2 | C5118826 | Extended | Not C5142646 |
-| U2 | ADS1292IRSMT | C89288 | Extended | Non-R, VQFN-32. L7 replacements fail the page. |
-| U3 | BQ25100YFPR | C527572 | Extended | |
+| U2 | ADS1292IRSMT | C89288 | Extended | Non-R, VQFN-32 RSM. Land 4219108/B: 0.40 mm pitch, pads 0.55 × 0.20, C 3.85, EP 2.8 (`elicio:Texas_RSM0032`). Q98's 0.50 mm pitch does not match the datasheet. |
+| U3 | BQ25100YFPR | C527572 | Extended | YFP DSBGA-6 kept. Family has no larger package (SLUSBV8C). Inner balls escape radially; 0.55 via 0.50 from pad centre fits the courtyard. |
 | U4 | TLV71330PDBVR | C2863702 | Extended | L7 C132291 is FUSB302. Keep C2863702. |
 | U5 | — | — | — | Out with J1 (Q81) |
 | Q1 | AO3401A | C15127 | — | P-FET |
@@ -422,9 +422,9 @@ Blanked / corrected lines from the same day's pages:
 | J3 | 1×03 RA 2.54 | C49257 | — | Bench |
 | SW1 | TS-1187A | C318884 | — | 4.5 × 4.5 × 1.6 |
 | L1 | 10 µH 0603 | C1045 | — | nRF DCCH |
-| R9, R10 | 5.1 kΩ | C25905 | Basic | CC. Page: 5.1 kΩ 0402. |
+| R9, R10 | 5.1 kΩ | C25905 | Basic | CC. **DNP (Q95)**: schematic only, not in BOM, CPL or PCB. Return with the USB-C variant (Q81). |
 
-Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.com qty-1 seen today: U2 C89288 $6.50 (70); U4 C2863702 from $0.23 (190). Not in BOM: J4 TC2030-NL, P1–P5 ring pads, R29–R30 DNP 10 MΩ (LCSC C26082 for the 10 MΩ land, not stuffed), Q5 DNP, power flags. R9/R10 5.1 kΩ CC resistors stay on the sheet with no receptacle; review r7: pad 1 of each is unconnected (`unconnected-(R9-Pad1)`), so they do nothing and are placed and bought; removing them or marking them DNP is a decision (`tasks/reviews/code-r7.md`).
+Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.com qty-1 seen 2026-09-17: U2 C89288 $6.50 (70); U4 C2863702 from $0.23 (190). Not in BOM: J4 TC2030-NL, P1–P5 ring pads, R29–R30 DNP 10 MΩ (LCSC C26082 for the 10 MΩ land, not stuffed), Q5 DNP, R9/R10 DNP (Q95), power flags. Placed BOM is 55 (was 57 with R9/R10).
 
 ## 14. Reference-circuit check (each choice)
 
@@ -505,7 +505,7 @@ https://jlcpcb.com/help/article/fpc-extra-charges (re-read 2026-09-17, last upda
 - Small batch / mass: "when there are 4pcs or more stiffeners on the board, or the total stiffener area on both sides is no less than 90% of the board area, extra cost is required."
 - Stacked: "When you need to stack up stiffeners in the same location, there will be an additional cost of $8.14+$24.44/m² for every extra stiffener."
 
-This drawing has **two** FR4 0.4 pieces (Eco1.User: island + USB/pocket). No tab FR4 (Q58 clamp). Count = 2, under the extra-stiffener rule. Review r6: packing and the shell assume FR4 0.2 at the three rings; drawing them makes the count 5, which is over the threshold (decision 72).
+This drawing has **nine** stiffener pieces: three FR4 0.4 (Eco1.User, B.Cu face), one PI 0.1 (User.1, F.Cu face), five FR4 0.2 rings (Eco2.User). Count = 9, over the extra-stiffener rule. Prototype extra fee: the page requires a fee and does not state the amount (**UNVERIFIED**, Q72 / Q94).
 
 L7 §3.1 also lists FR4 **0.3 mm** on the stiffener catalogue. This land still uses 0.4 mm (review r5 / packing). A 0.3 mm change is WP11/WP14.
 

@@ -69,7 +69,7 @@ CHARGE_S0, CHARGE_S1 = CHARGE_CY - CHARGE_WS / 2, CHARGE_CY + CHARGE_WS / 2
 # U1 process pose keep-out 12.4 × 3.8 at the high-s antenna end.
 RF_BOX = (2.25, 33.80, 14.20, 37.60)
 J4_KEEP = (14.25, 21.10, 18.25, 28.10)
-SKIP_REFS = {"J1", "U5"}
+SKIP_REFS = {"J1", "U5", "R9", "R10"}  # Q81 no USB-C; Q95 DNP, not on the PCB.
 # Pin table v2.1 (e4b857c): J4 holes from the KiCad footprint. R24 rot 90.
 V21_POSE = {
     "R23": (18.32, 21.10, 0.0),
@@ -161,6 +161,116 @@ def add_filled_rect(board, x0, y0, x1, y1, layer) -> None:
     s.SetEnd(v2(x1, y1))
     s.SetWidth(pcbnew.FromMM(0.05))
     board.Add(s)
+
+
+def add_filled_circle(board, cx: float, cy: float, radius: float, layer) -> None:
+    s = pcbnew.PCB_SHAPE(board)
+    s.SetShape(pcbnew.SHAPE_T_CIRCLE)
+    s.SetFilled(True)
+    s.SetLayer(layer)
+    s.SetStart(v2(cx, cy))
+    s.SetEnd(v2(cx + radius, cy))
+    s.SetWidth(pcbnew.FromMM(0.05))
+    board.Add(s)
+
+
+# Q94. FR4 0.4 only where that face has no SMT lands. PI 0.1 on the thin
+# B.Cu-only sliver east of J4 (FR4 0.4 cannot sit in 1.1 mm). Eco2 = FR4 0.2
+# ring pieces (decision 72 / Q72). User.1 = PI 0.1.
+STIFF_FR4_04 = (
+    ("leftover_B", 12.20, 1.55, 19.55, 15.80),
+    ("u1_west_B", 2.55, 20.20, 8.00, 25.70),
+    ("u1_rf_B", 8.00, 29.50, 13.90, 37.30),
+)
+STIFF_PI_01 = (("east_j4_F", 18.35, 21.20, 19.45, 26.10),)
+RING_FR4_02_R = TAB_CAP_R
+STIFF_COUNT = len(STIFF_FR4_04) + len(STIFF_PI_01) + len(RING_REFS)
+
+
+def clear_stiffener_drawings(board) -> int:
+    n = 0
+    for drawing in list(board.GetDrawings()):
+        layer = drawing.GetLayer()
+        if layer not in {pcbnew.Eco1_User, pcbnew.Eco2_User, pcbnew.User_1}:
+            continue
+        if drawing.GetClass() == "PCB_TEXT":
+            blob = drawing.GetText().upper()
+            if not any(k in blob for k in ("FR4", "PI 0.1", "STIFF", "RING")):
+                continue
+        board.Remove(drawing)
+        n += 1
+    return n
+
+
+def draw_q94_stiffeners(board) -> int:
+    """Redraw Q94 zones on the owned board. Does not touch copper."""
+    clear_stiffener_drawings(board)
+    for _name, x0, y0, x1, y1 in STIFF_FR4_04:
+        add_filled_rect(board, x0, y0, x1, y1, pcbnew.Eco1_User)
+    add_text(board, 16.0, 8.0, "Eco1 FR4 0.4 leftover B.Cu face", pcbnew.Eco1_User, 0.5)
+    add_text(board, 5.2, 22.8, "Eco1 FR4 0.4 U1 west B.Cu", pcbnew.Eco1_User, 0.4)
+    add_text(board, 10.8, 33.4, "Eco1 FR4 0.4 U1 RF B.Cu", pcbnew.Eco1_User, 0.4)
+    for _name, x0, y0, x1, y1 in STIFF_PI_01:
+        add_filled_rect(board, x0, y0, x1, y1, pcbnew.User_1)
+    add_text(board, 18.9, 23.5, "User.1 PI 0.1 F.Cu", pcbnew.User_1, 0.35)
+    for ref, (cx, cy) in (
+        ("P1", SIG1_SITE),
+        ("P2", SIG2_SITE),
+        ("P3", REF_SITE),
+        ("P4", P4_SITE),
+        ("P5", P5_SITE),
+    ):
+        add_filled_circle(board, cx, cy, RING_FR4_02_R, pcbnew.Eco2_User)
+        add_text(board, cx, cy, f"Eco2 FR4 0.2 {ref}", pcbnew.Eco2_User, 0.4)
+    add_text(
+        board,
+        11.0,
+        36.9,
+        f"Q94 stiffeners {STIFF_COUNT} pcs (3xFR4 0.4 + 1xPI 0.1 + 5xFR4 0.2)",
+        pcbnew.Eco1_User,
+        0.4,
+    )
+    return STIFF_COUNT
+
+
+def apply_u2_rsm_land(board) -> None:
+    """ADS1292 RSM land 4219108/B: 0.40 pitch, 0.55 x 0.20 pads, C=3.85, EP 2.8."""
+    u2 = next(fp for fp in board.GetFootprints() if fp.GetReference() == "U2")
+    radial = 3.85 / 2.0
+    pad_len, pad_w = 0.55, 0.20
+    for pad in u2.Pads():
+        num = pad.GetNumber()
+        if not num or not num.isdigit() or num == "33":
+            continue
+        n = int(num)
+        pos0 = pad.GetFPRelativePosition()
+        x = pcbnew.ToMM(pos0.x)
+        y = pcbnew.ToMM(pos0.y)
+        if n <= 8:
+            pad.SetFPRelativePosition(v2(-radial, y))
+            pad.SetSize(pcbnew.VECTOR2I(pcbnew.FromMM(pad_len), pcbnew.FromMM(pad_w)))
+        elif n <= 16:
+            pad.SetFPRelativePosition(v2(x, radial))
+            pad.SetSize(pcbnew.VECTOR2I(pcbnew.FromMM(pad_w), pcbnew.FromMM(pad_len)))
+        elif n <= 24:
+            pad.SetFPRelativePosition(v2(radial, y))
+            pad.SetSize(pcbnew.VECTOR2I(pcbnew.FromMM(pad_len), pcbnew.FromMM(pad_w)))
+        else:
+            pad.SetFPRelativePosition(v2(x, -radial))
+            pad.SetSize(pcbnew.VECTOR2I(pcbnew.FromMM(pad_w), pcbnew.FromMM(pad_len)))
+    ep = next(p for p in u2.Pads() if p.GetNumber() == "33")
+    ep.SetSize(pcbnew.VECTOR2I(pcbnew.FromMM(2.8), pcbnew.FromMM(2.8)))
+    u2.SetFPID(pcbnew.LIB_ID("elicio", "Texas_RSM0032"))
+    u2.SetValue("ADS1292IRSMT")
+
+
+def remove_dnp_footprints(board, refs: set[str]) -> list[str]:
+    gone: list[str] = []
+    for fp in list(board.GetFootprints()):
+        if fp.GetReference() in refs:
+            board.Remove(fp)
+            gone.append(fp.GetReference())
+    return gone
 
 
 def add_keepout(board, x0, y0, x1, y1, name, allow_pads: bool, allow_tracks: bool = False) -> None:
@@ -798,10 +908,7 @@ def build() -> None:
         hx, hy = hole_xy(table, href, i - 1)
         add_keepout(board, hx - 1.65, hy - 1.65, hx + 1.65, hy + 1.65, f"HOLE{i}_KEEP", allow_pads=True)
 
-    add_filled_rect(board, BOARD_U0 + 0.30, BOARD_S0 + 0.30, BOARD_U1 - 0.30, BOARD_S1 - 0.30, pcbnew.Eco1_User)
-    add_filled_rect(board, POCKET_U0 + 0.20, POCKET_S0 + 0.20, BOARD_U1 - 0.20, BOARD_S0 - 0.20, pcbnew.Eco1_User)
-    add_text(board, 11.0, 36.9, "Eco1 FR4 0.4 #1 parts island", pcbnew.Eco1_User, 0.5)
-    add_text(board, 16.0, 8.0, "Eco1 FR4 0.4 #2 leftover/pocket", pcbnew.Eco1_User, 0.5)
+    draw_q94_stiffeners(board)
     add_text(board, 11.0, 15.2, "BEND R>=1.5 NO VIA/PART/STIFFENER", pcbnew.Dwgs_User, 0.6)
     add_text(board, 8.2, 10.6, "SIG1 STRIP FLAT 10.71", pcbnew.Cmts_User, 0.5)
     add_text(board, 13.5, 5.1, "SIG2 STRIP FLAT 21.81", pcbnew.Cmts_User, 0.5)
