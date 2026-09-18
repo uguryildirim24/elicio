@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T21:14:05-04:00",
+ "generated": "2026-09-18T00:39:14-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -26,7 +26,7 @@
    ],
    "name": "w1",
    "kind": "cursor",
-   "status": "done",
+   "status": "working",
    "pane_id": "w1B:pA",
    "tab_id": "w1B:tA",
    "tab_label": "w1",
@@ -35,7 +35,7 @@
    "session_id": "791832d5-f944-40f4-80ec-82deb5c4efca",
    "tokens": {
     "done": "1",
-    "lane": "WP11",
+    "lane": "WP14",
     "parent": "w1B:p1"
    },
    "title": "Lane W1 Instructions"
@@ -56,7 +56,7 @@
    "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
    "tokens": {
     "done": "1",
-    "lane": "WP12",
+    "lane": "WP12c",
     "parent": "w1B:p1"
    },
    "title": "Lane W2 Instructions"
@@ -77,7 +77,7 @@
    "session_id": "3f977624-113c-48fa-b55e-666aa970b9a3",
    "tokens": {
     "done": "1",
-    "lane": "WP13",
+    "lane": "WP13b",
     "parent": "w1B:p1"
    },
    "title": "Lane W4 Instructions"
@@ -105,7 +105,7 @@
    "session_id": "18235bfb-f5b8-4365-9383-d66c69251f4b",
    "tokens": {
     "done": "1",
-    "lane": "WP17",
+    "lane": "WP17b",
     "parent": "w1B:p1"
    },
    "title": null
@@ -126,7 +126,7 @@
    "session_id": "ea20ccc0-04da-408f-a016-57766846ee99",
    "tokens": {
     "done": "1",
-    "lane": "WP16",
+    "lane": "WP15",
     "parent": "w1B:p1"
    },
    "title": "Lane W9 Instructions"
@@ -134,24 +134,24 @@
   {
    "start_args": [
     "--model",
-    "claude-opus-5",
-    "--effort",
-    "high",
-    "--dangerously-skip-permissions"
+    "cursor-grok-4.6-xhigh",
+    "--force"
    ],
-   "name": "rev5",
-   "kind": "claude",
-   "status": "idle",
-   "pane_id": "w1B:pQ",
-   "tab_id": "w1B:tQ",
-   "tab_label": "review",
+   "name": "w3",
+   "kind": "cursor",
+   "status": "working",
+   "pane_id": "w1B:pR",
+   "tab_id": "w1B:tR",
+   "tab_label": "w3",
    "pane_label": null,
-   "cwd": "/Users/rolfie/projects/elicio/.worktrees/review",
-   "session_id": "348fc19f-a4a9-415c-8002-0779e3166fdf",
+   "cwd": "/Users/rolfie/projects/elicio/.worktrees/w3",
+   "session_id": "7ea81196-3c3e-42a4-8503-b481d90776cf",
    "tokens": {
+    "done": "1",
+    "lane": "WP11b",
     "parent": "w1B:p1"
    },
-   "title": "Claude Code"
+   "title": "New Package Brief"
   }
  ],
  "unlinked_agents": [],
@@ -165,79 +165,87 @@
    "workspace_id": "w1D",
    "label": "ablirated",
    "status": "done"
+  },
+  {
+   "workspace_id": "w1E",
+   "label": "jevtest",
+   "status": "idle"
   }
  ],
  "git": {
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
-   "5d23c54 docs(tasks): review brief for round 5 (WP10, WP11, WP12, WP13, WP16, WP17)",
-   "9b97bbb HANDOFF: WP12 first turn landed; second turn (interface II) expected before the review",
-   "1bad8c6 Q56: WP11's 109 MB of drawings; squash-merge and prune in review r5",
-   "ffb5b10 Q54, Q55: Raytac sourcing route, the 501015 cell as a G1 gate; HANDOFF after WP17 landed",
-   "343a336 HANDOFF: w5 restarted with its flags after the herdr restart dropped them; trap recorded",
-   "ae4b6b3 Q52, Q53: Arduino confirmed for the firmware, WP13's tool installs; HANDOFF after WP13 landed"
+   "110a79b Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
+   "f407b12 review(r6): decision numbers follow open-questions Q69 to Q77",
+   "231e2d1 handoff: In flight and Next after the round 6 verdict (rev6 second turn, WP12c landed un-routed, WP11c running, WP14b brief waits for the merge)",
+   "f9e4144 review(r6): coordinator note 2: re-pack with real courtyards is decision 70; zero-track DRC confirmed",
+   "59c7945 review(WP12b): release job and its test read and write UTF-8 explicitly",
+   "fdac6b2 handoff: round 6 verdict in (c7c4e5a), rev6 on a second turn for the footprint collisions; WP12c landed un-routed (Q77), WP11c running on w3, WP14b brief waits for the merge"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "5d23c54",
-    "subject": "docs(tasks): review brief for round 5 (WP10, WP11, WP12, WP13, WP16, WP17)",
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
     "dirty": 1
    },
    {
-    "path": "/Users/rolfie/projects/elicio/.worktrees/review",
-    "branch": "review/r5",
-    "head": "5d23c54",
-    "subject": "docs(tasks): review brief for round 5 (WP10, WP11, WP12, WP13, WP16, WP17)",
-    "dirty": 0
-   },
-   {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
-    "branch": "lane/w1",
-    "head": "7df78b5",
-    "subject": "packing(v2): which architectures close",
+    "branch": "lane/w1-r6",
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "a4080c2",
-    "subject": "board(v2): flex layout for interface II from WP11 winner",
+    "head": "f4376ca",
+    "subject": "merge origin/lane/w2: restore e3e085b after the WP12c reset",
     "dirty": 0
+   },
+   {
+    "path": "/Users/rolfie/projects/elicio/.worktrees/w3",
+    "branch": "lane/w3",
+    "head": "bcecc83",
+    "subject": "packing(v2b): L7 pack tables in packing-v2",
+    "dirty": 2
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
-    "head": "28b284c",
-    "subject": "firmware(v2): frame contract, receiver, streaming app",
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w5",
     "branch": "lane/w5",
-    "head": "f395e70",
-    "subject": "research(v3): facts for the build rounds",
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w9",
     "branch": "lane/w9",
-    "head": "cc22134",
-    "subject": "record(v2): requirement 5 titanium, plan v2 decisions, ledger skeleton",
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
     "dirty": 0
    }
   ],
   "branches": [
-   "main",
-   "review/r5",
-   "lane/w2",
-   "lane/w5",
+   "lane/w1-r6",
    "lane/w4",
-   "lane/w1",
+   "lane/w5",
    "lane/w9",
+   "main",
+   "review/r6",
+   "lane/w2",
+   "lane/w3",
+   "review/r5",
+   "lane/w1",
    "review/r4",
    "review/r3",
    "review/r2",
@@ -247,20 +255,22 @@
  },
  "files": {
   "briefs": [
+   "tasks/WP14b-shell-v2b.md",
+   "tasks/WP11c-courtyards.md",
+   "tasks/review-r6.md",
+   "tasks/WP12c-route.md",
+   "tasks/WP17b-research-v4.md",
+   "tasks/WP15-sheets-v2.md",
+   "tasks/WP13b-receiver.md",
+   "tasks/WP12b-board-route.md",
+   "tasks/WP11b-packing-followups.md",
+   "tasks/WP14-shell-v2.md",
    "tasks/review-r5.md",
-   "tasks/WP17-research-v3.md",
-   "tasks/WP16-record.md",
-   "tasks/WP13-firmware.md",
-   "tasks/WP12-board.md",
-   "tasks/WP11-packing-v2.md",
-   "tasks/WP10-research-v2.md",
-   "tasks/review-r4.md",
-   "tasks/WP9b-record.md",
-   "tasks/WP8-prep-stageb.md",
-   "tasks/L-r3-sources.md",
-   "tasks/review-r3.md"
+   "tasks/WP17-research-v3.md"
   ],
   "verdicts": [
+   "tasks/reviews/code-r6.md",
+   "tasks/reviews/code-r5.md",
    "tasks/reviews/code-r4.md",
    "tasks/reviews/code-r3.md",
    "tasks/reviews/code-r2.md",

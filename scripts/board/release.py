@@ -5,7 +5,10 @@ Fails closed on any ERC error or any missing output. The board is not routed
 this round: DRC runs and its counts go into summary.json with
 ``"routed": false``, and DRC errors do not fail that job. ``--routed`` is the
 order release: it fails closed on any DRC error, any unconnected item, any
-PCB pad without a net or a board with no tracks (review r5).
+PCB pad without a net or a board with no tracks (review r5). ``routed`` in
+summary.json is true only when a ``--routed`` release passed; a refused one
+writes ``"routed": false``, ``"routed_requested": true`` and the blockers
+under ``refused`` (review r6).
 """
 from __future__ import annotations
 
@@ -76,13 +79,24 @@ def erc_counts(payload: dict) -> tuple[int, int]:
     return errors, warnings
 
 
-def write_jlc_cpl(pos_csv: Path, out_csv: Path) -> int:
-    """Rewrite KiCad pos CSV into JLCPCB CPL columns."""
-    text = pos_csv.read_text()
+def bom_refs(bom_csv: Path) -> set[str]:
+    """Designators on the exported BOM (one row per value, refs comma-joined)."""
+    with bom_csv.open(newline="") as fh:
+        rows = list(csv.reader(fh))
+    return {ref.strip() for row in rows[1:] if row for ref in row[0].split(",") if ref.strip()}
+
+
+def write_jlc_cpl(pos_csv: Path, out_csv: Path, keep: set[str] | None = None) -> int:
+    """Rewrite KiCad pos CSV into JLCPCB CPL columns.
+
+    With keep, only those designators are written (review r6: the CPL is the
+    BOM's parts, so DNP parts the PCB does not flag and THT parts line up).
+    """
+    text = pos_csv.read_text(encoding="utf-8")
     # KiCad csv may start with comment lines.
     lines = [ln for ln in text.splitlines() if ln.strip() and not ln.startswith("#")]
     if not lines:
-        out_csv.write_text("Designator,Val,Package,Mid X,Mid Y,Rotation,Layer\n")
+        out_csv.write_text("Designator,Val,Package,Mid X,Mid Y,Rotation,Layer\n", encoding="utf-8")
         return 0
     reader = csv.DictReader(lines)
     rows = []
@@ -96,6 +110,8 @@ def write_jlc_cpl(pos_csv: Path, out_csv: Path) -> int:
         rot = row.get("Rot") or row.get("Rotation") or "0"
         side = (row.get("Side") or row.get("Layer") or "top").strip().lower()
         layer = "bottom" if side in {"bottom", "back"} else "top"
+        if keep is not None and ref not in keep:
+            continue
         rows.append((ref, val, pkg, x, y, rot, layer))
     with out_csv.open("w", newline="") as fh:
         writer = csv.writer(fh)
@@ -106,7 +122,7 @@ def write_jlc_cpl(pos_csv: Path, out_csv: Path) -> int:
 
 def count_placed_parts(sch: Path) -> int:
     """Count schematic symbol instances that are on the board, in the BOM, not DNP."""
-    text = sch.read_text()
+    text = sch.read_text(encoding="utf-8")
     count = 0
     for match in re.finditer(r"\(symbol\n\t\t\(lib_id", text):
         chunk = text[match.start() : match.start() + 1200]
@@ -117,7 +133,7 @@ def count_placed_parts(sch: Path) -> int:
 
 def pcb_stats(pcb: Path) -> dict[str, int]:
     """Tracks, declared nets and pads with no net on the PCB (not the schematic)."""
-    text = pcb.read_text()
+    text = pcb.read_text(encoding="utf-8")
     pads = re.findall(r"\(pad \"[^\"]*\" (?:smd|thru_hole|connect)\b(.*?)\n\t\t\)", text, re.S)
     no_net = sum(1 for body in pads if "(net " not in body)
     return {
@@ -185,7 +201,7 @@ def main() -> int:
     if not erc_json.is_file():
         sys.stderr.write(erc.stderr or erc.stdout or "ERC produced no report\n")
         return 1
-    erc_payload = json.loads(erc_json.read_text())
+    erc_payload = json.loads(erc_json.read_text(encoding="utf-8"))
     erc_errors, erc_warnings = erc_counts(erc_payload)
 
     drc = run(
@@ -195,7 +211,7 @@ def main() -> int:
     if not drc_json.is_file():
         sys.stderr.write(drc.stderr or drc.stdout or "DRC produced no report\n")
         return 1
-    drc_payload = json.loads(drc_json.read_text())
+    drc_payload = json.loads(drc_json.read_text(encoding="utf-8"))
     drc_errors = count_severity(drc_payload, "violations", "error")
     drc_warnings = count_severity(drc_payload, "violations", "warning")
     unconnected = len(drc_payload.get("unconnected_items") or [])
@@ -229,7 +245,6 @@ def main() -> int:
             "mm",
             "--side",
             "both",
-            "--smd-only",
             "--exclude-dnp",
             "-o",
             str(pos_csv),
@@ -283,9 +298,19 @@ def main() -> int:
         check=False,
     )
 
+    # Review r6: --smd-only dropped the THT bench header J3 from the CPL, and
+    # the PCB does not carry the schematic's DNP on Q5, R29 and R30, so the
+    # CPL listed three parts the BOM leaves out. The CPL is now filtered to
+    # the BOM's designators and the difference is a blocker.
     cpl_rows = 0
+    bom_set = bom_refs(bom_csv) if bom_csv.is_file() else set()
     if pos_csv.is_file():
-        cpl_rows = write_jlc_cpl(pos_csv, cpl_csv)
+        cpl_rows = write_jlc_cpl(pos_csv, cpl_csv, keep=bom_set)
+    cpl_set: set[str] = set()
+    if cpl_csv.is_file():
+        with cpl_csv.open(newline="") as fh:
+            cpl_set = {row[0] for row in list(csv.reader(fh))[1:] if row}
+    bom_without_cpl = sorted(bom_set - cpl_set)
 
     gerber_files = sorted(p.name for p in gerber_dir.iterdir() if p.is_file()) if gerber_dir.is_dir() else []
     bom_rows = bom_row_count(bom_csv) if bom_csv.is_file() else 0
@@ -301,8 +326,28 @@ def main() -> int:
         "elicio-v2.step": step.is_file() and step.stat().st_size > 0,
         "gerbers": len(gerber_files) > 0,
     }
+    missing_outputs = [name for name, ok in outputs.items() if not ok]
+    blockers = {
+        "erc_errors": erc_errors,
+        "missing_outputs": len(missing_outputs),
+        "bom_refs_without_cpl": len(bom_without_cpl),
+    }
+    if args.routed:
+        blockers.update(
+            {
+                "drc_errors": drc_errors,
+                "unconnected_items": unconnected,
+                "pcb_pads_without_net": stats["pcb_pads_without_net"],
+                "no_tracks": int(stats["pcb_tracks"] == 0),
+            }
+        )
+    refused = {k: v for k, v in blockers.items() if v}
+    # Review r6: "routed" is true only for a --routed release that passed.
+    # A refused release says so; the request is recorded separately.
     payload = {
-        "routed": bool(args.routed),
+        "routed": bool(args.routed) and not refused,
+        "routed_requested": bool(args.routed),
+        "refused": refused,
         **stats,
         "erc_errors": erc_errors,
         "erc_warnings": erc_warnings,
@@ -312,6 +357,7 @@ def main() -> int:
         "bom_rows": bom_rows,
         "placed_parts": placed_parts,
         "cpl_rows": cpl_rows,
+        "bom_refs_without_cpl": bom_without_cpl,
         "gerber_files": gerber_files,
         "step_missing_models": [Path(m).name for m in step_missing],
         "outputs": outputs,
@@ -325,26 +371,20 @@ def main() -> int:
             "step": step_run.returncode,
         },
     }
-    summary.write_text(json.dumps(payload, indent=2) + "\n")
+    summary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
-    missing_outputs = [name for name, ok in outputs.items() if not ok]
     if erc_errors:
         sys.stderr.write(f"ERC errors: {erc_errors}\n")
         return 1
     if missing_outputs:
         sys.stderr.write("missing outputs: " + ", ".join(missing_outputs) + "\n")
         return 1
-    if args.routed:
-        blockers = {
-            "drc_errors": drc_errors,
-            "unconnected_items": unconnected,
-            "pcb_pads_without_net": stats["pcb_pads_without_net"],
-            "no_tracks": int(stats["pcb_tracks"] == 0),
-        }
-        bad = {k: v for k, v in blockers.items() if v}
-        if bad:
-            sys.stderr.write("routed release refused: " + json.dumps(bad) + "\n")
-            return 1
+    if bom_without_cpl:
+        sys.stderr.write("BOM parts without a CPL row: " + ", ".join(bom_without_cpl) + "\n")
+        return 1
+    if args.routed and refused:
+        sys.stderr.write("routed release refused: " + json.dumps(refused) + "\n")
+        return 1
     print(json.dumps(payload, indent=2))
     return 0
 
