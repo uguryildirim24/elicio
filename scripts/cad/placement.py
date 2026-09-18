@@ -2049,7 +2049,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Draw a Stage B packing option or a v2 architecture.")
     parser.add_argument("--option", choices=OPTION_NAMES, default="A")
     parser.add_argument("--arch", choices=("A", "B", "C"), default=None)
-    parser.add_argument("--cell", choices=("dtp", "501015", "jauch"), default=None)
+    parser.add_argument("--cell", choices=("dtp", "501015", "jauch", "pack501015", "pack501012"), default=None)
     parser.add_argument("--layout", choices=("series", "stacked"), default=None)
     parser.add_argument("--width", type=float, default=None)
     parser.add_argument("--lid-y", type=float, default=None)
@@ -2084,6 +2084,11 @@ def main(argv: list[str] | None = None) -> int:
         "--buyable-ext",
         action="store_true",
         help="run WP11b bigger-box series for DTP301120 and LP501218JH",
+    )
+    parser.add_argument(
+        "--pack-cells",
+        action="store_true",
+        help="run WP11b 501015-pack and 501012-pack series under interface II (L7 §7)",
     )
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
@@ -2133,6 +2138,16 @@ def main(argv: list[str] | None = None) -> int:
             print(
                 f"{row.spec.tag} packs={int(not pc)} chord={row.total_chord:.2f} "
                 f"outer={row.outer_at_lid:.1f} first={first}"
+            )
+        return 0
+    if args.pack_cells:
+        v2 = _v2()
+        rows = v2.run_pack_cells()
+        print(f"pack-cells runs={len(rows)} closed={sum(1 for r in rows if r.closes)}")
+        for row in rows:
+            print(
+                f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
+                f"outer={row.outer_at_lid:.1f} first={row.first_conflict or '—'}"
             )
         return 0
     if args.all or args.kept_drawings or args.all_drawings:
