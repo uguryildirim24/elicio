@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-17T19:50:21-04:00",
+ "generated": "2026-09-17T20:07:49-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
   "id": "w1B",
   "label": "elicio",
-  "tabs": 8
+  "tabs": 7
  },
  "coordinator": {
   "pane_id": "w1B:p1",
@@ -45,7 +45,7 @@
    ],
    "name": "w2",
    "kind": "cursor",
-   "status": "idle",
+   "status": "working",
    "pane_id": "w1B:pB",
    "tab_id": "w1B:tB",
    "tab_label": "w2",
@@ -64,7 +64,7 @@
    ],
    "name": "w4",
    "kind": "cursor",
-   "status": "idle",
+   "status": "working",
    "pane_id": "w1B:pC",
    "tab_id": "w1B:tC",
    "tab_label": "w4",
@@ -83,7 +83,7 @@
    ],
    "name": "w5",
    "kind": "agy",
-   "status": "idle",
+   "status": "done",
    "pane_id": "w1B:pD",
    "tab_id": "w1B:tD",
    "tab_label": "w5",
@@ -102,7 +102,7 @@
    ],
    "name": "w9",
    "kind": "cursor",
-   "status": "idle",
+   "status": "working",
    "pane_id": "w1B:pE",
    "tab_id": "w1B:tE",
    "tab_label": "w9",
@@ -113,26 +113,6 @@
     "parent": "w1B:p1"
    },
    "title": "Lane W9 Instructions"
-  },
-  {
-   "start_args": [
-    "open",
-    "https://chatgpt.com/c/6aab403b-5c98-83ea-8fef-87d50a7dad2f",
-    "--preload=/Users/rolfie/projects/pro-mcp/src/pro_mcp/preload.js"
-   ],
-   "name": "pro",
-   "kind": "chatgpt",
-   "status": "working",
-   "pane_id": "w1B:pP",
-   "tab_id": "w1B:tP",
-   "tab_label": "pro",
-   "pane_label": null,
-   "cwd": "/Users/rolfie/projects",
-   "session_id": null,
-   "tokens": {
-    "parent": "w1B:p1"
-   },
-   "title": null
   }
  ],
  "unlinked_agents": [],
@@ -145,72 +125,72 @@
   {
    "workspace_id": "w1D",
    "label": "ablirated",
-   "status": "idle"
+   "status": "working"
   }
  ],
  "git": {
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "401f92d Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
+   "ef369bd plan-v2 SIGNED OFF (turn 10, Pro) with entry 28's sixteen edits applied (turn 11)",
+   "fd0712e plan-v2 turn 10 (pro)",
+   "e65233f HANDOFF: plan v2 at turn 10 (Pro); WP11 fifth DONE expected",
    "c08b71f plan-v2 turn 09: interface I under Pro's acceptance contract; standoff 3.0/4.0 per C14; cell clearance rule; C15, C16",
-   "a6b9a24 plan-v2 turn 08 (pro)",
-   "ae6a617 HANDOFF: plan v2 at turn 08 (Pro); WP11 fourth DONE expected after the interface change",
-   "2fbad34 plan-v2 turn 07 draft: the plan rewrite that dba5552 was meant to carry",
-   "dba5552 plan-v2 turn 07: R7 with Pro's limits; interface I without springs (board on standoff tops); ledger without an all-in claim",
-   "108a591 plan-v2 turn 06 (pro)"
+   "a6b9a24 plan-v2 turn 08 (pro)"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "c08b71f",
-    "subject": "plan-v2 turn 09: interface I under Pro's acceptance contract; standoff 3.0/4.0 per C14; cell clearance rule; C15, C16",
-    "dirty": 1
+    "head": "401f92d",
+    "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
+    "dirty": 2
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
     "branch": "lane/w1",
     "head": "0135bab",
     "subject": "docs(tasks): WP11 packing v2, which architecture closes",
-    "dirty": 116
+    "dirty": 440
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "3122d44",
-    "subject": "Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
+    "head": "401f92d",
+    "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
-    "head": "3122d44",
-    "subject": "Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
+    "head": "401f92d",
+    "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w5",
     "branch": "lane/w5",
-    "head": "832ef28",
-    "subject": "docs(fab): L5 research for plan v2",
+    "head": "305fe1f",
+    "subject": "Merge branch 'main' into lane/w5",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w9",
     "branch": "lane/w9",
-    "head": "3122d44",
-    "subject": "Round 4: record the reviewer's decisions 24 to 27 as open questions Q24 to Q27",
+    "head": "401f92d",
+    "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
     "dirty": 0
    }
   ],
   "branches": [
-   "main",
-   "lane/w1",
    "lane/w5",
    "lane/w2",
    "lane/w4",
    "lane/w9",
+   "main",
+   "lane/w1",
    "review/r4",
    "review/r3",
    "review/r2",
@@ -220,6 +200,10 @@
  },
  "files": {
   "briefs": [
+   "tasks/WP17-research-v3.md",
+   "tasks/WP16-record.md",
+   "tasks/WP13-firmware.md",
+   "tasks/WP12-board.md",
    "tasks/WP11-packing-v2.md",
    "tasks/WP10-research-v2.md",
    "tasks/review-r4.md",
@@ -227,11 +211,7 @@
    "tasks/WP8-prep-stageb.md",
    "tasks/L-r3-sources.md",
    "tasks/review-r3.md",
-   "tasks/WP5b-drawings.md",
-   "tasks/WP6b-packing-options.md",
-   "tasks/L-r2-datasheets.md",
-   "tasks/review-r2.md",
-   "tasks/WP7a-protocol.md"
+   "tasks/WP5b-drawings.md"
   ],
   "verdicts": [
    "tasks/reviews/code-r4.md",

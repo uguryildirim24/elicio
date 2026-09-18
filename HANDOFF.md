@@ -79,7 +79,8 @@ plan v2 once the dialogue settles; nothing is ordered before that.
 | r4 | decisions Q24–Q27 | coordinator | `3122d44` | `docs/fab/open-questions.md` |
 | r5 | Rolf's answers as Q28–Q36 | coordinator | `4dd5b46`, `cd7aea7` | `docs/fab/open-questions.md` |
 | r5 | WP10 research for plan v2, file `docs/fab/L5-research-v2.md` (absent on main, on `lane/w5` only) | landed on `lane/w5` at `832ef28`, UNREVIEWED | `lane/w5` | report `.reports/WP10-report.md` (absent on main; untracked in `.worktrees/w5`) |
-| v2 | plan v2 draft, turn 01 (`docs/fab/plan-v2.md`, `tasks/plan-v2/turns/01-fable.md`) | in dialogue with Pro | `08f28d4` | turns under `tasks/plan-v2/turns/` |
+| v2 | plan v2 (`docs/fab/plan-v2.md`, 11 turns, fable vs GPT-6 Pro) | SIGNED OFF WITH EDITS (turn 10), edits applied turn 11 | `ef369bd` | `tasks/plan-v2/turns/10-pro.md` |
+| r5 | decisions Q37–Q49 (plan v2), briefs WP12, WP13, WP16, WP17 | coordinator | `401f92d` | `docs/fab/open-questions.md` |
 
 Round 4 gates at merge: 129 tests OK none skipped; order 1 solids, views
 and manifest byte-identical to before; the provisional Stage B build
@@ -92,93 +93,102 @@ on a removed key.
 
 ## In flight
 
-- **pro** (chatgpt, GPT-6 Pro via pro-mcp, pane in the Herdr section,
-  chat `6aab403b`): turn 02 landed (`tasks/plan-v2/turns/02-pro.md`,
-  fifteen findings, NOT SIGNED OFF, committed `a714bf7`); I answered all
-  fifteen in `tasks/plan-v2/turns/03-fable.md` and rewrote
-  `docs/fab/plan-v2.md` (turn 03 draft, `6552942`: XIAO dropped,
-  medial-face USB-C port as the physical interlock, spring contacts on
-  captive nuts, BQ25100 at 20 mA, 2000 SPS, gates G1–G8, allowances
-  $280–440). Turn 04 landed (`tasks/plan-v2/turns/04-pro.md`, findings 16–22, two
-  blockers: the medial port is no interlock, a nut gives no ±2 mm
-  workspace; `32cebc6`). Turn 05 (`tasks/plan-v2/turns/05-fable.md`,
-  `11c4dcc`) rewrote R7 as a proposed rule without an isolation claim
-  (battery-only, medial exclusion, 220 kΩ, hardware VBUS supply gate,
-  residual hazard named), made the nut a 3.0 mm brass standoff with
-  per-site arrays of spring-loaded pins, fixed charger TS/termination,
-  undervoltage, the frame contract, the first-load kit and a
-  whole-project ledger. Turn 06 (`tasks/plan-v2/turns/06-pro.md`,
-  `108a591`): NOT SIGNED OFF, findings 23–25 (R7's bound and off-state
-  claims; no stocked spring pin at 2.0–2.5 height and no grid workspace;
-  the duty reserve and the $350–560 envelope) plus replacement sentences
-  for the rest. Turn 07 (`tasks/plan-v2/turns/07-fable.md` at `dba5552`,
-  the plan rewrite itself at `2fbad34` because the first commit missed
-  it) accepts all three: R7 carries Pro's limits verbatim, interface I is
-  now the board pulled onto the three brass standoff tops by its own
-  screws with 8 × 8 gold pads and bosses 0.5 lower (no springs, an
-  unqualified candidate until G7; C14 = a stocked 3.0/3.5 brass standoff),
-  the ledger claims no all-in figure. Turn 08 (`tasks/plan-v2/turns/08-pro.md`,
-  `a6b9a24`): NOT SIGNED OFF; finding 26 = the rewrite was missing at
-  `dba5552` (true, it landed at `2fbad34`), finding 27 = the direct-pad
-  joint needs a coupled preload/strain/clearance contract (the cell under
-  the board has 0.0 clearance at a 3.5 standoff), C14 = only nickel-plated
-  3.0 (Spacer Express, per 100) and 4.0 (Harwin R25-1000402) catalogue
-  pages exist, nothing at 3.5. Turn 09 (`tasks/plan-v2/turns/09-fable.md`
-  and the plan, one commit `c08b71f`, +123 −58 in the plan) accepts all
-  of it: Pro's §5.3 contract paragraph verbatim, standoffs 3.0/3.5/4.0 in
-  WP11, cell under the board only with positive clearance or a 0.5 floor
-  recess (C15), nickel-on-gold pair, C16 spring contacts research-only.
-  TURN plan-v2 10 sent ~19:55 with the sha in the prompt. Pro writes
-  `tasks/plan-v2/turns/10-pro.md` (expected) and pushes `DONE plan-v2-10`
-  with the stop-rule assessment. A Pro turn can take an hour; it shows
-  idle or working meanwhile; never re-prompt before the DONE. When it
-  lands: commit its file (Pro cannot commit); if cosmetic, fix the
-  sentences, mark plan-v2 signed off and record its decisions as open
-  questions Q37+; else write turn 11 and prompt turn 12.
+- **pro**: closed. Plan v2 was SIGNED OFF WITH EDITS at turn 10
+  (`tasks/plan-v2/turns/10-pro.md`, `fd0712e`); turn 11 applied its
+  sixteen edits (`ef369bd`). The `pro` tab is closed (GONE pro was
+  expected); `pro-mcp start --name pro` reopens the remembered chat when
+  the next spec dialogue needs it.
 - **w1** (cursor `cursor-grok-4.6-xhigh`, `lane/w1`): WP11 packing v2
-  (`tasks/WP11-packing-v2.md`), prompted 2026-09-17 ~18:45, plus a
-  coordinator follow-up at ~20:10 that runs as a second turn after its
-  first DONE (drop C, corrected heights, interface I spring contacts on
-  nut tops with a ±2 mm workspace, lids 6.0–9.0, harness and medial-face
-  receptacle envelopes). A second note (~21:30) redefines interface I per turn 05 (standoff
-  3.0, pin arrays, region per site, switch, recessed medial opening).
-  A third note (~19:36, 2026-09-17) replaced the pin arrays with the board-on-standoffs interface of plan-v2 turn 07 (§3, §5.3: standoffs 3.0 and 3.5, cell under the board, pad-based adjustment region). A fourth note (~19:56) added the 4.0 standoff, the cell-clearance rule and the 0.5 floor-recess variant from turn 09. Expect FIVE `DONE WP11` pushes; open no review before the fifth. Writes `docs/fab/packing-v2.md` (expected). Its
-  table feeds turn 05 of the dialogue and D-1 (thin) for Rolf.
-- **w5** (agy, `lane/w5`): idle with WP10 unmerged at `832ef28`. It is
-  reviewed together with WP11 by the round 5 reviewer (a fresh review
-  branch, expected, not created yet) before anything merges.
-- **w2**, **w4**, **w9** (cursor): idle at `main`. Next: w2 WP14 shell
-  v2 and WP12 board (or a new lane for the board), w4 WP15 Rolf's sheets
-  v2, w9 WP16 record, after plan v2 signs off.
+  (`tasks/WP11-packing-v2.md`), prompted 2026-09-17 ~18:45, still on its
+  first turn (worktree dirty, no commit yet), with four coordinator notes
+  queued that each run as a new turn after a DONE: note 1 (~20:10, drop
+  C, corrected heights, lids 6.0–9.0, harness and medial envelopes), note
+  2 (~21:30, standoff and pin arrays, since superseded), note 3 (~19:36,
+  board on standoff tops per turn 07, standoffs 3.0/3.5, cell under the
+  board), note 4 (~19:56, standoffs 3.0/3.5/4.0, positive cell clearance
+  or a 0.5 floor recess, module stack per candidate). Expect FIVE
+  `DONE WP11` pushes; the last one's report and `docs/fab/packing-v2.md`
+  (expected on `lane/w1`) feed D-1 (Q38) and WP12's outline.
+- **w2** (cursor, `lane/w2`, fast-forwarded to `401f92d`): WP12 board v2
+  (`tasks/WP12-board.md`), prompted ~20:20: installs KiCad 10.0.6 by
+  brew cask (Q46), builds the KiCad project, `scripts/board/release.py`,
+  `docs/fab/board-v2.md` (G2 table, G4 map, charger and undervoltage
+  numbers), `tests/test_board_release.py`. Waits for nothing; WAITING if
+  the install fails. Report `.reports/WP12-report.md` (expected).
+- **w4** (cursor, `lane/w4`, at `401f92d`): WP13 firmware v2
+  (`tasks/WP13-firmware.md`), prompted ~20:20: `docs/fab/frame-v2.md`,
+  `elicio/frame_v2.py` with fixtures, `firmware/` with a host-tested
+  framer, `docs/fab/firmware-v2.md`, the protocol v2 table in
+  `montage.md`. Installs arduino-cli or west (Q45, Q46). Report
+  `.reports/WP13-report.md` (expected).
+- **w9** (cursor, `lane/w9`, at `401f92d`): WP16 record v2
+  (`tasks/WP16-record.md`), prompted ~20:20: requirement 5 to titanium
+  and the plan v2 decisions in `docs/EARPIECE_DESIGN.md`,
+  `docs/fab/orders-v2.md` ledger skeleton. Report
+  `.reports/WP16-report.md` (expected).
+- **w5** (agy, `lane/w5`, main merged in at `305fe1f`): WP17 research v3
+  (`tasks/WP17-research-v3.md`), prompted ~20:20 by `pane run` + enter;
+  it answered one permission dialog (enter) and is reading the brief.
+  Writes `docs/fab/L6-research-v3.md` (expected) and fixes two identifiers
+  in `docs/fab/L5-research-v2.md`. agy status is unreliable; its DONE push
+  is the only signal. Report `.reports/WP17-report.md` (expected).
+
+Round 5 review: when WP11's fifth DONE and WP12, WP13, WP16 and WP17 have
+all landed (a lane that pushes WAITING is recorded and the review opens
+without it), create `review/r5` (expected, not created yet) from `main`,
+a fresh Opus 5 high reviewer from `tasks/review-code-template.md` as
+`tasks/review-r5.md`, merging `lane/w1`, `lane/w5`, `lane/w2`, `lane/w4`,
+`lane/w9` in that order, with the attack points: WP11's measured table
+against plan v2 §3 (no constants), WP12's G2 table and undervoltage
+numbers against the datasheets, WP13's fixtures against `frame-v2.md`,
+L5/L6 quotes spot-checked on live pages, requirement 5 once.
 
 Rolf's open inputs on the answer sheet
 (https://claude.ai/artifact/5e9H1dC5CFHggtiaYtDDeA, db doc `answers/rolf`,
 read with ArtifactData `get`): budget ceiling (Q33), look and colour (Q30),
-M1 and measurements (Q34), China or not and his country (Q36), and D-1
-(smallest body that closes instead of thin) in his words.
+M1 and measurements (Q34), China or not and his country (Q36), plus from
+plan v2: the body height (Q38), R7 acceptance (Q41), objectives order and
+residual risks (Q47), a veto on tool installs (Q46). An answer sheet v3
+with these in plain words is owed to him.
 
 ## Open
 
-Plan v1 open items and Q1–Q36 as before. Plan v2 (`docs/fab/plan-v2.md`)
-carries claims C1–C10 and decisions D-1–D-8 for the dialogue. Outside those:
+Plan v1 open items and Q1–Q49 as before. Plan v2 carries claims C1–C16
+and gates G1–G8 for the build. Outside those:
 
-1. WP10 is unreviewed on `lane/w5`; Pro's verification of its numbers is
-   part of turn 02, the round 5 reviewer still merges it.
+1. WP10 is unreviewed on `lane/w5`; the round 5 reviewer merges it with
+   WP17 (same branch) and spot-checks the quotes.
 2. The answer sheet's questions 2 to 4 are answered but superseded (no
-   gauge order, no breadboard); the banner on the sheet says so.
+   gauge order, no breadboard); the banner on the sheet says so. A v3 of
+   the sheet with Q38, Q41, Q46, Q47 in plain words is owed.
 3. The vault holds rounds 1 to 4 (page `Wiki/projects/Elicio.md`); Rolf's
-   answers and plan v2 are not filed back yet.
+   answers, plan v2 and its sign-off are filed back in the run started
+   after this checkpoint (or not yet, if the run is absent from the vault's
+   log).
 4. Idle lane tabs stay open with their agents; start lines are in the
-   briefs and the Herdr section.
+   briefs and the Herdr section. The `pro` tab is closed.
+5. The `lane/w5` branch now has a merge commit from `main` (`305fe1f`)
+   made by the coordinator so WP17 sees plan v2; the reviewer merges the
+   branch as usual.
 
 ## Next
 
-- Idle until `DONE plan-v2-10` (commit Pro's file; if cosmetic, fix the
-  sentences and sign off; else write turn 11) or the fifth `DONE WP11`
-  (four coordinator notes are queued behind w1's first turn; open no
-  review before the last one).
+- Idle until a DONE lands (check report file and clean tree, read the
+  report); when the fifth `DONE WP11` and WP12, WP13, WP16, WP17 have all
+  landed or pushed WAITING, open the round 5 review as described under In
+  flight.
 
 ## Traps
+
+- zsh does not word-split an unquoted variable: `set -- $pkg` with
+  `pkg="w2 WP12-board"` gives `$1` = the whole string, and
+  `herdr agent prompt $1` fails with "agent ... not found". Three lane
+  prompts were lost that way on 2026-09-17; write each prompt out.
+- A python rewrite script that asserts on anchors before `write_text`
+  leaves the file untouched when one anchor misses, and a following
+  `git commit` in the same command still commits the other files. Turn 07
+  went to Pro with the plan unchanged. Run `git show --stat HEAD` and
+  read it before prompting anyone with a sha.
 
 - `pro-mcp start --help` and `pro-mcp status` run a real serve: the first
   opens a Pro tab, the second fails to bind 8765 and turns the shared
