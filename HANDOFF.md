@@ -121,11 +121,14 @@ on a removed key.
   framer, `docs/fab/firmware-v2.md` (expected), the protocol v2 table in
   `montage.md`. Installs arduino-cli or west (Q45, Q46). Report
   `.reports/WP13-report.md` (expected).
-- **w9** (cursor, `lane/w9`, at `401f92d`): WP16 record v2
-  (`tasks/WP16-record.md`), prompted ~20:20: requirement 5 to titanium
-  and the plan v2 decisions in `docs/EARPIECE_DESIGN.md`,
-  `docs/fab/orders-v2.md` (expected) ledger skeleton. Report
-  `.reports/WP16-report.md` (expected).
+- **w9** (cursor, `lane/w9`): WP16 record v2 landed, `DONE WP16` at
+  `cc22134` (~20:13): requirement 5 to titanium and the plan v2 decisions
+  once each in `docs/EARPIECE_DESIGN.md`, and the ledger skeleton
+  `docs/fab/orders-v2.md` (absent on main, on `lane/w9`); 129 tests OK
+  with 22 CAD skips (no CAD extras in that lane); tree clean; only those
+  two files differ from `401f92d`. Waits for the round 5 reviewer. Its
+  report `.reports/WP16-report.md` (absent on main, untracked in
+  `.worktrees/w9`).
 - **w5** (agy, `lane/w5`, main merged in at `305fe1f`): WP17 research v3
   (`tasks/WP17-research-v3.md`), prompted ~20:20 by `pane run` + enter;
   it answered one permission dialog (enter) and is reading the brief.
