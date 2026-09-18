@@ -59,13 +59,18 @@ Expected from WP12b. Marked expected until that package writes them.
 
 | File | Where | Use |
 |---|---|---|
-| Gerbers and drill | `hardware/board/release/gerbers/` (expected; WP12b) | JLC flex PCB |
+| Gerbers and drill | `hardware/board/release/gerbers/` (written by `scripts/board/release.py`; not committed) | JLC flex PCB |
 | BOM | `hardware/board/release/bom.csv` (expected; WP12b) | PCBA |
 | CPL | `hardware/board/release/cpl.csv` (expected; WP12b) | PCBA |
 | Board STEP | `hardware/board/release/elicio-v2.step` (expected; WP12b) | 3D / DFM |
 | Release summary | `hardware/board/release/summary.json` (expected; WP12b) | you read it; do not upload unless the checkout asks |
 
-Exact gerber names: the agent fills this after WP12b.
+Gerber names as `release.py` writes them on this tree: `elicio-v2-F_Cu.gbr`,
+`-B_Cu`, `-F_Mask`, `-B_Mask`, `-F_Paste`, `-B_Paste`, `-F_Silkscreen`,
+`-B_Silkscreen`, `-Edge_Cuts`, `-User_Eco1` (stiffeners), `-User_Eco2`,
+`-User_Drawings`, `-User_Comments` (all `.gbr`), `elicio-v2-PTH.drl`,
+`elicio-v2-NPTH.drl`, `elicio-v2-job.gbrjob`. The copper is not routed:
+`--routed` is refused (1293 DRC errors, 31 unconnected; review r6).
 
 From `docs/fab/cad/v2/` (expected; WP14): nothing is uploaded to JLC
 PCB. Those files are the shell order.
@@ -82,9 +87,11 @@ fills this after WP12b/WP14", wait.
 | Service | JLCPCB PCB + standard PCBA | plan v2 §9 |
 | Board type | 2-layer polyimide flex with FR4 stiffeners (interface II, Q50) | `board-v2.md` §12, §18; `orders-v2.md` |
 | Quantity | 2 to 5 assembled boards. Named cut: two if R8 fails | plan v2 §9 |
-| Surface | ENIG | plan v2 §9 (rigid wording); flex finish: the agent fills this after WP12b |
+| Surface | ENIG, 1 u" or 2 u" as the checkout offers (HASL is not offered on FPC) | plan v2 §9; `board-v2.md` §11 |
 | Copper / stack | PI 0.11 mm, FR4 0.4 mm at parts, FR4 0.2 mm at the rings | `packing-v2.md` §5 |
-| Coverlay, stiffener count, extra-stiffener fee | the agent fills this after WP12b | `board-v2.md` §18 names the fee, not an amount for this board |
+| Coverlay | Yellow; opening 0.1 mm one-sided | `board-v2.md` §12 |
+| Stiffeners | 2 × FR4 0.4 (Eco1: parts island, USB/pocket). Three FR4 0.2 ring pieces would make 5 and cross the fee threshold of 4 (decision 72) | `board-v2.md` §12, §18 |
+| Extra-stiffener fee | none at 2 pieces; at 5, the figure the checkout shows | `board-v2.md` §18 |
 | Assembly | Standard PCBA, sides per placement (two-sided assumed) | plan v2 §9 |
 | Fixture | Flexible PCB, 2 fixtures for 1–29 pcs, $24.63 each, $49.25 | `board-v2.md` §18, jlcpcb.com/help/article/pcb-assembly-price read 2026-09-17 |
 | X-ray | Module X-ray if the checkout offers it in the 1–10 bracket, $1.64 per inspected part | plan v2 §9 |

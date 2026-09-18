@@ -24,7 +24,7 @@ Do not open a vendor cart until this ledger check is done.
 | Ceiling row has a number you wrote (Q33). G8 is not passed while that row is blank | [ ] |
 | Live lines for these parcels, once filled, sit under that ceiling with the shell reserve | [ ] |
 | The $80–130 small-parts allowance is not treated as a verified total for the 100-pack standoff route | [ ] |
-| Cell line is still open (Q55) unless a 501015-class pack with a page price is on the ledger | [ ] |
+| Cell line stays open until you write the cell route (decision 69 in `tasks/reviews/code-r6.md`, Q55) | [ ] |
 | Probe kit is not in the cart unless G4 has named the kit (Q64) | [ ] |
 
 Named cuts if R8 fails (plan v2 §9): no programming kit if the factory
@@ -38,7 +38,7 @@ Stop. Do not pay if any line is true.
 
 1. G8 above is not ticked.
 2. M1 is below 50.90 mm (`measure.md`).
-3. The cell SKU is still blank (Q55, gate G1) and you are buying a cell.
+3. You have not written the cell route (decision 69, Q55, gate G1) and you are buying a cell.
 4. The first-load probe is in the cart and G4 has not named the kit
    (Q64).
 5. A line I left as "the agent fills this after WP12b/WP14" is the
@@ -57,8 +57,8 @@ Do not sum these into a total.
 | Sortafast SF-BH2504-10, Grade 5 Ti ISO 7380 M2.5×4 button heads | 1 pack of 10 | catalogue | $17.50 per 10-pack | sortafast.com/products/sortafast-titanium-screws-button-head-10pk-m2-5 , 2026-09-17 (`L6-research-v3.md` §7.1, `orders-v2.md`) | Massachusetts |
 | Spacer Express LAI-FF-M2.5-SW5-L3-100, 3.0 mm female-female M2.5, 5 mm A/F | 1 pack of 100 as sold | catalogue | €91.08 ex VAT per 100; shipping to Massachusetts unverified | spacer-express.com … L3-100 , 2026-09-17 (plan v2 §12 C14, `orders-v2.md`) | Massachusetts |
 | Harwin R25-1000402 4.0 mm standoff | do not buy for this winner | catalogue | $0.57 at qty-1 on DigiKey 2026-09-17 | Winner standoff is 3.0 mm (`packing-v2.md` §5). 4.0 mm stays on the ledger as the unused candidate | — |
-| Cell 501015-class | 1 | allowance | blank | Q55; no verified page price in ones on the ledger | Massachusetts |
-| Data Power DTP301120 (SparkFun PRT-25270) | do not buy unless WP11b closes a longer body | catalogue | $7.39 | sparkfun.com/products/25270 , 2026-09-17 | — |
+| Cell: 501012 pack, 13.0 × 10.1 × 5.1 as listed, about 40 mAh (the record cell, `packing-v2.md` §5) | 1 | allowance | blank | Route is yours (decision 69): a marketplace pack with no drawing and no named listing (`L7-research-v4.md` §7.7; plan v2 R2 and §9 ask for page price, stock and drawing), or a manufacturer sample of the 17.0 mm 501015 pack, which needs M1 ≥ 52.5 and a body 1.5 mm longer. I pick neither | Massachusetts |
+| Data Power DTP301120 (SparkFun PRT-25270) | do not buy: it closes in no body (`packing-v2.md` §1b, §1d) | catalogue | $7.39 | sparkfun.com/products/25270 , 2026-09-17 | — |
 | 1.5 mm hex key | 1 | allowance | blank | plan v2 §9 | Massachusetts |
 | USB-C cable | 1 | allowance | blank | plan v2 §9 | Massachusetts |
 | Pre-cut foam pads | blank | allowance | blank | plan v2 §9 | Massachusetts |
@@ -89,14 +89,20 @@ The cable is decided. The probe is not.
 | Tag-Connect TC2030-IDC-NL | 1 | catalogue | $33.95 listed | tag-connect.com/product/tc2030-idc-nl , 2026-09-17 (plan v2 turn 04 and 06) |
 | Jumpers | blank | allowance | blank | plan v2 §9 |
 
-Two probe options exist (Q64). G4 is not passable with option 1 on
-paper. I name one of these before you buy. I do not name one in this
-sheet. You buy nothing until G4 names the kit (Q64).
+The Raspberry Pi Debug Probe that plan v2 §8 names is not the probe for
+an erased part: its page states 3.3 V nominal I/O and it has no
+target-voltage sensing, while an erased nRF52840 runs at 1.8 V with a
+2.1 V absolute maximum on its pins (`board-v2.md` §4, Q64). Do not buy
+it for first load.
 
-| Option | What it is | Source |
-|---|---|---|
-| 1. Raspberry Pi Debug Probe | $12.00 listed; page states 3.3 V nominal I/O only; no target-voltage sensing | plan v2 §8 and §9; raspberrypi.com/documentation/microcontrollers/debug-probe.html ; `board-v2.md` §4; `L6-research-v3.md` §6.1 |
-| 2. Target-voltage-sensing probe or a level shifter | J-Link EDU Mini class, page price, or an external bidirectional level shifter; verified by the next research package | Q64; `L6-research-v3.md` §6.1 (1.8 V targets need a shifter) |
+`L7-research-v4.md` §1.3 lists three probes that sense VTref. I do not
+pick one here. You buy nothing until G4 names the kit (Q64).
+
+| Probe | Target I/O | Price as read | Note |
+|---|---|---|---|
+| ST-LINK V3MINIE | 1.65–3.60 V | $25.51 DigiKey, in stock (re-read r6) | STDC14 cable, not TC2030 |
+| Black Magic Probe V2.3 | 1.7–5 V | $76.90 on 1bitsquared.com (re-read r6) | |
+| SEGGER J-Link EDU Mini | 1.2–5 V | L7 §1.3 | Non-commercial educational use only |
 
 Factory programming that sets REGOUT0 can drop the kit (Q64, plan v2
 §9 named cut). That service is quote-only (plan v2 §12 C6).
