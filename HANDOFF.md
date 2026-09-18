@@ -153,6 +153,16 @@ exit 3 on Q21 only.
 
 ## In flight
 
+**PAUSED 12:05 2026-09-18 by Rolf** ("i have a lot of session running rn and
+cad fails there is no more memory so pause please"). w1 and w2 were
+interrupted (esc) and told to commit a wip commit for their package, write
+their report and push the WIP line with the sha, with no tests, builds, renders or router runs.
+On each WIP push I record the sha here and close that tab (Rolf's rule);
+branches and worktrees stay. Resume: restart w1 and w2 from the start
+lines in their briefs (Cursor resume ids in `HANDOFF.json`), prompt
+"Read HANDOFF.md, then your brief; continue from the wip commit", and
+only when Rolf says the machine has room.
+
 Round 7 is merged (`facb0c1`); its packages are in Settled. Round 8
 opened 09:05 on four lanes; every brief on main carries its start line.
 
@@ -303,13 +313,12 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP14f` (w1) and `DONE WP12i` (w2), or BLOCKED/GONE for
-  either (a DONE is checked: report present, tree clean; then read; a
-  quiet lane past its turn's size gets one screen read for Cursor's
-  "Agent stopped retrying"); when both have landed (WP13d `dbeeafa` and
-  WP11g `ab9ce95` have), open review r8 the way r7 was opened (merge
-  order w3 `ab9ce95`, w1-r6, w4 `dbeeafa`, w2), with Open item 6 as the
-  seams and every report pasted.
+- PAUSED: idle until the WIP pushes for WP14f (w1) and WP12i (w2)
+  arrive (then record each sha in In flight and close that tab), and
+  then until Rolf says the machine has room; on resume restart w1 and
+  w2 from their briefs' start lines and continue toward `DONE WP14f`
+  and `DONE WP12i`, after which review r8 opens (merge order w3
+  `ab9ce95`, w1-r6, w4 `dbeeafa`, w2).
 
 ## Traps
 
