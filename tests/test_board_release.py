@@ -107,6 +107,14 @@ class BoardReleaseTests(unittest.TestCase):
             self.assertGreater(len(rows), 0)
             designators = [r.get("Designator") or r.get("Reference") for r in rows]
             self.assertEqual(len(set(designators)), len(designators))
+            # Review r6: the CPL places exactly the BOM's parts (J3 is THT;
+            # Q5, R29, R30 are DNP on the schematic).
+            with (out / "cpl.csv").open(newline="") as fh:
+                cpl = {r["Designator"] for r in csv.DictReader(fh)}
+            self.assertEqual(cpl, set(designators))
+            self.assertIn("J3", cpl)
+            self.assertFalse({"Q5", "R29", "R30"} & cpl)
+            self.assertEqual(summary["bom_refs_without_cpl"], [])
             # Review r5: ERC is clean (no lib_symbol_mismatch), DRC is counted
             # and the summary says the board is not routed.
             self.assertEqual(summary["erc_warnings"], 0)
