@@ -157,7 +157,17 @@ Round 7 is merged (`facb0c1`); its packages are in Settled. Round 8
 opened 09:05 on four lanes; every brief on main carries its start line.
 
 - **w3 → WP11g flat pattern v3** (`tasks/WP11g-flat-pattern-v3.md`, main
-  `9354834`): FIRST `DONE WP11g` at
+  `9354834`): LANDED, second `DONE WP11g` at `ab9ce95`
+  on `lane/w3` received 11:50 (report present with an addendum section,
+  tree clean): pin table v3 plus the Q98 channels (H1 (13.23, 17.70),
+  gap 1.42; J4 (16.52, 24.60) rot 90 with the via slot on its west face,
+  east of SIG2 because west of SIG2 is U1 copper; keep-out list HOLE_CH,
+  U2_CH, U3_CH, J4_CH, J4_VIA_SLOT, J4_APPROACH_EAST with a test; well
+  16.50 in the tail sentence). Tab `w1B:tR` CLOSED 11:55 (Rolf's rule),
+  pane `w1B:pR` closed; branch `lane/w3` unmerged, kept for review r8;
+  restart from the start line in `tasks/WP11g-flat-pattern-v3.md` if the
+  reviewer hands a conflict back. Earlier history of this package:
+  FIRST `DONE WP11g` at
   `78ab3f7` received 11:05 (report present, tree clean, 256 tests OK):
   pin table v3 in §5e, 66 rows; P4/P5 through the posterior wall u
   20.50 at s 4.35 / 12.35, y 4.35, heads +u, flat (23.32, 4.35) /
@@ -189,8 +199,10 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   `.worktrees/w3/.reports/WP11g-report.md` (expected) → `DONE WP11g`
   (the second one carries the channels); then I send w1 the line "flat
   pattern v3" plus the sha and w2 the line "pin table v3" plus the sha.
-- **w1 → WP14f shell v2f** (`tasks/WP14f-shell-v2f.md`, main `9354834`): WAITING since 10:20, `WAITING WP14f flat pattern v3`
-  received, lane at `89279c2` on `lane/w1-r6` (tree clean, no report
+- **w1 → WP14f shell v2f** (`tasks/WP14f-shell-v2f.md`, main `9354834`): RUNNING since 11:55 on "flat pattern v3 ab9ce95" (the second
+  half: wall pads at (20.50, 4.35 / 12.35, y 4.35), bosses at H1
+  (13.23, 17.70), cavity check on v3, third view, closure text). Before
+  that WAITING since 10:20, lane at `89279c2` on `lane/w1-r6` (tree clean, no report
   yet, expected). First half done: Q89 built, lid boss 3.2 mm into a
   tail pocket, M2.5×8, `lid_engagement` 4.75, `V2_CLOSURE` passes,
   build exit 0; the medial well moved to (16.50, 41.00) to clear the
@@ -216,7 +228,11 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   at 0.20 gap, U3 DSBGA 0.40 pitch); JLC's extreme via 0.10/0.30 tried
   on a copy (56 unconnected, 63 via-rule errors, not imported). → Q98.
 - **w2 → WP12i board v3** (`tasks/WP12i-board-v3.md`, main `27b7991`):
-  WAITING since 10:40, `WAITING WP12i pin table v3` received, lane at
+  RUNNING since 11:55 on "pin table v3 ab9ce95" (step 3: vendor
+  v3 through §5e, re-pin with the Q98 keep-outs, flat outline with the
+  charge tab and the J3 break-off cut, lock Contact routes, hand-route
+  then Freerouting, DRC 0 and 0 unconnected, or name the pads). Before
+  that WAITING since 10:40, lane at
   `03f031c` on `lane/w2` (main merged at 7e0d1bb, tree clean, no report
   yet, expected). First half done: U2's RSM land is right at 0.40 mm
   pitch (my Q98 note said 0.5; corrected in the row), U3 BQ25100 stays
@@ -287,14 +303,13 @@ Outside those:
 
 ## Next
 
-- Idle until the SECOND `DONE WP11g` (w3; the first, `78ab3f7`, is
-  recorded; the second carries the Q98 channels and the well site), `DONE WP14f` or `WAITING WP14f flat pattern v3` (w1),
-  `DONE WP12i` or `WAITING WP12i pin table v3` (w2), or BLOCKED/GONE for
-  any (a DONE is checked: report present, tree clean; then read); on
-  w3's final DONE send w1 "flat pattern v3" plus the sha and w2 "pin
-  table v3" plus the sha; when WP11g, WP14f and WP12i have landed
-  (WP13d has), open review r8 the way r7 was opened (merge order w3,
-  w1-r6, w4, w2).
+- Idle until `DONE WP14f` (w1) and `DONE WP12i` (w2), or BLOCKED/GONE for
+  either (a DONE is checked: report present, tree clean; then read; a
+  quiet lane past its turn's size gets one screen read for Cursor's
+  "Agent stopped retrying"); when both have landed (WP13d `dbeeafa` and
+  WP11g `ab9ce95` have), open review r8 the way r7 was opened (merge
+  order w3 `ab9ce95`, w1-r6, w4 `dbeeafa`, w2), with Open item 6 as the
+  seams and every report pasted.
 
 ## Traps
 
@@ -419,36 +434,34 @@ Outside those:
 checkpoint with:  python3 ~/.claude/skills/save-state/state.py snapshot
 Do not hand-edit ids into it. -->
 
-## Herdr (generated 2026-09-18T08:18:26-04:00 by state.py, herdr 0.9.0, session `default`)
-Workspace `w1B` (elicio), 5 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
+## Herdr (generated 2026-09-18T14:27:23-04:00 by state.py, herdr 0.9.0, session `default`)
+Workspace `w1B` (elicio), 3 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
 Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl`.
 
 ### Workers nested under the coordinator
 | name | kind | status | pane | tab (label) | cwd | tokens | last title |
 |---|---|---|---|---|---|---|---|
-| w1 | cursor | done | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP14f waiting=flat pattern v3 | Lane W1 Instructions |
-| w2 | cursor | done | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP12i waiting=pin table v3 | Lane W2 Instructions |
-| w3 | cursor | working | `w1B:pR` | `w1B:tR` (w3) | `/Users/rolfie/projects/elicio/.worktrees/w3` | done=1 lane=WP11e | New Package Brief |
+| w1 | cursor | working | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP14f waiting=flat pattern v3 | Lane W1 Instructions |
+| w2 | cursor | working | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP12i waiting=pin table v3 | Lane W2 Instructions |
 
 Start lines as they run now (from `pane process-info`), for restarting a worker that is gone:
 
 ```bash
 herdr agent start w1 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume 791832d5-f944-40f4-80ec-82deb5c4efca
 herdr agent start w2 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume 137b6bf4-e654-4a43-bc69-e0421552a50c
-herdr agent start w3 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --model cursor-grok-4.6-xhigh --force
 ```
 
-Other workspaces on this server (not yours to touch): `w16` flyonenomics (done), `w1E` jevtest (idle)
+Other workspaces on this server (not yours to touch): `w16` flyonenomics (done), `w1E` jevtest (done), `w1F` adeherdr (working)
 
 ### Git
 Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behind origin/main).
 
 | worktree | branch | head | dirty files | last commit |
 |---|---|---|---|---|
-| `/Users/rolfie/projects/elicio` | `main` | 4f82c6b | 0 | handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected |
+| `/Users/rolfie/projects/elicio` | `main` | 2113b6d | 0 | handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded |
 | `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | 89279c2 | 0 | shell(v2f): stamp the Q89 lid-boss solids on the views |
 | `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 03f031c | 0 | board(v3): RSM land, R9/R10 DNP, Q94 stiffeners, Q97 tests; wait for pin table v3 |
-| `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | 4f82c6b | 8 | handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected |
+| `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | ab9ce95 | 0 | packing(v3): pin table v3 Q98 keep-outs, H1/H2 1.42 mm gap, well at 16.50 |
 | `/Users/rolfie/projects/elicio/.worktrees/w4` | `lane/w4` | dbeeafa | 0 | receiver(v2): montage 3.1–3.3 scored by the pipeline, not receive-check (Q96) |
 | `/Users/rolfie/projects/elicio/.worktrees/w5` | `lane/w5` | facb0c1 | 0 | Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89–Q97 recorded |
 | `/Users/rolfie/projects/elicio/.worktrees/w9` | `lane/w9` | facb0c1 | 0 | Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89–Q97 recorded |
@@ -456,12 +469,12 @@ Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behi
 Last commits on the integration branch:
 
 ```
+2113b6d handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded
+b424478 handoff: WP11g first DONE at 78ab3f7 (pin table v3: posterior-wall pads, J2 inside, J3 break-off, R9/R10 out); second turn running for the Q98 channels; w1/w2 held until then
+06a317d handoff: w4, w5, w9 tabs closed (Rolf: close out agents not running); lane/w4 dbeeafa kept unmerged for r8; fresh herdr snapshot
 4f82c6b handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected
 a74fbca handoff: r8 seams gain the moved well and tail boss, U2 pitch and U3 swap, the Q98 channel rows
 7dbe1b9 handoff: WP14f first half at 89279c2 (Q89 built, V2_CLOSURE passes, well at u 16.50), w1 WAITING for flat pattern v3; Round 8 note; r8 seam on the tail boss
-bd9d688 handoff: WP12h landed un-routed at c9c750d with every rat named; Q98; WP12i on w2 (board items then WAITING for pin table v3); WP11g addendum for the channels
-27b7991 Round 8: WP12h recorded (63 rats named with geometry) → Q98 routing channels as packing constraints; WP12i brief
-379e886 handoff: WP13d landed at dbeeafa; round 7 filed in the vault (a3826dd); sheet at version 12
 ```
 
 ### Record files (newest first)

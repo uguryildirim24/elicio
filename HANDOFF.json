@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-18T08:18:26-04:00",
+ "generated": "2026-09-18T14:27:23-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
   "id": "w1B",
   "label": "elicio",
-  "tabs": 5
+  "tabs": 3
  },
  "coordinator": {
   "pane_id": "w1B:p1",
@@ -26,7 +26,7 @@
    ],
    "name": "w1",
    "kind": "cursor",
-   "status": "done",
+   "status": "working",
    "pane_id": "w1B:pA",
    "tab_id": "w1B:tA",
    "tab_label": "w1",
@@ -48,7 +48,7 @@
    ],
    "name": "w2",
    "kind": "cursor",
-   "status": "done",
+   "status": "working",
    "pane_id": "w1B:pB",
    "tab_id": "w1B:tB",
    "tab_label": "w2",
@@ -62,28 +62,6 @@
     "waiting": "pin table v3"
    },
    "title": "Lane W2 Instructions"
-  },
-  {
-   "start_args": [
-    "--model",
-    "cursor-grok-4.6-xhigh",
-    "--force"
-   ],
-   "name": "w3",
-   "kind": "cursor",
-   "status": "working",
-   "pane_id": "w1B:pR",
-   "tab_id": "w1B:tR",
-   "tab_label": "w3",
-   "pane_label": null,
-   "cwd": "/Users/rolfie/projects/elicio/.worktrees/w3",
-   "session_id": "7ea81196-3c3e-42a4-8503-b481d90776cf",
-   "tokens": {
-    "done": "1",
-    "lane": "WP11e",
-    "parent": "w1B:p1"
-   },
-   "title": "New Package Brief"
   }
  ],
  "unlinked_agents": [],
@@ -96,27 +74,32 @@
   {
    "workspace_id": "w1E",
    "label": "jevtest",
-   "status": "idle"
+   "status": "done"
+  },
+  {
+   "workspace_id": "w1F",
+   "label": "adeherdr",
+   "status": "working"
   }
  ],
  "git": {
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "2113b6d handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded",
+   "b424478 handoff: WP11g first DONE at 78ab3f7 (pin table v3: posterior-wall pads, J2 inside, J3 break-off, R9/R10 out); second turn running for the Q98 channels; w1/w2 held until then",
+   "06a317d handoff: w4, w5, w9 tabs closed (Rolf: close out agents not running); lane/w4 dbeeafa kept unmerged for r8; fresh herdr snapshot",
    "4f82c6b handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected",
    "a74fbca handoff: r8 seams gain the moved well and tail boss, U2 pitch and U3 swap, the Q98 channel rows",
-   "7dbe1b9 handoff: WP14f first half at 89279c2 (Q89 built, V2_CLOSURE passes, well at u 16.50), w1 WAITING for flat pattern v3; Round 8 note; r8 seam on the tail boss",
-   "bd9d688 handoff: WP12h landed un-routed at c9c750d with every rat named; Q98; WP12i on w2 (board items then WAITING for pin table v3); WP11g addendum for the channels",
-   "27b7991 Round 8: WP12h recorded (63 rats named with geometry) \u2192 Q98 routing channels as packing constraints; WP12i brief",
-   "379e886 handoff: WP13d landed at dbeeafa; round 7 filed in the vault (a3826dd); sheet at version 12"
+   "7dbe1b9 handoff: WP14f first half at 89279c2 (Q89 built, V2_CLOSURE passes, well at u 16.50), w1 WAITING for flat pattern v3; Round 8 note; r8 seam on the tail boss"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "4f82c6b",
-    "subject": "handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected",
+    "head": "2113b6d",
+    "subject": "handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded",
     "dirty": 0
    },
    {
@@ -136,9 +119,9 @@
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w3",
     "branch": "lane/w3",
-    "head": "4f82c6b",
-    "subject": "handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected",
-    "dirty": 8
+    "head": "ab9ce95",
+    "subject": "packing(v3): pin table v3 Q98 keep-outs, H1/H2 1.42 mm gap, well at 16.50",
+    "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w4",
