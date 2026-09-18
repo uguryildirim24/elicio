@@ -1008,7 +1008,12 @@ class CadShellV2BuildTests(unittest.TestCase):
             self.assertIn(name, rows)
             self.assertTrue(rows[name].passed, f"{name}: {rows[name].detail} {rows[name].numbers}")
             self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
-        self.assertTrue(rows["V2_CLOSURE"].passed, rows["V2_CLOSURE"].numbers)
+        # Review r7: the M2.5x4 from the well bottom ends at y 5.55 in the body's own
+        # tail; the lid underside is at LID_Y 8.0, so the screw holds no lid (Q89).
+        self.assertFalse(rows["V2_CLOSURE"].passed, rows["V2_CLOSURE"].numbers)
+        self.assertAlmostEqual(rows["V2_CLOSURE"].numbers["screw_tip_y"], 5.55, places=2)
+        self.assertAlmostEqual(rows["V2_CLOSURE"].numbers["lid_underside_y"], 8.0, places=2)
+        self.assertEqual(rows["V2_CLOSURE"].numbers["lid_engagement"], 0.0)
         self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["hinge_lip_undercut"], 1.0)
         self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["screw_engagement"], 4.0)
         self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["boss_wall"], 1.4)
@@ -1045,7 +1050,12 @@ class CadShellV2BuildTests(unittest.TestCase):
         self.assertEqual(rows["V2_BOSS_sites"].numbers["boss_1_courtyard_hits"], 0.0)
         self.assertEqual(rows["V2_BOSS_sites"].numbers["boss_2_courtyard_hits"], 0.0)
         self.assertTrue(rows["V2_CHARGE_pads"].passed, rows["V2_CHARGE_pads"].numbers)
-        self.assertEqual(rows["V2_CHARGE_pads"].numbers["flush_pads"], 1.0)
+        # Review r7: open Ø5 holes, no printed nylon cap over the pads.
+        self.assertEqual(rows["V2_CHARGE_pads"].numbers["P4_cap"], 0.0)
+        self.assertEqual(rows["V2_CHARGE_pads"].numbers["P5_cap"], 0.0)
+        self.assertEqual(rows["V2_CHARGE_pads"].numbers["P4_hole"], 1.0)
+        self.assertEqual(rows["V2_CHARGE_pads"].numbers["P5_hole"], 1.0)
+        self.assertNotIn("flush_pads", rows["V2_CHARGE_pads"].numbers)
         self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["nylon_between"], 3.0)
         self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P4_u"], 14.70, places=2)
         self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P4_s"], 4.30, places=2)
@@ -1072,6 +1082,8 @@ class CadShellV2BuildTests(unittest.TestCase):
             self.assertAlmostEqual(stand[f"{site}_well_af"], CAD.SHELL_HEX_AF, delta=0.01)
             self.assertLess(stand[f"{site}_well_af"] + CAD.PRINT_TOL, 2.0 * CAD.STANDOFF_AF / math.sqrt(3.0))
             self.assertAlmostEqual(rows["V2_RING_seat"].numbers[f"{site}_seat_d"], CAD.SHELL_RING_SEAT_D, delta=0.01)
+            # Review r7: the dome is the bought titanium head; the print is open at the face.
+            self.assertEqual(rows["V2_RING_seat"].numbers[f"{site}_face_open"], 1.0, site)
         for name in ("CLOSURE_PASSED", "KEEPOUT_SIGNAL_air", "KEEPOUT_REF_air", "CABLE_EXIT_cavity"):
             self.assertFalse(rows[name].passed, name)
             self.assertTrue(rows[name].detail.startswith("NOT_MEASURED"), name)
@@ -1102,10 +1114,12 @@ class CadShellV2BuildTests(unittest.TestCase):
                 done = subprocess.run(
                     cmd + ["--out", str(dest)], capture_output=True, text=True
                 )
-                self.assertEqual(done.returncode, 0, done.stderr + done.stdout)
+                self.assertEqual(
+                    done.returncode, CAD.STAGE_B_NOT_PASSED_EXIT, done.stderr + done.stdout
+                )
                 payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
                 hashes.append(payload["files"])
-                self.assertEqual(payload["stage_b_failing"], [])
+                self.assertEqual(payload["stage_b_failing"], ["V2_CLOSURE"])
                 for part in ("body_full_p15.step", "lid.step", "body_full_p15.stl", "lid.stl"):
                     self.assertEqual(
                         (dest / part).read_bytes(), (CAD.V2_DIR / part).read_bytes(), part
@@ -1137,6 +1151,23 @@ class CadShellV2StampTests(unittest.TestCase):
             "solids commit 0123456789ab dirty  2026-09-18",
         )
         self.assertEqual(render.solids_stamp_commit(payload, CAD.V2_DIR), commit)
+
+    def test_manifest_commit_is_the_last_change_to_the_solids(self) -> None:
+        payload = json.loads((CAD.V2_DIR / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["commit"], CAD.git_commit_solids(ROOT, CAD.V2_DIR))
+
+
+class CadShellV2PackingSourceTests(unittest.TestCase):
+    def test_pinned_packing_matches_this_repo(self) -> None:
+        """Review r7: the shell reads §5d from this repo at a pinned sha, never another worktree."""
+        text, sha, label = CAD._s5c_packing_text()
+        self.assertEqual(label, "docs/fab/packing-v2.md")
+        self.assertEqual(sha, CAD.S5D_PACKING_SHA)
+        live = (ROOT / "docs" / "fab" / "packing-v2.md").read_text(encoding="utf-8")
+        self.assertEqual(CAD._parse_s5d_folded_pads(text), CAD._parse_s5d_folded_pads(live))
+        self.assertEqual(CAD._parse_s5d_shell_extras(text), CAD._parse_s5d_shell_extras(live))
+        payload = json.loads((CAD.V2_DIR / "manifest.json").read_text(encoding="utf-8"))
+        self.assertNotIn(".worktrees", json.dumps(payload))
 
 
 if __name__ == "__main__":
