@@ -182,7 +182,7 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   (expected) `.worktrees/w1/.reports/WP14f-report.md` (expected) →
   `DONE WP14f`; then sheet v13 with the new renders.
 - **w4 → WP13d montage scoring** (`tasks/WP13d-montage-scoring.md`, main
-  `9354834`): LANDED, `DONE WP13d` at `dbeeafa` on `lane/w4` (tree
+  `9354834`): CLOSED 10:50 (Rolf: close out agents not running): tab `w1B:tC` closed, pane `w1B:pC` closed, its GONE received; branch `lane/w4` at `dbeeafa` unmerged, clean, kept for review r8 to merge; if the reviewer hands a conflict back, restart from the start line in `tasks/WP13d-montage-scoring.md` (its Cursor resume id is in the previous `HANDOFF.json`, git `4f82c6b`). LANDED, `DONE WP13d` at `dbeeafa` on `lane/w4` (tree
   clean, report `.worktrees/w4/.reports/WP13d-report.md` present, 251
   tests OK with 28 named CAD skips): one sentence each in
   `docs/fab/receiver-v2.md` and `docs/fab/montage.md` §8 (Q96). w4 idle.
@@ -209,10 +209,13 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   unconnected, `release.py --routed`; or name the pads and stop.
   Report (expected) `.worktrees/w2/.reports/WP12i-report.md` (expected)
   → `DONE WP12i`.
-- **w5** (agy, `lane/w5` at `facb0c1`): idle since WP17c landed; no
-  research package open. **w9** (cursor, `lane/w9` at `facb0c1`): idle
-  since WP15 (round 6); a WP15b sheets refill waits until the pads, the
-  screw and the board settle.
+- **w5** (agy, `lane/w5` at `facb0c1`): CLOSED 10:50 (Rolf: close out
+  agents not running); tab `w1B:tD` closed, pane `w1B:pD` closed, its
+  GONE received; branch merged in r7, worktree kept clean; the next web
+  search starts a fresh agy pane. **w9** (cursor, `lane/w9` at
+  `facb0c1`): CLOSED 10:50 the same way; tab `w1B:tE` closed, pane
+  `w1B:pE` closed, GONE received; a WP15b sheets refill waits until the
+  pads, the screw and the board settle and starts a fresh pane.
 - **rev7** (review r7): closed at 09:00 after `DONE review-r7` at
   `1be01ff`; tab `w1B:tT` closed (its GONE received), the worktree
   removed, branch `review/r7` kept.
@@ -390,18 +393,15 @@ Outside those:
 checkpoint with:  python3 ~/.claude/skills/save-state/state.py snapshot
 Do not hand-edit ids into it. -->
 
-## Herdr (generated 2026-09-18T07:19:18-04:00 by state.py, herdr 0.9.0, session `default`)
-Workspace `w1B` (elicio), 8 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
+## Herdr (generated 2026-09-18T08:18:26-04:00 by state.py, herdr 0.9.0, session `default`)
+Workspace `w1B` (elicio), 5 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
 Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl`.
 
 ### Workers nested under the coordinator
 | name | kind | status | pane | tab (label) | cwd | tokens | last title |
 |---|---|---|---|---|---|---|---|
-| w1 | cursor | working | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP14e | Lane W1 Instructions |
-| w2 | cursor | working | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP12g waiting=pin table v2 | Lane W2 Instructions |
-| w4 | cursor | working | `w1B:pC` | `w1B:tC` (w4) | `/Users/rolfie/projects/elicio/.worktrees/w4` | done=1 lane=WP13c | Lane W4 Instructions |
-| w5 | agy | done | `w1B:pD` | `w1B:tD` (w5) | `/Users/rolfie/projects/elicio/.worktrees/w5` | done=1 lane=WP17c |  |
-| w9 | cursor | done | `w1B:pE` | `w1B:tE` (w9) | `/Users/rolfie/projects/elicio/.worktrees/w9` | done=1 lane=WP15 | Lane W9 Instructions |
+| w1 | cursor | done | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP14f waiting=flat pattern v3 | Lane W1 Instructions |
+| w2 | cursor | done | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP12i waiting=pin table v3 | Lane W2 Instructions |
 | w3 | cursor | working | `w1B:pR` | `w1B:tR` (w3) | `/Users/rolfie/projects/elicio/.worktrees/w3` | done=1 lane=WP11e | New Package Brief |
 
 Start lines as they run now (from `pane process-info`), for restarting a worker that is gone:
@@ -409,41 +409,38 @@ Start lines as they run now (from `pane process-info`), for restarting a worker 
 ```bash
 herdr agent start w1 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume 791832d5-f944-40f4-80ec-82deb5c4efca
 herdr agent start w2 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume 137b6bf4-e654-4a43-bc69-e0421552a50c
-herdr agent start w4 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume 3f977624-113c-48fa-b55e-666aa970b9a3
-herdr agent start w5 --kind agy --pane <new pane> --parent "$HERDR_PANE_ID" -- --conversation 18235bfb-f5b8-4365-9383-d66c69251f4b --dangerously-skip-permissions --add-dir /Users/rolfie/projects/elicio --effort high --model gemini-3.8-flash-high
-herdr agent start w9 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume ea20ccc0-04da-408f-a016-57766846ee99
 herdr agent start w3 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --model cursor-grok-4.6-xhigh --force
 ```
 
-Other workspaces on this server (not yours to touch): `w16` flyonenomics (done), `w1D` ablirated (idle), `w1E` jevtest (idle)
+Other workspaces on this server (not yours to touch): `w16` flyonenomics (done), `w1E` jevtest (idle)
 
 ### Git
 Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behind origin/main).
 
 | worktree | branch | head | dirty files | last commit |
 |---|---|---|---|---|
-| `/Users/rolfie/projects/elicio` | `main` | 9354834 | 0 | Round 8: briefs WP11g (flat pattern v3, pads in the far side wall, J2 inside, J3 break-off, R9/R10 out), WP14f (lid boss and long screw, then wall pads), WP13d (Q96 sentences) |
-| `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | facb0c1 | 0 | Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89–Q97 recorded |
-| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 795d154 | 1 | Merge remote-tracking branch 'origin/main' into lane/w2 |
-| `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | facb0c1 | 0 | Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89–Q97 recorded |
-| `/Users/rolfie/projects/elicio/.worktrees/w4` | `lane/w4` | 9354834 | 0 | Round 8: briefs WP11g (flat pattern v3, pads in the far side wall, J2 inside, J3 break-off, R9/R10 out), WP14f (lid boss and long screw, then wall pads), WP13d (Q96 sentences) |
+| `/Users/rolfie/projects/elicio` | `main` | 4f82c6b | 0 | handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected |
+| `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | 89279c2 | 0 | shell(v2f): stamp the Q89 lid-boss solids on the views |
+| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 03f031c | 0 | board(v3): RSM land, R9/R10 DNP, Q94 stiffeners, Q97 tests; wait for pin table v3 |
+| `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | 4f82c6b | 8 | handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected |
+| `/Users/rolfie/projects/elicio/.worktrees/w4` | `lane/w4` | dbeeafa | 0 | receiver(v2): montage 3.1–3.3 scored by the pipeline, not receive-check (Q96) |
 | `/Users/rolfie/projects/elicio/.worktrees/w5` | `lane/w5` | facb0c1 | 0 | Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89–Q97 recorded |
 | `/Users/rolfie/projects/elicio/.worktrees/w9` | `lane/w9` | facb0c1 | 0 | Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89–Q97 recorded |
 
 Last commits on the integration branch:
 
 ```
-9354834 Round 8: briefs WP11g (flat pattern v3, pads in the far side wall, J2 inside, J3 break-off, R9/R10 out), WP14f (lid boss and long screw, then wall pads), WP13d (Q96 sentences)
-facb0c1 Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89–Q97 recorded
-5cef436 Round 7 verdict: Q89–Q97 recorded with readings (lid boss and longer screw, charging pads off the skin face, J2 inside, break-off J3, flat pattern v3, stiffeners, R9/R10 DNP, montage scoring, contact envelope)
-1be01ff review: code-r7 verdict MERGE-AFTER-DECISION; gates, defects, §7 look, Q88 ruling, decisions 89–97
-3696f5c review(WP11): undo the R24 packing move; the board moves to v2.1 in WP12g (Q87 closed)
-210804d review(WP12): board-v2 §11–§13 describe the Gerber this round carries
+4f82c6b handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected
+a74fbca handoff: r8 seams gain the moved well and tail boss, U2 pitch and U3 swap, the Q98 channel rows
+7dbe1b9 handoff: WP14f first half at 89279c2 (Q89 built, V2_CLOSURE passes, well at u 16.50), w1 WAITING for flat pattern v3; Round 8 note; r8 seam on the tail boss
+bd9d688 handoff: WP12h landed un-routed at c9c750d with every rat named; Q98; WP12i on w2 (board items then WAITING for pin table v3); WP11g addendum for the channels
+27b7991 Round 8: WP12h recorded (63 rats named with geometry) → Q98 routing channels as packing constraints; WP12i brief
+379e886 handoff: WP13d landed at dbeeafa; round 7 filed in the vault (a3826dd); sheet at version 12
 ```
 
 ### Record files (newest first)
 - handoff: `HANDOFF.md`
-- briefs: `tasks/WP13d-montage-scoring.md`, `tasks/WP14f-shell-v2f.md`, `tasks/WP11g-flat-pattern-v3.md`, `tasks/WP12h-route-by-hand.md`, `tasks/review-r7.md`, `tasks/WP12g-route-v2-q88.md`, `tasks/WP11f-j4-holes.md`, `tasks/WP12f-route-v2.md`, `tasks/WP14e-shell-v2e.md`, `tasks/WP12e-route-v2.md`, `tasks/WP11e-flat-pattern.md`, `tasks/WP12d-board-v2d.md`
+- briefs: `tasks/WP12i-board-v3.md`, `tasks/WP13d-montage-scoring.md`, `tasks/WP14f-shell-v2f.md`, `tasks/WP11g-flat-pattern-v3.md`, `tasks/WP12h-route-by-hand.md`, `tasks/review-r7.md`, `tasks/WP12g-route-v2-q88.md`, `tasks/WP11f-j4-holes.md`, `tasks/WP12f-route-v2.md`, `tasks/WP14e-shell-v2e.md`, `tasks/WP12e-route-v2.md`, `tasks/WP11e-flat-pattern.md`
 - verdicts: `tasks/reviews/code-r7.md`, `tasks/reviews/code-r6.md`, `tasks/reviews/code-r5.md`, `tasks/reviews/code-r4.md`, `tasks/reviews/code-r3.md`, `tasks/reviews/code-r2.md`, `tasks/reviews/code-r1.md`
 
 ### Restore
