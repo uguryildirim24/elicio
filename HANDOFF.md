@@ -99,16 +99,17 @@ on a removed key.
   expected); `pro-mcp start --name pro` reopens the remembered chat when
   the next spec dialogue needs it.
 - **w1** (cursor `cursor-grok-4.6-xhigh`, `lane/w1`): WP11 packing v2
-  (`tasks/WP11-packing-v2.md`). First `DONE WP11` at `43a982a` (~20:08)
-  covered the brief and coordinator notes 1 to 3 in one turn: 432 runs,
-  `docs/fab/packing-v2.md` on `lane/w1` (absent on main); interface I
-  closes 0/288, interface II closes in four layouts (Raytac, 501015,
-  series, width 20, standoff 3.0, LID_Y 7.0–9.0; Stage B winner
-  `A_501015_series_w20_y8_iII_s3`); USB on the hook-end end face; 144
-  tests OK; order 1 byte-identical. Note 4 (~19:56: standoffs 3.0/3.5/4.0,
-  cell clearance, 0.5 floor recess) is still queued and runs as a second
-  turn: expect ONE more `DONE WP11`. Recorded as Q50 and Q51; the build
-  switched to interface II (w2 told at ~20:45).
+  landed, final `DONE WP11` at `7df78b5` (~20:50; the first at `43a982a`
+  covered the brief and notes 1 to 3, the second note 4): 864 runs in
+  `docs/fab/packing-v2.md` on `lane/w1` (absent on main). Interface I
+  closes 0/720 even with a 4.0 standoff and a 0.5 floor recess (the only
+  positive deformed clearance still hits SIG1 with the 22 mm cell);
+  interface II closes in four layouts (Raytac, 501015, series, width 20,
+  standoff 3.0, LID_Y 7.0–9.0; Stage B winner
+  `A_501015_series_w20_y8_iII_s3`, outer 9.0); USB on the hook-end end
+  face; full suite OK; order 1 byte-identical. Tree clean. Waits for the
+  round 5 reviewer. Q50 and Q51 hold the reading. Report
+  `.reports/WP11-report.md` (absent on main, untracked in `.worktrees/w1`).
 - **w2** (cursor, `lane/w2`, fast-forwarded to `401f92d`): WP12 board v2
   (`tasks/WP12-board.md`), prompted ~20:20: installs KiCad 10.0.6 by
   brew cask (Q46), builds the KiCad project, `scripts/board/release.py` (expected),
@@ -136,8 +137,7 @@ on a removed key.
   in `docs/fab/L5-research-v2.md` (absent on main). agy status is unreliable; its DONE push
   is the only signal. Report `.reports/WP17-report.md` (expected).
 
-Round 5 review: when WP11's second DONE and WP12, WP13, WP16 and WP17 have
-all landed (a lane that pushes WAITING is recorded and the review opens
+Round 5 review: when WP12, WP13 and WP17 have also landed (WP11 and WP16 have) (a lane that pushes WAITING is recorded and the review opens
 without it), create the round 5 review branch (expected, not created yet) from `main`,
 a fresh Opus 5 high reviewer from `tasks/review-code-template.md` as
 `tasks/review-r5.md` (expected), merging `lane/w1`, `lane/w5`, `lane/w2`, `lane/w4`,
@@ -178,9 +178,8 @@ and gates G1–G8 for the build. Outside those:
 ## Next
 
 - Idle until a DONE lands (check report file and clean tree, read the
-  report); when the second `DONE WP11` and WP12, WP13, WP16, WP17 have all
-  landed or pushed WAITING, open the round 5 review as described under In
-  flight.
+  report); WP11 and WP16 have landed; when WP12, WP13 and WP17 have landed
+  or pushed WAITING, open the round 5 review as described under In flight.
 
 ## Traps
 

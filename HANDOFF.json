@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T20:14:15-04:00",
+ "generated": "2026-09-17T20:23:22-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -26,7 +26,7 @@
    ],
    "name": "w1",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pA",
    "tab_id": "w1B:tA",
    "tab_label": "w1",
@@ -129,49 +129,49 @@
   {
    "workspace_id": "w1D",
    "label": "ablirated",
-   "status": "working"
+   "status": "done"
   }
  ],
  "git": {
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "c1df29b HANDOFF: WP16 landed on lane/w9",
    "ac35231 Q50, Q51: interface I closes nowhere, the build switches to interface II; HANDOFF after WP11's first DONE",
    "a3b5428 HANDOFF: mark expected files and the review branch so the checker passes",
    "c057aba HANDOFF: plan v2 signed off; round 5 lanes WP11, WP12, WP13, WP16, WP17 in flight; pro closed",
    "401f92d Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
-   "ef369bd plan-v2 SIGNED OFF (turn 10, Pro) with entry 28's sixteen edits applied (turn 11)",
-   "fd0712e plan-v2 turn 10 (pro)"
+   "ef369bd plan-v2 SIGNED OFF (turn 10, Pro) with entry 28's sixteen edits applied (turn 11)"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "ac35231",
-    "subject": "Q50, Q51: interface I closes nowhere, the build switches to interface II; HANDOFF after WP11's first DONE",
+    "head": "c1df29b",
+    "subject": "HANDOFF: WP16 landed on lane/w9",
     "dirty": 1
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
     "branch": "lane/w1",
-    "head": "43a982a",
+    "head": "7df78b5",
     "subject": "packing(v2): which architectures close",
-    "dirty": 3
+    "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
     "head": "401f92d",
     "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
-    "dirty": 0
+    "dirty": 1
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
     "head": "401f92d",
     "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
-    "dirty": 2
+    "dirty": 6
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w5",
@@ -189,9 +189,9 @@
    }
   ],
   "branches": [
-   "lane/w9",
-   "main",
    "lane/w1",
+   "main",
+   "lane/w9",
    "lane/w5",
    "lane/w2",
    "lane/w4",
