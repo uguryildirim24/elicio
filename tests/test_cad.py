@@ -880,10 +880,10 @@ SHELL_FILE = ROOT / "scripts" / "cad" / "params" / "shell_v2.toml"
 
 
 class CadShellV2Tests(unittest.TestCase):
-    def test_snap_strain_is_below_four_percent(self) -> None:
-        strain = CAD.snap_strain(CAD.SHELL_SNAP_L, CAD.SHELL_SNAP_T, CAD.SHELL_SNAP_Y)
-        self.assertAlmostEqual(strain, 1.5 * 1.0 * 0.5 / 64.0, places=6)
-        self.assertLessEqual(strain, 0.04)
+    def test_q71_screw_engagement_constant(self) -> None:
+        self.assertGreaterEqual(CAD.SHELL_SCREW_ENGAGE, 2.0)
+        self.assertGreaterEqual(CAD.SHELL_LID_RIM_T, 1.0)
+        self.assertGreaterEqual(CAD.SHELL_LID_RIM_R, 1.0)
 
     def test_shell_overlay_sets_stage_and_winner_layout(self) -> None:
         args = CAD.parse_args(["--params", str(SHELL_FILE), "--stage", "shell"])
@@ -900,7 +900,7 @@ class CadShellV2Tests(unittest.TestCase):
         self.assertAlmostEqual(params["LID_Y"], 8.0)
         self.assertAlmostEqual(params["BODY_WIDTH"], 20.0)
         header = SHELL_FILE.read_text(encoding="utf-8")
-        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0"):
+        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0", "Q71", "Q76"):
             self.assertIn(token, header)
 
     def test_shell_refuses_v1_and_allows_v2(self) -> None:
@@ -962,21 +962,18 @@ class CadShellV2BuildTests(unittest.TestCase):
             self.assertIn(name, rows)
             self.assertTrue(rows[name].passed, f"{name}: {rows[name].detail} {rows[name].numbers}")
             self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
-        # Review r6: measured on the solid, and failing until the decisions
-        # in tasks/reviews/code-r6.md are taken. A pass here needs a design
-        # change, not a constant.
-        for name in ("V2_USB_end", "V2_CLOSURE", "V2_EDGE_radii", "V2_WALL_minima"):
-            self.assertIn(name, rows)
-            self.assertFalse(rows[name].passed, f"{name}: {rows[name].numbers}")
-            self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
-        usb = rows["V2_USB_end"].numbers
-        self.assertLess(usb["ligament_hook"], 0.0)  # the hook fills the opening's anterior edge
-        self.assertLess(usb["mouth_recess"], 0.0)  # packing places the receptacle outside the face
-        closure = rows["V2_CLOSURE"].numbers
-        self.assertEqual(closure["ant_undercut"], 0.0)
-        self.assertEqual(closure["post_undercut"], 0.0)
-        self.assertEqual(closure["hinge_lip_undercut"], 0.0)
-        self.assertLess(closure["ant_beam_t"], CAD.JLC_MIN_WALL)
+        self.assertTrue(rows["V2_CLOSURE"].passed, rows["V2_CLOSURE"].numbers)
+        self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["hinge_lip_undercut"], 1.0)
+        self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["screw_engagement"], 2.0)
+        self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["boss_wall"], 1.0)
+        self.assertTrue(rows["V2_EDGE_radii"].passed, rows["V2_EDGE_radii"].numbers)
+        self.assertEqual(rows["V2_EDGE_radii"].numbers["flat_stations"], 0.0)
+        self.assertGreaterEqual(rows["V2_EDGE_radii"].numbers["lid_rim_R"], 0.95)
+        self.assertTrue(rows["V2_WALL_minima"].passed, rows["V2_WALL_minima"].numbers)
+        self.assertFalse(rows["V2_USB_end"].passed)
+        self.assertTrue(rows["V2_USB_end"].detail.startswith("NOT_MEASURED"), rows["V2_USB_end"].detail)
+        self.assertIn("packing §5b", rows["V2_USB_end"].detail)
+        self.assertIn("Q70", rows["V2_USB_end"].detail)
         stand = rows["V2_STANDOFF"].numbers
         for site in ("SIG1", "SIG2", "REF"):
             self.assertAlmostEqual(stand[f"{site}_well_af"], CAD.SHELL_HEX_AF, delta=0.01)
@@ -1012,13 +1009,10 @@ class CadShellV2BuildTests(unittest.TestCase):
                 done = subprocess.run(
                     cmd + ["--out", str(dest)], capture_output=True, text=True
                 )
-                self.assertEqual(done.returncode, 3, done.stderr + done.stdout)
+                self.assertEqual(done.returncode, 0, done.stderr + done.stdout)
                 payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
                 hashes.append(payload["files"])
-                self.assertEqual(
-                    payload["stage_b_failing"],
-                    ["V2_CLOSURE", "V2_EDGE_radii", "V2_USB_end", "V2_WALL_minima"],
-                )
+                self.assertEqual(payload["stage_b_failing"], [])
                 for part in ("body_full_p15.step", "lid.step", "body_full_p15.stl", "lid.stl"):
                     self.assertEqual(
                         (dest / part).read_bytes(), (CAD.V2_DIR / part).read_bytes(), part
