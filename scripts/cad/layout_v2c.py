@@ -220,34 +220,6 @@ def _copper_outline_for(
     return None
 
 
-def _outline_with_j3_hang(
-    v2: Any,
-    u: float, s: float, pad_w: float, pad_h: float, rot: float,
-    outline: tuple[float, float, float, float],
-    island: tuple[float, float, float, float] | None,
-    parts: list[Any],
-) -> tuple[float, float, float, float]:
-    """Review r7 (Q87): J3's hang continues the board outline past the island's
-    +u edge (board Edge.Cuts). A pad beside it is not 0.30 from an edge there."""
-    if island is None or outline != island:
-        return outline
-    j3 = next((p for p in parts if p.ref == "J3"), None)
-    if j3 is None:
-        return outline
-    _pw, ph = v2._rot_size(pad_w, pad_h, rot)
-    u0, u1, s0, s1 = outline
-    j3_u0, j3_u1 = j3.u - j3.wu / 2.0, j3.u + j3.wu / 2.0
-    j3_s0, j3_s1 = j3.s - j3.ws / 2.0, j3.s + j3.ws / 2.0
-    if (
-        j3_u0 <= u1 + 0.2 + 1e-9
-        and j3_u1 > u1
-        and j3_s0 <= s - ph / 2.0 - v2.COPPER_TO_EDGE + 1e-9
-        and j3_s1 >= s + ph / 2.0 + v2.COPPER_TO_EDGE - 1e-9
-    ):
-        return (u0, j3_u1, s0, s1)
-    return outline
-
-
 def _v2c_find(
     v2: Any,
     name: str,
@@ -520,12 +492,6 @@ PIN_TABLE_V2_J4_CLUSTER = {
     "R29": (18.62, 29.23, 90.0),
     "R30": (18.62, 31.23, 90.0),
 }
-# Review r7 (Q87): the board's copper is the truth. WP12e moved R24 +0.47 u at
-# rot 0 (hardware/board/elicio-v2.kicad_pcb, zero-track DRC pad vs hole); the
-# nearest-site fold alone prefers (18.49, 22.57) rot 90. The board site is used
-# when it clears the J4 holes and every courtyard, and J3's hang continues the
-# outline past the island's +u edge at the pad's s (so 0.30 to the edge holds).
-Q87_BOARD_SITES = {"R24": (18.75, 22.37, 0.0)}
 _J4_PCB_CACHE: str | None = None
 
 
@@ -972,37 +938,6 @@ def _min_site_off_j4_npth(
     return None
 
 
-def _q87_board_site(
-    v2: Any,
-    part: Any,
-    parts: list[Any],
-    occupied: list[Any],
-    island: tuple[float, float, float, float],
-    holes: tuple[tuple[float, float], ...],
-    keep_r: float,
-) -> tuple[float, float, float, float, float] | None:
-    """The board's site for ``part`` when it is valid in this layout (Q87)."""
-    site = Q87_BOARD_SITES.get(part.ref)
-    if site is None:
-        return None
-    uu, ss, rot = site
-    wu, ws = (part.wu, part.ws) if abs(rot - part.rot) < 1e-9 else (part.ws, part.wu)
-    if _pad_hits_j4_npth(v2, uu, ss, part.pad_w, part.pad_h, rot, holes, keep_r):
-        return None
-    old = next((b for b in occupied if b.name == part.ref), None)
-    y0, y1 = (old.y0, old.y1) if old is not None else (0.0, 1.0)
-    cand = v2.Box(part.ref, uu, ss, wu, ws, y0, y1, part.face)
-    for other in occupied:
-        if other.name == part.ref or str(other.name).startswith("J4_NPTH"):
-            continue
-        if v2._overlap(cand, other, 0.0):
-            return None
-    outline = _outline_with_j3_hang(v2, uu, ss, part.pad_w, part.pad_h, rot, island, island, parts)
-    if _pad_edge(v2, uu, ss, part.pad_w, part.pad_h, rot, outline) < v2.COPPER_TO_EDGE - 1e-9:
-        return None
-    return uu, ss, rot, wu, ws
-
-
 def _restore_pin_table_v2_j4_cluster(
     v2: Any,
     parts: list[Any],
@@ -1052,9 +987,6 @@ def _nudge_off_j4_npth(
         if site is None:
             continue
         nu, ns, rot, wu, ws = site
-        board = _q87_board_site(v2, part, parts, occupied, island, holes, keep_r)
-        if board is not None:
-            nu, ns, rot, wu, ws = board
         if abs(nu - part.u) < 1e-9 and abs(ns - part.s) < 1e-9 and abs(rot - part.rot) < 1e-9:
             continue
         old = next((b for b in occupied if b.name == ref), None)
@@ -1424,7 +1356,6 @@ def search_layout_v2c(
         outline = _copper_outline_for(p.u, p.s, p.wu, p.ws, island, pocket)
         if outline is None:
             continue
-        outline = _outline_with_j3_hang(v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, outline, island, parts)
         edge_mm = _pad_edge(v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, outline)
         if edge_mm < v2.COPPER_TO_EDGE - 1e-9:
             copper_fail.append(f"{p.ref} {edge_mm:.3f}")
@@ -2244,12 +2175,9 @@ def section_5d(v2: Any, rows: list[LayoutV2c]) -> list[str]:
     if moved:
         lines.append(
             "Q87 fold from pin table v2: " + "; ".join(moved) + ". "
-            "WP12e zero-track DRC (route.md §9) asked R24 +0.46 u (pad vs hole). "
-            "Packing keep is pad vs the Ø1.39 circle. Review r7 reconciled R24 to the "
-            "board's copper (Q87: the board is the truth): the board site (18.75, 22.37) "
-            "rot 0 clears the J4 holes and every courtyard, and J3's hang continues the "
-            "outline past u 19.75 at that s. The nearest-site fold alone gives "
-            "(18.49, 22.57) rot 90; the packing row moved, not the board."
+            "WP12e zero-track DRC (route.md §9) asked R24 +0.46 u (pad vs hole); "
+            "route.md §10 was not on lane/w2 at this pass. Packing keep is pad vs "
+            "the Ø1.39 circle. The reviewer reconciles within 0.1 mm; the board is copper truth."
         )
         lines.append("")
     lines.append("")
