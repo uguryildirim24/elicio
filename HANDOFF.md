@@ -176,10 +176,10 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   (expected) `.worktrees/w1/.reports/WP14f-report.md` (expected) →
   `DONE WP14f`.
 - **w4 → WP13d montage scoring** (`tasks/WP13d-montage-scoring.md`, main
-  `9354834`): RUNNING since 09:05 on `lane/w4` at `facb0c1`: one
-  sentence each in `docs/fab/receiver-v2.md` and montage §8 (Q96), tests
-  green. Report (expected) `.worktrees/w4/.reports/WP13d-report.md`
-  (expected) → `DONE WP13d`.
+  `9354834`): LANDED, `DONE WP13d` at `dbeeafa` on `lane/w4` (tree
+  clean, report `.worktrees/w4/.reports/WP13d-report.md` present, 251
+  tests OK with 28 named CAD skips): one sentence each in
+  `docs/fab/receiver-v2.md` and `docs/fab/montage.md` §8 (Q96). w4 idle.
 - **w2 → WP12h hand-route** (`tasks/WP12h-route-by-hand.md`, main
   `fea34f8`): RUNNING since 08:10 on `lane/w2` on top of `8348e62`
   (WP12g: 421 tracks, 33 vias, DRC 0 errors, 0 shorts, 63 unconnected,
@@ -209,9 +209,10 @@ Outside those:
 1. `lane/w1` diverged from `main` at `7df78b5` with 864 SVGs (109 MB,
    pushed). Q56: nobody deletes it but Rolf; round 6 work is on `lane/w1-r6`.
 2. The answer sheet (artifact `https://claude.ai/artifact/5e9H1dC5CFHggtiaYtDDeA`)
-   is at version 11 (07:00: the WP14e renders and question 6c on the
-   hook-end pads, now superseded by Q90; version 12 rewrites 6c for the
-   back-edge pads and adds the Q89 screw line); version 10 said the body
+   is at version 12 (09:30: question 6c rewritten for the back-edge
+   pads with the cover-plus-switch and small-tail alternatives, the Q89
+   screw-length note; the renders are still WP14e's and say so);
+   version 11 (07:00) the WP14e renders; version 10 said the body
    is 22 wide; version 8 added question 6b the charging port; version 6
    (00:45) the reviewed renders; version 5 (00:05) question 2b the
    battery route;
@@ -220,11 +221,9 @@ Outside those:
    probes owned, tools on the Mac, anything else. Answers land in db doc
    `answers/rolf` (ArtifactData `get`), merged with his earlier fields;
    `sheet: 3` marks a v3 save.
-3. The vault holds rounds 1 to 6 (page `Wiki/projects/Elicio.md`, stub
-   `raw/research/2026-09-18-elicio-round-6-shell-cell-review.md`, vault
-   main `8e44c7b`); round 7 is being filed now (a `vault run start edit
-   --by claude` run; if it is still open at resume, finish or abort it
-   before anything else in the vault).
+3. The vault holds rounds 1 to 7 (page `Wiki/projects/Elicio.md`, stub
+   `raw/research/2026-09-18-elicio-round-7-flat-pattern-review.md`, vault
+   main `a3826dd`, filed 09:35; no run is open).
 4. The HANDOFF checker treats any backticked path as a claim; nonexistent
    ones need "(expected)" or "(absent on main)" on the same line.
 5. Order 1 (the fit gauge) is not ordered and will not be: plan v2 is one
@@ -246,11 +245,11 @@ Outside those:
 ## Next
 
 - Idle until `DONE WP11g` (w3), `DONE WP14f` or `WAITING WP14f flat
-  pattern v3` (w1), `DONE WP13d` (w4), `DONE WP12h` (w2), or
+  pattern v3` (w1), `DONE WP12h` (w2), or
   BLOCKED/GONE for any (a DONE is checked: report present, tree clean;
   then read); on `DONE WP11g` send w1 the line "flat pattern v3" plus
-  the sha and brief w2's WP12i when WP12h has landed; when WP11g, WP14f,
-  WP13d and WP12i have landed, open review r8 the way r7 was opened
+  the sha and brief w2's WP12i when WP12h has landed; when WP11g, WP14f
+  and WP12i have landed (WP13d already has), open review r8 the way r7 was opened
   (merge order w3, w1-r6, w4, w2; w5 and w9 only if they ran).
 
 ## Traps
