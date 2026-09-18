@@ -109,9 +109,13 @@ brief in full and do it", nothing owed from me until their pushes.
   `packing-v2.md` §5 on `lane/w3` with 0.20 mm flex clearance;
   `V2_TAB_envelope` and `REF_WIRE_envelope` pass on the shell solid (0.0
   mm³), walls beside the slot 1.83 and 1.88, floor under it 1.50; Stage B
-  v2 stays unslotted and exit 3 by design. w1 idles; nothing queued. The
-  renders are the pictures Rolf approves (answer sheet Q2, version 4
-  carries the first-turn renders; the slot is inside and invisible).
+  v2 stays unslotted and exit 3 by design. w1 idles. The reviewer measured the shell and four checks fail
+  (closure, USB end, edge radii, wall minima; see Reviewer r6). WP14b
+  brief `tasks/WP14b-shell-v2b.md` (main, `58ae5b8`): concealed tail
+  screw plus hinge lip (Q71), lofted lid lapping the wall tops, hook root
+  blend (Q76), USB row NOT_MEASURED until packing §5b. Prompt it AFTER
+  the r6 merge, once `lane/w1-r6` is fast-forwarded to main. The answer
+  sheet's Q2 renders (version 4) are pre-review and will be replaced.
 - **w3 → WP11b packing follow-ups**: LANDED, `DONE WP11b` at `284ec05`
   on `lane/w3` (two commits, tree clean, report
   `.worktrees/w3/.reports/WP11b-report.md` present, 177 tests OK, doc
@@ -131,9 +135,19 @@ brief in full and do it", nothing owed from me until their pushes.
   the real 17.0 mm 501015 pack (`BQ25100 overlaps header`; at +1.5 arc
   only the M1 gate fails, 49.42 > 49.00 at M1 52); the marketplace 501012
   pack closes on 8 bodies, smallest w19 × y8, outer 9.0, chord 47.90.
-  w3 idles; nothing queued. Reading in the r6 brief: shell and board stay
-  on w20 × y8, the carried cell becomes the 501012 pack, the purchase
-  route is Rolf's (decision 69).
+  Reading (Q69): shell and board stay on w20 × y8, the carried cell is
+  the 501012 pack, the purchase route is Rolf's.
+- **w3 → WP11c courtyards** (`tasks/WP11c-courtyards.md`, main
+  `e2c7f09`): RUNNING on `lane/w3` on top of `bcecc83`, prompted after
+  the verdict with the decisions 70–74 amendment: re-pack with the real
+  KiCad courtyards, the JLC assembly edge and copper-to-edge 0.30, the
+  USB receptacle body and hook root as occupants (Q70), three FR4 ring
+  pieces (Q72), two Ø2.7 island holes at the boss sites (Q73), the tab
+  fold at R 1.5 with both variants (Q74), Contact rule per the verdict's
+  "To WP12c" note; publishes `docs/fab/packing-v2.md` §5b. Waits for
+  nothing from me. Report (expected) `.worktrees/w3/.reports/WP11c-report.md`
+  → `DONE WP11c`; checked and recorded, merges in round 7;
+  then WP12d (w2) and WP14b's second turn (w1) run on §5b.
 - **w2 → WP12b board route**: LANDED, `DONE WP12b` at `480e355` on
   `lane/w2` (three commits, tree clean, report
   `.worktrees/w2/.reports/WP12b-report.md` present). Placement from
@@ -148,13 +162,22 @@ brief in full and do it", nothing owed from me until their pushes.
   a page re-check; board-v2.md, schematic, patch script, no copper). The
   reviewer was told at 00:32 to merge `lane/w2` at `e3e085b`, not
   `480e355`; the brief file carries the amendment.
-- **w2 → WP12c route** (`tasks/WP12c-route.md`), prompted 00:20 on
-  `lane/w2` continuing from `480e355`, in parallel with the reviewer:
-  drop the shorting copper first, diagnose the Freerouting hang, route to
-  DRC 0 or stop un-shorted with `routed: false`; owns only the PCB
-  copper, the two routing scripts, `hardware/board/route.md` (expected)
-  and board-v2 §15. Report `.reports/WP12c-report.md` (expected) →
-  `DONE WP12c`; lands in round 7.
+- **w2 → WP12c route** (`tasks/WP12c-route.md`): LANDED, `DONE WP12c`
+  at `845bac7`, then `f4376ca` on `lane/w2` (tree clean, report
+  `.worktrees/w2/.reports/WP12c-report.md` present). Result: the
+  shorting bus is dropped (0 tracks, `routed: false`); Freerouting 2.1.0
+  headless never writes a SES on Java 21 on this Mac; the lane's own A*
+  trial (770 DRC errors) was discarded; with ZERO tracks the board has
+  128 DRC errors and 132 unconnected because the packing table's part
+  envelopes are smaller than the real courtyards (J3 vs SW1, J2 vs J4,
+  U5 vs J4, U3 in U1's courtyard, U2 at the edge, R25/C10 in the RF
+  notch, Contact 1.0 mm vs 0402 gaps and J3's pitch), recorded as Q77
+  and handed to WP11c. `hardware/board/route.md` (absent on main) holds
+  the diagnosis. The lane read "continuing from 480e355" literally and
+  reset its branch, dropping `e3e085b`; on my note it merged
+  `origin/lane/w2` back (`f4376ca`), so `e3e085b` is an ancestor again.
+  NOT merged (round 7). w2 idles until WP12d (place and route on §5b),
+  after `DONE WP11c`.
 - **w4 → WP13b receiver**: LANDED, `DONE WP13b` at `e7c366a` on
   `lane/w4` (five commits, tree clean, report
   `.worktrees/w4/.reports/WP13b-report.md` present, 179 tests OK with 21
@@ -201,20 +224,34 @@ brief in full and do it", nothing owed from me until their pushes.
   sheets, so the plan's 15.6 envelope is a bare cell; only marketplace
   501012 packs (13.0 × 10.1 × 5.1 with PCM, 40 mAh, eBay/AliExpress) fit.
   w5 idles; nothing queued.
-- **Reviewer r6**: RUNNING since 00:20, agent `rev6` (Claude Opus 5
-  high, skip-permissions) in worktree `.worktrees/review` on `review/r6`
-  from `main` at `b710ed1`, brief `tasks/review-r6.md` (all six reports
-  pasted; merge order w3, w1-r6, w5, w4, w9, then `lane/w2` at `e3e085b`
-  exactly (amended from `480e355` at 00:32); routing is not the reviewer's; decisions from 69, the first
-  being the cell). Waits for nothing from me. Report
-  `.reports/review-r6-report.md` (expected in that worktree) →
-  `DONE review-r6`. Then: read `tasks/reviews/code-r6.md` (expected),
-  record decisions as Q69 onward, `git merge --no-ff review/r6` from the
-  clean root checkout (main will have moved), fast-forward the idle lanes
-  whose branches were merged, close the review tab and remove the
-  worktree, checkpoint, file round 6 into the vault, refresh the answer
-  sheet with the reviewed renders.
-- No lane is WAITING or BLOCKED as of writing (00:25). `rev5` pushed `GONE` after
+- **Reviewer r6**: VERDICT IN, `DONE review-r6` at `c7c4e5a` (00:25) on
+  `review/r6` (agent `rev6`, Claude Opus 5 high, skip-permissions,
+  worktree `.worktrees/review`, brief `tasks/review-r6.md`). Merged all
+  six lanes (`lane/w2` at `e3e085b`), fixed 16 defects in per-package review
+  commits, verdict MERGE-AFTER-DECISION in
+  `.worktrees/review/tasks/reviews/code-r6.md` (absent on main until the
+  merge): 206 tests OK on `.[cad]`+`.[ble]`, order 1 identical, Stage B
+  v2 exit 3 on Q59 only, the shell's checks were constants and measured
+  four fail (V2_CLOSURE no undercut, V2_USB_end ligament −0.89 and the
+  receptacle 4.8 outside the face, V2_EDGE_radii R 0.8, V2_WALL_minima),
+  captive hex wells fixed, `routed` false, CPL = BOM, §7 look "a printed
+  block with a hook". Decisions 69–76 plus my Q77 recorded with readings
+  on main at `58ae5b8`. SECOND TURN RUNNING: my footprint-collision note
+  reached it after the verdict and it is editing (worktree dirty at
+  00:32: assemble, board-v2, shell-v2, receiver-v2, order-board,
+  order-shell, cad/v2 drawing, manifest and lateral render,
+  `scripts/cad/render.py`). Waits for nothing from me; expect a second
+  `DONE review-r6` with a new sha, or `GONE rev6` if it exits. Then: read
+  its second report, `git merge --no-ff review/r6` from the clean root
+  checkout on main (main moved to `58ae5b8`, so no fast-forward), verify
+  order 1 and the tests once on main, fast-forward `lane/w1-r6`,
+  `lane/w4`, `lane/w5`, `lane/w9` (ancestors; not `lane/w2`, not
+  `lane/w3`), close the review tab (pane `w1B:pS`; `GONE rev6` is then
+  expected) and `git worktree remove .worktrees/review`, prompt w1 with
+  WP14b, checkpoint, file round 6 into the vault, refresh the answer
+  sheet (version 6: the reviewed renders and the note that the drawn
+  closure and port fail as drawn).
+- No lane is WAITING or BLOCKED as of writing (00:35). `rev5` pushed `GONE` after
   I closed its tab (expected). The `pro` tab is closed; `pro-mcp start
   --name pro` reopens it if another spec dialogue is needed.
 
@@ -245,10 +282,11 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE review-r6` (or WAITING/BLOCKED/GONE for rev6, or
-  `DONE WP12c` from w2, which is checked and recorded but merges in round
-  7); then do the post-review steps listed under Reviewer r6 and
-  checkpoint.
+- Idle until the second `DONE review-r6` from rev6 (or BLOCKED/GONE for
+  it, or `DONE WP11c` from w3, which is checked and recorded but merges
+  in round 7); then do the post-verdict steps listed under Reviewer r6
+  (merge `review/r6` with `--no-ff`, fast-forward the idle lanes, close
+  the review tab, prompt w1 with WP14b, checkpoint, vault, sheet).
 
 ## Traps
 
