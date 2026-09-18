@@ -114,6 +114,7 @@ try:
         Sphere,
         Text,
         Vector,
+        Wire,
         export_step,
         export_stl,
         extrude,
@@ -363,18 +364,30 @@ SHELL_RING_SEAT_D = 6.0 + 0.10 + PRINT_TOL
 SHELL_SCREW_HOLE = 2.7  # brief; Stage B already opens CONTACT_HOLE 2.9
 JLC_MIN_WALL = 1.0  # JLC PA12-HP "Wall thickness: 1mm" (plan v2 §12)
 SHELL_PILOT = 2.0  # M2.5 self-tap in PA12 (~80 % of 2.5)
-# Cantilever snap (PA12). Strain ε ≈ 1.5 t y / L².
-SHELL_SNAP_L = 8.0
-SHELL_SNAP_T = 1.0
-SHELL_SNAP_W = 4.0
-SHELL_SNAP_Y = 0.5  # deflection / catch
-SHELL_SNAP_CATCH = 0.4  # into the 1.5 side wall; residual 1.1
-SHELL_SNAP_S0 = 28.0
-# Elliptical hook half-axes (root then tip), millimetres.
+# Q71: no snaps. Hinge lip at the hook-end wall plus one concealed
+# ISO 7380 M2.5×4 at the tail. S4 pull and drop stay qualitative.
+SHELL_HINGE_U = (6.5, 13.5)
+SHELL_HINGE_S = (1.00, 1.48)  # remaining outer wall 1.00 of the 1.5 end wall
+SHELL_HINGE_Y0 = 7.25
+SHELL_HINGE_Y1 = 7.70  # 0.30 shelf of body over the lip
+SHELL_SCREW_U = 14.50
+SHELL_SCREW_S = 41.00
+SHELL_SCREW_PILOT = 2.0
+SHELL_SCREW_HOLE_LID = 2.7
+SHELL_SCREW_WELL_D = 5.0  # Ø4.6 head plus print clearance
+SHELL_SCREW_WELL_H = 1.55
+SHELL_SCREW_ENGAGE = 4.0  # thread under the head, into the tail bulk
+SHELL_SCREW_BOSS_WALL = 1.0
+# Elliptical hook half-axes (root then tip), millimetres. Root station is
+# circular (Q76) with radius HOOK_DIA/2, then the loft becomes the ellipse.
 SHELL_HOOK_ROOT = (2.20, 1.50)  # 4.4 × 3.0
 SHELL_HOOK_TIP = (1.50, 1.10)  # 3.0 × 2.2
+SHELL_HOOK_ROOT_R = 1.75  # circular; default HOOK_DIA 3.5
 SHELL_HOOK_BLEND = 1.5
-SHELL_LID_CROWN = 0.5
+SHELL_LID_CROWN = 0.90  # fades to 0 at the rim in u and at the s ends
+SHELL_LID_RIM_T = 1.25  # rim thickness so R 1.0 is not at the 1.0-plate limit
+SHELL_LID_INSET = 0.15  # laps the 1.5 wall tops (plan v2 §7)
+SHELL_LID_RIM_R = 1.0
 SHELL_SWITCH_RECESS = 0.5
 SHELL_USB_CORNER_R = 0.6
 # packing-v2.md §5 on lane/w3 at 284ec05, table REF_end_wall_slot.
@@ -2778,7 +2791,6 @@ def _record_shell_checks(
     v2: Any,
 ) -> None:
     """Measured shell-v2 rows. Overwrite the Stage B NOT_MEASURED placeholders."""
-    maker = path_solid_for(path, params)
     wall = float(params["WALL_MEDIAL"])
 
     boss_hits: dict[str, float] = {}
@@ -2881,85 +2893,16 @@ def _record_shell_checks(
         **stand_nums,
     )
 
-    usb_u = 10.0
-    opening_air = not _inside_uys(
-        body, path, usb_u, wall / 2.0, 1.00 + v2.USB_OPENING[1] / 2.0
-    )
-    plug = maker(
-        usb_u - v2.PLUG_VOLUME[0] / 2.0,
-        usb_u + v2.PLUG_VOLUME[0] / 2.0,
-        -v2.PLUG_VOLUME[2],
-        0.0,
-        1.00 + v2.USB_OPENING[1] / 2.0 - v2.PLUG_VOLUME[1] / 2.0,
-        1.00 + v2.USB_OPENING[1] / 2.0 + v2.PLUG_VOLUME[1] / 2.0,
-    )
-    plug_cell = 0.0
-    if "cell" in layout.parts:
-        plug_cell = _overlap_volume(plug, maker(
-            layout.parts["cell"].u0, layout.parts["cell"].u1,
-            layout.parts["cell"].s0, layout.parts["cell"].s1,
-            layout.parts["cell"].y0, layout.parts["cell"].y1,
-        ))
-    # Review r6: measured, not u_edge − HOOK_ROOT_X. The hook is fused in
-    # assemble_shell, so it is built here in the body frame (the export
-    # rotates body and hook together by −THETA_DEG) and probed on the face.
-    open_u0 = usb_u - v2.USB_OPENING[0] / 2.0
-    usb_y0 = 1.00
-    usb_y1 = usb_y0 + v2.USB_OPENING[1]
-    hook_b = build_hook(params).rotate(Axis.X, float(params["THETA_DEG"]))
-    hook_u_max = -1.0e9
-    for s_face in (-v2.USB_RECESS, 0.0, wall / 2.0, wall):
-        for k in range(15):
-            y = usb_y0 + (usb_y1 - usb_y0) * k / 14.0
-            if not _inside_uys(hook_b, path, 0.0, s_face, y) and not _inside_uys(
-                hook_b, path, float(params.get("HOOK_ROOT_X", 4.0)), s_face, y
-            ):
-                continue
-            lo = 0.0 if _inside_uys(hook_b, path, 0.0, s_face, y) else float(params.get("HOOK_ROOT_X", 4.0))
-            try:
-                edge = _bisect(lambda uu: _inside_uys(hook_b, path, uu, s_face, y), lo, usb_u)
-            except CheckFail:
-                continue
-            hook_u_max = max(hook_u_max, edge)
-    lig_hook = open_u0 - hook_u_max if hook_u_max > -1.0e8 else 99.0
-    usb = layout.parts.get("usb")
-    face_s = _bisect(
-        lambda ss: _inside_uys(body, path, open_u0 + v2.USB_OPENING[0] + v2.USB_LIGAMENT / 2.0, ss, usb_y0 + 1.0),
-        -4.0,
-        wall / 2.0,
-    )
-    mouth_recess = (usb.s0 - face_s) if usb is not None else -99.0
-    lig_sig1 = contact_1_us(params)[1] - (usb.s1 if usb is not None else 0.0) - _af_circumr(SHELL_HEX_OUTER_AF)
     record(
         "V2_USB_end",
-        opening_air
-        and plug_cell <= noise
-        and lig_hook >= v2.USB_LIGAMENT - 0.05
-        and mouth_recess >= v2.USB_RECESS - 0.05,
-        (
-            "USB-C hook-end end face: opening 9.0 × 3.5 open, receptacle mouth ≥ 1.0 behind the "
-            "outer face (measured face vs packing usb box), ligament ≥ 1.5 from the opening to the "
-            "hook measured on the face with the hook in the body frame, plug volume clear of the cell"
-        ),
-        opening_air=1.0 if opening_air else 0.0,
-        recess=v2.USB_RECESS,
-        outer_face_s=round(face_s, 4),
-        receptacle_s0=round(usb.s0, 4) if usb is not None else -99.0,
-        receptacle_s1=round(usb.s1, 4) if usb is not None else -99.0,
-        mouth_recess=round(mouth_recess, 4),
-        hook_u_max_on_face=round(hook_u_max, 4),
-        opening_u0=round(open_u0, 4),
-        ligament_hook=round(lig_hook, 4),
-        ligament_SIG1_collar_s=round(lig_sig1, 4),
-        plug_cell_mm3=round(plug_cell, 4),
-        plug_x=v2.PLUG_VOLUME[0],
-        plug_y=v2.PLUG_VOLUME[1],
-        plug_z=v2.PLUG_VOLUME[2],
+        False,
+        "NOT_MEASURED: V2_USB_end (waits for packing §5b, Q70); hook-end wall left solid",
+        wall_closed=1.0,
     )
     record(
         "V2_USB_medial",
         False,
-        "NOT_MEASURED: the closer uses the hook-end end face (plan v2 §5.4 fallback); see V2_USB_end",
+        "NOT_MEASURED: medial USB is not cut; hook-end opening waits for packing §5b, Q70",
         recess=v2.USB_RECESS,
     )
 
@@ -2973,11 +2916,16 @@ def _record_shell_checks(
                 lid_y - 0.2,
                 lid_y + SHELL_SWITCH_RECESS + 0.3,
             )
-            membrane = (lid_y + float(params["LID_THICK"])) - lid_over
-            # Recess from the underside: lid material starts above lid_y + SHELL_SWITCH_RECESS.
+            top = _bisect(
+                lambda y: _inside_uys(lid, path, sw.u, sw.s, y),
+                lid_y + 0.8,
+                lid_y + SHELL_LID_RIM_T + SHELL_LID_CROWN + 0.8,
+            )
+            membrane = top - lid_over
             switch_ok = lid_over >= lid_y + SHELL_SWITCH_RECESS - 0.15 and membrane >= 0.3
             switch_nums = {
                 "lid_over_switch": round(lid_over, 4),
+                "lid_top_over_switch": round(top, 4),
                 "membrane": round(membrane, 4),
                 "recess": SHELL_SWITCH_RECESS,
             }
@@ -2990,72 +2938,91 @@ def _record_shell_checks(
         **switch_nums,
     )
 
-    # Review r6: measured on the built lid and body. A snap retains only if
-    # body nylon sits over its hook (an undercut); the lane's grooves run to
-    # lid_y + 0.15, so the lid lifts straight off. The beam is the one built
-    # (hangs in y, bends in u), not the SHELL_SNAP_* constants.
-    cu0, cu1 = cavity_u(params)
-    s_hook = SHELL_SNAP_S0 + 2.5
-    snap_nums: dict[str, float] = {}
-    undercuts: list[bool] = []
-    strains: list[float] = []
-    beam_ts: list[float] = []
-    for label, u_wall, sign in (("ant", cu0, 1.0), ("post", cu1, -1.0)):
-        u_beam = u_wall + 0.43 * sign
-        u_hook = u_wall - 0.10 * sign
-        try:
-            t_lo = _bisect(lambda uu: _inside_uys(lid, path, uu, s_hook - 1.5, lid_y - 0.5), u_beam - 0.6 * sign, u_beam)
-            t_hi = _bisect(lambda uu: _inside_uys(lid, path, uu, s_hook - 1.5, lid_y - 0.5), u_beam, u_beam + 0.6 * sign)
-            beam_t = abs(t_hi - t_lo)
-            beam_bottom = _bisect(lambda yy: _inside_uys(lid, path, u_beam, s_hook - 1.5, yy), lid_y - 2.0, lid_y - 0.2)
-            beam_L = lid_y - beam_bottom
-            # Deflection to insert: how far the hook stands past the wall face.
-            hook_outer = _bisect(lambda uu: _inside_uys(lid, path, uu, s_hook, lid_y - 0.5), u_hook, u_wall - 0.5 * sign)
-            deflect = abs(hook_outer - u_wall)
-        except CheckFail:
-            beam_t = beam_L = deflect = -1.0
-        # Undercut: body nylon above the hook, below or at the lid seat.
-        over = any(
-            _inside_uys(body, path, u_hook, ss, y)
-            for ss in (s_hook - 0.6, s_hook, s_hook + 0.6)
-            for y in (lid_y - 0.12, lid_y - 0.05, lid_y + 0.05, lid_y + 0.3)
-        )
-        undercuts.append(over)
-        eps = snap_strain(beam_L, beam_t, deflect) if beam_L > 0 else 1.0
-        strains.append(eps)
-        beam_ts.append(beam_t)
-        snap_nums[f"{label}_beam_t"] = round(beam_t, 4)
-        snap_nums[f"{label}_beam_L"] = round(beam_L, 4)
-        snap_nums[f"{label}_deflection"] = round(deflect, 4)
-        snap_nums[f"{label}_strain"] = round(eps, 5)
-        snap_nums[f"{label}_undercut"] = 1.0 if over else 0.0
-    ts_ = tail_s0(params)
+    # Q71: hinge lip undercut at the hook-end wall, plus M2.5 engagement
+    # in the tail. No snaps. S4 pull and drop are qualitative (plan v2 §7).
+    hinge_s = 0.5 * (SHELL_HINGE_S[0] + SHELL_HINGE_S[1])
+    hinge_u = 0.5 * (SHELL_HINGE_U[0] + SHELL_HINGE_U[1])
     lip_over = any(
-        _inside_uys(body, path, 11.0, ts_ + 1.0, y) for y in (lid_y - 0.05, lid_y + 0.05, lid_y + 0.3)
+        _inside_uys(body, path, hinge_u, hinge_s, y)
+        for y in (lid_y - 0.20, lid_y - 0.12, lid_y - 0.05)
     )
-    snap_nums["hinge_lip_undercut"] = 1.0 if lip_over else 0.0
+    lip_in = _inside_uys(
+        lid, path, hinge_u, hinge_s, 0.5 * (SHELL_HINGE_Y0 + SHELL_HINGE_Y1)
+    )
+    screw_u, screw_s = SHELL_SCREW_U, SHELL_SCREW_S
+    y_mid = lid_y - SHELL_SCREW_ENGAGE / 2.0
+    well_air = not _inside_uys(
+        lid, path, screw_u, screw_s, lid_y + 1.0 + SHELL_SCREW_WELL_H / 2.0
+    )
+    hole_air = not _inside_uys(lid, path, screw_u, screw_s, lid_y + 0.3)
+    try:
+        boss_bottom = _bisect(
+            lambda y: _inside_uys(body, path, screw_u, screw_s, y),
+            lid_y - SHELL_SCREW_ENGAGE - 1.5,
+            lid_y - 0.2,
+        )
+        engagement = lid_y - boss_bottom
+    except CheckFail:
+        engagement = -1.0
+    try:
+        hole_r = _radial_air(body, path, screw_u, screw_s, y_mid, "u", 3.5)
+        if hole_r > 0:
+            outer = _bisect(
+                lambda uu: _inside_uys(body, path, uu, screw_s, y_mid),
+                screw_u + hole_r + 0.15,
+                screw_u + 6.0,
+            )
+            boss_wall = outer - (screw_u + hole_r)
+        else:
+            boss_wall = -1.0
+    except CheckFail:
+        hole_r = boss_wall = -1.0
+    try:
+        head_top = _bisect(
+            lambda y: _inside_uys(lid, path, screw_u, screw_s, y),
+            lid_y + 0.4,
+            lid_y + SHELL_LID_RIM_T + SHELL_LID_CROWN + 0.8,
+        )
+        # Local lid top beside the well vs well air: head is under the surface
+        # when the well is open and a neighbour point is higher.
+        neighbour_top = _bisect(
+            lambda y: _inside_uys(lid, path, screw_u + 3.0, screw_s, y),
+            lid_y + 0.4,
+            lid_y + 4.0,
+        )
+        head_below = neighbour_top - (lid_y + 1.0)
+    except CheckFail:
+        head_top = neighbour_top = head_below = -1.0
     closure_ok = (
-        all(undercuts)
-        and lip_over
-        and max(strains) <= 0.04
-        and min(beam_ts) >= JLC_MIN_WALL - 0.05
+        lip_over
+        and lip_in
+        and well_air
+        and hole_air
+        and engagement >= 2.0 - 0.05
+        and boss_wall >= SHELL_SCREW_BOSS_WALL - 0.05
     )
     record(
         "V2_CLOSURE",
         closure_ok,
         (
-            "built lid: body nylon over each snap hook and over the hinge lip (undercut), "
-            f"beam ≥ JLC {JLC_MIN_WALL:g} wall, strain 1.5·t·y/L² of the built beam ≤ 0.04 (PA12 repeated snap)"
+            "Q71: hinge lip at the hook-end wall (body nylon over the lip) plus one "
+            "concealed ISO 7380 M2.5×4 at the tail; engagement and boss wall measured. "
+            "S4 two-finger pull and 0.5 m drop are qualitative (plan v2 §7)"
         ),
-        jlc_min_wall=JLC_MIN_WALL,
-        **snap_nums,
+        hinge_lip_undercut=1.0 if lip_over else 0.0,
+        hinge_lip_in=1.0 if lip_in else 0.0,
+        screw_engagement=round(engagement, 4),
+        boss_wall=round(boss_wall, 4),
+        screw_well_air=1.0 if well_air else 0.0,
+        screw_hole_air=1.0 if hole_air else 0.0,
+        head_below_lid=round(head_below, 4),
+        screw_u=SHELL_SCREW_U,
+        screw_s=SHELL_SCREW_S,
     )
 
-    # Review r6: plan v2 §7 "no planar facet over 3 mm" is probed along the
-    # whole lid, not at one station inside the Ø19 crown. At each station
-    # the top is sampled 3 mm apart across u; a rise under 0.02 over 3 mm in
-    # both directions is a facet. Lid rim R is the built LID_EDGE fillet.
-    top_hi = lid_y + float(params["LID_THICK"]) + SHELL_LID_CROWN + 0.8
+    # Plan v2 §7: no planar facet over 3 mm, sampled along the whole lid.
+    # Rim R is measured on circular edges, not LID_EDGE.
+    top_hi = lid_y + SHELL_LID_RIM_T + SHELL_LID_CROWN + 0.8
 
     def lid_top(uu: float, ss: float) -> float:
         return _bisect(lambda y: _inside_uys(lid, path, uu, ss, y), lid_y + 0.4, top_hi)
@@ -3076,41 +3043,28 @@ def _record_shell_checks(
         crown_min = min(crown_min, rise_u)
         if rise_u < 0.02 and rise_s < 0.02:
             facets += 1
-    rim_r = float(params["LID_EDGE"])
+    rim_r = _measured_lid_rim_r(lid, path, lid_y, width)
     record(
         "V2_EDGE_radii",
-        stations > 0 and facets == 0 and rim_r >= 1.0 - 1e-9,
+        stations > 0 and facets == 0 and rim_r >= SHELL_LID_RIM_R - 0.05,
         (
             "plan v2 §7: no planar facet over 3 mm on the lid (top sampled 3 mm apart at 7 stations), "
-            "outside edges R ≥ 1.0 (lid rim is the built LID_EDGE fillet)"
+            "outside edges R ≥ 1.0 (rim radius measured on circular edges)"
         ),
         stations=float(stations),
         flat_stations=float(facets),
         min_rise_over_3mm=round(crown_min, 4) if stations else -1.0,
-        lid_rim_R=rim_r,
+        lid_rim_R=round(rim_r, 4),
         medial_fillet=float(params["FILLET_MEDIAL"]),
     )
 
-    # Snap catch is 0.4 into the 1.5 side wall (residual 1.1). USB ligaments
-    # 1.5. Q59 REF_end_wall_slot (packing-v2.md §5 on lane/w3): remaining
-    # nylon beside the slot is the 1.05 mm end wall, still ≥ 1.0.
     slot_u = (REF_SLOT_U[0] + REF_SLOT_U[1]) / 2.0
     slot_s = (REF_SLOT_S[0] + REF_SLOT_S[1]) / 2.0
     slot_y = (REF_SLOT_Y[0] + REF_SLOT_Y[1]) / 2.0
     cut_u0 = REF_SLOT_U[0] - REF_SLOT_CLEAR_U
     cut_u1 = REF_SLOT_U[1] + REF_SLOT_CLEAR_U
     slot_open = not _inside_uys(body, path, slot_u, slot_s, slot_y)
-    lig_ant = lig_hook
-    # Residual side wall behind the snap groove, measured.
-    try:
-        g_in = _bisect(lambda uu: _inside_uys(body, path, uu, s_hook, lid_y - 0.6), cu0 + 0.05, cu0 - 1.0)
-        g_out = _bisect(lambda uu: _inside_uys(body, path, uu, s_hook, lid_y - 0.6), cu0 - 1.0, -0.5)
-        snap_residual = abs(g_in - g_out)
-    except CheckFail:
-        snap_residual = -1.0
     wall_nums: dict[str, float] = {
-        "usb_ligament_hook": round(lig_ant, 4),
-        "snap_residual": round(snap_residual, 4),
         "WALL_MEDIAL": wall,
         "slot_open": 1.0 if slot_open else 0.0,
         "slot_clear_u_cad": REF_SLOT_CLEAR_U,
@@ -3118,11 +3072,23 @@ def _record_shell_checks(
         "slot_clear_y_cad": REF_SLOT_CLEAR_Y,
         "slot_pack_vol_mm3": REF_SLOT_PACK_VOL,
     }
-    minima_ok = (
-        slot_open
-        and lig_ant >= v2.USB_LIGAMENT - 0.05
-        and snap_residual >= 1.0 - 0.05
-    )
+    minima_ok = slot_open
+    try:
+        gy = 0.5 * (SHELL_HINGE_Y0 + SHELL_HINGE_Y1)
+        hinge_outer = _bisect(
+            lambda ss: _inside_uys(body, path, hinge_u, ss, gy), -0.5, 0.8
+        )
+        hinge_groove = _bisect(
+            lambda ss: not _inside_uys(body, path, hinge_u, ss, gy),
+            0.4,
+            1.7,
+        )
+        hinge_remain = hinge_groove - hinge_outer
+        wall_nums["hinge_outer_wall"] = round(hinge_remain, 4)
+        minima_ok = minima_ok and hinge_remain >= 1.0 - 0.05
+    except CheckFail:
+        minima_ok = False
+        wall_nums["hinge_outer_wall"] = -1.0
     try:
         mid_s = (layout.board_s[0] + layout.board_s[1]) / 2.0
         probe_y = (floor_y + lid_y) / 2.0
@@ -3184,8 +3150,8 @@ def _record_shell_checks(
     record(
         "V2_WALL_minima",
         minima_ok,
-        "side walls 1.5; Q59 slot open with remaining end wall and floor ≥ 1.0 beside it; "
-        f"flex clearance {REF_SLOT_CLEAR_U:g} mm per side in u on REF_end_wall_slot",
+        "side walls 1.5; Q59 slot open with remaining end wall and floor ≥ 1.0; "
+        "hinge outer wall ≥ 1.0; USB opening waits for packing §5b",
         **wall_nums,
     )
 
@@ -3322,6 +3288,146 @@ def _end_wall_s_thick(body: Solid, path: PathGeom, u: float, y: float) -> float:
     return outer - inner
 
 
+def _shell_lid_u(s: float, params: Mapping[str, Any]) -> tuple[float, float]:
+    width = float(params["BODY_WIDTH"])
+    split = tail_s0(params)
+    inset = SHELL_LID_INSET
+    if s >= split - 1e-9:
+        u0, u1 = _tail_u(s, width, split, float(params["BODY_ARC"]))
+        return u0 + inset, u1 - inset
+    return inset, width - inset
+
+
+def _lid_station_face(
+    path: PathGeom,
+    s: float,
+    u0: float,
+    u1: float,
+    y_bot: float,
+    y_rim: float,
+    y_mid: float,
+    *,
+    n: int = 16,
+    rim_r: float = SHELL_LID_RIM_R,
+) -> Face:
+    """Planar station: floor at y_bot, R rim, parabolic crown from y_rim to y_mid."""
+    plane = _station_plane(path, s)
+    span = u1 - u0
+    r = min(rim_r + 0.08, max(0.2, span / 2.0 - 0.4))
+    ui0, ui1 = u0 + r, u1 - r
+    um = 0.5 * (ui0 + ui1)
+    a = 0.5 * (ui1 - ui0)
+
+    def world(u: float, y: float) -> Vector:
+        return plane.from_local_coords(Vector(path.radius + u, y, 0.0))
+
+    def crown(u: float) -> float:
+        t = 0.0 if a < 1e-9 else (u - um) / a
+        t = max(-1.0, min(1.0, t))
+        return y_rim + (y_mid - y_rim) * max(0.0, 1.0 - t * t)
+
+    pts: list[Vector] = [world(u0, y_bot)]
+    q = 12
+    for i in range(q + 1):
+        phi = (math.pi / 2.0) * i / q
+        pts.append(
+            world(u0 + r * (1.0 - math.cos(phi)), y_rim - r + r * math.sin(phi))
+        )
+    for i in range(1, n):
+        u = ui0 + (ui1 - ui0) * i / n
+        pts.append(world(u, crown(u)))
+    for i in range(q + 1):
+        phi = math.pi / 2.0 * (1.0 - i / q)
+        pts.append(
+            world(u1 - r * (1.0 - math.cos(phi)), y_rim - r + r * math.sin(phi))
+        )
+    pts.append(world(u1, y_bot))
+    return Face(Wire.make_polygon(pts, close=True))
+
+
+def _lofted_shell_lid(path: PathGeom, params: Mapping[str, Any]) -> Shape:
+    """Lid top lofted across u and s; crown fades to zero at the rim (plan v2 §7)."""
+    lid_y = float(params["LID_Y"])
+    s0, s1 = shift_tail_pair(params, LID_PLATE_S)
+    span = s1 - s0
+    count = max(6, int(math.ceil(abs(span) / 2.5)) + 1)
+    faces: list[Face] = []
+    y_rim = lid_y + SHELL_LID_RIM_T
+    for i in range(count):
+        s = s0 + span * i / (count - 1)
+        u0, u1 = _shell_lid_u(s, params)
+        fade_s = math.sin(math.pi * (s - s0) / span) if span > 1e-9 else 0.0
+        y_mid = y_rim + SHELL_LID_CROWN * max(0.0, fade_s)
+        faces.append(_lid_station_face(path, s, u0, u1, lid_y, y_rim, y_mid))
+    return _one_solid(loft(faces), "shell_lid")
+
+
+def _circle_r_3pt(p1: tuple[float, float], p2: tuple[float, float], p3: tuple[float, float]) -> float:
+    """Radius of the circle through three (u, y) points. 0 if they are collinear."""
+    x1, y1 = p1
+    x2, y2 = p2
+    x3, y3 = p3
+    d = 2.0 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+    if abs(d) < 1e-9:
+        return 0.0
+    t1 = x1 * x1 + y1 * y1
+    t2 = x2 * x2 + y2 * y2
+    t3 = x3 * x3 + y3 * y3
+    cx = (t1 * (y2 - y3) + t2 * (y3 - y1) + t3 * (y1 - y2)) / d
+    cy = (t1 * (x3 - x2) + t2 * (x1 - x3) + t3 * (x2 - x1)) / d
+    return math.hypot(x1 - cx, y1 - cy)
+
+
+def _measured_lid_rim_r(lid: Solid, path: PathGeom, lid_y: float, width: float) -> float:
+    """Rim R from a 3-point fit on the outer profile, plus any circular edges."""
+    y_rim = lid_y + SHELL_LID_RIM_T
+    r_nom = SHELL_LID_RIM_R
+    found: list[float] = []
+    for edge in lid.edges():
+        if edge.geom_type != GeomType.CIRCLE or edge.length < 0.8:
+            continue
+        try:
+            rad = float(edge.radius)
+        except Exception:
+            continue
+        if 0.6 <= rad <= 1.6:
+            found.append(rad)
+    for ss in (10.0, 22.0, 34.0):
+        pts: list[tuple[float, float]] = []
+        for phi in (0.25, 0.70, 1.20):
+            y = y_rim - r_nom + r_nom * math.sin(phi)
+            try:
+                u_out = _bisect(
+                    lambda uu, yy=y, s=ss: _inside_uys(lid, path, uu, s, yy),
+                    -0.4,
+                    3.5,
+                )
+            except CheckFail:
+                continue
+            pts.append((u_out, y))
+        if len(pts) == 3:
+            fitted = _circle_r_3pt(pts[0], pts[1], pts[2])
+            if fitted > 0.2:
+                found.append(fitted)
+        pts_hi: list[tuple[float, float]] = []
+        for phi in (0.25, 0.70, 1.20):
+            y = y_rim - r_nom + r_nom * math.sin(phi)
+            try:
+                u_out = _bisect(
+                    lambda uu, yy=y, s=ss: _inside_uys(lid, path, uu, s, yy),
+                    width - 3.5,
+                    width + 0.4,
+                )
+            except CheckFail:
+                continue
+            pts_hi.append((u_out, y))
+        if len(pts_hi) == 3:
+            fitted = _circle_r_3pt(pts_hi[0], pts_hi[1], pts_hi[2])
+            if fitted > 0.2:
+                found.append(fitted)
+    return min(found) if found else 0.0
+
+
 def _apply_shell_features(
     body: Shape,
     lid: Shape,
@@ -3336,10 +3442,7 @@ def _apply_shell_features(
     maker = path_solid_for(path, params)
     wall = float(params["WALL_MEDIAL"])
     lid_y = float(params["LID_Y"])
-    lid_thick = float(params["LID_THICK"])
-    width = float(params["BODY_WIDTH"])
     floor_y = wall
-    cu0, cu1 = cavity_u(params)
     ring_t = v2.ring_under(spec)
     inner_r = _af_circumr(SHELL_HEX_AF)
     outer_r = _af_circumr(SHELL_HEX_OUTER_AF)
@@ -3461,103 +3564,68 @@ def _apply_shell_features(
     measure["boss_top_y"] = round(layout.boss_top_y, 4)
     measure["standoff_top_y"] = round(layout.standoff_top_y, 4)
 
-    # USB-C on the hook-end end face (plan v2 §5.4 fallback). Opening
-    # 9.0 × 3.5 through the 1.5 wall; 1.0 recess lives in a 1.0 outer pad
-    # so residual wall stays 1.5. Plug volume stays outside (keep-out).
-    usb_u = 10.0
-    usb_half_u = v2.USB_OPENING[0] / 2.0
-    usb_y0 = 1.00
-    usb_y1 = usb_y0 + v2.USB_OPENING[1]
-    pad_u0 = usb_u - usb_half_u - v2.USB_LIGAMENT
-    pad_u1 = usb_u + usb_half_u + v2.USB_LIGAMENT
-    pad = maker(pad_u0, pad_u1, -v2.USB_RECESS, 0.05, usb_y0 - 0.4, usb_y1 + 0.4)
-    try:
-        body = body.fuse(pad)
-    except Exception as exc:
-        raise CheckFail(f"USB outer pad: {exc}") from exc
-    opening = maker(
-        usb_u - usb_half_u,
-        usb_u + usb_half_u,
-        -v2.USB_RECESS - 0.2,
-        wall + 0.08,
-        usb_y0,
-        usb_y1,
-    )
-    measure["usb_opening_removed_mm3"] = round(_overlap_volume(body, opening), 4)
-    body = body.cut(opening)
-    recess = maker(
-        usb_u - usb_half_u - 0.2,
-        usb_u + usb_half_u + 0.2,
-        -v2.USB_RECESS - 0.05,
-        0.02,
-        usb_y0 - 0.2,
-        usb_y1 + 0.2,
-    )
-    body = body.cut(recess)
+    # Q70: USB opening waits for packing §5b. Leave the hook-end wall solid;
+    # do not add the proud pad.
+    measure["usb_opening_removed_mm3"] = 0.0
 
-    # Hinge lip in the tail, past the board. USB occupies the hook-end face.
-    # Short in y so it stays above the module (top 7.62) and off the board zone.
-    ts = tail_s0(params)
+    # Q71 hinge: undercut in the hook-end wall. Groove y stays below lid_y
+    # so a shelf of body sits over the lid lip.
     groove = maker(
-        8.0,
-        14.0,
-        ts + 0.6,
-        ts + 1.25,
-        lid_y - 0.85,
-        lid_y + 0.12,
+        SHELL_HINGE_U[0],
+        SHELL_HINGE_U[1],
+        SHELL_HINGE_S[0],
+        SHELL_HINGE_S[1] + 0.08,
+        SHELL_HINGE_Y0,
+        SHELL_HINGE_Y1,
     )
     body = body.cut(groove)
-    # Lip and bump stay in the groove so body and lid interiors stay disjoint.
-    lip = maker(8.2, 13.8, ts + 0.65, ts + 1.20, lid_y - 0.50, lid_y + lid_thick)
-    lid = lid.fuse(lip)
-    bump = maker(8.2, 13.8, ts + 0.85, ts + 1.15, lid_y - 0.50, lid_y - 0.10)
-    lid = lid.fuse(bump)
 
-    # Two cantilever snaps on the inner side walls, over the board.
-    # Hook sits in the cut groove (air) so body and lid interiors stay disjoint.
-    snap_s1 = SHELL_SNAP_S0 + SHELL_SNAP_L
-    for u_wall, sign in ((cu0, 1.0), (cu1, -1.0)):
-        groove_u0 = u_wall - SHELL_SNAP_CATCH if sign > 0 else u_wall
-        groove_u1 = u_wall if sign > 0 else u_wall + SHELL_SNAP_CATCH
-        catch = maker(
-            groove_u0,
-            groove_u1,
-            SHELL_SNAP_S0,
-            snap_s1,
-            lid_y - 1.2,
-            lid_y + 0.15,
-        )
-        body = body.cut(catch)
-        beam_u0 = u_wall + 0.18 if sign > 0 else u_wall - 0.68
-        beam_u1 = beam_u0 + 0.5
-        beam = maker(
-            beam_u0,
-            beam_u1,
-            SHELL_SNAP_S0 + 0.4,
-            snap_s1 - 0.4,
-            lid_y - SHELL_SNAP_T,
-            lid_y + lid_thick,
-        )
-        hook_u0 = u_wall - 0.18 if sign > 0 else u_wall + 0.02
-        hook_u1 = u_wall - 0.02 if sign > 0 else u_wall + 0.18
-        hook = maker(
-            hook_u0,
-            hook_u1,
-            SHELL_SNAP_S0 + 1.8,
-            SHELL_SNAP_S0 + 3.2,
-            lid_y - 0.85,
-            lid_y - 0.15,
-        )
-        # A thin rib keeps the hook on the beam (hook sits in the groove air).
-        rib = maker(
-            min(hook_u0, beam_u0),
-            max(hook_u1, beam_u1),
-            SHELL_SNAP_S0 + 1.9,
-            SHELL_SNAP_S0 + 3.1,
-            lid_y - 0.25,
-            lid_y + 0.05,
-        )
-        lid = lid.fuse(beam).fuse(rib).fuse(hook)
+    # Tail screw: blind pilot in the tail bulk, not through the medial face.
+    origin = _vec(path, SHELL_SCREW_U, SHELL_SCREW_S, 0.0)
+    engage_y0 = lid_y - SHELL_SCREW_ENGAGE
+    pilot = _y_cylinder(
+        origin.X,
+        engage_y0,
+        origin.Z,
+        SHELL_SCREW_PILOT / 2.0,
+        SHELL_SCREW_ENGAGE + 0.4,
+    )
+    body = body.cut(pilot)
+    measure["screw_u"] = SHELL_SCREW_U
+    measure["screw_s"] = SHELL_SCREW_S
+    measure["screw_engage"] = SHELL_SCREW_ENGAGE
+
+    # Lofted lid replaces the 1.0 plate plus the Ø19 blister.
+    lid = _lofted_shell_lid(path, params)
+    lip = maker(
+        SHELL_HINGE_U[0] + 0.15,
+        SHELL_HINGE_U[1] - 0.15,
+        SHELL_HINGE_S[0] + 0.08,
+        SHELL_HINGE_S[1] - 0.08,
+        SHELL_HINGE_Y0 + 0.05,
+        lid_y + 0.08,
+    )
+    lid = lid.fuse(lip)
+    bearing = 1.0
+    boss_r = SHELL_SCREW_WELL_D / 2.0 + SHELL_SCREW_BOSS_WALL
+    boss_h = bearing + SHELL_SCREW_WELL_H + 0.2
+    lid_boss = _y_cylinder(origin.X, lid_y, origin.Z, boss_r, boss_h)
+    lid = lid.fuse(lid_boss)
+    well = _y_cylinder(
+        origin.X,
+        lid_y + bearing,
+        origin.Z,
+        SHELL_SCREW_WELL_D / 2.0,
+        SHELL_SCREW_WELL_H + 0.5,
+    )
+    hole = _y_cylinder(
+        origin.X,
+        lid_y - 0.2,
+        origin.Z,
+        SHELL_SCREW_HOLE_LID / 2.0,
+        bearing + SHELL_SCREW_WELL_H + 0.8,
+    )
+    lid = lid.cut(well).cut(hole)
 
     if "switch" in layout.parts:
         sw = layout.parts["switch"]
@@ -3573,26 +3641,16 @@ def _apply_shell_features(
         measure["switch_u"] = round(sw.u, 4)
         measure["switch_s"] = round(sw.s, 4)
 
-    # Shallow crown so the lateral lid is not a 3 mm plane (plan v2 §7).
-    mid = _vec(path, width / 2.0, 22.0, lid_y + lid_thick)
-    crown_r = 90.0
-    sphere = Sphere(crown_r).locate(
-        Location((mid.X, lid_y + lid_thick - crown_r + SHELL_LID_CROWN, mid.Z))
-    )
-    slab = maker(-1.0, width + 1.0, -1.0, float(params["BODY_ARC"]) + 1.0, lid_y + lid_thick - 0.05, lid_y + lid_thick + 3.0)
-    try:
-        bump_lid = sphere.intersect(slab)
-        if bump_lid is not None:
-            lid = lid.fuse(_as_compound(bump_lid))
-            measure["lid_crown"] = SHELL_LID_CROWN
-    except Exception:
-        measure["lid_crown"] = 0.0
+    measure["lid_rim_R"] = SHELL_LID_RIM_R
+    measure["lid_crown"] = SHELL_LID_CROWN
+    measure["lid_rim_t"] = SHELL_LID_RIM_T
+    measure["lid_inset"] = SHELL_LID_INSET
+    measure["screw_bearing"] = bearing
 
-    strain = snap_strain(SHELL_SNAP_L, SHELL_SNAP_T, SHELL_SNAP_Y)
     notes["closure"] = (
-        f"hinge lip at the cavity-tail wall plus two cantilever snaps "
-        f"L={SHELL_SNAP_L:g} t={SHELL_SNAP_T:g} y={SHELL_SNAP_Y:g} "
-        f"strain={strain:.4f} (PA12)"
+        "Q71: hinge lip at the hook-end wall plus one concealed ISO 7380 "
+        f"M2.5×4 at u={SHELL_SCREW_U:g} s={SHELL_SCREW_S:g}; "
+        f"engagement {SHELL_SCREW_ENGAGE:g} mm. S4 pull and drop qualitative"
     )
     notes["shell_measure"] = measure
     notes["winner"] = SHELL_WINNER
@@ -3771,22 +3829,23 @@ def build_body_and_lid(
         step=1.5,
     )
     lid: Shape = plate_main.fuse(plate_tail)
-    try:
-        # The top edge at the lip end (s = −0.2) stays sharp: rounded, it
-        # would leave the lip joined to the plate by 0.2 mm of end face.
-        rim = [
-            e
-            for e in lid.edges()
-            if abs(e.center().Y - (lid_y + lid_thick)) < 0.15
-            and e.length > 2.0
-            and abs(_approx_s(path, e.center()) - plate_s[0]) > 0.05
-        ]
-        lid, applied = _try_fillet(lid, rim, float(params["LID_EDGE"]))
-        notes["fillets"].append(
-            _fillet_note("LID_EDGE (plate rim except the lip end)", float(params["LID_EDGE"]), applied)
-        )
-    except Exception as exc:
-        raise CheckFail(f"LID_EDGE: rim fillet failed ({exc})") from exc
+    if not stage_is_shell(params):
+        try:
+            # The top edge at the lip end (s = −0.2) stays sharp: rounded, it
+            # would leave the lip joined to the plate by 0.2 mm of end face.
+            rim = [
+                e
+                for e in lid.edges()
+                if abs(e.center().Y - (lid_y + lid_thick)) < 0.15
+                and e.length > 2.0
+                and abs(_approx_s(path, e.center()) - plate_s[0]) > 0.05
+            ]
+            lid, applied = _try_fillet(lid, rim, float(params["LID_EDGE"]))
+            notes["fillets"].append(
+                _fillet_note("LID_EDGE (plate rim except the lip end)", float(params["LID_EDGE"]), applied)
+            )
+        except Exception as exc:
+            raise CheckFail(f"LID_EDGE: rim fillet failed ({exc})") from exc
 
     if experiments:
         lip_y0 = lid_y + lid_thick - LIP_LENGTH
@@ -3918,9 +3977,17 @@ def build_hook(params: Mapping[str, Any]) -> Shape:
                 center.Z + hook_radius * math.sin(a),
             )
             tangent = Vector(-math.sin(a), 0.0, math.cos(a))
-            xr = SHELL_HOOK_ROOT[0] + (SHELL_HOOK_TIP[0] - SHELL_HOOK_ROOT[0]) * t
-            yr = SHELL_HOOK_ROOT[1] + (SHELL_HOOK_TIP[1] - SHELL_HOOK_ROOT[1]) * t
             plane = Plane(origin=pos, z_dir=tangent)
+            # Q76: circular root (Ellipse with equal axes), then the loft
+            # becomes the 4.4 × 3.0 ellipse and the 3.0 × 2.2 tip.
+            if t <= 0.25:
+                k = t / 0.25
+                xr = SHELL_HOOK_ROOT_R + (SHELL_HOOK_ROOT[0] - SHELL_HOOK_ROOT_R) * k
+                yr = SHELL_HOOK_ROOT_R + (SHELL_HOOK_ROOT[1] - SHELL_HOOK_ROOT_R) * k
+            else:
+                k = (t - 0.25) / 0.75
+                xr = SHELL_HOOK_ROOT[0] + (SHELL_HOOK_TIP[0] - SHELL_HOOK_ROOT[0]) * k
+                yr = SHELL_HOOK_ROOT[1] + (SHELL_HOOK_TIP[1] - SHELL_HOOK_ROOT[1]) * k
             faces.append((plane * Ellipse(xr, yr)).faces()[0])
         hook = loft(faces)
     else:
@@ -3996,7 +4063,7 @@ def assemble_shell(
         radial = math.hypot(point.X - center.X, point.Z - center.Z)
         dist = math.hypot(radial - hook_r, point.Y - root.Y)
         if stage_is_shell(params):
-            lo, hi = min(SHELL_HOOK_TIP), max(SHELL_HOOK_ROOT)
+            lo, hi = min(SHELL_HOOK_TIP + (SHELL_HOOK_ROOT_R,)), max(SHELL_HOOK_ROOT + (SHELL_HOOK_ROOT_R,))
             return lo - 0.4 <= dist <= hi + 0.4
         return abs(dist - hook_dia / 2.0) < 0.02
 
@@ -4006,28 +4073,46 @@ def assemble_shell(
     joint = [
         e
         for e in fused.edges()
-        if e.geom_type != GeomType.CIRCLE
+        if (
+            stage_is_shell(params) or e.geom_type != GeomType.CIRCLE
+        )
         and all(on_hook_tube(Vector(e @ t)) for t in (0.0, 0.25, 0.5, 0.75, 1.0))
         and (e.center() - root).length < (
-            max(SHELL_HOOK_ROOT) * 2.5 if stage_is_shell(params) else hook_dia
+            max(SHELL_HOOK_ROOT_R, *SHELL_HOOK_ROOT) * 2.5 if stage_is_shell(params) else hook_dia
         )
     ]
     if not joint:
         if stage_is_shell(params):
-            notes["fillets"].append("§3.5 step 9 hook joint fillet: no tube-to-top-face edge; blend skipped")
+            notes["fillets"].append(
+                "§3.5 step 9 hook joint fillet: no tube-to-top-face edge; Q76 fallback"
+            )
+            notes["q76"] = "no joint edge after circular root"
         else:
             raise CheckFail("hook joint: no tube-to-top-face edge found")
     else:
-        fused, applied = _try_fillet(
-            fused, joint, SHELL_HOOK_BLEND if stage_is_shell(params) else JOINT_FILLET
-        )
-        notes["fillets"].append(
-            _fillet_note(
-                "§3.5 step 9 hook joint fillet",
-                SHELL_HOOK_BLEND if stage_is_shell(params) else JOINT_FILLET,
-                applied,
+        try:
+            fused, applied = _try_fillet(
+                fused, joint, SHELL_HOOK_BLEND if stage_is_shell(params) else JOINT_FILLET
             )
-        )
+            notes["fillets"].append(
+                _fillet_note(
+                    "§3.5 step 9 hook joint fillet",
+                    SHELL_HOOK_BLEND if stage_is_shell(params) else JOINT_FILLET,
+                    applied,
+                )
+            )
+            if stage_is_shell(params):
+                notes["q76"] = (
+                    f"circular root r={SHELL_HOOK_ROOT_R:g} blended {applied}"
+                    if applied
+                    else "circular root built; fillet did not apply"
+                )
+        except Exception as exc:
+            if stage_is_shell(params):
+                notes["fillets"].append(f"§3.5 step 9 hook joint fillet: OCCT {exc}")
+                notes["q76"] = f"circular root built; fillet error: {exc}"
+            else:
+                raise CheckFail(f"hook joint fillet: {exc}") from exc
     if params["SIDE"] == "left":
         fused = fused.mirror(Plane.YZ)
         lid_r = lid_r.mirror(Plane.YZ)
