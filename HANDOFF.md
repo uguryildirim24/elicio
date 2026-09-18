@@ -110,12 +110,19 @@ on a removed key.
   face; full suite OK; order 1 byte-identical. Tree clean. Waits for the
   round 5 reviewer. Q50 and Q51 hold the reading. Report
   `.reports/WP11-report.md` (absent on main, untracked in `.worktrees/w1`).
-- **w2** (cursor, `lane/w2`, fast-forwarded to `401f92d`): WP12 board v2
-  (`tasks/WP12-board.md`), prompted ~20:20: installs KiCad 10.0.6 by
-  brew cask (Q46), builds the KiCad project, `scripts/board/release.py` (expected),
-  `docs/fab/board-v2.md` (expected) (G2 table, G4 map, charger and undervoltage
-  numbers), `tests/test_board_release.py`. Waits for nothing; WAITING if
-  the install fails. Report `.reports/WP12-report.md` (expected).
+- **w2** (cursor, `lane/w2`): WP12 board v2, first `DONE WP12` at
+  `9fa31d2` (~22:15): KiCad 10 project (rigid 4-layer, provisional
+  17 × 33 outline, interface I pads, Raytac placed, JST-SH placed),
+  `scripts/board/release.py` (absent on main) with ERC 0 and 829 unrouted
+  DRC errors reported, `docs/fab/board-v2.md` (absent on main),
+  `tests/test_board_release.py` (absent on main). Its venv shows 13
+  CadRegen hash failures it says it did not cause (reviewer reproduces).
+  The coordinator's note of ~20:45 (switch to interface II: 2-layer flex
+  with stiffeners, ring-pad tabs, outline from WP11's winner) was queued
+  as a Cursor follow-up and runs as a second turn: expect ONE more
+  `DONE WP12`; open the review after it. Its report
+  `.reports/WP12-report.md` (absent on main) is untracked in
+  `.worktrees/w2`.
 - **w4** (cursor, `lane/w4`): WP13 firmware v2 landed, `DONE WP13` at
   `28b284c` (~21:05): `docs/fab/frame-v2.md` (absent on main), the
   decoder `src/elicio/frame_v2.py` (absent on main) with ten golden
@@ -147,7 +154,7 @@ on a removed key.
   and WP17 are reviewed together. Its report `.reports/WP17-report.md` (absent on main)
   is untracked in `.worktrees/w5`.
 
-Round 5 review: when WP12 has also landed (WP11, WP13, WP16 and WP17 have) (a lane that pushes WAITING is recorded and the review opens
+Round 5 review: when WP12's second turn has also landed (WP11, WP13, WP16, WP17 and WP12's first turn have) (a lane that pushes WAITING is recorded and the review opens
 without it), create the round 5 review branch (expected, not created yet) from `main`,
 a fresh Opus 5 high reviewer from `tasks/review-code-template.md` as
 `tasks/review-r5.md` (expected), merging `lane/w1`, `lane/w5`, `lane/w2`, `lane/w4`,
@@ -188,8 +195,8 @@ and gates G1–G8 for the build. Outside those:
 ## Next
 
 - Idle until a DONE lands (check report file and clean tree, read the
-  report); WP11, WP13, WP16 and WP17 have landed; when WP12 has landed
-  or pushed WAITING, open the round 5 review as described under In flight.
+  report); WP11, WP13, WP16 and WP17 have landed and WP12's first turn; when
+  WP12's second turn (interface II) has landed or pushed WAITING, open the round 5 review as described under In flight.
 
 ## Traps
 
