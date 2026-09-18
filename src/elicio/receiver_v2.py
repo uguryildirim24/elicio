@@ -71,6 +71,12 @@ GPIO_MACRO = {
 
 SAME_CRITERION = ("3.5", "3.6", "3.7", "3.8", "3.9", "3.10")
 
+# receive-check exit codes (docs/fab/receiver-v2.md, "Exit codes").
+EXIT_OK = 0
+EXIT_SAME_CRITERION_FAILED = 1
+EXIT_NOT_A_SESSION = 2
+EXIT_DROPOUT_3_4 = 3
+
 FRAME_CASES = (
     "normal",
     "wrap",
@@ -358,14 +364,19 @@ def _dropout_stretches(
             return True
         return False
 
-    restart_until = -1
-    for index in range(n):
-        if int(flags[index]) & Flag.RESTART:
-            restart_until = int(acq[index]) + RESTART_EXCLUDE
+    # Montage §8: the first 200 conversions after each RESTART flag are not
+    # scored. Review r6: one window per RESTART; the old single
+    # ``restart_until`` also skipped every sample before the last restart.
+    restarts = [int(acq[index]) for index in range(n) if int(flags[index]) & Flag.RESTART]
+
+    def settling(index: int) -> bool:
+        a = int(acq[index])
+        return any(r <= a < r + RESTART_EXCLUDE for r in restarts)
+
     for channel in (0, 1):
         i = 0
         while i < n:
-            if skipped(i) or (restart_until >= 0 and int(acq[i]) < restart_until):
+            if skipped(i) or settling(i):
                 i += 1
                 continue
             code = int(codes[i, channel])
@@ -373,7 +384,7 @@ def _dropout_stretches(
             last_acq = int(acq[i])
             j = i + 1
             while j < n:
-                if skipped(j) or (restart_until >= 0 and int(acq[j]) < restart_until):
+                if skipped(j) or settling(j):
                     break
                 if int(codes[j, channel]) != code:
                     break
@@ -382,7 +393,9 @@ def _dropout_stretches(
                 last_acq = int(acq[j])
                 run += 1
                 j += 1
-            if run > DROPOUT_INTERVALS:
+            # "More than 200 sample intervals": a run of k equal samples
+            # spans k - 1 intervals.
+            if run - 1 > DROPOUT_INTERVALS:
                 unique.append(
                     {
                         "channel": channel,
@@ -415,9 +428,18 @@ def check_session(session_dir: Path) -> dict[str, object]:
         for key, value in same.items()
         if key in SAME_CRITERION and value not in {"not_scored", "pass"}
     ]
-    # 3.4 dropout is revised in montage §8 but keeps the original rail/flat
-    # rule. That is the S2 stream dry-check. 3.5–3.10 fail only when scored.
+    # Montage §8 table: only 3.5–3.10 are marked "same criterion"; they fail
+    # only when scored. Line 3.4 is marked "revised" (its dropout half keeps
+    # the original rail/flat rule), so a dropout is reported with its own
+    # exit code, not as a same-criterion failure (review r6; whether a 3.4
+    # dropout stops S2 is a decision in tasks/reviews/code-r6.md).
     ok = len(dropouts) == 0 and not same_fail
+    if same_fail:
+        exit_code = EXIT_SAME_CRITERION_FAILED
+    elif dropouts:
+        exit_code = EXIT_DROPOUT_3_4
+    else:
+        exit_code = EXIT_OK
     return {
         "sample_count": n,
         "duration_s": duration_s,
@@ -429,6 +451,7 @@ def check_session(session_dir: Path) -> dict[str, object]:
         "same_criterion": same,
         "same_criterion_failed": same_fail,
         "ok": ok,
+        "exit_code": exit_code,
         "loader": LOADER_NAME,
     }
 
@@ -677,7 +700,16 @@ def _run_bleak(
 
 
 def run_receive_check(session_dir: Path) -> int:
+    session_dir = Path(session_dir)
+    missing = [
+        name
+        for name in (SAMPLES_NAME, SIDECAR_NAME, META_NAME)
+        if not (session_dir / name).is_file()
+    ]
+    if missing:
+        print(json.dumps({"error": "not a session", "missing": missing}, indent=2))
+        return EXIT_NOT_A_SESSION
     summary = check_session(session_dir)
     print(json.dumps(summary, indent=2, sort_keys=True, default=str))
-    return 0 if summary["ok"] else 1
+    return int(summary["exit_code"])
 

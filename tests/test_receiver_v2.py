@@ -9,9 +9,18 @@ from pathlib import Path
 
 from elicio.cli import main
 from elicio.pipeline.load import Recording
+from elicio.frame_v2 import FRAME_V2_MAX_SAMPLES, Flag, MsgType, fragment, pack_stream
 from elicio.receiver_v2 import (
+    DROPOUT_INTERVALS,
+    EXIT_DROPOUT_3_4,
+    EXIT_NOT_A_SESSION,
+    EXIT_SAME_CRITERION_FAILED,
     FRAME_CASES,
     LOADER_NAME,
+    RAIL_CODE,
+    _meta,
+    _sample_bytes,
+    pack_ads_sample,
     assert_pin_map_matches,
     case_packets,
     check_session,
@@ -28,6 +37,19 @@ BOARD_MD = ROOT / "docs" / "fab" / "board-v2.md"
 PINS_H = ROOT / "firmware" / "src" / "board_pins.h"
 
 
+def _flat_packets(acq: int, count: int, seq: int) -> list[bytes]:
+    """``count`` equal samples from ``acq`` on (rail code on both channels)."""
+    sample = pack_ads_sample(0xC00000, RAIL_CODE, RAIL_CODE)
+    packets: list[bytes] = []
+    while count:
+        n = min(FRAME_V2_MAX_SAMPLES, count)
+        packets += fragment(MsgType.STREAM, 7, seq, pack_stream(_meta(n, acq, seq), sample * n), 244)
+        acq += n
+        seq += 1
+        count -= n
+    return packets
+
+
 def _run(argv: list[str]) -> tuple[int, str]:
     buf = io.StringIO()
     with redirect_stdout(buf):
@@ -36,12 +58,14 @@ def _run(argv: list[str]) -> tuple[int, str]:
 
 
 class ReceiverV2Tests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        FIXTURES.mkdir(parents=True, exist_ok=True)
-        for name in FRAME_CASES + ("dropout", "undervoltage", "vbus"):
-            dump_fixture_packets(FIXTURES / f"{name}.json", case_packets(name))
-        dump_fixture_packets(FIXTURES / "simulate_live.json", live_fake_packets())
+    def test_committed_fixtures_equal_the_generators(self) -> None:
+        # Review r6: the tests read the committed fixtures; they no longer
+        # rewrite them on every run. Regenerate with dump_fixture_packets.
+        cases = {name: case_packets(name) for name in FRAME_CASES + ("dropout", "undervoltage", "vbus")}
+        cases["simulate_live"] = live_fake_packets()
+        for name, packets in cases.items():
+            with self.subTest(name=name):
+                self.assertEqual(load_fixture_packets(FIXTURES / f"{name}.json"), packets)
 
     def test_pin_header_matches_board_v2_section_9(self) -> None:
         assert_pin_map_matches(BOARD_MD.read_text(encoding="utf-8"), PINS_H.read_text(encoding="utf-8"))
@@ -150,8 +174,36 @@ class ReceiverV2Tests(unittest.TestCase):
             summary = check_session(out)
             self.assertGreater(summary["dropout_stretches"], 0)
             self.assertFalse(summary["ok"])
+            self.assertEqual(summary["same_criterion_failed"], [])
             code, _text = _run(["receive-check", str(out)])
-            self.assertEqual(code, 1)
+            # Line 3.4 is "revised" in montage §8: its own exit code, not 1.
+            self.assertEqual(code, EXIT_DROPOUT_3_4)
+
+    def test_dropout_threshold_is_more_than_200_intervals(self) -> None:
+        for count, stretches in ((DROPOUT_INTERVALS + 1, 0), (DROPOUT_INTERVALS + 2, 2)):  # both channels
+            with self.subTest(samples=count):
+                with tempfile.TemporaryDirectory() as tmp:
+                    out = Path(tmp) / "edge"
+                    receive_packets(_flat_packets(0, count, 1), out, "bench", "edge")
+                    self.assertEqual(check_session(out)["dropout_stretches"], stretches)
+
+    def test_restart_window_does_not_hide_earlier_dropout(self) -> None:
+        # A flat run at acq 0..204, then a RESTART at acq 1000: only
+        # 1000..1199 are excluded; the early dropout still counts.
+        packets = _flat_packets(0, DROPOUT_INTERVALS + 5, 1)
+        seq = 1 + len(packets)
+        logical = pack_stream(_meta(4, 1000, seq, Flag.RESTART), _sample_bytes(4, 9))
+        packets += fragment(MsgType.STREAM, 7, seq, logical, 244)
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "restart"
+            receive_packets(packets, out, "bench", "restart")
+            summary = check_session(out)
+            self.assertEqual(summary["dropout_stretches"], 2)  # both channels
+            self.assertEqual(summary["exit_code"], EXIT_DROPOUT_3_4)
+
+    def test_receive_check_on_a_missing_session_exits_2(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(_run(["receive-check", str(Path(tmp) / "nothing")])[0], EXIT_NOT_A_SESSION)
 
     def test_receive_check_fails_scored_same_criterion(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -161,7 +213,7 @@ class ReceiverV2Tests(unittest.TestCase):
             sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
             sidecar["same_criterion"]["3.7"] = "fail"
             sidecar_path.write_text(json.dumps(sidecar) + "\n", encoding="utf-8")
-            self.assertEqual(_run(["receive-check", str(out)])[0], 1)
+            self.assertEqual(_run(["receive-check", str(out)])[0], EXIT_SAME_CRITERION_FAILED)
 
     def test_bleak_is_optional_for_the_fake_path(self) -> None:
         import elicio.receiver_v2 as mod

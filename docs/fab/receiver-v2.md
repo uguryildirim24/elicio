@@ -23,10 +23,8 @@ nominal scale is not applied.
 
    `.venv/bin/python -m elicio.cli receive-check recordings/s2-gel`
 
-   Exit 0 only when there is no rail or flat stretch longer than 200
-   sample intervals (montage §8 dropout rule) and no scored
-   same-criterion line has failed. 3.5 to 3.10 stay `not_scored` until
-   a detector log is written into `sidecar.json`.
+   The exit code says what it found (table below). 3.5 to 3.10 stay
+   `not_scored` until a detector log is written into `sidecar.json`.
 
 Without a board, use the same commands with a fixture:
 
@@ -37,6 +35,28 @@ Without a board, use the same commands with a fixture:
 `--simulate-live` feeds the Python framer through a fake NUS with
 fragmentation (MTU 20), one dropped frame, reordered fragments, and a
 HELLO reconnect.
+
+## Exit codes of `receive-check`
+
+Montage §8's table marks only lines 3.5 to 3.10 "same criterion". Line
+3.4 is marked "revised"; its dropout half keeps the original rule (rail
+or flat for more than 200 sample intervals, counted on the acquisition
+stream). The tool follows the table: a same-criterion failure and a 3.4
+dropout get different codes. Whether a 3.4 dropout stops S2 is an open
+decision in `tasks/reviews/code-r6.md`; until it is taken, treat code 3
+as a stop and write the agent one line.
+
+| Code | Meaning |
+|---:|---|
+| 0 | No dropout; no scored same-criterion line failed |
+| 1 | A scored same-criterion line (3.5 to 3.10) is not `pass` (wins over 3) |
+| 2 | Not a session folder (`samples.npz`, `sidecar.json` or `meta.json` missing) |
+| 3 | A line 3.4 dropout: rail or flat for more than 200 sample intervals |
+
+Not scored for dropout (montage §8 start-up exclusions): samples flagged
+INVALID, the 200 conversions after each RESTART flag, and OVERRUN gaps
+(a gap in `acq_index` ends a run). A gap in `frame_seq` is transport
+loss; it is counted beside dropout, never as dropout.
 
 ## Output files
 
