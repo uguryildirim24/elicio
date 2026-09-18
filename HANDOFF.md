@@ -107,37 +107,37 @@ on a removed key.
   board on standoff tops per turn 07, standoffs 3.0/3.5, cell under the
   board), note 4 (~19:56, standoffs 3.0/3.5/4.0, positive cell clearance
   or a 0.5 floor recess, module stack per candidate). Expect FIVE
-  `DONE WP11` pushes; the last one's report and `docs/fab/packing-v2.md`
+  `DONE WP11` pushes; the last one's report and `docs/fab/packing-v2.md` (expected)
   (expected on `lane/w1`) feed D-1 (Q38) and WP12's outline.
 - **w2** (cursor, `lane/w2`, fast-forwarded to `401f92d`): WP12 board v2
   (`tasks/WP12-board.md`), prompted ~20:20: installs KiCad 10.0.6 by
-  brew cask (Q46), builds the KiCad project, `scripts/board/release.py`,
-  `docs/fab/board-v2.md` (G2 table, G4 map, charger and undervoltage
+  brew cask (Q46), builds the KiCad project, `scripts/board/release.py` (expected),
+  `docs/fab/board-v2.md` (expected) (G2 table, G4 map, charger and undervoltage
   numbers), `tests/test_board_release.py`. Waits for nothing; WAITING if
   the install fails. Report `.reports/WP12-report.md` (expected).
 - **w4** (cursor, `lane/w4`, at `401f92d`): WP13 firmware v2
-  (`tasks/WP13-firmware.md`), prompted ~20:20: `docs/fab/frame-v2.md`,
+  (`tasks/WP13-firmware.md`), prompted ~20:20: `docs/fab/frame-v2.md` (expected),
   `elicio/frame_v2.py` with fixtures, `firmware/` with a host-tested
-  framer, `docs/fab/firmware-v2.md`, the protocol v2 table in
+  framer, `docs/fab/firmware-v2.md` (expected), the protocol v2 table in
   `montage.md`. Installs arduino-cli or west (Q45, Q46). Report
   `.reports/WP13-report.md` (expected).
 - **w9** (cursor, `lane/w9`, at `401f92d`): WP16 record v2
   (`tasks/WP16-record.md`), prompted ~20:20: requirement 5 to titanium
   and the plan v2 decisions in `docs/EARPIECE_DESIGN.md`,
-  `docs/fab/orders-v2.md` ledger skeleton. Report
+  `docs/fab/orders-v2.md` (expected) ledger skeleton. Report
   `.reports/WP16-report.md` (expected).
 - **w5** (agy, `lane/w5`, main merged in at `305fe1f`): WP17 research v3
   (`tasks/WP17-research-v3.md`), prompted ~20:20 by `pane run` + enter;
   it answered one permission dialog (enter) and is reading the brief.
   Writes `docs/fab/L6-research-v3.md` (expected) and fixes two identifiers
-  in `docs/fab/L5-research-v2.md`. agy status is unreliable; its DONE push
+  in `docs/fab/L5-research-v2.md` (absent on main). agy status is unreliable; its DONE push
   is the only signal. Report `.reports/WP17-report.md` (expected).
 
 Round 5 review: when WP11's fifth DONE and WP12, WP13, WP16 and WP17 have
 all landed (a lane that pushes WAITING is recorded and the review opens
-without it), create `review/r5` (expected, not created yet) from `main`,
+without it), create the round 5 review branch (expected, not created yet) from `main`,
 a fresh Opus 5 high reviewer from `tasks/review-code-template.md` as
-`tasks/review-r5.md`, merging `lane/w1`, `lane/w5`, `lane/w2`, `lane/w4`,
+`tasks/review-r5.md` (expected), merging `lane/w1`, `lane/w5`, `lane/w2`, `lane/w4`,
 `lane/w9` in that order, with the attack points: WP11's measured table
 against plan v2 §3 (no constants), WP12's G2 table and undervoltage
 numbers against the datasheets, WP13's fixtures against `frame-v2.md`,
