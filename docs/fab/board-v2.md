@@ -127,12 +127,12 @@ Target runs from its own cell, off-body, electrodes disconnected. TC2030-IDC-NL 
 
 SW1 is 4.5 × 4.5 × 1.6 (XKB TS-1187A). Double-press recovery is WP13's.
 
-Q64 — REGOUT0 and first-load (nRF52840 Product Specification v1.11, DigiKey PDF + Infocenter, read 2026-09-17):
+Q64 — REGOUT0 and first-load. L7-research-v4.md §1 (lane/w5, 2026-09-17) quotes nRF52840 Product Specification v1.7, https://infocenter.nordicsemi.com/pdf/nRF52840_PS_v1.7.pdf:
 
-- High-voltage mode, UICR erased: REGOUT0 reset value is **1.8 V**.
-- GPIO absolute maximum is VDD + 0.3 V (HV VDD max 3.9 V). At 1.8 V first session that is 2.1 V.
+- Verbatim: "Output voltage from the REG0 regulator stage. The voltage is only applied when the high voltage (HV) operating conditions are supplied to the device." Default: "0: 1.8 V (default)". An erased part is **1.8 V** on first power-up.
+- Verbatim, Absolute maximum ratings: "VI/O VDD ≤ 3.6 V -0.3 V VDD + 0.3 V". At VDD = 1.8 V that is **2.1 V**.
 - The board offers **VTref on TC2030 pin 1 from the actual +VDD rail**. It does not feed the target from the probe.
-- A 3.3 V probe high into a 1.8 V pin exceeds 2.1 V. This board **cannot** set REGOUT0 through that 3.3 V probe without going past the pin limit. Kit/level-shifter choice is WP17b. Firmware first-load must use a 1.8 V-safe probe or a resistor-limited adapter; this land does not add one.
+- A 3.3 V probe high into an erased 1.8 V pin exceeds 2.1 V by 1.2 V. This board **cannot** take a 3.3 V probe on first load. Kit/level-shifter choice is WP17b. This land does not add a shifter.
 
 ## 5. Charger calculations (G1)
 
@@ -150,10 +150,10 @@ There is **no /CHG pin** on BQ25100. Charge status is read from ISET on CHG_MON 
 | ISET capacitor | 10 nF to GND | Required for IOUT < 50 mA |
 | KTERM typical (10–50 %) | 600 Ω/% | RPRETERM 6 kΩ–30 kΩ |
 | RPRETERM | 6.04 kΩ | 10 % × 600 Ω/% = 6.00 kΩ |
-| %TERM / ITERM | 10.07 % / 2.00 mA | 6040/600; min ITERM is 1 mA |
-| Precharge | 2 × termination ≈ 4.0 mA | PRETERM programs both |
+| %TERM / ITERM | 10.07 % / 2.00 mA | 6040/600. L7 §4.3 verbatim (SLUSBA8 §9.3.7): "The termination current threshold, ITERM, is user-programmable from 1 mA to 50 mA with an external resistor connected to the PRETERM pin." |
+| Precharge | ITERM (≈ 2.00 mA) | L7 §4.3 verbatim (SLUSBA8 §9.3.6): "The pre-charge current, IPRECHG, is also programmed through the PRETERM pin and is equal to the termination current threshold (IPRECHG = ITERM)." Not 2 × ITERM. |
 | TS | 10 kΩ to VSS | Pack has no thermistor; TS is never floated. 0–45 °C is Rolf's sheet, not automatic cell protection |
-| Fast-charge safety timer | typical 38800 s (about 10.8 h) | Internal; always on |
+| Fast-charge safety timer | 10 h class | L7 §4.3 verbatim (SLUSBA8 §9.3.1): "A system load can be placed in parallel with the battery, as long as the average system load does not prevent the battery from charging fully within the 10-hour safety timer limit." Sheet typical 38800 s remains the electricals row. |
 | Precharge timer | typical 1940 s | Internal; always on |
 | Termination floor vs pack | 2.0 mA vs sheet 0.4 mA EOC | Plan G1: this charger's floor is 1 mA; capacity effect unknown until characterised |
 
@@ -166,13 +166,13 @@ Parallel system load during charge (Q65), sheets read 2026-09-17:
 | nRF52840 System OFF | firmware must hold this while VBUS is present | 0.4 µA typ at 3 V (PS v1.11) |
 | nRF52840 System ON idle, no radio | not the charge policy | 1.5 µA typ at 3 V |
 | nRF CPU/USB idle | if firmware stays awake | milliamps, **above** ITERM |
-| TLV71330 Iq | LDO EN=IN but AFE_VIN is off (Q1 off on VBUS), so the LDO is unpowered | 0 (Iq ~50 µA only when AFE_VIN is up) |
+| TLV71330 Iq | LDO EN=IN but AFE_VIN is off (Q1 off on VBUS), so the LDO is unpowered | 0. L7 §4.4 verbatim (SBVS195 Features): "Low IQ: 50 µA" and "Shutdown current: 0.1 µA (typical)". Those apply only when AFE_VIN is up. Dropout line from the same Features list: "Low dropout: 230 mV at 150 mA". |
 | ADS1292 | unpowered (AFE_VIN off) | 0 |
 | VBAT 1 MΩ/1 MΩ divider | always on | 4.2 V / 2 MΩ ≈ 2.1 µA |
 | Gate leakage Q1–Q4 | nA class | ignore vs 1 mA |
 | BQ25100 ITERM floor | typical 10 % of 19.85 mA | 2.0 mA (min 1 mA) |
 
-I_sys in System OFF + divider ≈ 3 µA, margin vs 1 mA ITERM ≈ 1000×. If firmware leaves the CPU or USB up, I_sys exceeds ITERM and termination may not occur. **Firmware must hold System OFF (or equivalent) while charging.** The LED draws from VBUS through R22, not from VBAT, so it is not in I_sys.
+I_sys in System OFF + divider ≈ 3 µA, margin vs 1 mA ITERM ≈ 1000×. Average I_sys at 3 µA also leaves the 10-hour safety timer (L7 §4.3) intact at ~20 mA charge. If firmware leaves the CPU or USB up, I_sys exceeds ITERM and termination may not occur. **Firmware must hold System OFF (or equivalent) while charging.** The LED draws from VBUS through R22, not from VBAT, so it is not in I_sys.
 
 C3 1 µF on IN, C4 1 µF on OUT: **per typical application**.
 
@@ -201,7 +201,7 @@ Derivation:
 
 **TLV71330PDBVR**, 3.0 V, SOT-23-5, LCSC C2863702 (extended when last read). EN tied to AFE_VIN (always on when the P-FET is on). Pin 4 NC.
 
-Iq: tens of µA class (SBVS195). Dropout as in §6. AVDD = DVDD = +3V0. **Per ADS1292 typical** (single analog/digital 3.0 V, internal 2.42 V reference, C9 10 µF on VREFP).
+Iq: **50 µA** typical when powered (L7 §4.4, SBVS195 "Low IQ: 50 µA"). Dropout 230 mV at 150 mA (same Features line). AVDD = DVDD = +3V0. **Per ADS1292 typical** (single analog/digital 3.0 V, internal 2.42 V reference, C9 10 µF on VREFP).
 
 ## 8. Module, RF keep-out, USB, cell connector
 
@@ -334,52 +334,73 @@ Encoded in the board design settings and in `elicio-v2.kicad_pro`.
 
 ## 13. BOM (placed, in-BOM, not DNP)
 
-Release job writes `hardware/board/release/bom.csv` (gitignored). LCSC numbers were re-read on LCSC/JLC pages on 2026-09-17. Stock and price were **not displayed** on those pages today (login wall / empty widget); tier is what the page labelled when it labelled anything.
+Release job writes `hardware/board/release/bom.csv` (gitignored). LCSC numbers were re-read on JLC/LCSC pages on 2026-09-17 after L7-research-v4.md §4.1 (`git show lane/w5:docs/fab/L7-research-v4.md`). Take L7 only where the page still shows that MPN. Stock and unit price on JLC partdetail pages were often not displayed (tier label only). LCSC.com did show some qty-1 prices.
 
-U1 dispute: **C5118826** is MDBT50Q-1MV2 Extended, X-ray (https://jlcpcb.com/partdetail/C5118826, 2026-09-17). **C5142646** is a GOOSVN screw terminal, not a Raytac module (https://jlcpcb.com/partdetail/C5142646, 2026-09-17). This board uses C5118826.
+U1: **C5118826** is MDBT50Q-1MV2 Extended, X-ray (https://jlcpcb.com/partdetail/C5118826, 2026-09-17). **C5142646** is a GOOSVN screw terminal GS034-3.81-02P (https://jlcpcb.com/partdetail/C5142646). L7 §4.1's "C5142646 is LCSC catalog code" for the Raytac module does **not** match the page. This board uses C5118826.
 
-Blanked lines filled from the same day's pages (or left UNVERIFIED):
+L7 §4.1 SKUs that **fail** today's pages (not used):
 
-| Ref | Value | LCSC | Page date | Note |
+| L7 SKU | L7 claim | Page 2026-09-17 |
+|---|---|---|
+| C134015 | ADS1292RIRSMT | SN65C1168EPW RS-485 TSSOP-16 (JLC and LCSC) |
+| C2841443 | ADS1292IRSMR | CPDH3V3UP-TP ESD SOD-523 |
+| C132291 | TLV71330PDBVR | FUSB302BMPX USB-C controller |
+| C18001 | 220 kΩ 0402 Basic | 240 kΩ 1206 |
+| C25768 | 220 kΩ 0402 Basic | 22 kΩ 0402 Basic |
+| C25744 | 100 kΩ 0402 Basic | 10 kΩ 0402 Basic (used here for the 10 kΩ lines) |
+| C15609 | 1 MΩ 0402 Basic | empty JLC partdetail |
+| C15672 | 1 kΩ 0402 Basic | empty JLC partdetail |
+| C89288 "invalid" | — | ADS1292IRSMT VQFN-32, LCSC 70 in stock, $6.50 qty 1 |
+| C2863702 "invalid" | — | TLV71330PDBVR SOT-23-5, LCSC 190 in stock |
+
+U2 stays **C89288** ADS1292IRSMT non-R (PWDN on pin 15). The R-device is a different pinout.
+
+J2: L7 and the page agree. C160404 is SM04B-SRSS-TB **4P**. C160402 is SM02B-SRSS-TB **2P**. This board now uses C160402.
+
+Blanked / corrected lines from the same day's pages:
+
+| Ref | Value | LCSC | Tier (page) | Note |
 |---|---|---|---|---|
-| C2 | 10 nF 0402 | C91601 | 2026-09-17 | C1634 is 10 pF, not 10 nF |
-| C6, C8, C9 | 10 µF 0603 | C19702 | 2026-09-17 | Q68; C15850 is 0805 |
-| C7, C15 | 100 nF 0603 | C14663 | 2026-09-17 | Q68 DVDD/AVDD 0.1 µF |
-| C11, C12 | 100 nF 0402 | C1525 | 2026-09-17 | |
-| R1–R3 | 220 kΩ 1% 0402 | C881401 | 2026-09-17 | G2 per-path bound |
-| R4, R17, R20, R21 | 1 MΩ 0402 | C2782127 | 2026-09-17 | C25765 is 20 kΩ, not 1 MΩ |
-| R14–R16, R23, R24 | 100 kΩ 0402 | C25741 | 2026-09-17 | C25741 is 100 kΩ, not 10 MΩ |
-| R22 | 1 kΩ 0402 | C11702 | 2026-09-17 | LED series |
+| C2 | 10 nF 0402 | C1524 | Extended | L7 §4.1. Page: 10 nF X7R 0402. Not Basic. |
+| C6, C8, C9 | 10 µF 0603 | C19702 | — | Q68 10 µF; stay 0603 |
+| C7, C15 | 100 nF 0603 | C14663 | — | Q68 0.1 µF at the ADS pins. L7's C1525 is the 0402 100 nF used on C11/C12. |
+| C11, C12 | 100 nF 0402 | C1525 | Basic | L7 §4.1. Page: CL05B104KO5NNNC 100 nF. |
+| R1–R3 | 220 kΩ 1% 0402 | C881401 | Extended | Page: 220 kΩ 0402. L7 C18001/C25768 fail. |
+| R4, R17, R20, R21 | 1 MΩ 0402 | C26083 | Basic | Page: 0402WGF1004TCE 1 MΩ. L7 C15609 empty. |
+| R5–R8, R13, R25–R28 | 10 kΩ 0402 | C25744 | Basic | Page: 10 kΩ. Old C25792 is 47 kΩ. |
+| R14–R16, R23, R24 | 100 kΩ 0402 | C25741 | Basic | Page: 100 kΩ. L7 C25744 is 10 kΩ. |
+| R18 | 47 kΩ 0402 | C25792 | Basic | VBUS_DET. Old C25780 is 348 kΩ. |
+| R19 | 27 kΩ 0402 | C25771 | Extended | Page: 27 kΩ. |
+| R22 | 1 kΩ 0402 | C11702 | Basic | Page: 1 kΩ. L7 C15672 empty. |
+| R11 | 6.80 kΩ 0402 | C25917 | Extended | Page: 6.8 kΩ 0402. Old C25848 is 8.2 kΩ 0201. |
+| R12 | 6.04 kΩ 0402 | C966759 | Extended | Page: 6.04 kΩ 0402. Old C25841 is 2.2 kΩ 0201. |
 
 | Ref | MPN / value | LCSC | Tier (when read) | Notes |
 |---|---|---|---|---|
-| U1 | MDBT50Q-1MV2 | C5118826 | Extended (page label) | Not C5142646 |
-| U2 | ADS1292IRSMT | C89288 | — | Non-R, VQFN-32 |
+| U1 | MDBT50Q-1MV2 | C5118826 | Extended | Not C5142646 |
+| U2 | ADS1292IRSMT | C89288 | Extended | Non-R, VQFN-32. L7 replacements fail the page. |
 | U3 | BQ25100YFPR | C527572 | Extended | |
-| U4 | TLV71330PDBVR | C2863702 | Extended | |
+| U4 | TLV71330PDBVR | C2863702 | Extended | L7 C132291 is FUSB302. Keep C2863702. |
 | U5 | USBLC6-2SC6 | C7519 | — | USB ESD |
 | Q1 | AO3401A | C15127 | — | P-FET |
 | Q2–Q4 | 2N7002 | C2128 | Basic typical | Inhibit, LED (Q5 DNP) |
 | D1 | PESD5V0L1UL | C24109 | — | VBUS ESD |
 | D2 | 0402 LED | C72043 | — | Firmware LED on LED_EN |
 | J1 | TYPE-C-31-M-14 | C223907 | Extended | 16P USB2 |
-| J2 | SM02B-SRSS-TB | C160404 | — | JST-SH |
+| J2 | SM02B-SRSS-TB | C160402 | Extended | 2P SH. Was C160404 4P. |
 | J3 | 1×03 RA 2.54 | C49257 | — | Bench |
 | SW1 | TS-1187A | C318884 | — | 4.5 × 4.5 × 1.6 |
 | L1 | 10 µH 0603 | C1045 | — | nRF DCCH |
-| R11 | 6.80 kΩ | C25848 | — | ISET |
-| R12 | 6.04 kΩ | C25841 | — | PRETERM |
-| R13, R25, R26, R28 | 10 kΩ | C25792 | — | TS, CHG_MON, nRESET, LED_EN pull-down |
-| R9, R10 | 5.1 kΩ | C25905 | — | CC |
+| R9, R10 | 5.1 kΩ | C25905 | Basic | CC. Page: 5.1 kΩ 0402. |
 
-Displayed stock and unit price: **UNVERIFIED** (not shown on the pages today). Not in BOM: J4 TC2030-NL, P1–P3 ring pads, R29–R30 DNP 10 MΩ, Q5 DNP, power flags.
+Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.com qty-1 seen today: U2 C89288 $6.50 (70); U4 C2863702 from $0.23 (190). Not in BOM: J4 TC2030-NL, P1–P3 ring pads, R29–R30 DNP 10 MΩ (LCSC C26082 for the 10 MΩ land, not stuffed), Q5 DNP, power flags.
 
 ## 14. Reference-circuit check (each choice)
 
 | Choice | Verdict |
 |---|---|
 | ADS1292 3.0 V AVDD=DVDD, internal ref, 10 µF VREFP, 1 µF VCAP1, 100 nF VCAP2 | Per typical (SBAS502C) |
-| Supply bypass 10 µF + 0.1 µF on AVDD and on DVDD (C6+C7, C8+C15, 0603) | Per SBAS502C (Q68). Caps on B.Cu under the ADS |
+| Supply bypass 10 µF + 0.1 µF on AVDD and on DVDD (C6+C7, C8+C15, 0603) | L7 §4.2 verbatim (SBAS502C §11.1): "Each supply pin (AVDD and DVDD) should be bypassed using both a 10-µF and a 0.1-µF ceramic capacitor." And: "To achieve the best performance, it is recommended that the capacitors be placed as close to the device as possible." Caps on B.Cu under the ADS. |
 | RLD 1 MΩ + 1.5 nF | Per typical |
 | 220 kΩ on SIG1, SIG2, REF | Per plan v2 §5.5, not a TI typical value |
 | Unused IN2 tied to +3V0 | Per SBAS502C ("connect unused analog inputs to AVDD"); firmware powers CH2 down with its input shorted (CH2SET 0x81) |
@@ -443,13 +464,25 @@ FPC assembly acceptance, quoted, no request:
 - https://jlcpcb.com/blog/fpc-panelization-design-standards (read 2026-09-17): FPC+SMT minimum panel 70 × 70 mm; below that, panelise or add process edges. FPC does not use V-cut or mouse bites; bridge tabs 0.7–1.0 mm.
 - https://jlcpcb.com/blog/design-guidelines-flex-pcb-panels and https://jlcpcb.com/blog/fast-turn-flex-pcb (read 2026-09-17): 5 mm process edges; 2 mm board spacing (3 mm with metal stiffeners); SMT fiducials 1 mm at 3.85 mm from the panel edge; tooling holes 2 mm; local fiducial beside each unit; carrier / SMT pallet for flex.
 
-https://jlcpcb.com/help/article/fpc-extra-charges (read 2026-09-17, last updated 2026-08-18): extra fee when a prototype has **4 or more stiffeners**. This drawing has **two** FR4 0.4 pieces (Eco1.User: island + USB/pocket). No tab FR4 (Q58 clamp). That is under the extra-stiffener rule.
+https://jlcpcb.com/help/article/fpc-extra-charges (re-read 2026-09-17, last updated 2026-09-09), same wording as L7 §3.1:
 
-Q67 Raytac routes, pages read 2026-09-17:
+- Prototype: "For prototype orders, when there are 4 or more stiffeners on the board, an extra fee is required."
+- Small batch / mass: "when there are 4pcs or more stiffeners on the board, or the total stiffener area on both sides is no less than 90% of the board area, extra cost is required."
+- Stacked: "When you need to stack up stiffeners in the same location, there will be an additional cost of $8.14+$24.44/m² for every extra stiffener."
 
-- Global sourcing: https://jlcpcb.com/help/article/How-to-order-parts-from-JLCPCB-using-Global-Sourcing — the public page is a short help article; it does not list MDBT50Q as a stocked line. **UNVERIFIED as a live buy.**
-- Consignment: https://jlcpcb.com/help/article/JLCPCB-Parts-Consignment-Service — the public page is thin (no MDBT50Q SKU, no price). **UNVERIFIED as a live buy.**
-- LCSC C5118826 is the part this BOM names. Nothing was ordered.
+This drawing has **two** FR4 0.4 pieces (Eco1.User: island + USB/pocket). No tab FR4 (Q58 clamp). Count = 2, under the extra-stiffener rule.
+
+L7 §3.1 also lists FR4 **0.3 mm** on the stiffener catalogue. This land still uses 0.4 mm (review r5 / packing). A 0.3 mm change is WP11/WP14.
+
+Q67 Raytac routes. L7 §3.3–§3.4 quotes (pages named there, 2026-09-17). The same JLC help URLs returned only the chat widget when this lane fetched them today, so live page text is **UNVERIFIED here**; the sentences below are L7's quotes:
+
+- Consignment overseas handling: "2% of the declared value, with a minimum charge of USD 10 per shipment".
+- Pickup: "Fewer than 20 component types: USD 30 service fee. More than 20 component types: USD 30 service fee + an additional USD 1 per extra component type."
+- Storage: "There is no inventory cost for consigned parts."
+- Global sourcing estimate: "This estimated price is for reference only and is determined by the JLCPCB purchasing department based on data evaluation." "Because component prices can be volatile, estimated prices do not update in real-time."
+- Extended feeder: "JLCPCB charges a $3 fee per extended component type".
+
+LCSC C5118826 is the part this BOM names. Nothing was ordered.
 
 Packing SW1 centre is now (10.10, 24.20). The old 0.3 mm-to-outline conflict was the pre-r5 site (4.80, 21.15). The new site is inward of the left edge.
 
@@ -463,5 +496,5 @@ Packing SW1 centre is now (10.10, 24.20). The old 0.3 mm-to-outline conflict was
 6. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.
 7. **BQ25100YFPR stock** — extended; G3 is not this package.
 8. **Protective monitor cadence** — V_STOP is a firmware constant; the divider is always connected; firmware must sample at the protective cadence.
-9. **Displayed LCSC stock/price** — pages on 2026-09-17 did not show live stock or a unit price. G3 re-reads.
+9. **Displayed LCSC stock/price** — JLC partdetail widgets often hide qty. G3 re-reads. L7 §4.1 SKUs that fail today's pages stay unused (C134015, C2841443, C132291, C18001, C25768).
 10. **JLC assembly edge 2.5 mm** — several packing centres (U3, tab 220 kΩ) sit closer than 2.5 mm to an outline. WP14/panel.
