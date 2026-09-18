@@ -685,5 +685,28 @@ def build() -> None:
     print("pads without net", len(missing), missing[:20])
 
 
+def route_only(pcb_path: Path | None = None) -> None:
+    """Load an existing placement and add maze copper. Do not move footprints."""
+    out = pcb_path or (BOARD_DIR / "elicio-v2.kicad_pcb")
+    board = pcbnew.LoadBoard(str(out))
+    n = 0
+    for item in list(board.GetTracks()):
+        board.Remove(item)
+        n += 1
+    print("stripped tracks", n, "file", out)
+    failed = maze_route(board, outline_points())
+    print("route failed nets", failed)
+    filler = pcbnew.ZONE_FILLER(board)
+    filler.Fill(board.Zones())
+    board.SetFileName(str(out))
+    board.Save(str(out))
+    ntracks = len([t for t in board.GetTracks() if t.GetClass() in {"PCB_TRACK", "PCB_ARC"}])
+    print("saved", out, "tracks", ntracks, "failed", len(failed))
+
+
 if __name__ == "__main__":
-    build()
+    if "--route-only" in sys.argv:
+        rest = [a for a in sys.argv[1:] if a != "--route-only"]
+        route_only(Path(rest[0]) if rest else None)
+    else:
+        build()

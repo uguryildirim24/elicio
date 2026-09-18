@@ -6,17 +6,25 @@ import math
 
 import pcbnew
 
-STEP = 0.25
-VIA_COST = 2
+STEP = 0.20
+VIA_COST = 3
 TRACK_W = 0.10
+CONTACT_W = 0.15
 VIA_D = 0.70
 VIA_DRILL = 0.30
-CLEAR = 0.08
-EDGE = 0.22
+CLEAR = 0.10
+EDGE = 0.35
+ASTAR_CAP = 120000
 RF = (2.25, 26.15, 6.05, 38.55)
+RF_FEED = (6.05, 33.05, 7.25, 34.65)
 CONTACT = {"SIG1", "SIG2", "REF"}
 BOARD_U0, BOARD_U1 = 2.25, 17.75
 BOARD_S0, BOARD_S1 = 18.60, 37.60
+# packing-v2.md §5 rings, unfolded (same numbers as build_v2b.py).
+SIG1_RING = (-4.75, 22.00)
+SIG2_RING = (24.75, 33.10)
+REF_RING = (8.50, 43.00)
+RINGS = {"SIG1": SIG1_RING, "SIG2": SIG2_RING, "REF": REF_RING}
 SKIP_NETS = {"GND"}
 
 
@@ -154,7 +162,7 @@ def astar(grid: Grid, starts: set[tuple[int, int, int]], goals: set[tuple[int, i
     for s in starts:
         dist[s] = 0
         heapq.heappush(pq, (0, s))
-    dirs = ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
+    dirs = ((1, 0), (-1, 0), (0, 1), (0, -1))
     nx, ny = grid.nx, grid.ny
     expanded = 0
     while pq:
@@ -163,6 +171,8 @@ def astar(grid: Grid, starts: set[tuple[int, int, int]], goals: set[tuple[int, i
         if d is None:
             continue
         expanded += 1
+        if expanded > ASTAR_CAP:
+            return None, expanded
         if node in goals:
             path = [node]
             while path[-1] in parent:
@@ -217,7 +227,7 @@ def pad_cells(grid: Grid, pad) -> set[tuple[int, int, int]]:
     return cells
 
 
-def commit_path(board, net, grid: Grid, path, extra: float) -> None:
+def commit_path(board, net, grid: Grid, path, extra: float, width: float) -> None:
     if not path:
         return
     pts = [(grid.coord(ix, iy)[0], grid.coord(ix, iy)[1], ly) for ix, iy, ly in path]
@@ -240,18 +250,18 @@ def commit_path(board, net, grid: Grid, path, extra: float) -> None:
             j += 1
         x1, y1, _ = pts[j]
         layer = pcbnew.F_Cu if ly0 == 0 else pcbnew.B_Cu
-        add_seg(board, net, x0, y0, x1, y1, layer)
+        add_seg(board, net, x0, y0, x1, y1, layer, width)
         grid.stamp([ly0], min(x0, x1) - extra, min(y0, y1) - extra, max(x0, x1) + extra, max(y0, y1) + extra)
         i = j
 
 
-def add_seg(board, net, x0, y0, x1, y1, layer) -> None:
+def add_seg(board, net, x0, y0, x1, y1, layer, width: float = TRACK_W) -> None:
     if abs(x0 - x1) < 0.01 and abs(y0 - y1) < 0.01:
         return
     t = pcbnew.PCB_TRACK(board)
     t.SetStart(v2(x0, y0))
     t.SetEnd(v2(x1, y1))
-    t.SetWidth(pcbnew.FromMM(TRACK_W))
+    t.SetWidth(pcbnew.FromMM(width))
     t.SetLayer(layer)
     t.SetNet(net)
     board.Add(t)
@@ -288,18 +298,27 @@ def seed_grid(board, outline) -> Grid:
             x = x0 + (x1 - x0) * t
             y = y0 + (y1 - y0) * t
             grid.stamp_r([0, 1], x, y, EDGE, via_ban=True)
-    # RF keep-out
+    # RF keep-out and feed notch: no new copper.
     x0, y0, x1, y1 = RF
     grid.stamp([0, 1], x0, y0, x1, y1, via_ban=True)
+    x0, y0, x1, y1 = RF_FEED
+    grid.stamp([0, 1], x0, y0, x1, y1, via_ban=True)
+    # 7x7 ring keep-outs: other nets stay out; the owner unstamps later.
+    for cx, cy in RINGS.values():
+        grid.stamp([0, 1], cx - 3.5, cy - 3.5, cx + 3.5, cy + 3.5, via_ban=True)
     # no vias in neck bend
     grid.stamp([], 12.50, 12.00, 17.75, 18.60, via_ban=True)
     for iy in range(grid.ny):
         for ix in range(grid.nx):
             x, y = grid.coord(ix, iy)
+            i = grid.index(ix, iy)
             if 12.50 <= x <= 17.75 and 12.00 <= y <= 18.60:
-                grid.via_ban[grid.index(ix, iy)] = 1
-            if tab_owner(x, y):
-                grid.via_ban[grid.index(ix, iy)] = 1
+                grid.via_ban[i] = 1
+            owner = tab_owner(x, y)
+            if owner:
+                grid.via_ban[i] = 1
+                grid.block[0][i] = 1
+                grid.block[1][i] = 1
     for iy in range(grid.ny):
         for ix in range(grid.nx):
             x, y = grid.coord(ix, iy)
@@ -321,19 +340,57 @@ def seed_grid(board, outline) -> Grid:
             if netname.startswith("NC-") or netname.startswith("unconnected"):
                 continue
             x, y = pad_xy(pad)
-            r = pad_radius(pad) + 0.05
+            r = max(0.10, pad_radius(pad) * 0.55 + CLEAR)
             grid.stamp_r(pad_layers(pad), x, y, r, respect_highway=True)
     return grid
 
 
-def stub_to_pad(board, net, pad, ix, iy, ly, grid) -> None:
+def stub_to_pad(board, net, pad, ix, iy, ly, grid, width: float) -> None:
     x0, y0 = pad_xy(pad)
     x1, y1 = grid.coord(ix, iy)
     layer = pcbnew.F_Cu if ly == 0 else pcbnew.B_Cu
-    add_seg(board, net, x0, y0, x1, y1, layer)
+    add_seg(board, net, x0, y0, x1, y1, layer, width)
+
+
+def track_width(name: str) -> float:
+    return CONTACT_W if name in CONTACT else TRACK_W
+
+
+def maze_extra(name: str) -> float:
+    # Contact netclass clearance is 1.0 mm. That value cannot sit on a 2.5 mm
+    # tab next to the 0402 220 kΩ (pad gap 0.48 mm). Isolation on this board
+    # is the 7x7 ring keep-out plus one net per tab. Maze copper uses the
+    # Default 0.10 mm clearance so tracks do not short.
+    return track_width(name) / 2.0 + CLEAR
+
+
+def net_span(pads) -> float:
+    xs = [pad_xy(p)[0] for p in pads]
+    ys = [pad_xy(p)[1] for p in pads]
+    return (max(xs) - min(xs)) + (max(ys) - min(ys))
+
+
+def unstamp_pads(grid: Grid, pads) -> None:
+    for pad in pads:
+        x, y = pad_xy(pad)
+        r = pad_radius(pad) + 0.25
+        grid.unstamp([0, 1], x - r, y - r, x + r, y + r)
+
+
+def unstamp_owner_tab(grid: Grid, name: str) -> None:
+    cx, cy = RINGS[name]
+    grid.unstamp([0, 1], cx - 3.5, cy - 3.5, cx + 3.5, cy + 3.5)
+    for iy in range(grid.ny):
+        for ix in range(grid.nx):
+            x, y = grid.coord(ix, iy)
+            if tab_owner(x, y) == name:
+                i = grid.index(ix, iy)
+                grid.block[0][i] = 0
+                grid.block[1][i] = 0
 
 
 def maze_route(board, outline) -> list[str]:
+    """Clearance-aware A*. No shorting bus. GND stays a zone net."""
     pads_by_net: dict[int, list] = {}
     for fp in board.GetFootprints():
         for pad in fp.Pads():
@@ -341,16 +398,50 @@ def maze_route(board, outline) -> list[str]:
             if code <= 0:
                 continue
             pads_by_net.setdefault(code, []).append(pad)
-    names = []
+    jobs: list[tuple[int, float, str, list]] = []
     for pads in pads_by_net.values():
         name = pads[0].GetNet().GetNetname()
         if name in SKIP_NETS or name.startswith("unconnected") or name.startswith("NC-"):
             continue
         if len(pads) < 2:
             continue
-        names.append(name)
-    # WP12c: do not write the shorting B.Cu bus. Copper is added only by a
-    # real router (Freerouting or a clearance-aware maze).
-    print("unrouted nets", len(names))
-    return names
+        # USB pairs and contact nets first, then short spans.
+        pri = 0 if name in {"USB_DP", "USB_DN"} else 1 if name in CONTACT else 2
+        jobs.append((pri, net_span(pads), name, pads))
+    jobs.sort()
+    grid = seed_grid(board, outline)
+    failed: list[str] = []
+    for _, _, name, pads in jobs:
+        extra = maze_extra(name)
+        width = track_width(name)
+        unstamp_pads(grid, pads)
+        if name in CONTACT:
+            unstamp_owner_tab(grid, name)
+        pads_sorted = sorted(pads, key=lambda p: pad_xy(p))
+        net = pads_sorted[0].GetNet()
+        tree = pad_cells(grid, pads_sorted[0])
+        ok = True
+        for pad in pads_sorted[1:]:
+            goals = pad_cells(grid, pad)
+            if not tree or not goals:
+                ok = False
+                break
+            path, expanded = astar(grid, tree, goals)
+            if not path:
+                print("maze fail", name, "expanded", expanded)
+                ok = False
+                break
+            commit_path(board, net, grid, path, extra, width)
+            stub_to_pad(board, net, pads_sorted[0] if pad is pads_sorted[1] else pad, path[0][0], path[0][1], path[0][2], grid, width)
+            stub_to_pad(board, net, pad, path[-1][0], path[-1][1], path[-1][2], grid, width)
+            tree |= set(path)
+            tree |= goals
+        if not ok:
+            failed.append(name)
+        for pad in pads:
+            x, y = pad_xy(pad)
+            r = pad_radius(pad) + extra
+            grid.stamp_r(pad_layers(pad), x, y, r)
+    print("maze routed", len(jobs) - len(failed), "failed", len(failed), failed)
+    return failed
 
