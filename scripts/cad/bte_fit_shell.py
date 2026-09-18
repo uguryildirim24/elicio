@@ -340,17 +340,23 @@ STAGE_B_EMBOSS_S = 10.0  # battery zone, not over the module
 SHELL_PARTS = ("body_full_p15", "lid")
 SHELL_WINNER = "A_pack501012_series_w22_y8_iII_s3"
 SHELL_PARAMS_FILE = SCRIPT_DIR / "params" / "shell_v2.toml"
-# packing-v2.md §5c on lane/w3. The check parses the table; this sha is
-# the file that was read.
-S5C_PACKING_SHA = "e1f1d6facf37526d358569dace7ebf75ee4e160f"
+# packing-v2.md §5d on lane/w3. The check parses the folded-site table;
+# this sha is the file that was read.
+S5C_PACKING_SHA = "408a4765ec953d6cc84210fd3e5632185ff95cbb"
+S5D_PACKING_SHA = S5C_PACKING_SHA
 S5C_W3_ROOT = Path("/home/user/projects/elicio/.worktrees/w3")
 S5C_PACKING_REL = "docs/fab/packing-v2.md"
-# Delay the tail loft so P4/P5 at s 44 sit in the width-22 body. Cavity
-# end stays at CAVITY_S[1] (38.2). Stage B v2 does not set this.
+# Delay the tail loft. Cavity end stays at CAVITY_S[1] (38.2). Stage B v2
+# does not set this. P4/P5 are on the hook-end floor (Q86), not the tail.
 SHELL_TAPER_S0 = 45.5
 S5C_BOSS_KEEP = 3.30  # packing keep box, Ø2.7 + 2 × 0.30
 S5C_CHARGE_NYLON = 3.0
 S5C_CHARGE_CLEAR = 2.0
+CHARGE_PAD_D = 5.0  # RING_PAD Ø5 through the medial floor (Q86)
+CHARGE_CREEPAGE = 1.0  # Q84: exposed-copper creepage on the flex
+# WP11e Addendum 2 / WP14e brief: 501012 pocket beside the floor pads.
+S5D_CELL_U = (1.80, 11.90)
+S5D_CELL_S = (1.50, 14.50)
 # ISO 7380 M2.5×4 head (v1 contact dome stays the skin seat).
 ISO_7380_HEAD_D = 4.6
 ISO_7380_HEAD_H = 1.5
@@ -447,18 +453,36 @@ class Check:
 
 @dataclass
 class S5cNoReceptacle:
-    """§5c no-receptacle process-edge width-22 chord-47.90 two-sided cell."""
+    """§5c/§5d no-receptacle process-edge width-22 chord-47.90 two-sided cell.
+
+    P1–P5 come from the §5d folded-site table. Hole sites stay Q82.
+    """
 
     packing_sha: str
     packing_path: str
     holes: tuple[tuple[float, float], ...]
     courtyards: tuple[tuple[str, float, float, float, float], ...]
+    p1: tuple[float, float]
+    p2: tuple[float, float]
+    p3: tuple[float, float]
     p4: tuple[float, float]
     p5: tuple[float, float]
+    p4_y: float
+    p5_y: float
     sig1_strip: float
     sig2_strip: float
     island_u: tuple[float, float]
     island_s: tuple[float, float]
+    rib_slot_u: tuple[float, float]
+    rib_slot_s: tuple[float, float]
+    rib_slot_h: float
+    drop_s0: float
+    drop_u: tuple[float, float]
+    drop_r: float
+    drop_h: float
+    drop_flex: float
+    cell_u: tuple[float, float]
+    cell_s: tuple[float, float]
 
 
 def chord_from_arc_bow(arc: float, bow: float) -> tuple[float, float]:
@@ -750,21 +774,21 @@ def shell_hinge_u(params: Mapping[str, Any]) -> tuple[float, float]:
 
 
 def _s5c_packing_text() -> tuple[str, str, str]:
-    """Return (markdown, sha, path label) for packing §5c."""
+    """Return (markdown, sha, path label) for packing §5d at S5D_PACKING_SHA."""
     w3_md = S5C_W3_ROOT / S5C_PACKING_REL
     try:
         text = subprocess.check_output(
-            ["git", "-C", str(S5C_W3_ROOT), "show", f"{S5C_PACKING_SHA}:{S5C_PACKING_REL}"],
+            ["git", "-C", str(S5C_W3_ROOT), "show", f"{S5D_PACKING_SHA}:{S5C_PACKING_REL}"],
             stderr=subprocess.DEVNULL,
             encoding="utf-8",
         )
-        return text, S5C_PACKING_SHA, str(w3_md)
+        return text, S5D_PACKING_SHA, str(w3_md)
     except (OSError, subprocess.CalledProcessError):
         pass
     for path in (w3_md, REPO_ROOT / S5C_PACKING_REL):
         if path.is_file():
             body = path.read_text(encoding="utf-8")
-            if "## 5c." not in body:
+            if "## 5d." not in body:
                 continue
             try:
                 sha = subprocess.check_output(
@@ -777,14 +801,71 @@ def _s5c_packing_text() -> tuple[str, str, str]:
                 sha = "unknown"
             return body, sha, str(path)
     raise CheckFail(
-        "packing §5c not found: expected lane/w3 docs/fab/packing-v2.md at "
-        f"{S5C_PACKING_SHA}"
+        "packing §5d not found: expected lane/w3 docs/fab/packing-v2.md at "
+        f"{S5D_PACKING_SHA}"
     )
+
+
+def _section_after(text: str, heading: str) -> str:
+    start = text.find(heading)
+    if start < 0:
+        raise CheckFail(f"packing: heading missing: {heading}")
+    rest = text[start:]
+    nxt = re.search(r"\n### ", rest[1:])
+    return rest if nxt is None else rest[: nxt.start() + 1]
+
+
+def _parse_s5d_folded_pads(text: str) -> dict[str, tuple[float, float, float]]:
+    """P1–P5 (u, s, y) from §5d's folded-site table. Sites are not hard-coded."""
+    section = _section_after(text, "### Folded sites for the shell")
+    pads: dict[str, tuple[float, float, float]] = {}
+    for raw in section.splitlines():
+        row = re.match(
+            r"^\|\s*(P[1-5])\s*\|\s*\S+\s*\|\s*([0-9.]+)\s*\|\s*([0-9.]+)\s*\|\s*([0-9.]+)",
+            raw,
+        )
+        if row is None:
+            continue
+        pads[row.group(1)] = (float(row.group(2)), float(row.group(3)), float(row.group(4)))
+    missing = [name for name in ("P1", "P2", "P3", "P4", "P5") if name not in pads]
+    if missing:
+        raise CheckFail(f"packing §5d folded-site table missing {missing}")
+    return pads
+
+
+def _parse_s5d_shell_extras(text: str) -> dict[str, float | tuple[float, float]]:
+    section = _section_after(text, "### Shell extras for the P4/P5 fold")
+    rib_m = re.search(
+        r"Rib slot s\s+(\d+(?:\.\d+)?)[–-](\d+(?:\.\d+)?),\s*u\s+"
+        r"(\d+(?:\.\d+)?)[–-](\d+(?:\.\d+)?),\s*height\s+(\d+(?:\.\d+)?)",
+        section,
+    )
+    drop_m = re.search(
+        r"Drop channel at leftover s=(\d+(?:\.\d+)?),\s*u\s+"
+        r"(\d+(?:\.\d+)?)[–-](\d+(?:\.\d+)?):\s*two 90° at R\s+"
+        r"(\d+(?:\.\d+)?)\s*mm,\s*drop\s+(\d+(?:\.\d+)?)\s*mm,\s*"
+        r"vertical\s+(\d+(?:\.\d+)?)\s*mm",
+        section,
+    )
+    if rib_m is None:
+        raise CheckFail("packing §5d: rib slot missing from shell extras")
+    if drop_m is None:
+        raise CheckFail("packing §5d: drop channel missing from shell extras")
+    return {
+        "rib_slot_s": (float(rib_m.group(1)), float(rib_m.group(2))),
+        "rib_slot_u": (float(rib_m.group(3)), float(rib_m.group(4))),
+        "rib_slot_h": float(rib_m.group(5)),
+        "drop_s0": float(drop_m.group(1)),
+        "drop_u": (float(drop_m.group(2)), float(drop_m.group(3))),
+        "drop_r": float(drop_m.group(4)),
+        "drop_h": float(drop_m.group(5)),
+        "drop_flex": float(drop_m.group(6)),
+    }
 
 
 @functools.lru_cache(maxsize=1)
 def load_s5c_no_receptacle() -> S5cNoReceptacle:
-    """Parse the no-receptacle width-22 chord-47.90 process-edge table in §5c."""
+    """Parse Q82 holes from §5c and P1–P5 plus shell extras from §5d at 408a476."""
     text, sha, path_label = _s5c_packing_text()
     start_5c = text.find("## 5c.")
     if start_5c < 0:
@@ -792,13 +873,16 @@ def load_s5c_no_receptacle() -> S5cNoReceptacle:
     rest_5c = text[start_5c:]
     nxt_h = re.search(r"\n## [^#]", rest_5c[1:])
     section_5c = rest_5c if nxt_h is None else rest_5c[: nxt_h.start() + 1]
-    marker = "### Smallest process-edge layout with no receptacle that places all 64"
+    marker = "### WP12d pin table — smallest all-64 with no receptacle"
     start = text.find(marker)
+    if start < 0:
+        marker = "### Smallest process-edge layout with no receptacle that places all 64"
+        start = text.find(marker)
     if start < 0:
         raise CheckFail("packing §5c: no-receptacle process-edge table missing")
     rest = text[start:]
-    nxt = rest.find("\n### ", 1)
-    section = rest if nxt < 0 else rest[:nxt]
+    nxt = re.search(r"\n## ", rest[1:])
+    section = rest if nxt is None else rest[: nxt.start() + 1]
     holes_m = re.search(
         r"Hole sites \(Q82[^)]*\):\s*\((-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\)\s*;\s*"
         r"\((-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\)",
@@ -827,7 +911,6 @@ def load_s5c_no_receptacle() -> S5cNoReceptacle:
     sig1_strip = float(strip_m.group(1))
     sig2_strip = float(strip_m.group(2))
     courtyards: list[tuple[str, float, float, float, float]] = []
-    p4 = p5 = None
     for raw in section.splitlines():
         row = re.match(
             r"^\|\s*([A-Z][A-Z0-9]*)\s*\|\s*\w+\s*\|\s*([0-9.]+)\s*\|\s*([0-9.]+)\s*\|"
@@ -840,26 +923,42 @@ def load_s5c_no_receptacle() -> S5cNoReceptacle:
         u, s = float(row.group(2)), float(row.group(3))
         wu, ws = float(row.group(4)), float(row.group(5))
         courtyards.append((ref, u, s, wu, ws))
-        if ref == "P4":
-            p4 = (u, s)
-        elif ref == "P5":
-            p5 = (u, s)
-    if p4 is None or p5 is None:
-        raise CheckFail("packing §5c: P4/P5 rows missing from the no-receptacle table")
     if not courtyards:
         raise CheckFail("packing §5c: courtyard table empty")
+    pads = _parse_s5d_folded_pads(text)
+    extras = _parse_s5d_shell_extras(text)
     return S5cNoReceptacle(
         packing_sha=sha,
         packing_path=path_label,
         holes=holes,
         courtyards=tuple(courtyards),
-        p4=p4,
-        p5=p5,
+        p1=(pads["P1"][0], pads["P1"][1]),
+        p2=(pads["P2"][0], pads["P2"][1]),
+        p3=(pads["P3"][0], pads["P3"][1]),
+        p4=(pads["P4"][0], pads["P4"][1]),
+        p5=(pads["P5"][0], pads["P5"][1]),
+        p4_y=pads["P4"][2],
+        p5_y=pads["P5"][2],
         sig1_strip=sig1_strip,
         sig2_strip=sig2_strip,
         island_u=island_u,
         island_s=island_s,
+        rib_slot_u=extras["rib_slot_u"],
+        rib_slot_s=extras["rib_slot_s"],
+        rib_slot_h=extras["rib_slot_h"],
+        drop_s0=extras["drop_s0"],
+        drop_u=extras["drop_u"],
+        drop_r=extras["drop_r"],
+        drop_h=extras["drop_h"],
+        drop_flex=extras["drop_flex"],
+        cell_u=S5D_CELL_U,
+        cell_s=S5D_CELL_S,
     )
+
+
+def load_s5d_folded() -> S5cNoReceptacle:
+    """§5d folded-site table for P1–P5 at 408a476. Same object as load_s5c_no_receptacle."""
+    return load_s5c_no_receptacle()
 
 
 def _aabb_overlap(
@@ -892,7 +991,7 @@ def snap_strain(length: float, thick: float, deflection: float) -> float:
 def _shell_boss_sites(
     layout: Any, v2: Any, params: Mapping[str, Any] | None = None
 ) -> list[tuple[str, float, float]]:
-    """Board-boss (u, s). Shell v2d reads §5c hole sites; packing may skip both corners."""
+    """Board-boss (u, s). Shell v2e reads §5c Q82 hole sites; packing may skip both corners."""
     if params is not None and stage_is_shell(params):
         s5c = load_s5c_no_receptacle()
         return [(f"boss_{i + 1}", u, s) for i, (u, s) in enumerate(s5c.holes)]
@@ -1004,7 +1103,7 @@ def _apply_v2_packing(p: dict[str, Any]) -> None:
     p["BODY_THICK"] = spec.lid_y + float(p["LID_THICK"])
     p["LID_Y"] = spec.lid_y
     # Order-1 / Stage B v2: packing-C cavity even when V2_WIDTH is 22, so
-    # those hashes stay put. STAGE=shell overlays the §5c result (width-22
+    # those hashes stay put. STAGE=shell overlays the §5d result (width-22
     # cavity 1.5–20.5, island 2.25–19.75 × 16.00–37.60, 501012 rib).
     if stage_is_shell(p):
         p["CAVITY_U"] = [float(result.cavity_u[0]), float(result.cavity_u[1])]
@@ -3336,8 +3435,9 @@ def _record_shell_checks(
         "V2_BOSS_sites",
         site_ok,
         (
-            f"Q82: island bosses at packing §5c hole sites read from {s5c.packing_path} "
-            f"sha {s5c.packing_sha}; centre error ≤ 0.05; 3.30 keep box clear of every courtyard"
+            f"Q82: island bosses at packing §5c hole sites; P1–P5 from §5d folded-site "
+            f"table at {s5c.packing_path} sha {s5c.packing_sha}; centre error ≤ 0.05; "
+            "3.30 keep box clear of every courtyard"
         ),
         **site_nums,
     )
@@ -3404,70 +3504,131 @@ def _record_shell_checks(
         tab_hits[f"{name}_channel_air"] = 1.0 if air else 0.0
         if not air:
             tab_ok = False
+    rib_u0, rib_u1 = s5c.rib_slot_u
+    rib_s0, rib_s1 = s5c.rib_slot_s
+    rib_mid_u = 0.5 * (rib_u0 + rib_u1)
+    rib_mid_s = 0.5 * (rib_s0 + rib_s1)
+    slot_y = floor_y + s5c.rib_slot_h / 2.0
+    slot_air = not _inside_uys(body, path, rib_mid_u, rib_mid_s, slot_y)
+    drop_y = floor_y + min(2.0, s5c.drop_h * 0.6)
+    drop_air = not _inside_uys(body, path, rib_mid_u, rib_mid_s, drop_y)
+    tab_hits["rib_slot_air"] = 1.0 if slot_air else 0.0
+    tab_hits["drop_channel_air"] = 1.0 if drop_air else 0.0
+    tab_hits["rib_slot_u0"] = rib_u0
+    tab_hits["rib_slot_u1"] = rib_u1
+    tab_hits["rib_slot_s0"] = rib_s0
+    tab_hits["rib_slot_s1"] = rib_s1
+    tab_hits["rib_slot_h"] = s5c.rib_slot_h
+    if not slot_air or not drop_air:
+        tab_ok = False
     record(
         "V2_TAB_envelope",
         tab_ok,
         (
             f"Q83: neck-end strips SIG1 {s5c.sig1_strip:.2f} mm, SIG2 {s5c.sig2_strip:.2f} mm "
-            f"from packing §5c sha {s5c.packing_sha}; floor channels in the neck hold no nylon; "
-            "no side-wall pockets; REF uses REF_end_wall_slot"
+            f"from packing §5d sha {s5c.packing_sha}; floor channels in the neck hold no nylon; "
+            "no side-wall pockets; REF uses REF_end_wall_slot; rib slot and drop channel air"
         ),
         **tab_hits,
     )
 
     charge_ok = True
-    charge_nums: dict[str, float] = {"flush_pads": 1.0}
+    charge_nums: dict[str, float] = {"flush_pads": 1.0, "floor_holes_d": CHARGE_PAD_D}
     cref = contact_ref_us(params)
+    pad_r = CHARGE_PAD_D / 2.0
+    cell_u0, cell_u1 = s5c.cell_u
+    cell_s0, cell_s1 = s5c.cell_s
     for name, (u, s) in (("P4", s5c.p4), ("P5", s5c.p5)):
-        off = 1.6 if u < width / 2.0 else -1.6
-        dome = _inside_uys(body, path, u + off, s, -0.4)
+        dome = _inside_uys(body, path, u, s, -0.4)
         hole = not _inside_uys(body, path, u, s, wall / 2.0)
-        inward = 1.0 if u < width / 2.0 else -1.0
-        start_u = u + inward * (SHELL_SCREW_HOLE / 2.0 + 0.08)
-        far_u = u + inward * 8.0
-        try:
-            in_start = _inside_uys(body, path, start_u, s, wall + 1.5)
-            in_far = _inside_uys(body, path, far_u, s, wall + 1.5)
-            if in_start and in_far:
-                nylon_in = 8.0
-            else:
-                outer = _bisect(
-                    lambda uu, su=s: _inside_uys(body, path, uu, su, wall + 1.5),
-                    start_u,
-                    far_u,
-                )
-                nylon_in = abs(outer - u) - SHELL_SCREW_HOLE / 2.0
-        except CheckFail:
-            nylon_in = -1.0
-        d_ref = math.hypot(u - cref[0], s - cref[1])
-        d_screw = math.hypot(u - SHELL_SCREW_U, s - SHELL_SCREW_S)
+        floor_samples: list[float] = []
+        creep_hits = 0.0
+        creep_n = 0.0
+        for k in range(8):
+            ang = k * math.pi / 4.0
+            du, ds = math.cos(ang), math.sin(ang)
+            fu = u + du * (pad_r + CHARGE_CREEPAGE)
+            fs = s + ds * (pad_r + CHARGE_CREEPAGE)
+            if _inside_uys(body, path, fu, fs, wall / 2.0):
+                try:
+                    y_out = _bisect(
+                        lambda yy, uu=fu, ss=fs: _inside_uys(body, path, uu, ss, yy),
+                        -0.4,
+                        0.7,
+                    )
+                    y_in = _bisect(
+                        lambda yy, uu=fu, ss=fs: _inside_uys(body, path, uu, ss, yy),
+                        0.7,
+                        wall + 0.5,
+                    )
+                    floor_samples.append(y_in - y_out)
+                except CheckFail:
+                    floor_samples.append(-1.0)
+            creep_u = u + du * (pad_r + CHARGE_CREEPAGE / 2.0)
+            creep_s = s + ds * (pad_r + CHARGE_CREEPAGE / 2.0)
+            creep_n += 1.0
+            if _inside_uys(body, path, creep_u, creep_s, wall / 2.0):
+                creep_hits += 1.0
+        floor_t = min((v for v in floor_samples if v >= 0.0), default=-1.0)
+        du0 = (u - pad_r) - cell_u1
+        du1 = cell_u0 - (u + pad_r)
+        ds0 = (s - pad_r) - cell_s1
+        ds1 = cell_s0 - (s + pad_r)
+        cell_gap_u = max(du0, du1)
+        cell_gap_s = max(ds0, ds1)
+        if cell_gap_u >= 0.0 and cell_gap_s >= 0.0:
+            cell_gap = math.hypot(cell_gap_u, cell_gap_s)
+        elif cell_gap_u >= 0.0:
+            cell_gap = cell_gap_u
+        elif cell_gap_s >= 0.0:
+            cell_gap = cell_gap_s
+        else:
+            cell_gap = min(cell_gap_u, cell_gap_s)
+        d_ref = math.hypot(u - cref[0], s - cref[1]) - pad_r - SHELL_RING_SEAT_D / 2.0
+        d_screw = math.hypot(u - SHELL_SCREW_U, s - SHELL_SCREW_S) - pad_r - SHELL_SCREW_WELL_D / 2.0
         charge_nums[f"{name}_dome"] = 1.0 if dome else 0.0
         charge_nums[f"{name}_hole"] = 1.0 if hole else 0.0
-        charge_nums[f"{name}_nylon_in"] = round(nylon_in, 4)
+        charge_nums[f"{name}_floor_t"] = round(floor_t, 4)
+        charge_nums[f"{name}_nylon_around"] = round(floor_t, 4)
+        charge_nums[f"{name}_cell_gap"] = round(cell_gap, 4)
+        charge_nums[f"{name}_creepage_nylon"] = round(creep_hits / creep_n if creep_n else 0.0, 4)
         charge_nums[f"{name}_d_ref"] = round(d_ref, 4)
         charge_nums[f"{name}_d_screw"] = round(d_screw, 4)
         charge_nums[f"{name}_u"] = u
         charge_nums[f"{name}_s"] = s
+        charge_nums[f"{name}_y"] = s5c.p4_y if name == "P4" else s5c.p5_y
         if (
             not dome
             or not hole
-            or nylon_in < JLC_MIN_WALL - 0.05
+            or floor_t < JLC_MIN_WALL - 0.05
+            or cell_gap < -0.05
             or d_ref < S5C_CHARGE_CLEAR - 0.05
             or d_screw < S5C_CHARGE_CLEAR - 0.05
         ):
             charge_ok = False
-    between = math.hypot(s5c.p4[0] - s5c.p5[0], s5c.p4[1] - s5c.p5[1]) - SHELL_SCREW_HOLE
+    between = math.hypot(s5c.p4[0] - s5c.p5[0], s5c.p4[1] - s5c.p5[1]) - CHARGE_PAD_D
     charge_nums["nylon_between"] = round(between, 4)
+    charge_nums["cell_u0"] = cell_u0
+    charge_nums["cell_u1"] = cell_u1
+    charge_nums["cell_s0"] = cell_s0
+    charge_nums["cell_s1"] = cell_s1
+    charge_nums["p1_u"] = s5c.p1[0]
+    charge_nums["p1_s"] = s5c.p1[1]
+    charge_nums["p2_u"] = s5c.p2[0]
+    charge_nums["p2_s"] = s5c.p2[1]
+    charge_nums["p3_u"] = s5c.p3[0]
+    charge_nums["p3_s"] = s5c.p3[1]
     if between < S5C_CHARGE_NYLON - 0.05:
         charge_ok = False
     record(
         "V2_CHARGE_pads",
         charge_ok,
         (
-            "Q81: two flush RING_PAD charging contacts at §5c P4/P5; pad exposure, "
-            f"nylon around each ≥ {JLC_MIN_WALL:g}, nylon between ≥ {S5C_CHARGE_NYLON:g}, "
-            f"clear of REF and the medial screw well ≥ {S5C_CHARGE_CLEAR:g}; "
-            "tail cannot take two more hex standoffs at those sites"
+            "Q86: two flush RING_PAD charging contacts at §5d folded P4/P5 "
+            f"(sha {s5c.packing_sha}); Ø5 holes through the hook-end medial floor; "
+            f"nylon between ≥ {S5C_CHARGE_NYLON:g}; floor around each ≥ {JLC_MIN_WALL:g}; "
+            f"cell pocket clearance stated; nylon under {CHARGE_CREEPAGE:g} mm creepage (Q84); "
+            f"clear of REF and the medial screw well ≥ {S5C_CHARGE_CLEAR:g}"
         ),
         **charge_nums,
     )
@@ -3770,6 +3931,24 @@ def _ref_end_wall_slot(path: PathGeom, params: Mapping[str, Any]) -> Shape:
     )
 
 
+def _charge_fold_cuts(path: PathGeom, params: Mapping[str, Any], s5d: S5cNoReceptacle) -> Shape:
+    """Rib slot 0.31 through the rib plus the leftover drop channel (Q85/Q86)."""
+    maker = path_solid_for(path, params)
+    floor_y = float(params["WALL_MEDIAL"])
+    u0, u1 = s5d.rib_slot_u
+    s0, s1 = s5d.rib_slot_s
+    rib_slot = maker(u0, u1, s0, s1, floor_y, floor_y + s5d.rib_slot_h)
+    drop = maker(
+        s5d.drop_u[0],
+        s5d.drop_u[1],
+        s5d.drop_s0 - s5d.drop_r - s5d.drop_flex,
+        s5d.drop_s0 + s5d.drop_flex,
+        floor_y,
+        floor_y + s5d.drop_h + s5d.drop_flex,
+    )
+    return rib_slot.fuse(drop)
+
+
 def _end_wall_s_thick(body: Solid, path: PathGeom, u: float, y: float) -> float:
     """Remaining nylon in s at (u, y) between the cavity and the tail pocket."""
 
@@ -4063,39 +4242,40 @@ def _apply_shell_features(
                     maker(box.u0, box.u1, box.s0, box.s1, box.y0, box.y1)
                 )
 
-    # Q81: P4/P5 cannot take 5 AF hex collars (u 0.75 and width-0.75 sit
-    # in the 1.5 side walls). Flush RING_PAD domes, Ø2.7 holes, Ø2.10
-    # self-tap. No USB opening (M1 52).
-    s5c = load_s5c_no_receptacle()
-    for name, site in (("P4", s5c.p4), ("P5", s5c.p5)):
+    # Q86: P4/P5 on the hook-end medial floor (not the tail corners).
+    # Flush RING_PAD Ø5 through the floor, same dome as WP14d. No USB.
+    s5d = load_s5d_folded()
+    for name, site in (("P4", s5d.p4), ("P5", s5d.p5)):
         u, s = site
         origin = _vec(path, u, s, 0.0)
-        # Table sites sit in the 1.5 walls, on the medial fillet. A stem
-        # carries the Ø5 RING_PAD through the fillet so the dome is proud.
-        stem = _y_cylinder(
-            origin.X,
-            -CONTACT_DOME_CROWN,
-            origin.Z,
-            CONTACT_DOME_DIA / 2.0,
-            wall + CONTACT_DOME_CROWN + 0.5,
-        )
         hole = _y_cylinder(
-            origin.X, -0.6, origin.Z, SHELL_SCREW_HOLE / 2.0, wall + 4.5
+            origin.X, 0.0, origin.Z, CHARGE_PAD_D / 2.0, wall + 1.2
         )
         cap = _cap_solid(path, u, s)
-        pilot = _y_cylinder(
-            origin.X, floor_y, origin.Z, SHELL_PILOT / 2.0, 4.3
+        ring_seat = _y_cylinder(
+            origin.X,
+            floor_y - 0.02,
+            origin.Z,
+            SHELL_RING_SEAT_D / 2.0,
+            ring_t + 0.05,
         )
-        body = body.fuse(stem).fuse(cap).cut(hole).cut(pilot)
+        body = body.cut(hole).cut(ring_seat).fuse(cap)
         measure[f"{name}_u"] = round(u, 4)
         measure[f"{name}_s"] = round(s, 4)
-    measure["charge_construction"] = "flush_pads"
+        measure[f"{name}_y"] = round(s5d.p4_y if name == "P4" else s5d.p5_y, 4)
+    fold = _charge_fold_cuts(path, params, s5d)
+    measure["rib_slot_removed_mm3"] = round(_overlap_volume(body, fold), 4)
+    body = body.cut(fold)
+    measure["charge_construction"] = "flush_pads_hook_end_floor"
     measure["usb_opening_removed_mm3"] = 0.0
     notes["charge"] = (
-        "Q81: tail cannot take two more 5 AF standoffs at §5c P4/P5 "
-        f"({s5c.p4[0]:.2f}, {s5c.p4[1]:.2f}) and ({s5c.p5[0]:.2f}, {s5c.p5[1]:.2f}); "
-        "those sites sit in the 1.5 side walls on the medial fillet. Flush RING_PAD "
-        "Ø5 stems and domes through the fillet, Ø2.7 holes, Ø2.10 self-tap pilots. "
+        f"Q86: charging pads at §5d folded sites P4 ({s5d.p4[0]:.2f}, {s5d.p4[1]:.2f}) "
+        f"and P5 ({s5d.p5[0]:.2f}, {s5d.p5[1]:.2f}), y {s5d.p4_y:.2f}, flush RING_PAD "
+        f"Ø{CHARGE_PAD_D:g} through the hook-end medial floor. Tail-corner pads removed. "
+        f"Rib slot u {s5d.rib_slot_u[0]:.2f}–{s5d.rib_slot_u[1]:.2f}, "
+        f"s {s5d.rib_slot_s[0]:.2f}–{s5d.rib_slot_s[1]:.2f}, height {s5d.rib_slot_h:.2f}. "
+        f"Drop channel at leftover s={s5d.drop_s0:.2f}, two 90° at R {s5d.drop_r:g}, "
+        f"drop {s5d.drop_h:.2f}, flex {s5d.drop_flex:.2f}. "
         "V2_USB_end is NOT_APPLICABLE (no receptacle at M1 52)."
     )
 
