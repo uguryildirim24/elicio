@@ -8,7 +8,7 @@
 		(title "elicio-v2")
 		(date "2026-09-17")
 		(rev "0")
-		(comment 1 "WP12 board v2. Provisional 17 x 33 mm outline. Not for order.")
+		(comment 1 "WP12 board v2. Interface II flex, packing A_501015_series_w20. Schematic contract unchanged. Not for order.")
 	)
 	(lib_symbols
 	(symbol "elicio:ADS1292"
@@ -9340,7 +9340,7 @@
 				)
 			)
 		)
-		(property "Footprint" "elicio:PAD_8x8_ENIG"
+		(property "Footprint" "elicio:RING_PAD_D5_H2.7"
 			(at 254.0 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9428,7 +9428,7 @@
 				)
 			)
 		)
-		(property "Footprint" "elicio:PAD_8x8_ENIG"
+		(property "Footprint" "elicio:RING_PAD_D5_H2.7"
 			(at 254.0 76.2 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9516,7 +9516,7 @@
 				)
 			)
 		)
-		(property "Footprint" "elicio:PAD_8x8_ENIG"
+		(property "Footprint" "elicio:RING_PAD_D5_H2.7"
 			(at 254.0 101.6 0)
 			(show_name no)
 			(do_not_autoplace no)

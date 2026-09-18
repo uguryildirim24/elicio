@@ -3,9 +3,25 @@
 Status: design record for WP12. Not for order, quote or upload.
 Date: 2026-09-17.
 KiCad: 10.0.6 (`kicad-cli`).
-Outline: provisional **17 × 33 mm**. `git show lane/w1:docs/fab/packing-v2.md` does not exist on this worktree, so USB-C sits at the y = 0 board edge and the three 8 × 8 mm pads sit on B.Cu at the positions below. Final outline and pad sites are WP11/G5.
+Interface: **II** (plan v2 §5.3 fallback). WP11 packing `A_501015_series_w20` on `lane/w1` at `43a982a`. USB-C sits on the hook-end end face (plan v2 §5.4 fallback). LID_Y 7.0 to 9.0; order-1 foam uses LID_Y 8.0. Standoff 3.0 mm. Cell 501015 in series. Board width 20 mm body, board zone u 2.25–17.75, s 18.60–37.60.
 
 Project: `hardware/board/elicio-v2.kicad_pro`.
+The schematic contract is unchanged (nets, parts, values, G2/G4). The land is a 2-layer flex with FR4 stiffeners and three ring-pad tabs.
+
+Winner layout (`packing-v2.md` §4–§5), packing (u, s) = PCB (x, y):
+
+| Item | Centre (u, s) mm | Size / note |
+|---|---|---|
+| Board zone | u 2.25–17.75, s 18.60–37.60 | Flex 0.4 at parts, 0.2 at tabs |
+| Module | (10.00, 32.35) | 15.50 × 10.50 × 2.3, length along u |
+| ADS1292 | (11.20, 21.25) | 5.0 × 5.0 × 1.0 |
+| BQ25100 | (3.45, 25.30) | |
+| TLV713 | (5.40, 25.35) | |
+| SW1 | (4.80, 21.15) | 4.5 × 4.5 × 1.6 |
+| J3 | (15.40, 22.60) | 2.5 × 7.6 × 2.5 |
+| JST-SH | (14.40, 4.65) | pocket, y 1.90–4.80 |
+| USB-C | (10.00, −2.15) | hook-end end face |
+| Cell 501015 | (7.00, 9.30) | 10.4 × 15.6 × 5.2 + foam 0.3; not on the flex |
 
 ## 1. Block diagram
 
@@ -111,7 +127,7 @@ There is **no /CHG pin** on BQ25100. Charge status is from ISET (and the LED/Q4 
 | RISET | 6.80 kΩ (E96) | 135 / 0.020 = 6750 Ω |
 | IOUT typical | 19.85 mA | 135 / 6800 |
 | IOUT at KISET 125 / 145 | 18.38 / 21.32 mA | Same equation |
-| Pack max continuous charge | 40 mA | DTP301120 sheet; 21.32 < 40 |
+| Pack max continuous charge | 40 mA on the old DTP sheet | Cell is now 501015 (G1b). 21.32 mA vs DTP 40 mA is not a 501015 proof |
 | ISET capacitor | 10 nF to GND | Required for IOUT < 50 mA |
 | KTERM typical (10–50 %) | 600 Ω/% | RPRETERM 6 kΩ–30 kΩ |
 | RPRETERM | 6.04 kΩ | 10 % × 600 Ω/% = 6.00 kΩ |
@@ -157,10 +173,10 @@ Iq: tens of µA class (SBVS195). Dropout as in §6. AVDD = DVDD = +3V0. **Per AD
 
 ## 8. Module, RF keep-out, USB, cell connector
 
-- Module: Raytac MDBT50Q-1MV2, footprint `RF_Module:Raytac_MDBT50Q`, LCSC **C5118826** (C5142646 was 404). HV mode: VDDH = VBAT, 10 µH DCCH → +VDD **per Raytac spec 8.1**.
-- RF no-copper: rule area 17.0 × 3.8 mm at y = 29.2–33.0 on every copper layer (interface.md §6.3: 12.4 × 3.8, widened to the 17 mm board). Extra top-layer feed notch is **not** cut; WP14/layout.
-- USB-C: 16-pin HRO TYPE-C-31-M-12 land, LCSC C223907, 5.1 kΩ on CC1 and CC2, USBLC6-2SC6 on D+/D−, PESD5V0L1UL on VBUS (cathode to VBUS). Recessed medial placement is WP14; this file places it at the provisional y = 0 edge.
-- Cell: JST-SH SM02B-SRSS-TB placed (SparkFun PRT-25270 page, 2026-09-17; that page's “2 mm pitch” text is wrong — SH is 1.00 mm). Silkscreen `J2 BAT+ pin1` is against the connector contacts, not a wire colour. JST-PH S2B-PH-SM4-TB is in `lib/` as the G1b alternate, unplaced.
+- Module: Raytac MDBT50Q-1MV2, footprint `RF_Module:Raytac_MDBT50Q`, LCSC **C5118826** (C5142646 was 404). HV mode: VDDH = VBAT, 10 µH DCCH → +VDD **per Raytac spec 8.1**. Centre **(10.00, 32.35)** mm in packing (u, s). Body 15.50 × 10.50, length along u. KiCad rotation 90° so that 15.5 mm lies on u. Antenna keep-out is the packing polygon, not the footprint silk.
+- RF no-copper: rule area u 3.80–16.20, s 33.80–37.60 (12.4 × 3.8 mm) on every copper layer (`packing-v2.md` §5, interface.md §6.3, Raytac Spec K). Extra top-layer feed notch is **not** cut; WP14/layout.
+- USB-C: 16-pin HRO TYPE-C-31-M-12 land, LCSC C223907, 5.1 kΩ on CC1 and CC2, USBLC6-2SC6 on D+/D−, PESD5V0L1UL on VBUS (cathode to VBUS). Centre **(10.00, −2.15)** mm. It hangs off the **hook-end end face** (plan v2 §5.4 fallback). Recess 1.0, ligaments 1.5, plug volume 12 × 6.5 × 15. The medial opening is not cut on the order-1 solid.
+- Cell: JST-SH SM02B-SRSS-TB placed in the pocket at **(14.40, 4.65)** mm (SparkFun PRT-25270 page, 2026-09-17; that page's “2 mm pitch” text is wrong — SH is 1.00 mm). Silkscreen `J2 BAT+ pin1` is against the connector contacts, not a wire colour. JST-PH S2B-PH-SM4-TB is in `lib/` as the G1b alternate, unplaced. Cell 501015 10.4 × 15.6 × 5.2 plus foam 0.3, centre (7.00, 9.30); the flex neck stays to the right of that pocket. The 501015 harness length 100 ± 3 mm is **NOT_MEASURED** as a solid (`packing-v2.md` §7). **G1b.**
 
 ## 9. G4 / firmware GPIO map (MDBT50Q pin → nRF)
 
@@ -211,27 +227,58 @@ Proposed net map if WP11 selects B (same functions; different module pin numbers
 
 A board that uses B is a different placement, not a stuffing option on this land pattern.
 
-## 11. Contacts and mounting
+## 11. Contacts — interface II (this board)
 
-Three 8 × 8 mm ENIG pads on B.Cu, nets SIG1, SIG2, REF. Each pad has a 10 × 10 mm rule area (1.0 mm copper keep-out beyond the pad, pads themselves allowed). Provisional centres on the 17 × 33 mm outline: P1 (8.5, 6.0), P2 (8.5, 16.0), P3 (8.5, 26.0) mm. P3 overlaps the RF keep-out. **Final positions are WP11/G5.** Interface.md candidate 1 × 1 mm sites are not these 8 × 8 mm pads.
+The whole board is a 2-layer polyimide flex with FR4 stiffeners under the parts. Three flex tabs each end in a ring pad Ø5.0 mm with a Ø2.7 mm hole. The ring is ENIG on both copper layers. The brass standoff bottom face is the contact. An ISO 7380 M2.5×4 screw clamps the ring under the standoff. Nut DIN 439 M2.5 (m 1.6, s 5.0). Stack inside the wall: tab 0.2 + nut 1.6 + screw tip 0.70 = 2.50 mm (`packing-v2.md` §5).
 
-Two M2.5 NPTH holes at (1.8, 1.8) and (15.2, 31.2) mm for printed bosses.
+| Pad | Net | Folded site (packing) | Packing attach | Unfolded ring (this Gerber) |
+|---|---|---|---|---|
+| P1 | SIG1 | (5.90, 22.00) | (5.90, 29.00) | (−4.75, 22.00) |
+| P2 | SIG2 | (10.40, 33.10) | (10.40, 26.10) | (24.75, 33.10) |
+| P3 | REF | (8.50, 43.00) | (8.50, 36.80) | (8.50, 43.00) |
 
-## 12. Stackup and DRC rules
+SIG1 and SIG2 packing XY sit under the parts island. A flat Gerber cannot place a ring and the module in the same XY. Those two tabs leave the left and right board edges with packing strip length 7.0 mm. REF already leaves the tail; its Gerber matches packing. Assembly folds SIG1 and SIG2 onto the packing sites before the cell goes in. WP14 owns the fold.
 
-Assembler candidate: JLCPCB, 4-layer FR4, 1.0 mm, ENIG. Nothing ordered.
+Tab strip width 2.5 mm. Outline cap radius 3.0 mm around the Ø5.0 pad (JLC copper-to-edge ≥ 0.3 mm). Strain relief: 4 mm of flex at each tab root has no via, no part, and no stiffener. Neck s 12.0–18.6 is the drop from the board island (underside y 4.00) to the pocket; same rule.
+
+Bend radius: packing R ≥ 1.0 mm. JLC 2-layer static bend ≥ 10 × finished thickness. Finished PI 0.11 mm → 1.1 mm. This file states **R = 1.5 mm**. Dynamic bend is not the use. No vias or pads in the bend windows.
+
+Each ring has a 7.0 × 7.0 mm other-net keep-out (1.0 mm beyond the Ø5.0 land). Pads themselves are allowed.
+
+There are no separate M2.5 boss holes. The ring holes are the fasteners.
+
+### 11a. Rejected candidate — interface I (8 × 8 pads)
+
+WP11 at `43a982a`, `docs/fab/packing-v2.md` §2 and §3: interface I (board on standoff tops, 8 × 8 ENIG pad per site) **closes in 0 of 288 runs** at the anatomical sites. The cell under the board collides with the SIG1 standoff. Neither cell (DTP packed 3.5 mm, 501015 packed 5.5 mm) fits under a 3.0 or 3.5 mm standoff with positive nominal clearance and no load after the 0.5 mm boss drop. Plan v2 §5.3 makes II the fallback when I fails.
+
+The first WP12 pass placed three 8 × 8 mm B.Cu pads on a provisional 17 × 33 mm 4-layer board: P1 (8.5, 6.0), P2 (8.5, 16.0), P3 (8.5, 26.0), each with a 10 × 10 mm keep-out. P3 overlapped the RF keep-out. Footprint `elicio:PAD_8x8_ENIG` remains in `hardware/board/lib/elicio.pretty` and the schematic still draws `elicio:PAD_8x8` (one passive pin per net). Those lands are **not** on this PCB. Do not stuff them. Do not order the 4-layer rigid outline.
+
+## 12. Stackup and DRC rules (JLC FPC)
+
+Assembler candidate: JLCPCB 2-layer FPC, ENIG. Nothing ordered. Nothing quoted. No vendor contact.
+
+Source: https://jlcpcb.com/capabilities/flex-pcb-capabilities read 2026-09-17. Same numbers on https://jlcpcb.com/pcb-fabrication/flexible-pcb.
 
 | Rule | Value | Source (read 2026-09-17) |
 |---|---|---|
-| Layers | F.Cu, In1.Cu, In2.Cu, B.Cu | Plan §5.2 |
-| Thickness | 1.0 mm | Plan §5.2 |
-| Finish | ENIG | Plan §5.2; https://jlcpcb.com/capabilities/ |
-| Min track / clearance | 0.09 / 0.09 mm | Multilayer 1 oz, same URL |
-| Preferred via | 0.20 mm hole / 0.45 mm pad | Preferred min hole 0.20 mm; via pad ≥ hole + 0.15 mm |
-| Copper to edge | 0.25 mm | Encoded as DRC min copper-edge clearance |
+| Layers | F.Cu, B.Cu | 2-layer FPC. Rigid-flex is not supported on that page |
+| Finished PI | 0.11 mm (2-layer, 25 µm dielectric options 0.11 / 0.12 / 0.2) | WP11 assumed 0.11 |
+| Finish | ENIG 1 u" / 2 u" | FPC page; HASL is not on FPC |
+| Min track / space | 3/3 mil (0.076 mm) at 12 µm copper; 3.5/3.5 mil at 18 µm; **4/4 mil (0.10 mm) at 1 oz / 35 µm** | Encoded 0.10 / 0.10 as the 1 oz regular limit |
+| Coverlay opening | expansion 0.1 mm one-sided; opening-to-trace ≥ 0.15 mm | Encoded pad-to-mask 0.1 mm |
+| Coverlay colour | Yellow recommended | Yellow / black / white / transparent |
+| Via (regular 2-layer) | 0.30 mm hole / 0.55 mm pad | Extreme 0.10 / 0.30 costs extra; not used |
+| PTH annular ring | ≥ 0.25 mm recommended, 0.18 mm absolute | Ring pad (5.0 − 2.7) / 2 = 1.15 mm |
+| Copper to outline | ≥ 0.30 mm (laser) | Encoded as DRC min copper-edge clearance |
+| Outline tolerance | ±0.10 mm | ±0.05 mm on request; not requested |
+| Bend | 2-layer ≥ 10 × thickness (static) | 1.1 mm at 0.11; this board uses 1.5 mm |
 | Passives | 0402 minimum | Plan |
+| Stiffener at parts | FR4 0.3 mm on Eco1.User (WP11: 0.11 + 0.3 = 0.4) | See C7: JLC FR4 list is 0.1 / 0.2 / 0.4, not 0.3 |
+| Stiffener at tabs | FR4 0.2 mm on Eco2.User (WP11 tab 0.2) | JLC FR4 0.2 mm exists |
 
-The impedance page https://jlcpcb.com/impedance lists 1.0 mm as a 4-layer thickness. The named tables on that page dump as **JLC04161H** (1.6 mm) in the static HTML. Core thickness for 1.0 mm is **UNVERIFIED** on the static page. Outer 1 oz / inner 0.5 oz and 7628 prepreg ≈ 0.210 mm are the usual JLC 4-layer construction.
+PI stiffener catalogue: 0.1 / 0.15 / 0.20 / 0.225 / 0.25 mm. Stainless 0.1 / 0.2 / 0.3 mm. FR4 0.1 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.2 / 1.6 mm. WP11's 0.3 mm FR4 is **not** on that list. Closest FR4 is 0.2 or 0.4. Stainless 0.3 mm exists. No request was sent.
+
+Stiffener drawings: Eco1.User = FR4 0.3 under the board island and the pocket parts; Eco2.User = Ø6 circles at the three rings; Cmts.User = neck bend window. JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
 
 Encoded in the board design settings and in `elicio-v2.kicad_pro`.
 
@@ -262,7 +309,7 @@ Release job writes `hardware/board/release/bom.csv` (gitignored). 59 rows = 59 p
 | R9, R10 | 5.1 kΩ | C25905 | — | CC |
 | others | see BOM | — | — | Decoupling **per ADS1292 / BQ25100 / TLV713 typical** |
 
-Not in BOM: J4 TC2030-NL, P1–P3 pads, H1–H2 holes, R29–R30 DNP 10 MΩ, power flags.
+Not in BOM: J4 TC2030-NL, P1–P3 ring pads, R29–R30 DNP 10 MΩ, power flags. `PAD_8x8_ENIG` and `MountingHole_M2.5` stay in the library and are not placed.
 
 ## 14. Reference-circuit check (each choice)
 
@@ -281,22 +328,23 @@ Not in BOM: J4 TC2030-NL, P1–P3 pads, H1–H2 holes, R29–R30 DNP 10 MΩ, pow
 | nRF HV inductor 10 µH | Per Raytac 8.1 |
 | USB CC 5.1 kΩ, 16P, ESD | Per USB-C USB2 device |
 | P-FET inhibit | Plan R7/G2, not a TI typical |
-| 8 × 8 mm ENIG pads | Plan §5.3 |
+| Interface II ring pads Ø5.0 / hole Ø2.7, ENIG, clamped under standoff | Plan §5.3 fallback after WP11 I = 0/288 |
+| 8 × 8 mm ENIG pads | Rejected; see §11a |
 
 ## 15. What DRC says
 
 Command: `kicad-cli pcb drc --format json` via `scripts/board/release.py`.
 
-This round does not route. Placement is a packed provisional 17 × 33 mm floorplan so that footprints exist for CPL/gerbers/STEP.
+This round does not route. Placement follows `packing-v2.md` §5 (`A_501015_series_w20`). Courtyard overlap on this density is expected.
 
-| Item | Result (one release run, 2026-09-17) |
+| Item | Result (release run after the II layout, 2026-09-17) |
 |---|---|
-| Unconnected items | 0 (no ratsnest items in the JSON) |
-| DRC errors | 829 (courtyard overlap, silk overlap, silk over copper, clearance, items in keep-out, mask bridge, hole/edge clearance) |
-| DRC warnings | 21 |
+| Unconnected items | 0 |
+| DRC errors | 893 (courtyard overlap, silk, keep-out, hole/edge; unrouted board) |
+| DRC warnings | 33 |
 | Routing | Not done |
 
-The error count is expected until WP11's outline and a real layout pass. The release job **does not** fail on DRC errors. It fails closed on ERC errors and missing files.
+The release job **does not** fail on DRC errors. It fails closed on ERC errors and missing files.
 
 ## 16. ERC
 
@@ -313,15 +361,41 @@ Warnings (explain):
 
 `tests/test_board_release.py` asserts ERC 0, summary present, BOM rows = placed parts. If `kicad-cli` is missing the test fails with `brew install --cask kicad`.
 
-## 18. Needs a decision
+## 18. Assembler consequences and C7 (quote only)
 
-1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Freeze one revision with polarity and lead length.
-2. **WP11 outline** — 17 × 33 mm is provisional. Three 8 × 8 mm pads with 1 mm keep-out do not pack with the module RF zone on this outline; P3 overlaps the RF keep-out.
-3. **Charge LED from ISET** — Vgs(th) vs ISET voltage is UNVERIFIED. AIN7 is the firmware status path.
-4. **System load vs termination** — if nRF current while charging exceeds ~2 mA, BQ25100 may not terminate.
-5. **Probe I/O at 3.0 V target** — G4 must measure; do not infer from 3.3 V nominal.
-6. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
-7. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.
-8. **No BAV199 clamps** — plan v2 §5.5 does not name them; v1 interface still does.
-9. **BQ25100YFPR stock** — last read was extended and weak; G3 is not this package.
-10. **Protective monitor cadence** — V_STOP is a firmware constant; Q5 must be on at that cadence, not only every 10 s.
+JLC flex assembly uses a fixture. Page https://jlcpcb.com/help/article/pcb-assembly-price read 2026-09-17, last updated 2026-09-09:
+
+| Item | Number on that page |
+|---|---|
+| Fixture (Flexible PCB) unit | $24.63 / fixture |
+| 1–29 pcs | 2 fixtures → $49.25 |
+| 30–99 pcs | 3 fixtures → $73.88 |
+| 100–199 pcs | 5 fixtures → $123.13 |
+
+No quote was requested. Ledger input only.
+
+FPC assembly acceptance, quoted, no request:
+
+- https://jlcpcb.com/help/article/terms-and-conditions-of-jlcpcb-assembly-service (read 2026-09-17, last updated 2026-09-09): footprints and gaps IPC-7351B medium or low density; component body to board edge ≥ 2.5 mm; tooling holes, edge rails and fiducials required for assembly; high density is not supported; no power-on test.
+- https://jlcpcb.com/blog/fpc-panelization-design-standards (read 2026-09-17): FPC+SMT minimum panel 70 × 70 mm; below that, panelise or add process edges. FPC does not use V-cut or mouse bites; bridge tabs 0.7–1.0 mm.
+- https://jlcpcb.com/blog/design-guidelines-flex-pcb-panels and https://jlcpcb.com/blog/fast-turn-flex-pcb (read 2026-09-17): 5 mm process edges; 2 mm board spacing (3 mm with metal stiffeners); SMT fiducials 1 mm at 3.85 mm from the panel edge; tooling holes 2 mm; local fiducial beside each unit; carrier / SMT pallet for flex.
+
+https://jlcpcb.com/help/article/fpc-extra-charges (read 2026-09-17, last updated 2026-08-18): extra fee when a prototype has **4 or more stiffeners**. This drawing has three FR4 0.3 pieces plus three FR4 0.2 tab circles (**6**). That trips the extra-stiffener rule. Also: extra cost if stiffeners must go on after SMT because parts sit around them.
+
+Packing SW1 centre (4.80, 21.15) on a 4.5 mm switch sits about 0.3 mm from the left outline. That is inside JLC's 2.5 mm assembly edge rule. Record as an assembler conflict; do not move the packing centre in this package.
+
+## 19. Needs a decision
+
+1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Freeze one revision with polarity and lead length. Cell is now **501015** with a 100 ± 3 mm harness (**NOT_MEASURED**). Same G1b bag.
+2. **JLC FR4 0.3 mm** — WP11 assumed 0.3 mm under parts. JLC's FR4 stiffener list has no 0.3 mm. Pick 0.2, 0.4, or stainless 0.3. No request sent.
+3. **Stiffener count** — six pieces vs JLC extra-fee threshold of four. Combine or accept the fee at order time.
+4. **SW1 to outline** — packing vs JLC 2.5 mm assembly edge. WP14/panel.
+5. **SIG1/SIG2 unfold** — Gerber rings are off the island; packing XY is the folded site. WP14 must fold them before the cell is fitted.
+6. **Charge LED from ISET** — Vgs(th) vs ISET voltage is UNVERIFIED. AIN7 is the firmware status path.
+7. **System load vs termination** — if nRF current while charging exceeds ~2 mA, BQ25100 may not terminate.
+8. **Probe I/O at 3.0 V target** — G4 must measure; do not infer from 3.3 V nominal.
+9. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
+10. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.
+11. **No BAV199 clamps** — plan v2 §5.5 does not name them; v1 interface still does.
+12. **BQ25100YFPR stock** — last read was extended and weak; G3 is not this package.
+13. **Protective monitor cadence** — V_STOP is a firmware constant; Q5 must be on at that cadence, not only every 10 s.
