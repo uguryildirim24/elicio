@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +23,9 @@ V2C_RECEPTACLE = (True, False)
 V2C_WALL_MIN = 1.0
 # Q81: two charging pads on the tail (same RING_PAD construction as the EMG domes).
 CHARGE_PAD_S = 44.00
+# WP12d pin table: these five sit inward so copper-to-edge is ≥ 0.30.
+NUDGE_COPPER_REFS = ("D1", "C3", "C10", "C11", "C12")
+COPPER_SKIP_REFS = {"J1", "J2", "J3", "P1", "P2", "P3", "P4", "P5"}
 
 FOOTPRINT_H = {
     "C_0402_1005Metric": 0.50,
@@ -170,6 +173,32 @@ def _inside(u: float, s: float, wu: float, ws: float, r: tuple[float, float, flo
     )
 
 
+def _pad_edge(
+    v2: Any, u: float, s: float, pad_w: float, pad_h: float, rot: float,
+    outline: tuple[float, float, float, float],
+) -> float:
+    pw, ph = v2._rot_size(pad_w, pad_h, rot)
+    u0, u1, s0, s1 = outline
+    return min(
+        (u - pw / 2.0) - u0,
+        u1 - (u + pw / 2.0),
+        (s - ph / 2.0) - s0,
+        s1 - (s + ph / 2.0),
+    )
+
+
+def _copper_outline_for(
+    u: float, s: float, wu: float, ws: float,
+    island: tuple[float, float, float, float] | None,
+    pocket: tuple[float, float, float, float] | None,
+) -> tuple[float, float, float, float] | None:
+    if island is not None and _inside(u, s, wu, ws, island, slack=0.4):
+        return island
+    if pocket is not None and _inside(u, s, wu, ws, pocket, slack=0.4):
+        return pocket
+    return None
+
+
 def _v2c_find(
     v2: Any,
     name: str,
@@ -182,9 +211,13 @@ def _v2c_find(
     near: tuple[float, float] | None = None,
     step: float = 0.4,
     margin: float = 0.10,
+    pad: tuple[float, float] | None = None,
+    island: tuple[float, float, float, float] | None = None,
+    pocket: tuple[float, float, float, float] | None = None,
 ) -> tuple[Any, float] | None:
     best: tuple[Any, float] | None = None
     best_d = math.inf
+    copper_min = v2.COPPER_TO_EDGE if (pad is not None and island is not None) else None
     for (u0, u1, s0, s1) in regions:
         for wu, ws, rot in sizes:
             if wu > (u1 - u0) + 1e-9 or ws > (s1 - s0) + 1e-9:
@@ -205,6 +238,13 @@ def _v2c_find(
                 while ss <= s_hi + 1e-9 and n_s < 60:
                     cand = v2.Box(name, uu, ss, wu, ws, y0, y0 + h, face)
                     if not any(v2._overlap(cand, other, margin) for other in occupied):
+                        if copper_min is not None and name not in COPPER_SKIP_REFS:
+                            outline = _copper_outline_for(uu, ss, wu, ws, island, pocket)
+                            if outline is not None:
+                                if _pad_edge(v2, uu, ss, pad[0], pad[1], rot, outline) < copper_min - 1e-9:
+                                    ss += step
+                                    n_s += 1
+                                    continue
                         if near is None:
                             return (cand, rot)
                         d = math.hypot(uu - near[0], ss - near[1])
@@ -284,9 +324,14 @@ def find_hole_sites(
             ss = s0 + ku / 2.0
             while ss <= s1 - ku / 2.0 + 1e-9 and len(found) < 2:
                 cand = v2.Box("HOLE", uu, ss, ku, ku, y0, y1, "floor")
-                if not any(v2._overlap(cand, other, 0.0) for other in occupied):
-                    if all(math.hypot(uu - hu, ss - hs) >= ku + 1.0 for hu, hs in found):
-                        found.append((uu, ss))
+                if any(v2._overlap(cand, other, 0.0) for other in occupied):
+                    ss += step
+                    continue
+                if any(str(other.name) == "U1" and v2._overlap(cand, other, 0.0) for other in occupied):
+                    ss += step
+                    continue
+                if all(math.hypot(uu - hu, ss - hs) >= ku + 1.0 for hu, hs in found):
+                    found.append((uu, ss))
                 ss += step
             uu += step
 
@@ -294,6 +339,70 @@ def find_hole_sites(
         try_region(prefer)
     try_region(island)
     return found
+
+
+def _nudge_one(
+    v2: Any,
+    part: Any,
+    occupied: list[Any],
+    island: tuple[float, float, float, float],
+    pocket: tuple[float, float, float, float],
+    need: float,
+) -> Any:
+    """Move a part inward until pad-to-outline ≥ need, or leave it if the site is blocked."""
+    if part.ref in COPPER_SKIP_REFS or part.face not in {"top", "bottom"}:
+        return part
+    outline = _copper_outline_for(part.u, part.s, part.wu, part.ws, island, pocket)
+    if outline is None:
+        return part
+    edge = _pad_edge(v2, part.u, part.s, part.pad_w, part.pad_h, part.rot, outline)
+    if edge + 1e-9 >= need:
+        return part
+    pw, ph = v2._rot_size(part.pad_w, part.pad_h, part.rot)
+    u0, u1, s0, s1 = outline
+    du = ds = 0.0
+    left = (part.u - pw / 2.0) - u0
+    right = u1 - (part.u + pw / 2.0)
+    bot = (part.s - ph / 2.0) - s0
+    top = s1 - (part.s + ph / 2.0)
+    if left < need:
+        du += need - left
+    if right < need:
+        du -= need - right
+    if bot < need:
+        ds += need - bot
+    if top < need:
+        ds -= need - top
+    nu, ns = part.u + du, part.s + ds
+    old = next((b for b in occupied if b.name == part.ref), None)
+    if old is None:
+        return replace(part, u=nu, s=ns)
+    cand = v2.Box(part.ref, nu, ns, part.wu, part.ws, old.y0, old.y1, old.face)
+    if any(v2._overlap(cand, other, 0.10) for other in occupied if other.name != part.ref):
+        return part
+    occupied[occupied.index(old)] = cand
+    return replace(part, u=nu, s=ns)
+
+
+def _nudge_copper_parts(
+    v2: Any,
+    parts: list[Any],
+    occupied: list[Any],
+    island: tuple[float, float, float, float],
+    pocket: tuple[float, float, float, float],
+    *,
+    named: tuple[str, ...] = NUDGE_COPPER_REFS,
+) -> None:
+    """Named refs first (WP12d pin table), then any other pad that is still short of 0.30."""
+    need = v2.COPPER_TO_EDGE
+    seen: set[str] = set()
+    order = list(named) + [p.ref for p in parts if p.ref not in named]
+    by = {p.ref: i for i, p in enumerate(parts)}
+    for ref in order:
+        if ref in seen or ref not in by:
+            continue
+        seen.add(ref)
+        parts[by[ref]] = _nudge_one(v2, parts[by[ref]], occupied, island, pocket, need)
 
 
 def search_layout_v2c(
@@ -439,10 +548,16 @@ def search_layout_v2c(
             out.append((wu, ws, rot))
         return out
 
+    copper_island = island if edge == "process" else None
+    copper_pocket = pocket if edge == "process" else None
+
     def try_top(ref: str, regions: list, near=None, notes="") -> bool:
         row = table[ref]
         h = _height(row)
-        found = _v2c_find(v2, ref, sizes_for(ref), h, y_top, "top", regions, occupied, near=near)
+        found = _v2c_find(
+            v2, ref, sizes_for(ref), h, y_top, "top", regions, occupied, near=near,
+            pad=(row["pad_w"], row["pad_h"]), island=copper_island, pocket=copper_pocket,
+        )
         if found is None:
             return False
         placed, rot = found
@@ -458,7 +573,8 @@ def search_layout_v2c(
             return False
         y0 = y_und - h
         found = _v2c_find(
-            v2, ref, sizes_for(ref), h, y0, "bottom", [bot_region], occupied, step=0.4
+            v2, ref, sizes_for(ref), h, y0, "bottom", [bot_region], occupied, step=0.4,
+            pad=(row["pad_w"], row["pad_h"]), island=copper_island, pocket=copper_pocket,
         )
         if found is None:
             return False
@@ -552,6 +668,9 @@ def search_layout_v2c(
         elif try_bottom(ref, "last-chance second side"):
             missing.remove(ref)
 
+    if edge == "process":
+        _nudge_copper_parts(v2, parts, occupied, island, pocket)
+
     extra_u = (bu1 - bu0) - 15.5
     extra_s = (bs1 - bs0) - 21.6
     island_mm2 = _area(island)
@@ -602,19 +721,12 @@ def search_layout_v2c(
     for p in parts:
         if p.face not in {"top", "bottom"}:
             continue
-        if p.ref in {"J1", "P1", "P2", "P3", "P4", "P5"}:
+        if p.ref in COPPER_SKIP_REFS:
             continue
-        if p.u - p.wu / 2.0 > bu1 - 0.05:
+        outline = _copper_outline_for(p.u, p.s, p.wu, p.ws, island, pocket)
+        if outline is None:
             continue
-        if p.s + p.ws / 2.0 < bs0 - 0.2:
-            continue  # pocket / hook-side of the rib
-        pw, ph = v2._rot_size(p.pad_w, p.pad_h, p.rot)
-        edge_mm = min(
-            (p.u - pw / 2.0) - bu0,
-            bu1 - (p.u + pw / 2.0),
-            (p.s - ph / 2.0) - bs0,
-            bs1 - (p.s + ph / 2.0),
-        )
+        edge_mm = _pad_edge(v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, outline)
         if edge_mm < v2.COPPER_TO_EDGE - 1e-9:
             copper_fail.append(f"{p.ref} {edge_mm:.3f}")
     rules.append(
@@ -823,7 +935,7 @@ def smallest_full(
     cands = [r for r in rows if r.edge == edge]
     if receptacle is not None:
         cands = [r for r in cands if r.receptacle is receptacle]
-    cands = [r for r in cands if r.placed >= r.bom_n and not r.missing]
+    cands = [r for r in cands if r.placed >= r.bom_n and not r.missing and not r.first_blocking]
     if not cands:
         return None
     cands.sort(key=lambda r: (0 if r.sides == "top" else 1, r.width, r.chord))
@@ -831,11 +943,8 @@ def smallest_full(
 
 
 def wp12d_layout(v2: Any) -> LayoutV2c | None:
-    """Process-edge, width 20, chord 47.90, two sides, with receptacle — if it places all 66."""
-    lay = v2c_cell(v2, "process", 20.0, V2C_CHORD_AS_BUILT, True, True)
-    if lay.placed >= lay.bom_n and not lay.missing:
-        return lay
-    return None
+    """Smallest process-edge all-66 with receptacle that meets every rule (width 22 today)."""
+    return smallest_full(run_v2c_grid(v2), "process", receptacle=True)
 
 
 def _shortfall(lay: LayoutV2c, table: dict[str, dict[str, Any]]) -> tuple[float, list[str]]:
@@ -982,51 +1091,82 @@ def section_5c(v2: Any) -> list[str]:
                 )
             lines.append("")
 
-    wp12 = wp12d_layout(v2)
-    if wp12 is not None:
-        lines.append("### WP12d placement (process-edge, width 20, chord 47.90, two sides, receptacle)")
-        lines.append("")
+    w20_usb = v2c_cell(v2, "process", 20.0, V2C_CHORD_AS_BUILT, True, True)
+    if w20_usb.placed >= w20_usb.bom_n and not w20_usb.missing and not w20_usb.first_blocking:
         lines.append(
-            "This cell places all 66. The board lane pins this table within 0.1 mm. "
-            "Contact sites are unchanged."
+            "Process-edge at width 20, chord 47.90, two sides, with a receptacle, places all 66 "
+            "and meets every rule, so that cell is the WP12d pin table below."
         )
         lines.append("")
-        lines.extend(_placement_table(wp12))
     else:
         lines.append(
-            "Process-edge at width 20, chord 47.90, two sides, with a receptacle, does not place all 66, "
-            "so there is no WP12d pin table from that cell."
+            "Process-edge at width 20, chord 47.90, two sides, with a receptacle, does not place all 66 "
+            f"({w20_usb.placed}/{w20_usb.bom_n}"
+            + (f"; {w20_usb.first_blocking.split(':')[0]}" if w20_usb.first_blocking else "")
+            + "), so WP12d takes the smallest all-66 cell that meets every rule."
         )
         lines.append("")
-        proc = smallest_full(rows, "process", receptacle=True)
-        if proc is not None:
-            holes = "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in proc.hole_sites) or "—"
-            lines.append(
-                f"### Smallest process-edge layout with a receptacle that places all 66 "
-                f"(width {proc.width:g}, chord {proc.chord:.2f}, {proc.sides} sides, fold {proc.fold})"
+
+    proc = smallest_full(rows, "process", receptacle=True)
+    if proc is not None:
+        holes = "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in proc.hole_sites) or "—"
+        lines.append(
+            f"### WP12d pin table — smallest all-66 with receptacle "
+            f"(width {proc.width:g}, chord {proc.chord:.2f}, {proc.sides} sides, fold {proc.fold})"
+        )
+        lines.append("")
+        lines.append(
+            "Every rule this table is checked against is met, including copper-to-edge ≥ 0.30. "
+            "D1, C3, C10, C11 and C12 sit inward of the outline. "
+            f"Hole sites (Q82, keep 3.30, not under U1; SW1 stays in the lid recess): {holes}. "
+            "Contact sites are unchanged. The board lane pins this table within 0.1 mm"
+            + (
+                f" if the body grows to width {proc.width:g}."
+                if proc.width > 20.0 + 1e-9
+                else "."
             )
-            lines.append("")
-            lines.append(
-                f"The board lane can pin this table within 0.1 mm if the body grows to width {proc.width:g}. "
-                f"Contact sites are unchanged. Hole sites (Q82): {holes}."
-            )
-            lines.append("")
-            lines.extend(_placement_table(proc))
-        norec = smallest_full(rows, "process", receptacle=False)
-        if norec is not None:
-            holes = "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in norec.hole_sites) or "—"
-            lines.append(
-                f"### Smallest process-edge layout with no receptacle that places all 64 "
-                f"(width {norec.width:g}, chord {norec.chord:.2f}, {norec.sides} sides, fold {norec.fold})"
-            )
-            lines.append("")
-            lines.append(
-                f"J1 and U5 are absent. P4 and P5 are the tail charging pads (Q81). "
-                f"Hole sites (Q82): {holes}."
-            )
-            lines.append("")
-            lines.extend(_placement_table(norec))
-    lines.append("")
+        )
+        lines.append("")
+        lines.extend(_placement_table(proc))
+    else:
+        lines.append(
+            "No process-edge cell with a receptacle places all 66 under every rule, "
+            "so there is no WP12d pin table."
+        )
+        lines.append("")
+
+    w20_norec_ok = [
+        r
+        for r in rows
+        if (not r.receptacle)
+        and r.edge == "process"
+        and abs(r.width - 20.0) < 1e-9
+        and r.placed >= r.bom_n
+        and not r.missing
+        and not r.first_blocking
+    ]
+    if w20_norec_ok:
+        norec20 = min(w20_norec_ok, key=lambda r: (0 if r.sides == "top" else 1, r.chord))
+        holes = "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in norec20.hole_sites) or "—"
+        lines.append(
+            f"### WP12d pin table — no-receptacle cell at width 20 that places the full BOM "
+            f"(chord {norec20.chord:.2f}, {norec20.sides} sides, fold {norec20.fold})"
+        )
+        lines.append("")
+        lines.append(
+            "J1 and U5 are absent. P4 and P5 are the tail charging pads (Q81). "
+            "Every rule this table is checked against is met, including copper-to-edge ≥ 0.30. "
+            f"Hole sites (Q82, not under U1): {holes}."
+        )
+        lines.append("")
+        lines.extend(_placement_table(norec20))
+    else:
+        lines.append(
+            "No no-receptacle cell at width 20 places the full BOM under every rule, "
+            "so there is no second WP12d pin table from width 20."
+        )
+        lines.append("")
+
     lines.append(
         "Drawings (at most four, Q56) live under `docs/fab/cad/v2c/` so the round-5 14-file "
         "`placement_v2_*.svg` set in `docs/fab/cad/v1/` stays pinned."
@@ -1034,6 +1174,7 @@ def section_5c(v2: Any) -> list[str]:
     names = [f"`{_drawing_name(lay)}`" for lay in pick_v2c_drawings(v2)]
     if names:
         lines.append("This package keeps " + ", ".join(names) + ".")
+    lines.append("")
     return lines
 
 

@@ -949,11 +949,19 @@ class PlacementWP11dTests(unittest.TestCase):
     def test_winning_layout_if_any(self) -> None:
         win = self.mod.smallest_full(self.rows, "process", receptacle=True)
         wp12 = self.mod.wp12d_layout(self.v2)
-        self.assertIsNone(wp12)
+        w20 = self.mod.v2c_cell(self.v2, "process", 20.0, 47.90, True, True)
+        if w20.placed < 66 or w20.first_blocking:
+            self.assertIsNotNone(wp12)
+            self.assertGreater(wp12.width, 20.0)
+        else:
+            self.assertIs(wp12, win)
         if win is None:
             return
         self.assertGreaterEqual(win.placed, win.bom_n)
         self.assertEqual(win.missing, [])
+        self.assertEqual(win.first_blocking, "")
+        for name, ok, why in win.rules:
+            self.assertTrue(ok, f"{name}: {why}")
         by = {p.ref: p for p in win.parts}
         for ref in ("R1", "R2", "R3"):
             self.assertIn(ref, by)
@@ -1029,6 +1037,34 @@ class PlacementWP11dTests(unittest.TestCase):
                     self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), root, 0.0),
                     f"{p.ref} over {name}",
                 )
+        u1 = by["U1"]
+        sw1 = by.get("SW1")
+        for hu, hs in win.hole_sites:
+            hole = self.v2.Box(
+                "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
+            )
+            self.assertFalse(
+                self.v2._overlap(self.v2._part_box(u1, 0.0, 1.0), hole, 0.0),
+                f"Q82 hole ({hu}, {hs}) under U1",
+            )
+            if sw1 is not None:
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(sw1, 0.0, 1.0), hole, 0.0),
+                    "SW1 overlaps a Q82 hole",
+                )
+        pocket = None
+        for p in win.parts:
+            if p.face not in {"top", "bottom"} or p.ref in self.mod.COPPER_SKIP_REFS:
+                continue
+            outline = self.mod._copper_outline_for(p.u, p.s, p.wu, p.ws, win.island, pocket)
+            if outline is None:
+                continue
+            edge_mm = self.mod._pad_edge(
+                self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, outline
+            )
+            self.assertGreaterEqual(edge_mm, 0.30 - 1e-9, f"{p.ref} copper-to-edge {edge_mm:.3f}")
+        for ref in ("D1", "C3", "C10", "C11", "C12"):
+            self.assertIn(ref, by)
 
     def test_packing_doc_has_section_5c(self) -> None:
         doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
@@ -1042,6 +1078,10 @@ class PlacementWP11dTests(unittest.TestCase):
         self.assertIn("Q83", text)
         self.assertIn("| process | 20 | 47.90 | two |", text)
         self.assertIn("The 16 cells with no receptacle", text)
+        self.assertIn("WP12d pin table", text)
+        self.assertIn("not under U1", text)
+        self.assertIn("D1, C3, C10, C11 and C12", text)
+        self.assertIn("| ref | side | u | s | rot |", text)
         self.assertIn("docs/fab/cad/v2c/", text)
         v1_v2 = {p.name for p in self.v2.V2_DRAW_DIR.glob("placement_v2_*.svg")}
         self.assertEqual(len(v1_v2), 14)
