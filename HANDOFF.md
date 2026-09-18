@@ -197,12 +197,14 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   at 0.20 gap, U3 DSBGA 0.40 pitch); JLC's extreme via 0.10/0.30 tried
   on a copy (56 unconnected, 63 via-rule errors, not imported). → Q98.
 - **w2 → WP12i board v3** (`tasks/WP12i-board-v3.md`, main `27b7991`):
-  RUNNING since 10:05 on `lane/w2` on top of `c9c750d` (told to `git
-  merge main` first): U2/U3 footprints against datasheets (U3 swap to a
-  larger package if its ball cannot escape, a stated BOM change), R9/R10
-  DNP (Q95), stiffener zones (Q94), Q97 envelope tests, the §5e parser;
-  then it STOPS with `WAITING WP12i pin table v3` unless I have sent
-  that line plus w3's sha; then re-pin on v3 with the Q98 channels,
+  WAITING since 10:40, `WAITING WP12i pin table v3` received, lane at
+  `03f031c` on `lane/w2` (main merged at 7e0d1bb, tree clean, no report
+  yet, expected). First half done: U2's RSM land is right at 0.40 mm
+  pitch (my Q98 note said 0.5; corrected in the row), U3 BQ25100 stays
+  DSBGA-6 (no larger package, balls escape radially, no BOM change),
+  R9/R10 DNP (BOM 55), Q94 stiffeners nine pieces (fee UNVERIFIED), Q97
+  tests, §5e parser ready. Waits for my line "pin table v3" plus w3's
+  sha; then re-pin on v3 with the Q98 channels,
   lock Contact routes, hand-route then Freerouting, DRC 0 and 0
   unconnected, `release.py --routed`; or name the pads and stop.
   Report (expected) `.worktrees/w2/.reports/WP12i-report.md` (expected)
