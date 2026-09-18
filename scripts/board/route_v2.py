@@ -27,6 +27,7 @@ DSN_DEFAULT_CLEAR = "100"
 DSN_CONTACT_WIDTH = "150"
 DSN_CONTACT_CLEAR = "200"
 DSN_VIA = "Via[0-1]_550:300_um"
+DSN_VIA_EXTREME = "Via[0-1]_300:100_um"
 
 FREEROUTE_FLAGS = [
     "--gui.enabled=false",
@@ -54,6 +55,34 @@ def sanitize_dsn(path: Path) -> None:
     """Drop the 25 um smd_smd clearance (below the 0.10 mm board floor)."""
     text = path.read_text()
     text = re.sub(r"\n\s*\(clearance 25 \(type smd_smd\)\)", "", text)
+    path.write_text(text)
+
+
+def inject_extreme_via(path: Path) -> None:
+    """Prefer JLC 2-layer extreme via 0.10/0.30 mm (extra cost). Unit um."""
+    text = path.read_text()
+    pad = (
+        f'    (padstack "{DSN_VIA_EXTREME}"\n'
+        "      (shape (circle F.Cu 300))\n"
+        "      (shape (circle B.Cu 300))\n"
+        "      (attach off)\n"
+        "    )\n"
+    )
+    if DSN_VIA_EXTREME not in text:
+        text = text.replace(
+            f'    (padstack "{DSN_VIA}"',
+            pad + f'    (padstack "{DSN_VIA}"',
+            1,
+        )
+        text = text.replace(
+            f'(via "{DSN_VIA}"',
+            f'(via "{DSN_VIA_EXTREME}" "{DSN_VIA}"',
+            1,
+        )
+        text = text.replace(
+            f'(use_via "{DSN_VIA}")',
+            f'(use_via "{DSN_VIA_EXTREME}")',
+        )
     path.write_text(text)
 
 
@@ -121,12 +150,16 @@ def main() -> int:
     parser.add_argument("--dsn-check", action="store_true")
     parser.add_argument("--route", action="store_true")
     parser.add_argument("--import-owned", action="store_true")
+    parser.add_argument("--via-extreme", action="store_true")
     args = parser.parse_args()
     work = args.work
     work.mkdir(parents=True, exist_ok=True)
     dsn = work / "elicio-v2.dsn"
     ses = work / "elicio-v2.ses"
     export_dsn(dsn)
+    if args.via_extreme:
+        inject_extreme_via(dsn)
+        print("DSN via extreme", DSN_VIA_EXTREME)
     missing = check_dsn_classes(dsn)
     print("dsn", dsn, "bytes", dsn.stat().st_size)
     paste_dsn_rules(dsn)

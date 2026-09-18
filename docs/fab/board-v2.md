@@ -328,6 +328,7 @@ Source: https://jlcpcb.com/capabilities/flex-pcb-capabilities read 2026-09-17. S
 | Coverlay opening | expansion 0.1 mm one-sided; opening-to-trace ≥ 0.15 mm | Encoded pad-to-mask 0.1 mm |
 | Coverlay colour | Yellow recommended | Yellow / black / white / transparent |
 | Via (regular 2-layer) | 0.30 mm hole / 0.55 mm pad | JLC 0.30/0.55; WP12g dropped 0.70 because 0.70 blocked layer changes |
+| Via (extreme 2-layer) | 0.10 mm hole / 0.30 mm pad (extra cost) | JLC page line “②Extreme for 2-layer: 0.10mm/0.3mm (extra cost required)”; “Via diameter must be at least 0.2mm larger than via hole size”; read 2026-09-18 https://jlcpcb.com/capabilities/flex-pcb-capabilities |
 | PTH annular ring | ≥ 0.25 mm recommended, 0.18 mm absolute | Ring pad (5.0 − 2.7) / 2 = 1.15 mm |
 | Copper to outline | ≥ 0.30 mm (laser) | Encoded as DRC min copper-edge clearance |
 | Outline tolerance | ±0.10 mm | ±0.05 mm on request; not requested |
@@ -446,22 +447,11 @@ Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.c
 
 ## 15. What DRC says
 
-Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md` §11.
+Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md` §12.
 
-WP12g took pin table v2.1 R24 (18.49, 22.57) rot 90 (Q87 closes on copper). Q88 shrunk `tabs` / `tail_pads` to the 7 × 7 around P1–P5. Locked Contact ring→strip→R1–R3 and CHARGE stubs are DRC **0 errors** before the router (1 VBUS dangling warning, 142 unconnected). Freerouting 2.4.1 then via 0.55/0.30 wrote a SES that was imported. **Order release is not green. `routed`: false.**
+WP12h kept the WP12g copper (421 tracks, 33 vias). Hand-route by script (`hardware/board/hand_route.py`) tried VBUS P4→island, J4 SWD, J3 Contact, and U2 QFN escapes. Every new channel that joined a named pad produced DRC errors. No WP12g trace was moved. Freerouting 2.4.1 with the JLC extreme via 0.10/0.30 (`scripts/board/route_v2.py --via-extreme`) wrote a copy at 56 unconnected and 63 via-size DRC errors; that SES was not imported. **Order release is not green. `routed`: false.**
 
-Locked-only DRC (`kicad-cli pcb drc --format json`, 2026-09-18):
-
-| Item | Result |
-|---|---|
-| DRC errors | 0 |
-| DRC warnings | 1 (`track_dangling` on the VBUS CHARGE stub) |
-| Unconnected items | 142 |
-| Pads without a net | 0 |
-| pcb_tracks | 30 |
-| Shorts | 0 |
-
-Owned PCB after SES import (via 0.55/0.30, 20 auto-route passes, fanout 80):
+Owned PCB (WP12g copper, WP12h stop):
 
 | Item | Result |
 |---|---|
@@ -471,23 +461,10 @@ Owned PCB after SES import (via 0.55/0.30, 20 auto-route passes, fanout 80):
 | Pads without a net | 0 |
 | pcb_tracks | 421 |
 | Vias | 33 |
+| Shorts | 0 |
 | Foreign nets in strips | 0 |
 
-Netclasses in the DSN (`scripts/board/route_v2.py --dsn-check`), unit um:
-
-```text
-(via "Via[0-1]_550:300_um" "Via[0-1]_700:300_um")
-(width 100)
-(clearance 100)
-(class kicad_default …
-        (width 100)
-        (clearance 100)
-(class Contact REF SIG1 SIG2
-        (width 150)
-        (clearance 200)
-```
-
-**First structural reason DRC 0 with 0 unconnected cannot land:** the island still has 63 rats after Q88, locked Contact to R1–R3, and Freerouting with the JLC 0.55/0.30 via. They are U2 QFN escapes, J4 SWD, VBUS from P4 onto the island, J3 Contact, and F.Cu↔B.Cu stitches that a 0.55 via still does not finish. A scripted GND pour plus J3 manhattan produced shorts (SIG1/SIG2) and was discarded. The owned copper stays un-shorted.
+**First structural reason DRC 0 with 0 unconnected cannot land:** named pads and geometry in `hardware/board/route.md` §12. Trace 0.10 mm + 2 × 0.10 mm clearance = 0.30 mm (Default). Contact 0.15 mm + 2 × 0.20 mm = 0.55 mm.
 
 `release.py --routed` fails closed on unconnected items (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
 
@@ -546,7 +523,7 @@ Packing SW1 centre is (16.25, 4.45) on the pocket island.
 
 1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Cell is **501015** with a 100 ± 3 mm harness (**NOT_MEASURED**).
 2. **SIG1/SIG2/CHARGE unfold** — Gerber rings are the flat sites. WP14 folds them onto the shell sites (rib-slot for CHARGE, Q86).
-3. **Order route** — `--routed` is fail-closed: 63 unconnected after Q88, locked Contact to R1–R3, and Freerouting with via 0.55/0.30. R24 is pin table v2.1 (18.49, 22.57) rot 90. J3 Contact, U2 escapes, and VBUS from the CHARGE tab still have no DRC-clean channel.
+3. **Order route** — `--routed` is fail-closed: 63 unconnected after WP12h hand-route attempts on the WP12g copper. Named pads and geometry are in `hardware/board/route.md` §12. Packing must move H1/H2, J4, or the east-edge 0402 row on facts; this lane does not move packing.
 4. **3.3 V probe vs 1.8 V first-load** — Q64: this board cannot set REGOUT0 through a 3.3 V probe. WP17b kit.
 5. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
 6. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.

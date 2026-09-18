@@ -158,7 +158,7 @@ class PackingAgreementTests(unittest.TestCase):
 
 class Wp12cRoutedAssertionTests(unittest.TestCase):
     def test_order_release_stays_unrouted(self) -> None:
-        """WP12g: Contact and SES copper exist; DRC 0 with 0 unconnected was not reached."""
+        """WP12h: Contact and SES copper exist; DRC 0 with 0 unconnected was not reached."""
         if shutil.which("kicad-cli") is None:
             self.fail(kicad_missing_message())
         with tempfile.TemporaryDirectory() as tmp:
