@@ -41,7 +41,7 @@ on the three standoff tops (underside y 4.81, top y 5.32). Two printed
 bosses at (14.85, 21.50) and (14.85, 28.10) stop 0.5 below those tops so
 the board lands on the standoffs first. Packing skipped both board-corner
 bosses (they sat on SIG1 or the antenna); these two sit on the high-u
-board edge. Review r6: the routed board (`board-v2.md` §11) has no
+board edge. Review r6: the board (`board-v2.md` §11) has no
 mounting holes, and the bosses sit under J3 and under the module, so no
 board screw can go into them. The REF standoff (s 43.0) is past the
 board's end (s 37.6); the board rests on two standoffs only. Retention
@@ -99,7 +99,7 @@ Interface II (`board-v2.md` §11). Datum chain, medial face y = 0 up:
 |---|---:|---|
 | Medial outer face | 0.00 | body frame |
 | Floor inner face (WALL_MEDIAL) | 1.50 | plan v2 §3 |
-| Ring pad top (PI 0.11 + FR4 0.2) | 1.81 | `packing-v2.md` §5, review r5. The routed board has no ring FR4 (decision 72) |
+| Ring pad top (PI 0.11 + FR4 0.2) | 1.81 | `packing-v2.md` §5, review r5. The board Gerber draws no ring FR4 (decision 72) |
 | Standoff top / board underside | 4.81 | standoff 3.0 (Q43, Q58) |
 | Board top | 5.32 | flex 0.51 at parts |
 | Boss top | 4.31 | 0.5 below the standoff tops |

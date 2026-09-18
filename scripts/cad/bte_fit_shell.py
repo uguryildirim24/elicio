@@ -3386,7 +3386,7 @@ def _apply_shell_features(
         origin = _vec(path, u, s, 0.0)
         well_h = layout.standoff_top_y - floor_y + 0.2
         # Review r6: the well is the 5.30 AF hex alone. The Ø7.4 cylinder the
-        # lane cut with it swallowed the hex (circumradius 3.06 < 3.70), so
+        # lane cut with it swallowed its AF 6.3 hex (circumradius 3.64 < 3.70), so
         # the standoff could turn and the collar flats were 0.2 thick.
         well = _hex_prism(path, u, s, floor_y - 0.05, well_h, inner_r)
         try:
