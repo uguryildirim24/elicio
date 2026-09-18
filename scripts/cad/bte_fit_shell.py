@@ -756,7 +756,7 @@ def _s5c_packing_text() -> tuple[str, str, str]:
         text = subprocess.check_output(
             ["git", "-C", str(S5C_W3_ROOT), "show", f"{S5C_PACKING_SHA}:{S5C_PACKING_REL}"],
             stderr=subprocess.DEVNULL,
-            text=True,
+            encoding="utf-8",
         )
         return text, S5C_PACKING_SHA, str(w3_md)
     except (OSError, subprocess.CalledProcessError):
