@@ -1,6 +1,6 @@
 # Board v2 — schematic, G2/G4 records, release job
 
-Status: design record for WP12e. Not for order, quote or upload.
+Status: design record for WP12f. Not for order, quote or upload.
 Date: 2026-09-18.
 KiCad: 10.0.6 (`kicad-cli`).
 Interface: **II** (plan v2 §5.3 fallback). Packing pin table v2 (flat coordinates, `408a476`), width 22, chord 47.90, two sides, SIG/REF/CHARGE tabs (Q81–Q86). LID_Y 8.0. Standoff 3.0 mm on a 0.31 ring: board underside y 4.81, top y 5.32. Cell 501012 pack in series. Board width 22 mm body, island u 2.25–19.75, s 16.00–37.60.
@@ -445,28 +445,55 @@ Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.c
 
 ## 15. What DRC says
 
-Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md` §9.
+Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md` §10.
 
-WP12e placed from pin table v2 (`408a476`, `hardware/board/packing_v2_flat.md`). Flat outline: SIG1/SIG2 strips, REF tab, CHARGE rectangle. **0 tracks.** Freerouting 2.4.1 on OpenJDK 25 wrote a SES; import on a copy raised DRC from 2 to 317. The SES was discarded. **Order release is not green. `routed`: false.**
+WP12f moved R24 +0.47 mm u (Q87). Zero-track DRC on that land is **0 errors**, 146 unconnected, 0 tracks. Locked strip and CHARGE-tab stubs (7 tracks, Specctra `type fix`) are on the owned PCB. Freerouting 2.4.1 on OpenJDK 25 wrote a SES; import on a copy (with the `.kicad_pro` beside it) is 12 errors / 60 unconnected. The SES was not written back. **Order release is not green. `routed`: false.**
 
-Zero-track DRC on this land (`kicad-cli pcb drc --format json`, 2026-09-18):
+Zero-track DRC after the R24 move (`kicad-cli pcb drc --format json`, 2026-09-18):
 
 | Item | Result |
 |---|---|
-| DRC errors | 2 |
+| DRC errors | 0 |
 | DRC warnings | 0 |
 | Unconnected items | 146 |
 | Pads without a net | 0 |
 | pcb_tracks | 0 |
 | Vias | 0 |
 
-Error counts: 1 hole_clearance, 1 solder_mask_bridge. Both are Pad 2 [GND] of R24 on B.Cu against a J4 NPTH. Copper-to-edge 0. No shorting_items. No Contact-clearance hit on island 0402 (Q84). P2 is at (10.40, -5.81), not under U1.
+Owned PCB after locked stubs: 5 `track_dangling` **warnings**, 0 DRC errors, 146 unconnected, 7 tracks. SES not written back.
 
-**First structural reason DRC 0 cannot land:** R24 pad 2 on B.Cu sits on J4 NPTH at (17.266, 22.06). KiCad's TC2030 at (16.25, 24.60) rot 90 puts two holes at s=22.06 (u 15.234 and 17.266) and one at (16.25, 27.14). Pin table v2 listed the pair at s=27.14. A move that clears the hole is 0.46 mm, past the 0.1 mm pin. R23 (+0.09 mm u) and R26 (-0.05 mm u) were nudged inside that pin; R24 was not.
+| Item | Result |
+|---|---|
+| DRC errors | 0 |
+| DRC warnings | 5 |
+| Unconnected items | 146 |
+| Pads without a net | 0 |
+| pcb_tracks | 7 |
+| Vias | 0 |
 
-Freerouting **v2.4.1** on OpenJDK 25 (`~/.local/opt/freerouting/freerouting-2.4.1.jar`): 8 auto-route passes, 75.47 s, SES 22585 bytes, 75 unrouted / 17 router violations. Copy import: 268 tracks, 12 vias, 317 DRC errors, 75 unconnected, 0 shorts. Owned PCB stays un-shorted.
+The five violations are `track_dangling` **warnings** on SIG1, SIG2, REF, VBUS, and GND (the locked stub ends). DRC errors 0. Shorts 0. Copper-to-edge 0. Hole clearance 0.
 
-`release.py --routed` fails closed on DRC errors, unconnected items, and no tracks (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
+Netclasses in the DSN (`scripts/board/route_v2.py --dsn-check`), unit um:
+
+```text
+(via "Via[0-1]_700:300_um")
+(width 100)
+(clearance 100)
+(class kicad_default …
+        (width 100)
+        (clearance 100)
+(class Contact REF SIG1 SIG2
+        (width 150)
+        (clearance 200)
+```
+
+The WP12e 199 `track_width` hits were min width 0.2000 mm vs actual 0.1000 mm. The DSN already carried 100 um Default. SES import copies Contact 0.15/0.20 onto Default unless the project file sits next to the copy. `import_ses` now restores §12 and clamps necks below 0.10 mm. A copy DRC without the `.kicad_pro` was 204 errors; with it, 12.
+
+**First structural reason DRC 0 with 0 unconnected cannot land:** Q84 1.0 mm on `tabs` cannot be met at the strip roots. L1 pad 1 (DCCH) starts 0.70 mm from the SIG1 attach line at s=16.00. D2 pad 2 (D2_A) starts 0.60 mm from SIG2 attach. U1 pad 26 starts 0.90 mm from REF attach. No copper can leave a strip onto the island without Contact-to-part clearance under 1.0 mm. Freerouting joined R1–R3 to J3 on the island and left the locked ring stubs dangling.
+
+Freerouting **v2.4.1** on OpenJDK 25.0.4.1 (`~/.local/opt/freerouting/freerouting-2.4.1.jar`): fanout 40 passes, 126/230 SMD pins escaped (54.8 %), 12 auto-route passes, 1 m 48 s, SES 33305 bytes, 60 unrouted / 25 router violations. Copy import with project file: 444 tracks, 37 vias, 12 DRC, 60 unconnected, 0 shorts, 0 foreign nets in the strips. Owned PCB stays un-shorted.
+
+`release.py --routed` fails closed on DRC errors and unconnected items (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
 
 ## 16. ERC
 
@@ -476,7 +503,7 @@ Freerouting **v2.4.1** on OpenJDK 25 (`~/.local/opt/freerouting/freerouting-2.4.
 
 `scripts/board/release.py` runs ERC, DRC, JLC-column BOM, JLC CPL (the BOM's designators, SMD and the THT header J3; review r6), gerbers+drill, STEP, and `release/summary.json`. Non-zero exit on any ERC error, any missing output, or a BOM part without a CPL row; with `--routed`, also on DRC errors, unconnected items, pads without a net, or no tracks.
 
-`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks == 0, and named SMT centres within 0.1 mm of `packing_v2_flat.md`. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
+`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks > 0 (locked stubs), R24 within 0.50 mm of the table (Q87), and other named SMT centres within 0.1 mm of `packing_v2_flat.md`. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
 
 ## 18. Assembler consequences and C7 (quote only)
 
@@ -523,7 +550,7 @@ Packing SW1 centre is (16.25, 4.45) on the pocket island.
 
 1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Cell is **501015** with a 100 ± 3 mm harness (**NOT_MEASURED**).
 2. **SIG1/SIG2/CHARGE unfold** — Gerber rings are the flat sites. WP14 folds them onto the shell sites (rib-slot for CHARGE, Q86).
-3. **Order route** — `--routed` is fail-closed: R24 on B.Cu sits on a J4 NPTH. The pin-table-v2 keep-out XY does not match the KiCad TC2030 at rot 90. Clearing R24 needs a 0.46 mm move, past the 0.1 mm pin. Packing must keep B.Cu pads out of the real hole sites.
+3. **Order route** — `--routed` is fail-closed: Q84 1.0 mm on `tabs` versus L1, D2, and U1 at the strip roots. R24 is off the real J4 hole (+0.47 mm u, Q87). Packing must fold that deviation back and keep L1/D2/U1 off the 1.0 mm tab creepage, or Q84 must be redrawn to stop at the ring copper only.
 4. **3.3 V probe vs 1.8 V first-load** — Q64: this board cannot set REGOUT0 through a 3.3 V probe. WP17b kit.
 5. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
 6. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.

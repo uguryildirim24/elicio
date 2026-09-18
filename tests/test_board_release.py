@@ -112,7 +112,7 @@ class BoardReleaseTests(unittest.TestCase):
             self.assertIs(summary["routed"], False)
             self.assertIs(summary["routed_requested"], True)
             self.assertTrue(summary["refused"])
-            self.assertGreater(summary["refused"].get("drc_errors", 0), 0)
+            self.assertGreater(summary["refused"].get("unconnected_items", 0), 0)
             # WP12f: locked tab stubs are present; nets are not finished.
             self.assertGreater(summary["pcb_tracks"], 0)
 
@@ -173,7 +173,6 @@ class Wp12cRoutedAssertionTests(unittest.TestCase):
             self.assertIn("routed release refused", proc.stderr)
             summary = json.loads((out / "summary.json").read_text(encoding="utf-8"))
             self.assertGreater(summary["pcb_tracks"], 0)
-            self.assertGreater(summary["drc_errors"], 0)
             self.assertGreater(summary["unconnected_items"], 0)
             self.assertEqual(summary["pcb_pads_without_net"], 0)
 
