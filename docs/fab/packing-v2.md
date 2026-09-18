@@ -1882,10 +1882,10 @@ Second-side parts need body height ≤ 3.31 mm. They never sit over a ring seat,
 
 | edge | width | chord | sides | fold | placed / N | first rule that cannot be met | island mm² | leftover mm² | holes | extra u | extra s | second side |
 |---|---:|---:|---|---|---:|---|---:|---:|---|---:|---:|---|
-| process | 20 | 47.90 | top | neck | 26/64 | J4 TC2030 on the leftover (Q80) | 334.8 | 74.7 | (13.45, 17.70); (15.40, 21.65) | +0.00 | +0.00 | — |
-| process | 20 | 47.90 | two | neck | 52/64 | J4 TC2030 on the leftover (Q80) | 334.8 | 74.7 | (13.45, 17.70); (15.40, 21.65) | +0.00 | +0.00 | U2, Q2, Q3, Q4, Q5, C8, C9, C13, C14, C15, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19 |
-| process | 20 | 49.00 | top | neck | 27/64 | J4 TC2030 on the leftover (Q80) | 351.7 | 91.5 | (10.95, 19.70); (14.95, 17.70) | +0.00 | +1.09 | — |
-| process | 20 | 49.00 | two | neck | 62/64 | J4 TC2030 on the leftover (Q80) | 351.7 | 91.5 | (10.95, 19.70); (14.95, 17.70) | +0.00 | +1.09 | U2, Q2, Q3, Q4, C9, C12, C13, C14, C15, R4, R5, R6, R7, R8, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30 |
+| process | 20 | 47.90 | top | neck | 25/64 | J4 TC2030 on the leftover (Q80) | 334.8 | 74.7 | (13.45, 17.70); (15.40, 21.65) | +0.00 | +0.00 | — |
+| process | 20 | 47.90 | two | neck | 51/64 | J4 TC2030 on the leftover (Q80) | 334.8 | 74.7 | (13.45, 17.70); (15.40, 21.65) | +0.00 | +0.00 | U2, Q2, Q3, Q4, Q5, C8, C9, C13, C14, C15, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19 |
+| process | 20 | 49.00 | top | neck | 26/64 | J4 TC2030 on the leftover (Q80) | 351.7 | 91.5 | (10.95, 19.70); (14.95, 17.70) | +0.00 | +1.09 | — |
+| process | 20 | 49.00 | two | neck | 61/64 | J4 TC2030 on the leftover (Q80) | 351.7 | 91.5 | (10.95, 19.70); (14.95, 17.70) | +0.00 | +1.09 | U2, Q2, Q3, Q4, C9, C12, C13, C14, C15, R4, R5, R6, R7, R8, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30 |
 | process | 22 | 47.90 | top | neck | 25/64 | every required footprint placed | 378.0 | 84.4 | (13.45, 17.70); (17.95, 17.70) | +2.00 | +0.00 | — |
 | process | 22 | 47.90 | two | neck | 64/64 | — | 378.0 | 84.4 | (13.45, 17.70); (17.95, 17.70) | +2.00 | +0.00 | Q1, Q2, Q3, Q4, Q5, C6, C7, C8, C9, C13, C14, C15, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30 |
 | process | 22 | 49.00 | top | neck | 29/64 | every required footprint placed | 397.0 | 103.3 | (15.45, 23.84); (15.45, 28.34) | +2.00 | +1.09 | — |
@@ -1990,7 +1990,7 @@ Every rule this table is checked against is met, including copper-to-edge ≥ 0.
 | U4 | top | 16.65 | 34.80 | 0 | 4.10 × 3.40 | TLV71330 |
 | U5 | bottom | 4.60 | 27.60 | 0 | 4.10 × 3.40 | USBLC6 |
 
-No no-receptacle cell at width 20 places the full BOM under every rule (52/64; J4 TC2030 on the leftover (Q80)).
+No no-receptacle cell at width 20 places the full BOM under every rule (51/64; J4 TC2030 on the leftover (Q80)).
 
 ### WP12d pin table — smallest all-64 with no receptacle (width 22, chord 47.90, two sides, fold neck)
 
@@ -2071,21 +2071,22 @@ Build cell: process-edge, width 22, chord 47.90, two sides, fold neck, no recept
 
 Fold allowance: inner R 1.5 mm, stack 0.31 mm (PI 0.11 + FR4 0.2). Arc at R is πR = 4.71 mm. Midplane arc π(R + t/2) = 5.20 mm. Q83 strip lengths use πR, so SIG1 10.71 mm and SIG2 21.81 mm stay. Flat length = folded run + πR. Folded run SIG1 = 6.00 mm, SIG2 = 17.10 mm.
 
-Flat-to-folded mapping (neck-end, Q83): each SIG strip leaves the island at (contact u, s=16.00) toward −s. The ring centre in PCB coordinates is (contact u, s0 − L_flat). A 180° fold at R 1.5 at the neck puts the ring on the floor at the contact site. REF does not take that fold: it already leaves the island high-s end (s=37.60) through the end-wall slot, so P3 flat = P3 folded. P4 and P5 cannot sit on that tail: TOTAL_CHORD 47.90, loft s 45.5, Ø5 copper would need s ≤ 43.0, and the slot/REF dome/screw well leave no pair of Ø5 sites (largest tail pair Ø2.1). They sit on the hook-end medial floor beside the cell. Flat = folded. Extra channel: Ø5 holes through the medial floor at those sites; REF_end_wall_slot is unchanged. If the pocket island cannot carry the rings, the shell also needs a rib slot at s 14.90–15.70, u 11.90–20.50, height 0.31.
+Flat-to-folded mapping (neck-end, Q83): each SIG strip leaves the island at (contact u, s=16.00) toward −s. The ring centre in PCB coordinates is (contact u, s0 − L_flat). A 180° fold at R 1.5 at the neck puts the ring on the floor at the contact site. REF does not take that fold: it already leaves the island high-s end (s=37.60) through the end-wall slot, so P3 flat = P3 folded. P4 and P5 cannot sit on that tail: TOTAL_CHORD 47.90, loft s 45.5, Ø5 copper would need s ≤ 43.0, and the slot/REF dome/screw well leave no pair of Ø5 sites (largest tail pair Ø2.1). Folded sites stay on the hook-end medial floor beside the cell (Q86). The pocket island (SW1, U2) shares that XY at board height, so flat is not folded. The flex leaves leftover s=16.00 through the rib slot (s 14.90–15.70, u 11.90–20.50, height 0.31). Drop height 3.31 mm (underside 4.81 to floor 1.50). Two 90° bends at inner R 1.5 mm; allowance πR + 0.31 vertical = 5.02 mm, plus 1.00 mm past J2. A 90° unfold at the leftover corner maps 3D −s onto +u. P4 flat (37.47, 2.80); P5 flat (30.05, 5.80). The cell-side drop at u 11.90 is refused: SIG2's flat strip occupies u 9.15–11.65 through that s.
 
 | strip | attach (u, s) | flat ring (u, s) | flat rectangle centre wu × ws | folded run | L_flat |
 |---|---|---|---|---:|---:|
 | SIG1 | (5.90, 16.00) | (5.90, 5.29) | (5.90, 10.64) 2.50 × 10.71 | 6.00 | 10.71 |
 | SIG2 | (10.40, 16.00) | (10.40, -5.81) | (10.40, 5.09) 2.50 × 21.81 | 17.10 | 21.81 |
 | REF | (8.50, 37.60) | (8.50, 43.00) | (8.50, 40.30) 2.50 × 5.40 | 5.40 | 5.40 |
+| CHARGE | leftover s=16.00, u 11.90–20.50 | P4 (37.47, 2.80); P5 (30.05, 5.80) | (33.02, 4.30) 14.50 × 8.60 | P4 11.70; P5 4.28 | P4 17.72; P5 10.30 |
 
-2D check: the flat pattern does not self-overlap. No SIG or REF strip crosses a part on either side of the leftover or the pocket. P1–P3 flat centres sit outside every other courtyard. Neck-end is the exit. Side-wall pockets stay refused (remaining wall 0.65 mm < 1.0).
+2D check: the flat pattern does not self-overlap. No SIG, REF or CHARGE strip crosses a part on either side of the leftover or the pocket. P1–P5 flat centres sit outside every other courtyard. Neck-end is the SIG exit. Side-wall pockets stay refused (remaining wall 0.65 mm < 1.0).
 
 Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_two.svg` (strips and ring pads in PCB coordinates; at most four drawings, Q56).
 
 ### Pin table v2 — flat PCB coordinates (width 22, chord 47.90, two sides, fold neck)
 
-68 rows (66 footprints including P4/P5, plus H1 and H2). Side column as in §5c. Pad-to-outline ≥ 0.30. Holes at the Q82 sites. SW1 in the lid recess. Contact variant A. P1 and P2 are the FLAT ring centres (not the folded sites WP12d pinned). P4 and P5 keep RING_PAD_D5_H2.7 courtyards on the hook-end medial floor, inside the cavity, with pad-to-outline ≥ 0.30. They replace the side-wall sites (0.75, 44.00) and (21.25, 44.00) and the off-body tail sites (5.05, 49.50) and (16.95, 49.50). The board lane pins this table within 0.1 mm. The shell lane ignores it and takes the folded-site table.
+68 rows (66 footprints including P4/P5, plus H1 and H2). Side column as in §5c. Pad-to-outline ≥ 0.30. Holes at the Q82 sites. SW1 in the lid recess. Contact variant A. P1, P2, P4 and P5 are the FLAT ring centres (not the folded sites). P4 and P5 keep RING_PAD_D5_H2.7 courtyards. Folded they sit on the hook-end medial floor inside the cavity, with pad-to-outline ≥ 0.30. They replace the side-wall sites (0.75, 44.00) and (21.25, 44.00) and the off-body tail sites (5.05, 49.50) and (16.95, 49.50). The board lane pins this table within 0.1 mm. The shell lane ignores it and takes the folded-site table.
 
 | ref | side | u | s | rot | courtyard wu × ws | notes |
 |---|---|---:|---:|---:|---:|---|
@@ -2113,8 +2114,8 @@ Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_t
 | P1 | floor | 5.90 | 5.29 | 0 | 6.40 × 6.40 | SIG1 ring; Q79 tab carries one Contact trace; FLAT PCB (Q85); folded site in the shell table |
 | P2 | floor | 10.40 | -5.81 | 0 | 6.40 × 6.40 | SIG2 ring; FLAT PCB (Q85); folded site in the shell table |
 | P3 | floor | 8.50 | 43.00 | 0 | 6.40 × 6.40 | REF ring; REF_end_wall_slot |
-| P4 | floor | 14.70 | 4.30 | 0 | 6.40 × 6.40 | CHARGE_VBUS hook-end floor pad (Q81); RING_PAD_D5_H2.7 |
-| P5 | floor | 17.70 | 11.72 | 0 | 6.40 × 6.40 | CHARGE_GND hook-end floor pad (Q81); RING_PAD_D5_H2.7 |
+| P4 | floor | 37.47 | 2.80 | 0 | 6.40 × 6.40 | CHARGE_VBUS hook-end floor pad (Q81); RING_PAD_D5_H2.7; FLAT PCB (Q85); folded site in the shell table |
+| P5 | floor | 30.05 | 5.80 | 0 | 6.40 × 6.40 | CHARGE_GND hook-end floor pad (Q81); RING_PAD_D5_H2.7; FLAT PCB (Q85); folded site in the shell table |
 | Q1 | bottom | 4.48 | 27.60 | 0 | 3.86 × 3.40 | SOT-23 |
 | Q2 | bottom | 4.48 | 31.20 | 0 | 3.86 × 3.40 | SOT-23 |
 | Q3 | bottom | 4.48 | 34.80 | 0 | 3.86 × 3.40 | SOT-23 |
@@ -2160,15 +2161,19 @@ Flat-pattern drawing: `docs/fab/cad/v2c/placement_v2c_process_norec_w22_c47.90_t
 
 ### Folded sites for the shell (u, s, y)
 
-Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner floor (1.50 mm). P4 and P5 sit on the hook-end medial floor (not the tail, not the 1.5 mm side walls). Whole Ø5 copper is ahead of the tail loft (s + 2.5 ≤ 45.5). Pad-to-outline ≥ 0.30. Nylon between pads ≥ 3 mm. Edge-to-edge ≥ 2 mm to the REF Ø6.4 dome (8.50, 43.00) and the Ø5 screw head (14.50, 41.00). Two Ø5 pads cannot meet those rules on the tail; largest tail pair Ø2.1. WP14 follows these sites.
+Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner floor (1.50 mm). P4 and P5 sit on the hook-end medial floor (not the tail, not the 1.5 mm side walls). Whole Ø5 copper is ahead of the tail loft (s + 2.5 ≤ 45.5). Pad-to-outline ≥ 0.30. Nylon between pads ≥ 3 mm. Edge-to-edge ≥ 2 mm to the REF Ø6.4 dome (8.50, 43.00) and the Ø5 screw head (14.50, 41.00). Two Ø5 pads cannot meet those rules on the tail; largest tail pair Ø2.1. WP14 follows these sites. Flat centres are in pin table v2.
 
 | pad | net | u | s | y | courtyard | notes |
 |---|---|---:|---:|---:|---|---|
 | P1 | SIG1 | 5.90 | 22.00 | 1.50 | 6.40 × 6.40 | folded seat after the neck 180° fold |
 | P2 | SIG2 | 10.40 | 33.10 | 1.50 | 6.40 × 6.40 | folded seat after the neck 180° fold |
 | P3 | REF | 8.50 | 43.00 | 1.50 | 6.40 × 6.40 | REF_end_wall_slot; flat = folded |
-| P4 | CHARGE_VBUS | 14.70 | 4.30 | 1.50 | 6.40 × 6.40 | hook-end medial floor; not the tail; flat = folded (Q81) |
-| P5 | CHARGE_GND | 17.70 | 11.72 | 1.50 | 6.40 × 6.40 | hook-end medial floor; not the tail; flat = folded (Q81) |
+| P4 | CHARGE_VBUS | 14.70 | 4.30 | 1.50 | 6.40 × 6.40 | hook-end medial floor; not the tail; rib-slot Z-fold (Q86) |
+| P5 | CHARGE_GND | 17.70 | 11.72 | 1.50 | 6.40 × 6.40 | hook-end medial floor; not the tail; rib-slot Z-fold (Q86) |
+
+### Shell extras for the P4/P5 fold
+
+Ø5 holes through the medial floor at the folded sites (14.70, 4.30) and (17.70, 11.72). Rib slot s 14.90–15.70, u 11.90–20.50, height 0.31 mm. Drop channel at leftover s=16.00, u 11.90–20.50: two 90° at R 1.5 mm, drop 3.31 mm, vertical 0.31 mm. REF_end_wall_slot is unchanged. The cell-side drop at u 11.90 is not used.
 
 ### J4 NPTH keep-out both sides (Q85)
 

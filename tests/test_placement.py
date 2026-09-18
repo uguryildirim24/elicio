@@ -1178,10 +1178,24 @@ class PlacementWP11eTests(unittest.TestCase):
         self.assertAlmostEqual(pads["P1"][1], bs0 - self.lay.sig1_strip, places=2)
         self.assertAlmostEqual(pads["P2"][1], bs0 - self.lay.sig2_strip, places=2)
         self.assertNotAlmostEqual(pads["P2"][1], self.v2.CONTACT_2[1], places=2)
+        charge = self.mod.charge_flat_pads(self.v2, self.lay.island, self.lay.width)
+        skip = {"P1", "P2", "P3", "P4", "P5"}
+        for ref, (u, s) in charge.items():
+            for p in self.lay.parts:
+                if p.ref in skip:
+                    continue
+                self.assertFalse(
+                    self.mod._centre_in_courtyard(u, s, p),
+                    f"{ref} flat ({u:.2f}, {s:.2f}) inside {p.ref} at ({p.u:.2f}, {p.s:.2f})",
+                )
         rows = list(self.mod._pin_table_v2_parts(self.v2, self.lay))
         self.assertEqual(len(rows), 68)
         p2 = next(r for r in rows if r[0] == "P2")
         self.assertAlmostEqual(p2[3], pads["P2"][1], places=2)
+        p4 = next(r for r in rows if r[0] == "P4")
+        self.assertAlmostEqual(p4[2], charge["P4"][0], places=2)
+        self.assertAlmostEqual(p4[3], charge["P4"][1], places=2)
+        self.assertIn("FLAT PCB (Q85)", p4[7])
 
     def test_j4_npth_empty_on_bottom(self) -> None:
         self.assertGreaterEqual(len(self.lay.j4_npth), 2)
@@ -1261,9 +1275,58 @@ class PlacementWP11eTests(unittest.TestCase):
         self.assertNotIn("| P4 | CHARGE_VBUS | 5.05 | 49.50 |", text)
         self.assertIn("hook-end medial floor", text)
         self.assertIn("largest tail pair Ø2.1", text)
+        self.assertIn("| P4 | floor | 37.47 | 2.80 |", text)
+        self.assertIn("| P5 | floor | 30.05 | 5.80 |", text)
+        self.assertIn("s 14.90–15.70", text)
+        self.assertIn("Drop height 3.31", text)
+        self.assertIn("### Shell extras for the P4/P5 fold", text)
         v2c_dir = Path(__file__).resolve().parents[1] / "docs" / "fab" / "cad" / "v2c"
         v2c = {p.name for p in v2c_dir.glob("placement_v2c_*.svg")}
         self.assertLessEqual(len(v2c), 4)
+
+    def test_charge_flat_centres_distinct_from_folded(self) -> None:
+        pads = self.mod.charge_flat_pads(self.v2, self.lay.island, self.lay.width)
+        p4, p5 = self.mod.charge_pad_sites(self.lay.width, self.v2)
+        self.assertAlmostEqual(pads["P4"][0], 37.47, places=2)
+        self.assertAlmostEqual(pads["P4"][1], 2.80, places=2)
+        self.assertAlmostEqual(pads["P5"][0], 30.05, places=2)
+        self.assertAlmostEqual(pads["P5"][1], 5.80, places=2)
+        self.assertNotAlmostEqual(pads["P4"][0], p4[0], places=2)
+        self.assertNotAlmostEqual(pads["P4"][1], p4[1], places=2)
+        self.assertNotAlmostEqual(pads["P5"][0], p5[0], places=2)
+        self.assertNotAlmostEqual(pads["P5"][1], p5[1], places=2)
+        self.assertAlmostEqual(self.mod.charge_drop_mm(self.v2), 3.31, places=2)
+        self.assertAlmostEqual(self.mod.charge_fold_allowance(self.v2), 5.02, places=2)
+
+    def test_floor_pad_sharing_xy_with_top_has_distinct_flat_centre(self) -> None:
+        flats = self.mod.all_flat_pads(self.v2, self.lay)
+        shared = 0
+        for p in self.lay.parts:
+            if p.face != "floor":
+                continue
+            for t in self.lay.parts:
+                if t.face not in {"top", "bottom"}:
+                    continue
+                if not self.mod._xy_overlap(p.u, p.s, p.wu, p.ws, t.u, t.s, t.wu, t.ws):
+                    continue
+                shared += 1
+                self.assertIn(p.ref, flats)
+                fu, fs = flats[p.ref]
+                self.assertFalse(
+                    abs(fu - p.u) < 1e-9 and abs(fs - p.s) < 1e-9,
+                    f"{p.ref} shares XY with {t.ref} at ({p.u:.2f}, {p.s:.2f}) but flat=folded",
+                )
+                self.assertFalse(
+                    self.mod._centre_in_courtyard(fu, fs, t),
+                    f"{p.ref} flat ({fu:.2f}, {fs:.2f}) inside {t.ref}",
+                )
+        self.assertGreaterEqual(shared, 1)
+        self.assertTrue(
+            any(p.ref in {"P4", "P5"} and t.ref in {"SW1", "U2"}
+                for p in self.lay.parts if p.face == "floor"
+                for t in self.lay.parts if t.face == "top"
+                and self.mod._xy_overlap(p.u, p.s, p.wu, p.ws, t.u, t.s, t.wu, t.ws))
+        )
 
 
 if __name__ == "__main__":
