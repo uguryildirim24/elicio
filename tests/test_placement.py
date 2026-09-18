@@ -907,5 +907,116 @@ class PlacementWP11cTests(unittest.TestCase):
         self.assertIn("| 501012 BODY_ARC | side-wall pockets | 8.36 | 12.06 |", text)
 
 
+class PlacementWP11dTests(unittest.TestCase):
+    """WP11d: 16-cell layout grid, both edge readings, two sides."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.mod = cls.v2._layout_v2c_mod()
+        cls.rows = cls.mod.run_v2c_grid(cls.v2)
+
+    def test_grid_has_sixteen_cells(self) -> None:
+        self.assertEqual(len(self.rows), 16)
+        keys = {(r.edge, r.width, round(r.chord, 2), r.sides) for r in self.rows}
+        self.assertEqual(len(keys), 16)
+
+    def test_process_w20_chord_4790_two_sides_does_not_place_all_66(self) -> None:
+        lay = self.mod.v2c_cell(self.v2, "process", 20.0, 47.90, True)
+        self.assertLess(lay.placed, 66)
+        self.assertAlmostEqual(lay.extra_u, 0.0, places=2)
+        self.assertAlmostEqual(lay.extra_s, 0.0, places=2)
+        self.assertAlmostEqual(lay.under_clear_mm, 3.31, places=2)
+
+    def test_winning_layout_if_any(self) -> None:
+        win = self.mod.smallest_full(self.rows, "process")
+        wp12 = self.mod.wp12d_layout(self.v2)
+        self.assertIsNone(wp12)
+        if win is None:
+            return
+        self.assertEqual(win.placed, 66)
+        self.assertEqual(win.missing, [])
+        by = {p.ref: p for p in win.parts}
+        for ref in ("R1", "R2", "R3"):
+            self.assertIn(ref, by)
+            self.assertIn(by[ref].face, {"top", "bottom"})
+        overlaps = []
+        for face in ("top", "bottom"):
+            group = [p for p in win.parts if p.face == face]
+            boxes = [self.v2._part_box(p, 0.0, 1.0) for p in group]
+            for i, a in enumerate(boxes):
+                for b in boxes[i + 1 :]:
+                    if self.v2._overlap(a, b, 0.0):
+                        overlaps.append(f"{a.name}/{b.name}")
+        self.assertEqual(overlaps, [])
+        bu0, bu1, bs0, bs1 = win.island
+        for ref in ("R1", "R2", "R3"):
+            p = by[ref]
+            self.assertTrue(
+                self.mod._inside(p.u, p.s, p.wu, p.ws, win.island)
+                or self.mod._inside(p.u, p.s, p.wu, p.ws, win.leftover),
+                f"{ref} not on the island (Q79)",
+            )
+        for p in win.parts:
+            if p.face == "hook":
+                self.assertEqual(p.ref, "J1")
+                continue
+            if p.face == "floor":
+                self.assertIn(p.ref, {"P1", "P2", "P3"})
+                continue
+            if p.ref in {"J2", "J3"}:
+                continue
+            in_island = self.mod._inside(p.u, p.s, p.wu, p.ws, win.island)
+            in_left = self.mod._inside(p.u, p.s, p.wu, p.ws, win.leftover)
+            in_pocket = p.s + p.ws / 2.0 <= bs0 + 0.3
+            self.assertTrue(
+                in_island or in_left or in_pocket,
+                f"{p.ref} not inside island, leftover, or pocket",
+            )
+        for p in win.parts:
+            if p.face != "bottom":
+                continue
+            for site in (self.v2.CONTACT_1, self.v2.CONTACT_2):
+                ring = self.v2.Box("ring", site[0], site[1], 7.0, 7.0, -1.0, 20.0, "floor")
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), ring, 0.0),
+                    f"{p.ref} over ring {site}",
+                )
+            for hu, hs in self.v2.BOSS_HOLE_SITES:
+                hole = self.v2.Box("hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor")
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), hole, 0.0),
+                    f"{p.ref} over boss hole ({hu}, {hs})",
+                )
+            for name, u, s, wu, ws in (
+                ("TABROOT_SIG1", bu0 + 2.0, self.v2.CONTACT_1[1], 4.0, self.v2.TAB_W),
+                ("TABROOT_SIG2", bu1 - 2.0, self.v2.CONTACT_2[1], 4.0, self.v2.TAB_W),
+                ("TABROOT_REF", self.v2.CONTACT_REF[0], bs1 - 2.0, self.v2.TAB_W, 4.0),
+            ):
+                root = self.v2.Box(name, u, s, wu, ws, -1.0, 20.0, "floor")
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), root, 0.0),
+                    f"{p.ref} over {name}",
+                )
+
+    def test_packing_doc_has_section_5c(self) -> None:
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("## 5c. Layout grid v2c", text)
+        self.assertIn("Q78", text)
+        self.assertIn("Q79", text)
+        self.assertIn("Q80", text)
+        self.assertIn("| process | 20 | 47.90 | two |", text)
+        self.assertIn("docs/fab/cad/v2c/", text)
+        v1_v2 = {p.name for p in self.v2.V2_DRAW_DIR.glob("placement_v2_*.svg")}
+        self.assertEqual(len(v1_v2), 14)
+        v1_v2c = {p.name for p in self.v2.V2_DRAW_DIR.glob("placement_v2c_*.svg")}
+        self.assertEqual(v1_v2c, set())
+        v2c_dir = Path(__file__).resolve().parents[1] / "docs" / "fab" / "cad" / "v2c"
+        v2c = {p.name for p in v2c_dir.glob("placement_v2c_*.svg")}
+        self.assertLessEqual(len(v2c), 4)
+        self.assertGreaterEqual(len(v2c), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
