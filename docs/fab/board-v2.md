@@ -185,6 +185,8 @@ Iq: tens of µA class (SBVS195). Dropout as in §6. AVDD = DVDD = +3V0. **Per AD
 
 ## 9. G4 / firmware GPIO map (MDBT50Q pin → nRF)
 
+WP12b publishes this map as the input for WP13b `firmware/src/board_pins.h`. Pin numbers are from the schematic netlist on this board (Raytac MDBT50Q-1MV2). Do not remap them in firmware.
+
 | Function | Module pin | nRF |
 |---|---|---|
 | AFE SCLK | 24 | P0.08 |
