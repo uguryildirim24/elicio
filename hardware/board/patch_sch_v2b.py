@@ -9,30 +9,45 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCH = ROOT / "hardware" / "board" / "elicio-v2.kicad_sch"
 
-# Pages read 2026-09-17 on jlcpcb.com/partdetail/<id>. Stock quantity was not
-# displayed on those pages (tier only). Price was not displayed.
+# Pages re-read 2026-09-17 on jlcpcb.com/partdetail/<id> after L7 §4.1.
+# L7 SKUs that did not match the page are not used (see board-v2.md §13).
 LCSC = {
-    "C2": "C91601",  # 10 nF 0402 Murata GCM155R71H103KA55D
-    "C6": "C19702",  # 10 µF 0603 Samsung CL10A106KP8NNNC
-    "C7": "C14663",  # 100 nF 0603 YAGEO
+    "C2": "C1524",  # 10 nF 0402 X7R; L7 §4.1. JLC page: Extended, not Basic
+    "C6": "C19702",  # 10 µF 0603 Q68
+    "C7": "C14663",  # 100 nF 0603 Q68
     "C8": "C19702",
-    "C9": "C19702",  # was C15850 = 0805 10 µF; footprint is 0603
-    "C11": "C1525",  # 100 nF 0402 Samsung CL05B104KO5NNNC Basic
+    "C9": "C19702",
+    "C11": "C1525",  # 100 nF 0402 Basic
     "C12": "C1525",
     "C15": "C14663",
-    "R1": "C881401",
+    "J2": "C160402",  # SM02B-SRSS-TB 2P; C160404 is 4P (L7 §4.1, page)
+    "R1": "C881401",  # 220 kΩ 0402; L7 C18001/C25768 fail the page
     "R2": "C881401",
     "R3": "C881401",
-    "R4": "C2782127",
-    "R14": "C25741",
+    "R4": "C26083",  # 1 MΩ 0402 Basic; L7 C15609 empty on JLC
+    "R5": "C25744",  # 10 kΩ 0402 Basic; C25792 is 47 kΩ
+    "R6": "C25744",
+    "R7": "C25744",
+    "R8": "C25744",
+    "R11": "C25917",  # 6.80 kΩ 0402; C25848 is 8.2 kΩ 0201
+    "R12": "C966759",  # 6.04 kΩ 0402; C25841 is 2.2 kΩ 0201
+    "R13": "C25744",
+    "R14": "C25741",  # 100 kΩ 0402 Basic; L7 C25744 is 10 kΩ
     "R15": "C25741",
     "R16": "C25741",
-    "R17": "C2782127",
-    "R20": "C2782127",
-    "R21": "C2782127",
-    "R22": "C11702",
+    "R17": "C26083",
+    "R18": "C25792",  # 47 kΩ 0402 Basic; C25780 is 348 kΩ
+    "R20": "C26083",
+    "R21": "C26083",
+    "R22": "C11702",  # 1 kΩ 0402 Basic; L7 C15672 empty on JLC
     "R23": "C25741",
     "R24": "C25741",
+    "R25": "C25744",
+    "R26": "C25744",
+    "R27": "C25744",
+    "R28": "C25744",
+    "R29": "C26082",  # 10 MΩ DNP; was C25741 100 kΩ
+    "R30": "C26082",
 }
 
 Q68_CAPS = {
