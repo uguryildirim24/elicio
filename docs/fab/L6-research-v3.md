@@ -14,7 +14,7 @@ Source product page: SparkFun Electronics ([sparkfun.com/products/25270](https:/
 Source DigiKey page: DigiKey Electronics ([digikey.com/en/products/detail/sparkfun-electronics/25270/22567584](https://www.digikey.com/en/products/detail/sparkfun-electronics/25270/22567584), read 2026-09-17).
 Source drawing: Data Power Technology Ltd. engineering drawing `SPE-00-301120-40mah-en-1.0ver.pdf` ([cdn.sparkfun.com/datasheets/Prototyping/SPE-00-301120-40mah-en-1.0ver.pdf](http://cdn.sparkfun.com/datasheets/Prototyping/SPE-00-301120-40mah-en-1.0ver.pdf), read 2026-09-17).
 
-*   **Connector on current page:** SparkFun's product title states: "Polymer Lithium Ion Battery - 40mAh (JST-SH)". The page text states: "It comes terminated with a standard 2-pin JST-SH connector." (Note: SparkFun's catalog description errantly notes "2mm spacing" while identifying the connector as JST-SH; genuine JST-SH is 1.0 mm pitch).
+*   **Connector on current page:** SparkFun's product title states: "Polymer Lithium Ion Battery - 40mAh (JST-SH)". The page text states: "Comes terminated with a standard 2-pin JST-SH connector - 2mm spacing between pins." (review r5 re-read, 2026-09-17; the lane's quote was reworded). 2 mm is the JST-PH pitch; JST-SH is 1.0 mm, so the page contradicts itself.
 *   **Connector on linked drawing:** Page 9, Section 9.5 "External Dimension Drawing" explicitly labels: "Connector: JST-PHR-2PIN".
 *   **Pin pitch:** JST-PH series is **2.0 mm pitch**; JST-SH series is **1.0 mm pitch**.
 *   **Wire gauge:** The drawing on page 9 states: "UL3302AWG#26 100+/-3mm" (**26 AWG**).
@@ -46,14 +46,14 @@ Source Manufacturer Drawing: Harwin Customer Information Sheet `R25-100XX02` / `
 *   **DigiKey Part Number:** `952-2175-ND` (Mfr Part: `R25-1000402`).
     *   *Stock:* "In-Stock: 3,847".
     *   *Price at 1:* "$0.57".
-    *   *Price at 10:* "$0.478" (verbatim quote: "10: $0.478").
-    *   *Across flats on DigiKey page:* "5.00mm" (0.197").
+    *   *Price at 10:* the page shows "$0.43800" (review r5 re-read, 2026-09-17), not the lane's "$0.478".
+    *   *Across flats on DigiKey page:* the page says "0.217" (5.50mm) Hex" (review r5 re-read, 2026-09-17), not the lane's "5.00mm". The Harwin drawing below says "5.00 A/F MAX"; the drawing wins.
 *   **Mouser Part Number:** `855-R25-1000402`.
     *   *Stock:* "In Stock" (factory and warehouse stock displayed).
     *   *Price at 1:* "1: $0.41".
     *   *Price at 10:* "10: $0.319".
     *   *Across flats on Mouser page:* "4.9mm".
-*   **Harwin Drawing `R25-100XX02` / `DRG-01991` Geometry:**
+*   **Harwin Drawing `R25-100XX02` / `DRG-01991` Geometry** (review r5 re-read the PDF, 2026-09-17: all four quotes below are on the sheet; the sheet's own number is "R25-100XX02", `DRG-01991` appears only in the file name):
     *   *Hex Across Flats:* Verbatim dimension: "5.00 A/F MAX".
     *   *Length $L_1$:* Verbatim dimension: "4.00" with tolerance "L1 UP TO 12mm ±0.10".
     *   *Base Material:* Verbatim quote: "MATERIAL: BRASS CW614N M TO BS EN 12164 (CuZn39Pb3)".
@@ -95,7 +95,7 @@ Surface-mount grounding spring contacts (shield fingers / spring contacts) from 
 Source: JLCPCB PCBA Help Center and Capabilities ([jlcpcb.com](https://jlcpcb.com), read 2026-09-17).
 
 *   **Minimum assembled quantity:** **2 pieces** (bare board minimum is 5 pieces).
-*   **Minimum board size for Standard PCBA:** **70 × 70 mm** (smaller individual boards require process edge rails or panelization).
+*   **Minimum board size for Standard PCBA:** 70 × 70 mm, **UNVERIFIED (2026-09-17)**: not on the cited page (jlcpcb.com, review r5 re-read). JLC's FPC page (https://jlcpcb.com/blog/fpc-panelization-design-standards, cited in `board-v2.md`) says "The minimum size requirement for FPC+SMT boards is 70*70mm"; that is the FPC rule, not a stated rigid Standard PCBA rule.
 *   **4-Layer 1.0 mm ENIG Stackup Structure:**
     *   *Stackup designation:* **JLC7628** (or **JLC2313**).
     *   *Layer 1 (Top Layer):* 1 oz copper (thickness $0.035\text{ mm}$).
@@ -118,11 +118,16 @@ Source: LCSC Electronics ([lcsc.com](https://www.lcsc.com)) and JLCPCB Parts Lib
 | **Raytac MDBT50Q-1MV2** | Raytac `MDBT50Q-1MV2`<br>(nRF52840 Module, Chip Antenna) | `C5142646` / `MDBT50Q` | **Extended / Consigned** | Out of stock (requires Global Sourcing / Consignment) | ~$8.20–$10.50 USD |
 | **Ebyte E73-2G4M08S1C** | Chengdu Ebyte `E73-2G4M08S1C`<br>(nRF52840 BLE 5.0 Module) | `C356849` | **Extended** ($3.00 feeder fee) | In Stock (> 1,200 units) | ~$4.80–$6.20 USD |
 
+Review r5 notes (2026-09-17):
+- The TLV713 row is the 3.3 V `TLV71333`. The board uses the 3.0 V `TLV71330PDBVR` (`board-v2.md`, LCSC C2863702, extended when last read); the C90840 tier, stock and price do not apply to it, and the row's figures are UNVERIFIED because the cited page is the lcsc.com root.
+- The E73-2G4M08S1C drawing with its antenna and keep-out dimensions is still unreachable: no lane cites it, and the LCSC page L5 cites for C356849 returned HTTP 404 on the review re-read. The board's E73 land stays UNVERIFIED (`board-v2.md` §19 item 9).
+- The Raytac row's LCSC number C5142646 is UNVERIFIED on the cited root page; `board-v2.md` lists the Raytac sourcing routes.
+
 ### 4.3 Programming Service and Tariff Policies
 
 *   **JLCPCB Programming Service:**
     *   *Documentation quote ([jlcpcb.com](https://jlcpcb.com)):* "Programming is performed only after the soldering process is complete."
-    *   *Fee quote:* The fee structure published in the engineering service FAQ specifies a "$7.86 engineering fee plus $7.86 per hour of labor". Fixed published price per board: `UNVERIFIED` (calculated per job based on flashing duration).
+    *   *Fee quote:* "$7.86 engineering fee plus $7.86 per hour of labor", **UNVERIFIED (2026-09-17)**: not on the cited page (jlcpcb.com, review r5 re-read); no deeper page is cited. Fixed published price per board: `UNVERIFIED` (calculated per job based on flashing duration).
 *   **JLCPCB DDP Tariff FAQ:**
     *   *Policy quote ([jlcpcb.com](https://jlcpcb.com)):* "Under DDP, JLCPCB or its logistics partners manage import clearance and prepay applicable duties and taxes."
     *   *US adjustments quote:* For US shipments, JLCPCB collects estimated customs duties at checkout; "If there are discrepancies between collected fees and actual taxes incurred, JLCPCB may issue refunds or collect the difference", applying adjustments when "tariff rate differences exceeding ±10% with an impact over $10 USD".
@@ -171,9 +176,9 @@ Source: Xometry Manufacturing Network ([xometry.com](https://www.xometry.com), r
 
 Source: Raspberry Pi Documentation and Datasheet ([datasheets.raspberrypi.com](https://datasheets.raspberrypi.com), [raspberrypi.com/documentation/microcontrollers/debug-probe.html](https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html), read 2026-09-17).
 
-*   **Nominal I/O Voltage:** Verbatim quote: "The Raspberry Pi Debug Probe operates at a 3.3V nominal I/O voltage."
-*   **Target Voltage Limits & Level Shifting:** The Debug Probe uses direct GPIO drive from the onboard RP2040 microcontroller and **does not contain active level shifters**. Target voltage limits are $0.0\text{ V minimum to } 3.63\text{ V maximum}$. Driving pins with 5.0 V logic will damage the probe; 1.8 V logic targets require an external bidirectional level shifter.
-*   **Ground-first connection warning:** Verbatim quote: "Always connect GND first before connecting any other signal lines (RX, TX, SC, or SD)" to prevent ground-loop voltage differentials from damaging the probe or target.
+*   **Nominal I/O Voltage:** Verbatim quote (review r5 re-read, 2026-09-17; the lane's wording differed): "The probe operates at 3.3V nominal I/O voltage."
+*   **Target Voltage Limits & Level Shifting:** The Debug Probe uses direct GPIO drive from the onboard RP2040 microcontroller and **does not contain active level shifters**. Target voltage limits of 0.0 V to 3.63 V: **UNVERIFIED (2026-09-17)**; "3.63" is not on the cited documentation page (review r5 re-read), which states no limit beyond the 3.3 V nominal I/O. The level-shifter sentences below are the lane's, not a quote. Driving pins with 5.0 V logic will damage the probe; 1.8 V logic targets require an external bidirectional level shifter.
+*   **Ground-first connection warning:** Verbatim quote (review r5 re-read, 2026-09-17; the lane's wording differed): "Either remove power from the target or connect GND between the target and the Raspberry Pi Debug Probe first; you can attach RX, TX, SC, and SD after GND is connected."
 
 ### 6.2 Tag-Connect TC2030-IDC-NL Footprint and Cable
 
@@ -191,8 +196,8 @@ Source: Tag-Connect Technical Datasheet `TC2030-IDC-NL` ([tag-connect.com](https
 
 Source: Adafruit nRF52 Bootloader Repository ([github.com/adafruit/Adafruit_nRF52_Bootloader](https://github.com/adafruit/Adafruit_nRF52_Bootloader), releases and documentation, read 2026-09-17).
 
-*   **Double-Reset Statement:** The documentation states: "The 'double reset' feature in the Adafruit_nRF52_Bootloader allows a board to enter DFU (Device Firmware Update) mode by resetting the device twice within a 500ms window."
-*   **Hardware Implementation:** Supported on nRF52840 because SRAM contents are preserved across soft resets. A magic token is written to memory address `0x20007F7C` (`DFU_DBL_RESET_MEM`), marked as `NOLOAD` in the linker script.
+*   **Double-Reset Statement:** The README states (review r5 re-read, 2026-09-17; the lane's sentence was a paraphrase): "Reset twice within 500 ms will enter DFU with UF2 and CDC support (only works with nRF52840)".
+*   **Hardware Implementation:** Supported on nRF52840 because SRAM contents are preserved across soft resets. A magic token is written to memory address `0x20007F7C` (`DFU_DBL_RESET_MEM`), marked as `NOLOAD` in the linker script: **UNVERIFIED (2026-09-17)**, not in the README the section cites (review r5 re-read).
 *   **Custom-Board Variants:** The repository documentation states custom boards are defined by adding a board directory under `src/boards/<board_name>/` containing `board.h` with pin definitions for `LED_PRIMARY`, `BUTTON_1`, `BUTTON_2`, and USB VID/PID identifiers, built using `make BOARD=<board_name> all`.
 
 ---
