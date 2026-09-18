@@ -83,8 +83,8 @@
 <text x="390.7" y="420.5" font-size="7" text-anchor="middle" fill="#fff">C12</text>
 <rect x="198.6" y="340.6" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
 <text x="209.5" y="346.1" font-size="7" text-anchor="middle" fill="#fff">C13</text>
-<rect x="285.0" y="316.6" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
-<text x="295.9" y="322.1" font-size="7" text-anchor="middle" fill="#fff">C14</text>
+<rect x="282.6" y="316.6" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="293.5" y="322.1" font-size="7" text-anchor="middle" fill="#fff">C14</text>
 <rect x="337.8" y="190.1" width="35.5" height="17.5" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
 <text x="355.6" y="198.8" font-size="7" text-anchor="middle" fill="#fff">C15</text>
 <rect x="299.4" y="196.3" width="22.3" height="11.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
@@ -137,8 +137,8 @@
 <text x="387.4" y="206.8" font-size="7" text-anchor="middle" fill="#fff">R27</text>
 <rect x="256.2" y="329.3" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
 <text x="261.8" y="340.4" font-size="7" text-anchor="middle" fill="#fff">R28</text>
-<rect x="285.0" y="247.7" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
-<text x="290.6" y="258.8" font-size="7" text-anchor="middle" fill="#fff">R29</text>
+<rect x="282.6" y="247.7" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="288.2" y="258.8" font-size="7" text-anchor="middle" fill="#fff">R29</text>
 <rect x="385.8" y="175.7" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
 <text x="391.4" y="186.8" font-size="7" text-anchor="middle" fill="#fff">R30</text>
 <rect x="309.6" y="315.0" width="39.6" height="39.6" fill="#f7f4ef" stroke="#b33" stroke-width="0.7"/>
