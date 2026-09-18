@@ -345,7 +345,7 @@ Outside those:
 checkpoint with:  python3 ~/.claude/skills/save-state/state.py snapshot
 Do not hand-edit ids into it. -->
 
-## Herdr (generated 2026-09-17T23:37:59-04:00 by state.py, herdr 0.9.0, session `default`)
+## Herdr (generated 2026-09-18T00:32:37-04:00 by state.py, herdr 0.9.0, session `default`)
 Workspace `w1B` (elicio), 9 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
 Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl`.
 
@@ -353,12 +353,12 @@ Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/User
 | name | kind | status | pane | tab (label) | cwd | tokens | last title |
 |---|---|---|---|---|---|---|---|
 | w1 | cursor | done | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP14 | Lane W1 Instructions |
-| w2 | cursor | working | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP12b | Lane W2 Instructions |
+| w2 | cursor | done | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP12c | Lane W2 Instructions |
 | w4 | cursor | done | `w1B:pC` | `w1B:tC` (w4) | `/Users/rolfie/projects/elicio/.worktrees/w4` | done=1 lane=WP13b | Lane W4 Instructions |
 | w5 | agy | done | `w1B:pD` | `w1B:tD` (w5) | `/Users/rolfie/projects/elicio/.worktrees/w5` | done=1 lane=WP17b |  |
 | w9 | cursor | done | `w1B:pE` | `w1B:tE` (w9) | `/Users/rolfie/projects/elicio/.worktrees/w9` | done=1 lane=WP15 | Lane W9 Instructions |
-| w3 | cursor | done | `w1B:pR` | `w1B:tR` (w3) | `/Users/rolfie/projects/elicio/.worktrees/w3` | done=1 lane=WP11b | New Package Brief |
-| rev6 | claude | working | `w1B:pS` | `w1B:tS` (review) | `/Users/rolfie/projects/elicio/.worktrees/review` | - | Review round 6 |
+| w3 | cursor | working | `w1B:pR` | `w1B:tR` (w3) | `/Users/rolfie/projects/elicio/.worktrees/w3` | done=1 lane=WP11b | New Package Brief |
+| rev6 | claude | working | `w1B:pS` | `w1B:tS` (review) | `/Users/rolfie/projects/elicio/.worktrees/review` | done=1 lane=review-r6 | Review round 6 |
 
 Start lines as they run now (from `pane process-info`), for restarting a worker that is gone:
 
@@ -379,10 +379,10 @@ Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behi
 
 | worktree | branch | head | dirty files | last commit |
 |---|---|---|---|---|
-| `/Users/rolfie/projects/elicio` | `main` | b710ed1 | 0 | docs(tasks): round 6 review brief (review-r6) and WP12c routing brief |
-| `/Users/rolfie/projects/elicio/.worktrees/review` | `review/r6` | a01eb53 | 0 | merge lane/w1-r6 (WP14) into review/r6 |
+| `/Users/rolfie/projects/elicio` | `main` | 58ae5b8 | 0 | Round 6: record the reviewer's decisions 69 to 76 and the coordinator's Q77 (footprint collisions) with the readings the build follows; WP14b brief |
+| `/Users/rolfie/projects/elicio/.worktrees/review` | `review/r6` | c7c4e5a | 14 | review(r6): verdict MERGE-AFTER-DECISION, gates, defects, §7 look, decisions 69–76 |
 | `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | c3c11d8 | 0 | shell(v2): cut REF_end_wall_slot from packing-v2 §5 |
-| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 480e355 | 0 | board(v2b): placed from the packing, routed, released |
+| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | f4376ca | 0 | merge origin/lane/w2: restore e3e085b after the WP12c reset |
 | `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | bcecc83 | 0 | packing(v2b): L7 pack tables in packing-v2 |
 | `/Users/rolfie/projects/elicio/.worktrees/w4` | `lane/w4` | e7c366a | 0 | receiver(v2): record and check a stream on the Mac |
 | `/Users/rolfie/projects/elicio/.worktrees/w5` | `lane/w5` | ba45071 | 0 | research(v4b): cells under 16 mm |
@@ -391,17 +391,17 @@ Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behi
 Last commits on the integration branch:
 
 ```
+58ae5b8 Round 6: record the reviewer's decisions 69 to 76 and the coordinator's Q77 (footprint collisions) with the readings the build follows; WP14b brief
+e2c7f09 docs(tasks): WP11c brief, pack with the real footprint courtyards
+7d5443c review-r6: merge lane/w2 at e3e085b (queued BOM note landed after the pin); handoff notes it
+d4b5a93 handoff: round 6 review running (rev6 on review/r6), WP12c routing in parallel on lane/w2
 b710ed1 docs(tasks): round 6 review brief (review-r6) and WP12c routing brief
 9aa2934 handoff: answer sheet v5 asks the battery route
-cb3bff2 handoff: WP11b fourth DONE at bcecc83 (winner fails with the real 501015 pack; 501012 closes)
-d3e5159 handoff: WP14 second DONE at c3c11d8 (REF slot cut, Q59 checks pass on the shell)
-ed727ea handoff: WP17b second DONE at ba45071 (501015 pack is 17 mm with PCM); rerun to w3
-dd684dd handoff: answer sheet v4 carries the shell renders
 ```
 
 ### Record files (newest first)
 - handoff: `HANDOFF.md`
-- briefs: `tasks/review-r6.md`, `tasks/WP12c-route.md`, `tasks/WP17b-research-v4.md`, `tasks/WP15-sheets-v2.md`, `tasks/WP13b-receiver.md`, `tasks/WP12b-board-route.md`, `tasks/WP11b-packing-followups.md`, `tasks/WP14-shell-v2.md`, `tasks/review-r5.md`, `tasks/WP17-research-v3.md`, `tasks/WP16-record.md`, `tasks/WP13-firmware.md`
+- briefs: `tasks/WP14b-shell-v2b.md`, `tasks/WP11c-courtyards.md`, `tasks/review-r6.md`, `tasks/WP12c-route.md`, `tasks/WP17b-research-v4.md`, `tasks/WP15-sheets-v2.md`, `tasks/WP13b-receiver.md`, `tasks/WP12b-board-route.md`, `tasks/WP11b-packing-followups.md`, `tasks/WP14-shell-v2.md`, `tasks/review-r5.md`, `tasks/WP17-research-v3.md`
 - verdicts: `tasks/reviews/code-r5.md`, `tasks/reviews/code-r4.md`, `tasks/reviews/code-r3.md`, `tasks/reviews/code-r2.md`, `tasks/reviews/code-r1.md`
 
 ### Restore
