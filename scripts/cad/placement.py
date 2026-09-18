@@ -1506,12 +1506,34 @@ def search_tab_degrees(
 SEARCH_PADS: dict[str, dict[str, tuple[float, float]]] = {}
 
 
-def layout_conflicts(option: str = "A") -> list[str]:
+def _v2():
+    path = Path(__file__).with_name("placement_v2.py")
+    name = "elicio_cad_placement_v2"
+    if name in sys.modules:
+        return sys.modules[name]
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def layout_conflicts(option: str = "A", spec: Any = None) -> list[str]:
     """Every rule the candidate layout breaks, as short sentences.
+
+    ``spec`` is a WP11 V2Spec. Without it this is the v1 option checker.
 
     Q14: plan §5's ≥ 5 mm is antenna-to-cell, not module body. The 4.70 mm
     module-body figure is reported in the budget, not as a packing fail.
     """
+    if spec is not None:
+        return _v2().layout_conflicts(spec)
+    return _layout_conflicts_v1(option)
+
+
+def _layout_conflicts_v1(option: str = "A") -> list[str]:
+    """Every rule the v1 option A/B/C/E layout breaks."""
     out: list[str] = []
     lay = get_layout(option)
     b = budget(option)
@@ -2024,10 +2046,75 @@ def write_drawing(path: Path | None = None, option: str = "A") -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Draw a Stage B packing option.")
+    parser = argparse.ArgumentParser(description="Draw a Stage B packing option or a v2 architecture.")
     parser.add_argument("--option", choices=OPTION_NAMES, default="A")
+    parser.add_argument("--arch", choices=("A", "B", "C"), default=None)
+    parser.add_argument("--cell", choices=("dtp", "501015"), default=None)
+    parser.add_argument("--layout", choices=("series", "stacked"), default=None)
+    parser.add_argument("--width", type=float, default=None)
+    parser.add_argument("--lid-y", type=float, default=None)
+    parser.add_argument("--arc-plus", type=float, default=0.0)
+    parser.add_argument("--iface", choices=("I", "II"), default=None)
+    parser.add_argument("--standoff", type=float, default=None)
+    parser.add_argument("--recess", type=float, default=None)
+    parser.add_argument("--all", action="store_true", help="write the v2 SVG of every run that closes")
+    parser.add_argument(
+        "--kept-drawings",
+        action="store_true",
+        help="write the committed v2 SVGs: closers, the Stage B winner, one per first-conflict family",
+    )
+    parser.add_argument(
+        "--all-drawings",
+        action="store_true",
+        help="write the v2 SVG of every run (864 files, about 109 MB; use --out-dir, never commit, Q56)",
+    )
+    parser.add_argument("--out-dir", type=Path, default=None, help="folder for --all/--kept-drawings/--all-drawings")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
+    if args.all or args.kept_drawings or args.all_drawings:
+        v2 = _v2()
+        which = "all" if args.all_drawings else ("kept" if args.kept_drawings else "closers")
+        rows = v2.write_all_drawings(dest_dir=args.out_dir, which=which)
+        print(f"wrote {len(rows)} v2 drawings ({which})")
+        return 0
+    v2_args = (args.arch, args.cell, args.layout, args.width, args.lid_y)
+    if any(v is not None for v in v2_args):
+        missing = [
+            name
+            for name, val in (
+                ("--arch", args.arch),
+                ("--cell", args.cell),
+                ("--layout", args.layout),
+                ("--width", args.width),
+                ("--lid-y", args.lid_y),
+            )
+            if val is None
+        ]
+        if missing:
+            parser.error("v2 packing needs " + ", ".join(missing))
+        v2 = _v2()
+        spec = v2.V2Spec(
+            args.arch,
+            args.cell,
+            args.layout,
+            args.width,
+            args.lid_y,
+            args.arc_plus,
+            args.iface or "I",
+            3.5 if args.standoff is None else args.standoff,
+            0.0 if args.recess is None else args.recess,
+        )
+        result = v2.run_spec(spec)
+        out = args.out if args.out is not None else v2.drawing_path(spec)
+        digest = v2.write_drawing(spec, out, result)
+        n = len(result.conflicts)
+        print(
+            f"wrote {out} spec={spec.tag} closes={result.closes} "
+            f"conflicts={n} sha256={digest}"
+        )
+        if result.first_conflict:
+            print(f"first_conflict: {result.first_conflict}")
+        return 0
     out = args.out if args.out is not None else drawing_path(args.option)
     digest = write_drawing(out, args.option)
     print(f"wrote {out} option={args.option} sha256={digest}")

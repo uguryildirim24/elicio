@@ -230,6 +230,15 @@ OVERRIDABLE_KEYS = frozenset(
         "CONTACT_REF_S",
         "CABLE_EXIT_S",
         "CONTACT_SOURCE",
+        "V2_ARCH",
+        "V2_CELL",
+        "V2_LAYOUT",
+        "V2_WIDTH",
+        "V2_LID_Y",
+        "V2_ARC_PLUS",
+        "V2_IFACE",
+        "V2_STANDOFF",
+        "V2_RECESS",
         *REFERENCE_M_KEYS,
     }
 )
@@ -244,6 +253,15 @@ STAGE_B_ONLY_KEYS = frozenset(
         "CONTACT_REF_S",
         "CABLE_EXIT_S",
         "CONTACT_SOURCE",
+        "V2_ARCH",
+        "V2_CELL",
+        "V2_LAYOUT",
+        "V2_WIDTH",
+        "V2_LID_Y",
+        "V2_ARC_PLUS",
+        "V2_IFACE",
+        "V2_STANDOFF",
+        "V2_RECESS",
         "TAIL_DS",
         "TAIL_S0",
         "CAVITY_U",
@@ -269,10 +287,19 @@ STAGE_B_OVERLAY_KEYS = frozenset(
         "CONTACT_REF_S",
         "CABLE_EXIT_S",
         "CONTACT_SOURCE",
+        "V2_ARCH",
+        "V2_CELL",
+        "V2_LAYOUT",
+        "V2_WIDTH",
+        "V2_LID_Y",
+        "V2_ARC_PLUS",
+        "V2_IFACE",
+        "V2_STANDOFF",
+        "V2_RECESS",
     }
 )
 PLACEMENT_CONTACT_TOL = 0.05  # placement.py rounds CONTACT_2 to (10.4, 33.1)
-PACKING_OPTIONS = frozenset({"A", "B", "C"})
+PACKING_OPTIONS = frozenset({"A", "B", "C", "v2", "V2"})
 STAGE_B_CHECK_NAMES = frozenset(
     {
         "CONTACT_HOLE_wall",
@@ -595,11 +622,19 @@ def nub_u_pair(params: Mapping[str, Any]) -> tuple[tuple[float, float], tuple[fl
     return (cu[0] + 0.4, cu[0] + 1.2), (cu[1] - 1.2, cu[1] - 0.4)
 
 
+def packing_is_v2(params: Mapping[str, Any]) -> bool:
+    return str(params.get("PACKING", "")).upper() == "V2"
+
+
 def apply_stage_b_packing(p: dict[str, Any]) -> None:
-    """Packing A/B/C from placement.Layout. Default C (Q20, provisional)."""
-    packing = str(p.get("PACKING", "C")).upper()
-    if packing not in PACKING_OPTIONS:
-        raise CheckFail(f"PACKING={p.get('PACKING')}: must be A, B or C")
+    """Packing A/B/C from placement.Layout, or v2 from placement_v2.V2Spec."""
+    packing = str(p.get("PACKING", "C"))
+    if packing.upper() == "V2":
+        _apply_v2_packing(p)
+        return
+    packing = packing.upper()
+    if packing not in {"A", "B", "C"}:
+        raise CheckFail(f"PACKING={p.get('PACKING')}: must be A, B, C or v2")
     p["PACKING"] = packing
     layout = load_placement().get_layout(packing)
     p["BODY_WIDTH"] = float(layout.body_u[1] - layout.body_u[0])
@@ -621,6 +656,62 @@ def apply_stage_b_packing(p: dict[str, Any]) -> None:
         p["CONTACT_REF_U"] = CONTACT_REF[0]
     nu = nub_u_pair(p)
     p["NUB_U"] = [[nu[0][0], nu[0][1]], [nu[1][0], nu[1][1]]]
+
+
+def _apply_v2_packing(p: dict[str, Any]) -> None:
+    """Move width, arc and lid from a WP11 V2Spec. Construction stays packing C/A."""
+    v2 = load_placement()._v2()
+    spec = v2.V2Spec(
+        str(p.get("V2_ARCH", "A")),
+        str(p.get("V2_CELL", "501015")),
+        str(p.get("V2_LAYOUT", "series")),
+        float(p.get("V2_WIDTH", 20.0)),
+        float(p.get("V2_LID_Y", 8.0)),
+        float(p.get("V2_ARC_PLUS", 0.0)),
+        str(p.get("V2_IFACE", "I")),
+        float(p.get("V2_STANDOFF", 3.5)),
+        float(p.get("V2_RECESS", 0.0)),
+    )
+    result = v2.run_spec(spec)
+    # Order-1 construction path: packing C at 20 mm, packing A at 17 mm.
+    # WP11 does not fork the solid; it overlays the numbers and measures.
+    host = "C" if spec.width >= 20.0 - 1e-9 else "A"
+    layout = load_placement().get_layout(host)
+    p["PACKING"] = "v2"
+    p["V2_ARCH"] = spec.arch
+    p["V2_CELL"] = spec.cell
+    p["V2_LAYOUT"] = spec.layout
+    p["V2_WIDTH"] = spec.width
+    p["V2_LID_Y"] = spec.lid_y
+    p["V2_ARC_PLUS"] = spec.arc_plus
+    p["V2_IFACE"] = spec.iface
+    p["V2_STANDOFF"] = spec.standoff
+    p["V2_RECESS"] = spec.recess
+    p["V2_TAG"] = spec.tag
+    p["BODY_WIDTH"] = spec.width
+    p["BODY_ARC"] = float(result.body_arc)
+    p["BODY_THICK"] = spec.lid_y + float(p["LID_THICK"])
+    p["LID_Y"] = spec.lid_y
+    p["CAVITY_U"] = [float(layout.cavity_u[0]), float(layout.cavity_u[1])]
+    p["CAVITY_S"] = [float(layout.cavity_s[0]), float(layout.cavity_s[1])]
+    p["BOARD_ZONE_U"] = [float(layout.board_zone_u[0]), float(layout.board_zone_u[1])]
+    p["BOARD_ZONE_S"] = [float(layout.board_zone_s[0]), float(layout.board_zone_s[1])]
+    p["TAIL_DS"] = float(layout.tail_ds) + spec.arc_plus
+    p["TAIL_S0"] = float(layout.cavity_s[1]) + spec.arc_plus
+    p["LEAD_PADS"] = {
+        name: [float(coord[0]), float(coord[1])] for name, coord in layout.lead_pads.items()
+    }
+    p["TAB_DEG"] = {name: float(deg) for name, deg in layout.tab_deg.items()}
+    p["WIRE_S"] = [WIRE_S[0] + p["TAIL_DS"], WIRE_S[1] + p["TAIL_DS"]]
+    if "CONTACT_REF_S" not in p:
+        p["CONTACT_REF_S"] = CONTACT_REF[1] + spec.arc_plus
+    if "CONTACT_REF_U" not in p:
+        p["CONTACT_REF_U"] = CONTACT_REF[0]
+    nu = nub_u_pair(p)
+    p["NUB_U"] = [[nu[0][0], nu[0][1]], [nu[1][0], nu[1][1]]]
+    path = make_path(p["BODY_ARC"], p["CREASE_BOW"])
+    p["TOTAL_CHORD"] = path.chord
+    p["PATH_RADIUS"] = path.radius
 
 
 def validate_overrides(base: Mapping[str, Any], override: Mapping[str, Any]) -> None:
@@ -998,7 +1089,7 @@ def keepout_clearances(params: Mapping[str, Any], path: PathGeom) -> dict[str, f
         out[f"{cname} to anterior wall"] = (cu - radius) - cu0
         out[f"{cname} to posterior wall"] = cu1 - (cu + radius)
         out[f"{cname} to cavity end"] = gap_to_patch(cu, cs, cu0, cu1, cs1, cs1)
-    if not params.get("MOCK_CONTACTS", True):
+    if not params.get("MOCK_CONTACTS", True) and not packing_is_v2(params):
         pl = load_placement()
         packing = str(params["PACKING"])
         for pad_name in ("SIG1", "SIG2"):
@@ -1040,10 +1131,27 @@ def assert_override_matrix(overrides: Mapping[str, Any]) -> None:
 
 
 def q21_ref_lug_numbers(params: Mapping[str, Any]) -> dict[str, float]:
-    """TE 31428 upright in the Ø7.5 pocket (contacts.md §5.3, Q21), plan numbers."""
+    """TE 31428 upright in the Ø7.5 pocket (contacts.md §5.3, Q21), plan numbers.
+
+    PACKING=v2 replaces the lug with the flex ring and DIN 439 nut (WP11).
+    """
     wall = float(params["WALL_MEDIAL"])
     lid_y = float(params["LID_Y"])
     pl = load_placement()
+    if packing_is_v2(params):
+        v2 = pl._v2()
+        return {
+            "stack_top_y": round(v2.STACK_TOP_Y, 4),
+            "lid_y": lid_y,
+            "ring_d": v2.RING_D,
+            "nut_s": v2.NUT_S,
+            "nut_m": v2.NUT_M,
+            "tab_t": v2.TAB_T,
+            "tip_past_nut": round(v2.TIP_PAST_NUT, 4),
+            "stack_inside": round(v2.STACK_INSIDE, 4),
+            "pocket_dia": POCKET_DIA,
+            "pocket_r": POCKET_DIA / 2.0,
+        }
     lug_top_y = wall + float(pl.TAB_LEN) + float(pl.LUG_THICK)
     barrel_outer = float(pl.RING_R) + float(pl.TAB_W)
     return {
@@ -1151,22 +1259,40 @@ def run_stage_b_pre_cad_checks(params: Mapping[str, Any], record: Callable[..., 
         **cable,
     )
     gaps = keepout_clearances(params, make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"])))
-    tab_min = min(gaps.get("TAB SIG1 min pad/rib gap", 1.0), gaps.get("TAB SIG2 min pad/rib gap", 1.0))
-    record(
-        "TAB_envelope_air pre-CAD",
-        tab_min > 0.0,
-        "tab envelopes 1.96 wide from Ø7.1 to 8.85 miss the corner pads and rib (u, s)",
-        min_gap=round(tab_min, 4),
-        TAB_HEIGHT=tab_h,
-    )
+    if packing_is_v2(params):
+        record(
+            "TAB_envelope_air pre-CAD",
+            False,
+            "NOT_MEASURED: v2 flex tabs are not the TE 31428 pad-gap search; solids measure them",
+            fatal=False,
+            TAB_HEIGHT=tab_h,
+        )
+    else:
+        tab_min = min(gaps.get("TAB SIG1 min pad/rib gap", 1.0), gaps.get("TAB SIG2 min pad/rib gap", 1.0))
+        record(
+            "TAB_envelope_air pre-CAD",
+            tab_min > 0.0,
+            "tab envelopes 1.96 wide from Ø7.1 to 8.85 miss the corner pads and rib (u, s)",
+            min_gap=round(tab_min, 4),
+            TAB_HEIGHT=tab_h,
+        )
     q21 = q21_ref_lug_numbers(params)
-    record(
-        "Q21_REF_lug pre-CAD",
-        q21["lug_top_y"] < q21["lid_y"] and q21["barrel_outer"] <= q21["pocket_r"],
-        "reference lug upright against LID_Y and the Ø7.5 pocket (Q21); recorded, not fatal",
-        fatal=False,
-        **q21,
-    )
+    if packing_is_v2(params):
+        record(
+            "Q21_REF_lug pre-CAD",
+            q21["stack_top_y"] < q21["lid_y"] and q21["ring_d"] <= q21["pocket_dia"],
+            "v2: ring Ø5.0 and nut s 5.0 against LID_Y and the Ø7.5 pocket; no TE 31428 lug",
+            fatal=False,
+            **q21,
+        )
+    else:
+        record(
+            "Q21_REF_lug pre-CAD",
+            q21["lug_top_y"] < q21["lid_y"] and q21["barrel_outer"] <= q21["pocket_r"],
+            "reference lug upright against LID_Y and the Ø7.5 pocket (Q21); recorded, not fatal",
+            fatal=False,
+            **q21,
+        )
 
 
 def run_pre_cad_checks(params: Mapping[str, Any]) -> list[Check]:
@@ -1188,10 +1314,14 @@ def run_pre_cad_checks(params: Mapping[str, Any]) -> list[Check]:
         HOOK_PRELOAD=preload,
     )
     thick_expected = VARIANT_THICK[variant]
+    thick_detail = "thickness follows VARIANT"
+    if packing_is_v2(params):
+        thick_expected = float(params["LID_Y"]) + float(params["LID_THICK"])
+        thick_detail = "thickness follows LID_Y + LID_THICK when PACKING=v2"
     record(
         "BODY_THICK",
         abs(float(params["BODY_THICK"]) - thick_expected) < 1e-9,
-        "thickness follows VARIANT",
+        thick_detail,
         BODY_THICK=float(params["BODY_THICK"]),
         expected=thick_expected,
     )
@@ -1840,13 +1970,21 @@ def run_stage_b_solid_checks(
         "Ø7.1 keep-outs from the floor to 4.13 hold no nylon (body or lid)",
         **keep,
     )
-    record(
-        "TAB_envelope_air",
-        all(v <= noise for v in tabs.values()),
-        "TE 31428 tab envelopes 1.96 wide × TAB_HEIGHT, Ø7.1 edge to 8.85, hold no nylon",
-        TAB_HEIGHT=tab_height(params),
-        **tabs,
-    )
+    if packing_is_v2(params):
+        record(
+            "TAB_envelope_air",
+            False,
+            "NOT_MEASURED: v2 flex tabs are not the TE 31428 envelope; see V2_TAB_envelope",
+            TAB_HEIGHT=tab_height(params),
+        )
+    else:
+        record(
+            "TAB_envelope_air",
+            all(v <= noise for v in tabs.values()),
+            "TE 31428 tab envelopes 1.96 wide × TAB_HEIGHT, Ø7.1 edge to 8.85, hold no nylon",
+            TAB_HEIGHT=tab_height(params),
+            **tabs,
+        )
 
     # KEEPOUT_REF_air: pocket air, lid out of it, a ≥ 1.0 wall band around it.
     pocket_c = _vec(path, cref[0], cref[1], 0.0)
@@ -1898,48 +2036,91 @@ def run_stage_b_solid_checks(
         TAB_HEIGHT=tab_height(params),
     )
 
-    # REF_WIRE_envelope: Ø1.3 along the placement route at channel height.
-    layout = pl.get_layout(str(params["PACKING"]))
-    route = [(float(u), float(s)) for u, s in layout.ref_wire]
-    wire_r = float(pl.WIRE_OD) / 2.0
-    wire_y = (WIRE_Y[0] + WIRE_Y[1]) / 2.0
-    pts = [_vec(path, u, s, wire_y) for u, s in route]
-    wire: Shape | None = None
-    for i in range(len(pts) - 1):
-        seg = pts[i + 1] - pts[i]
-        piece = Solid.make_cylinder(wire_r, seg.length, Plane(origin=pts[i], z_dir=seg.normalized()))
-        wire = piece if wire is None else wire.fuse(piece)
-    for p in pts[1:-1]:
-        wire = wire.fuse(Solid.make_sphere(wire_r, Plane(origin=p)))
-    cell_box = _cell_box(path, params, floor_y)
-    others = {
-        "body_mm3": _overlap_volume(body, wire),
-        "lid_mm3": _overlap_volume(lid, wire),
-        "cell_envelope_mm3": _overlap_volume(cell_box, wire),
-    }
-    for name, site in _signal_sites(params):
-        others[f"keepout_{name}_mm3"] = _overlap_volume(_keepout_signal_solid(path, params, site), wire)
-        others[f"tab_{name}_mm3"] = _overlap_volume(_tab_solid(path, params, name, site), wire)
-    lid_under = min(
-        _bisect(lambda y, u=u, s=s: _inside_uys(lid, path, u, s, y), wire_y, lid_y + 0.5)
-        for u, s in route
-    )
-    slack = _route_turn_slack([(p.X, p.Z) for p in pts], float(pl.BEND_R))
-    wire_numbers = {k: round(v, 4) for k, v in others.items()}
-    record(
-        "REF_WIRE_envelope",
-        all(v <= noise for v in others.values())
-        and lid_under - (wire_y + wire_r) > 0.0
-        and slack >= 0.0,
-        "Ø1.3 wire at y 3.3 from the channel to the REF pad holds no nylon, misses the lid, "
-        "cell envelope, keep-outs and tabs, and each turn fits bend radius 3; charge pads "
-        "are not placed yet (board out of scope) and the pocket-to-channel turn is Q21",
-        wire_od=float(pl.WIRE_OD),
-        bend_r=float(pl.BEND_R),
-        bend_slack=round(slack, 4),
-        lid_gap=round(lid_under - (wire_y + wire_r), 4),
-        **wire_numbers,
-    )
+    # REF_WIRE_envelope: Ø1.3 along the placement route, or the v2 REF flex tab.
+    if packing_is_v2(params):
+        v2 = pl._v2()
+        spec = v2.V2Spec(
+            str(params.get("V2_ARCH", "A")),
+            str(params.get("V2_CELL", "501015")),
+            str(params.get("V2_LAYOUT", "series")),
+            float(params.get("V2_WIDTH", 20.0)),
+            float(params.get("V2_LID_Y", 8.0)),
+            float(params.get("V2_ARC_PLUS", 0.0)),
+            str(params.get("V2_IFACE", "I")),
+            float(params.get("V2_STANDOFF", 3.5)),
+            float(params.get("V2_RECESS", 0.0)),
+        )
+        layout_v2 = v2.run_spec(spec)
+        if spec.iface == "I" or "REF" not in layout_v2.tabs:
+            record(
+                "REF_WIRE_envelope",
+                False,
+                "NOT_MEASURED: interface I has no flex REF tab (gold pad on the standoff top)",
+                iface=0.0 if spec.iface == "I" else 1.0,
+            )
+        else:
+            tab = layout_v2.tabs["REF"]
+            y0, y1 = v2.FLOOR_Y + ENVELOPE_LIFT, v2.FLOOR_Y + v2.TAB_T
+            tab_shape = None
+            for box in v2._tab_boxes(tab, y0, y1):
+                piece = path_solid_for(path, params)(box.u0, box.u1, box.s0, box.s1, y0, y1)
+                tab_shape = piece if tab_shape is None else tab_shape.fuse(piece)
+            ref_tab = {
+                "body_mm3": round(_overlap_volume(body, tab_shape), 4) if tab_shape is not None else -1.0,
+                "lid_mm3": round(_overlap_volume(lid, tab_shape), 4) if tab_shape is not None else -1.0,
+                "tab_t": v2.TAB_T,
+                "tab_w": v2.TAB_W,
+            }
+            record(
+                "REF_WIRE_envelope",
+                tab_shape is not None
+                and ref_tab["body_mm3"] <= noise
+                and ref_tab["lid_mm3"] <= noise,
+                "v2 REF flex tab 2.5 wide × 0.2 thick along the ring-to-board path holds no nylon",
+                **ref_tab,
+            )
+    else:
+        layout = pl.get_layout(str(params["PACKING"]))
+        route = [(float(u), float(s)) for u, s in layout.ref_wire]
+        wire_r = float(pl.WIRE_OD) / 2.0
+        wire_y = (WIRE_Y[0] + WIRE_Y[1]) / 2.0
+        pts = [_vec(path, u, s, wire_y) for u, s in route]
+        wire: Shape | None = None
+        for i in range(len(pts) - 1):
+            seg = pts[i + 1] - pts[i]
+            piece = Solid.make_cylinder(wire_r, seg.length, Plane(origin=pts[i], z_dir=seg.normalized()))
+            wire = piece if wire is None else wire.fuse(piece)
+        for p in pts[1:-1]:
+            wire = wire.fuse(Solid.make_sphere(wire_r, Plane(origin=p)))
+        cell_box = _cell_box(path, params, floor_y)
+        others = {
+            "body_mm3": _overlap_volume(body, wire),
+            "lid_mm3": _overlap_volume(lid, wire),
+            "cell_envelope_mm3": _overlap_volume(cell_box, wire),
+        }
+        for name, site in _signal_sites(params):
+            others[f"keepout_{name}_mm3"] = _overlap_volume(_keepout_signal_solid(path, params, site), wire)
+            others[f"tab_{name}_mm3"] = _overlap_volume(_tab_solid(path, params, name, site), wire)
+        lid_under = min(
+            _bisect(lambda y, u=u, s=s: _inside_uys(lid, path, u, s, y), wire_y, lid_y + 0.5)
+            for u, s in route
+        )
+        slack = _route_turn_slack([(p.X, p.Z) for p in pts], float(pl.BEND_R))
+        wire_numbers = {k: round(v, 4) for k, v in others.items()}
+        record(
+            "REF_WIRE_envelope",
+            all(v <= noise for v in others.values())
+            and lid_under - (wire_y + wire_r) > 0.0
+            and slack >= 0.0,
+            "Ø1.3 wire at y 3.3 from the channel to the REF pad holds no nylon, misses the lid, "
+            "cell envelope, keep-outs and tabs, and each turn fits bend radius 3; charge pads "
+            "are not placed yet (board out of scope) and the pocket-to-channel turn is Q21",
+            wire_od=float(pl.WIRE_OD),
+            bend_r=float(pl.BEND_R),
+            bend_slack=round(slack, 4),
+            lid_gap=round(lid_under - (wire_y + wire_r), 4),
+            **wire_numbers,
+        )
 
     # CABLE_EXIT_cavity: pierces the posterior wall into cavity air only.
     s_exit = cable_exit_s(params)
@@ -1963,6 +2144,7 @@ def run_stage_b_solid_checks(
 
     # CELL_envelope: 5.2 × 10.4 × 15.6 plus 0.5 foam, on the floor, centred
     # in the plan pocket reservation, against body and seated lid.
+    cell_box = _cell_box(path, params, floor_y)
     s_mid, u_mid_b = (BATTERY_S[0] + BATTERY_S[1]) / 2.0, (BATTERY_U[0] + BATTERY_U[1]) / 2.0
     need_y = CELL_MAX[0] + FOAM_THICK
     cell_u = (u_mid_b - CELL_MAX[1] / 2.0, u_mid_b + CELL_MAX[1] / 2.0)
@@ -2019,19 +2201,38 @@ def run_stage_b_solid_checks(
         )
     pocket_r = min(radii)
     lid_under_pocket = lid_over_pocket if lid_over_pocket is not None else math.inf
-    record(
-        "Q21_REF_lug",
-        lug_top_y < lid_under_pocket and barrel_outer <= pocket_r,
-        "reference lug upright (TE 31428) against the lid and the pocket wall (Q21); "
-        "recorded, not hidden, and does not stop the write",
-        lug_top_y=round(lug_top_y, 4),
-        lid_y=round(lid_under_pocket, 3),
-        lug_into_lid=round(lug_top_y - lid_under_pocket, 3),
-        barrel_outer=round(barrel_outer, 4),
-        pocket_r=round(pocket_r, 3),
-        barrel_into_wall=round(barrel_outer - pocket_r, 3),
-        lug_thick=float(pl.LUG_THICK),
-    )
+    if packing_is_v2(params):
+        v2 = pl._v2()
+        ring_r = v2.RING_D / 2.0
+        nut_r = v2.NUT_S / 2.0
+        stack_top = floor_y + v2.STACK_INSIDE
+        record(
+            "Q21_REF_lug",
+            stack_top < lid_under_pocket and max(ring_r, nut_r) <= pocket_r,
+            "v2: flex ring Ø5.0 and DIN 439 nut s 5.0 against the measured lid over the pocket "
+            "and the measured pocket radius; no TE 31428 lug (Q21, Q28)",
+            stack_top_y=round(stack_top, 4),
+            lid_y=round(lid_under_pocket, 3),
+            ring_r=round(ring_r, 4),
+            nut_r=round(nut_r, 4),
+            pocket_r=round(pocket_r, 3),
+            floor_y=round(floor_y, 4),
+            stack_inside=round(v2.STACK_INSIDE, 4),
+        )
+    else:
+        record(
+            "Q21_REF_lug",
+            lug_top_y < lid_under_pocket and barrel_outer <= pocket_r,
+            "reference lug upright (TE 31428) against the lid and the pocket wall (Q21); "
+            "recorded, not hidden, and does not stop the write",
+            lug_top_y=round(lug_top_y, 4),
+            lid_y=round(lid_under_pocket, 3),
+            lug_into_lid=round(lug_top_y - lid_under_pocket, 3),
+            barrel_outer=round(barrel_outer, 4),
+            pocket_r=round(pocket_r, 3),
+            barrel_into_wall=round(barrel_outer - pocket_r, 3),
+            lug_thick=float(pl.LUG_THICK),
+        )
 
     # CLOSURE_PASSED: E1/E3/E5 present on the solids exactly when the flag is set.
     flag = bool(params.get("CLOSURE_PASSED", False))
@@ -2054,7 +2255,22 @@ def run_stage_b_solid_checks(
         **{k: 1.0 if v else 0.0 for k, v in present.items()},
     )
 
-    failing = [c for c in checks if not c.passed and c.name not in STAGE_B_NONFATAL]
+    if packing_is_v2(params):
+        _record_v2_packing_checks(
+            record, body, lid, path, params, floor_y, lid_y, width, noise
+        )
+
+    nonfatal = set(STAGE_B_NONFATAL)
+    if packing_is_v2(params):
+        nonfatal.add("REF_WIRE_envelope")
+    failing = [
+        c
+        for c in checks
+        if not c.passed
+        and c.name in STAGE_B_CHECK_NAMES
+        and c.name not in nonfatal
+        and not str(c.detail).startswith("NOT_MEASURED")
+    ]
     if failing and raise_on_fail:
         raise CheckFail(
             "; ".join(
@@ -2073,6 +2289,298 @@ def _dir_us(path: PathGeom, site: tuple[float, float], du: float, ds: float) -> 
     radial = Vector(math.cos(a), 0.0, math.sin(a))
     tangent = Vector(math.sin(a), 0.0, -math.cos(a))
     return (radial * du + tangent * ds).normalized()
+
+
+def _record_v2_packing_checks(
+    record: Callable[..., None],
+    body: Solid,
+    lid: Solid,
+    path: PathGeom,
+    params: Mapping[str, Any],
+    floor_y: float,
+    lid_y: float,
+    width: float,
+    noise: float,
+) -> None:
+    """WP11 envelopes measured on the order-1 construction path (no fork)."""
+    v2 = load_placement()._v2()
+    spec = v2.V2Spec(
+        str(params.get("V2_ARCH", "A")),
+        str(params.get("V2_CELL", "501015")),
+        str(params.get("V2_LAYOUT", "series")),
+        float(params.get("V2_WIDTH", 20.0)),
+        float(params.get("V2_LID_Y", 8.0)),
+        float(params.get("V2_ARC_PLUS", 0.0)),
+        str(params.get("V2_IFACE", "I")),
+        float(params.get("V2_STANDOFF", 3.5)),
+        float(params.get("V2_RECESS", 0.0)),
+    )
+    layout = v2.run_spec(spec)
+    maker = path_solid_for(path, params)
+
+    def box_solid(box: Any, y0: float | None = None, y1: float | None = None) -> Shape:
+        return maker(box.u0, box.u1, box.s0, box.s1, y0 if y0 is not None else box.y0, y1 if y1 is not None else box.y1)
+
+    cell_box = layout.parts["cell"]
+    cell_shape = box_solid(cell_box)
+    record(
+        "V2_CELL_envelope",
+        _overlap_volume(body, cell_shape) <= noise and _overlap_volume(lid, cell_shape) <= noise,
+        "v2 cell box from the packing layout holds no nylon on the built body or seated lid",
+        body_mm3=round(_overlap_volume(body, cell_shape), 4),
+        lid_mm3=round(_overlap_volume(lid, cell_shape), 4),
+        y0=round(cell_box.y0, 4),
+        y1=round(cell_box.y1, 4),
+        wu=round(cell_box.wu, 4),
+        ws=round(cell_box.ws, 4),
+    )
+    module = layout.parts["module"]
+    mod_shape = box_solid(module)
+    ant = layout.antenna
+    ant_shape = maker(ant[0], ant[2], ant[1], ant[3], module.y0, lid_y) if ant else None
+    record(
+        "V2_MODULE_envelope",
+        _overlap_volume(body, mod_shape) <= noise and _overlap_volume(lid, mod_shape) <= noise,
+        "v2 module box holds no nylon; antenna keep-out is the sheet rectangle on the built solid",
+        body_mm3=round(_overlap_volume(body, mod_shape), 4),
+        lid_mm3=round(_overlap_volume(lid, mod_shape), 4),
+        y0=round(module.y0, 4),
+        y1=round(module.y1, 4),
+        antenna_body_mm3=(
+            round(_overlap_volume(body, ant_shape), 4) if ant_shape is not None else -1.0
+        ),
+    )
+    bu, bs = layout.board_u, layout.board_s
+    board_shape = maker(bu[0], bu[1], bs[0], bs[1], layout.board_underside, layout.board_top)
+    record(
+        "V2_BOARD_envelope",
+        _overlap_volume(body, board_shape) <= noise,
+        "v2 board zone at the packing underside and top holds no nylon",
+        body_mm3=round(_overlap_volume(body, board_shape), 4),
+        underside=round(layout.board_underside, 4),
+        top=round(layout.board_top, 4),
+    )
+    if spec.iface == "I" or not layout.tabs:
+        record(
+            "V2_TAB_envelope",
+            False,
+            "NOT_MEASURED: interface I has no flex tabs (gold pad on each standoff top)",
+            iface=0.0,
+        )
+    else:
+        tab_hits = {}
+        for name, tab in layout.tabs.items():
+            shape = None
+            for box in v2._tab_boxes(tab, v2.FLOOR_Y, v2.FLOOR_Y + v2.TAB_T):
+                piece = maker(box.u0, box.u1, box.s0, box.s1, v2.FLOOR_Y, v2.FLOOR_Y + v2.TAB_T)
+                shape = piece if shape is None else shape.fuse(piece)
+            tab_hits[f"{name}_body_mm3"] = round(_overlap_volume(body, shape), 4) if shape is not None else -1.0
+        record(
+            "V2_TAB_envelope",
+            all(v <= noise for v in tab_hits.values()),
+            "v2 flex tabs 2.5 × 0.2 with Ø5.0 rings hold no nylon",
+            **tab_hits,
+        )
+    if spec.iface == "I":
+        stack_top = layout.standoff_top_y
+        try:
+            lid_at_c1 = _bisect(
+                lambda y: _inside_uys(lid, path, v2.CONTACT_1[0], v2.CONTACT_1[1], y),
+                stack_top,
+                lid_y + 0.8,
+            )
+            record(
+                "V2_CONTACT_STACK",
+                stack_top < lid_at_c1,
+                "standoff top (board underside) stays under the lid over SIG1",
+                floor_y=round(floor_y, 4),
+                standoff_h=round(spec.standoff, 4),
+                stack_top_y=round(stack_top, 4),
+                lid_over_SIG1=round(lid_at_c1, 4),
+                boss_top_y=round(layout.boss_top_y, 4),
+            )
+        except CheckFail as exc:
+            record(
+                "V2_CONTACT_STACK",
+                False,
+                f"NOT_MEASURED: lid over SIG1 has no y-boundary ({exc})",
+                floor_y=round(floor_y, 4),
+                standoff_h=round(spec.standoff, 4),
+            )
+    else:
+        stack_top = floor_y + v2.STACK_INSIDE
+        try:
+            lid_at_c1 = _bisect(
+                lambda y: _inside_uys(lid, path, v2.CONTACT_1[0], v2.CONTACT_1[1], y),
+                stack_top,
+                lid_y + 0.8,
+            )
+            record(
+                "V2_CONTACT_STACK",
+                stack_top < lid_at_c1,
+                "measured floor plus stack inside the wall (tab 0.2 + nut 1.6 + tip 0.70) stays under the lid",
+                floor_y=round(floor_y, 4),
+                stack_inside=round(v2.STACK_INSIDE, 4),
+                stack_top_y=round(stack_top, 4),
+                lid_over_SIG1=round(lid_at_c1, 4),
+                tip_past_nut=round(v2.TIP_PAST_NUT, 4),
+            )
+        except CheckFail as exc:
+            record(
+                "V2_CONTACT_STACK",
+                False,
+                f"NOT_MEASURED: lid over SIG1 has no y-boundary ({exc})",
+                floor_y=round(floor_y, 4),
+                stack_inside=round(v2.STACK_INSIDE, 4),
+            )
+    mid_u = (layout.cavity_u[0] + layout.cavity_u[1]) / 2.0
+    mid_s = (layout.board_s[0] + layout.board_s[1]) / 2.0
+    try:
+        lid_band = _bisect(lambda y: _inside_uys(lid, path, mid_u, mid_s, y), floor_y + 2.0, lid_y + 1.0)
+        record(
+            "V2_LID_band",
+            abs(lid_band - lid_y) < 0.6,
+            "lid underside over the board mid-point, measured on the seated lid",
+            lid_underside_y=round(lid_band, 4),
+            LID_Y=round(lid_y, 4),
+        )
+    except CheckFail as exc:
+        record(
+            "V2_LID_band",
+            False,
+            f"NOT_MEASURED: lid underside has no y-boundary at board mid ({exc})",
+            LID_Y=round(lid_y, 4),
+        )
+    try:
+        wall_u0 = _bisect(lambda u: _inside_uys(body, path, u, mid_s, 0.75), 0.05, 3.0)
+        wall_u1 = _bisect(lambda u: _inside_uys(body, path, u, mid_s, 0.75), width - 3.0, width - 0.05)
+        if min(wall_u0, width - wall_u1) < 1.0:
+            record(
+                "V2_WALL_minima",
+                False,
+                "NOT_MEASURED: probe at y 0.75 returned the outer skin, not the 1.5 inner face",
+                anterior_wall=round(wall_u0, 4),
+                posterior_wall=round(width - wall_u1, 4),
+                BODY_WIDTH=round(width, 4),
+            )
+        else:
+            record(
+                "V2_WALL_minima",
+                True,
+                "side-wall inner face at y 0.75, probed on the body at board mid-s",
+                anterior_wall=round(wall_u0, 4),
+                posterior_wall=round(width - wall_u1, 4),
+                BODY_WIDTH=round(width, 4),
+            )
+    except CheckFail as exc:
+        record(
+            "V2_WALL_minima",
+            False,
+            f"NOT_MEASURED: wall inner face has no u-boundary ({exc})",
+            BODY_WIDTH=round(width, 4),
+        )
+    chord = float(path.chord)
+    m1 = float(params["M1"])
+    gate = chord + 3.0
+    record(
+        "V2_TOTAL_CHORD",
+        True,
+        "TOTAL_CHORD of the path that built this solid",
+        TOTAL_CHORD=round(chord, 4),
+        BODY_ARC=round(float(params["BODY_ARC"]), 4),
+        CREASE_BOW=round(float(params["CREASE_BOW"]), 4),
+    )
+    record(
+        "V2_M1_gate",
+        m1 + 1e-9 >= gate and chord <= (m1 - 3.0) + 1e-9,
+        "M1 versus TOTAL_CHORD + 3 on the built path (Q34 blank, default.toml M1)",
+        M1=m1,
+        TOTAL_CHORD=round(chord, 4),
+        gate=round(gate, 4),
+        m1_minus_3=round(m1 - 3.0, 4),
+    )
+    stand_hits = {}
+    for name in ("standoff_SIG1", "standoff_SIG2", "standoff_REF"):
+        if name not in layout.parts:
+            continue
+        shape = box_solid(layout.parts[name])
+        stand_hits[f"{name}_body_mm3"] = round(_overlap_volume(body, shape), 4)
+    record(
+        "V2_STANDOFF",
+        bool(stand_hits) and all(v <= noise for v in stand_hits.values()),
+        "brass hex standoffs 5 AF from the floor to the standoff top hold no nylon",
+        standoff_h=round(spec.standoff, 4),
+        top_y=round(layout.standoff_top_y, 4),
+        **stand_hits,
+    )
+    record(
+        "V2_ADJUSTMENT",
+        False,
+        (
+            f"NOT_MEASURED on the solid: region ±{layout.adjustment_mm:.2f} = "
+            f"4.0 − 2.9 − {v2.PLACEMENT_TOL:g} (JLC floor ±0.3)"
+        ),
+        region_mm=round(layout.adjustment_mm, 4),
+        pad_half=4.0,
+        circumradius=2.9,
+        placement_tol=v2.PLACEMENT_TOL,
+    )
+    record(
+        "V2_USB_medial",
+        False,
+        f"NOT_MEASURED: order-1 solid has no medial USB cut; packing reports {layout.usb_wall}",
+        recess=v2.USB_RECESS,
+        ligament=v2.USB_LIGAMENT,
+        plug_x=v2.PLUG_VOLUME[0],
+        plug_y=v2.PLUG_VOLUME[1],
+        plug_z=v2.PLUG_VOLUME[2],
+    )
+    record(
+        "V2_HARNESS",
+        False,
+        "NOT_MEASURED: 100 ± 3 mm cell leads are a routed length, not a solid envelope",
+        reserve_mm=100.0,
+    )
+    record(
+        "V2_BOSS",
+        False,
+        "NOT_MEASURED: printed bosses 0.5 below the standoff top are not on the order-1 solid",
+        boss_top_y=round(layout.boss_top_y, 4),
+        drop=v2.BOSS_DROP,
+    )
+    record(
+        "V2_CELL_CLEARANCE",
+        False,
+        (
+            f"NOT_MEASURED on the solid: nominal {layout.nominal_clearance:+.2f} "
+            f"deformed {layout.deformed_clearance:+.2f} "
+            f"(standoff {spec.standoff:g}, recess {spec.recess:g}, boss drop {v2.BOSS_DROP:g})"
+        ),
+        nominal=round(layout.nominal_clearance, 4),
+        deformed=round(layout.deformed_clearance, 4),
+        recess=round(spec.recess, 4),
+        floor_web=round(layout.floor_web, 4),
+    )
+    record(
+        "V2_STACK",
+        False,
+        (
+            f"NOT_MEASURED as a solid stack: standoff+board 1.0+module = {layout.stack_over_module:.2f}; "
+            f"outer zero-clearance {layout.outer_zero:.2f}; outer at LID_Y {layout.outer_at_lid:.2f}; "
+            f"module-to-lid packing {layout.module_lid_clearance:+.2f}"
+        ),
+        stack=round(layout.stack_over_module, 4),
+        outer_zero=round(layout.outer_zero, 4),
+        outer_lid=round(layout.outer_at_lid, 4),
+        module_lid=round(layout.module_lid_clearance, 4),
+    )
+    record(
+        "V2_RECESS",
+        False,
+        "NOT_MEASURED: 0.5 floor recess and 1.0 residual web (C15) are not on the order-1 solid",
+        recess=round(spec.recess, 4),
+        floor_web=round(layout.floor_web, 4),
+    )
 
 
 def path_solid_for(path: PathGeom, params: Mapping[str, Any]) -> Callable[..., Shape]:
@@ -2742,9 +3250,12 @@ def write_manifest(
         rows_by_body = stage_b_rows or {}
         bodies = sorted(rows_by_body)
         lead = "body_full_p15" if "body_full_p15" in rows_by_body else (bodies[0] if bodies else None)
+        check_names = set(STAGE_B_CHECK_NAMES)
+        if lead:
+            check_names |= set(rows_by_body[lead])
         payload["stage_b"] = {
             name: {
-                "passed": all(rows_by_body[b][name].passed for b in bodies),
+                "passed": all(rows_by_body[b][name].passed for b in bodies if name in rows_by_body[b]),
                 "detail": rows_by_body[lead][name].detail,
                 "numbers": rows_by_body[lead][name].numbers,
                 "numbers_from": lead,
@@ -2754,9 +3265,11 @@ def write_manifest(
                         "numbers": rows_by_body[b][name].numbers,
                     }
                     for b in bodies
+                    if name in rows_by_body[b]
                 },
             }
-            for name in sorted(STAGE_B_CHECK_NAMES)
+            for name in sorted(check_names)
+            if lead and name in rows_by_body[lead]
         } if lead else {}
         failing = stage_b_failing(rows_by_body)
         payload["stage_b_failing"] = failing
@@ -2995,9 +3508,13 @@ def build_and_export(
 
 
 def stage_b_failing(stage_b_rows: Mapping[str, Mapping[str, Check]]) -> list[str]:
-    return sorted(
-        {name for rows in stage_b_rows.values() for name, row in rows.items() if not row.passed}
-    )
+    names = {
+        name
+        for rows in stage_b_rows.values()
+        for name, row in rows.items()
+        if not row.passed
+    }
+    return sorted(names)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
