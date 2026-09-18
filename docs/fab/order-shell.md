@@ -44,8 +44,11 @@ that change.
 Stop. Do not pay if any line is true.
 
 1. G8 above is not ticked.
-2. `docs/fab/cad/v2/manifest.json` is missing, or any entry in its
-   `checks` list has `"passed": false` (expected from WP14).
+2. `docs/fab/cad/v2/manifest.json` is missing, or its
+   `stage_b_failing` list is not empty. On this tree it lists
+   `V2_CLOSURE`, `V2_EDGE_radii`, `V2_USB_end`, `V2_WALL_minima`
+   (review r6, decisions 70 and 71). Rows marked NOT_MEASURED are named
+   in `shell-v2.md` §6 and are not a pass.
 3. You have not approved both renders (`render_medial.png` and
    `render_lateral.png` in `docs/fab/cad/v2/`, expected from WP14).
 4. M1 is below 50.90 mm (`measure.md`, `packing-v2.md` §6).
@@ -57,22 +60,17 @@ Stop. Do not pay if any line is true.
 
 ## Files to upload
 
-Expected from WP14. Marked expected until that package writes them.
-Upload the body and lid files named in `docs/fab/cad/v2/manifest.json`
-(expected; WP14). Plan v2 §9 contents: body, lid, spare lid, stand if
-printed.
+From `docs/fab/cad/v2/` (WP14; manifest `parts`: `body_full_p15`,
+`lid`). Plan v2 §9 contents: body, lid, spare lid, stand if printed.
 
 | File | Quantity | Notes |
 |---|---:|---|
-| Body STL (name in the v2 manifest) | 1 | expected; WP14 |
-| Lid STL (name in the v2 manifest) | 2 | expected; WP14. Named cut if R8 fails: 1 |
-| Stand STL | 0 or 1 | the agent fills this after WP14 |
-| STEP / 3MF of the same parts | — | keep; upload only if the vendor page asks |
+| `body_full_p15.stl` | 1 | body with hook |
+| `lid.stl` | 2 | Named cut if R8 fails: 1 |
+| Stand | 0 | WP14 drew no stand |
+| `body_full_p15.step`, `.3mf`, `lid.step`, `.3mf` | — | keep; upload only if the vendor page asks |
 
-JLC3DP takes STL on the 3D page (v1 order sheet). If WP14's manifest
-names different files, those names win.
-
-Exact filenames: the agent fills this after WP14.
+JLC3DP takes STL on the 3D page (v1 order sheet).
 
 ---
 
@@ -86,8 +84,8 @@ fills this after WP14", wait.
 | Service | JLC3DP 3D printing | plan v2 §9 |
 | Process | MJF (Nylon) | plan v2 §9 |
 | Material | PA12-HP | plan v2 §9; jlc3dp.com/help/article/pa12-hp-nylon |
-| Colour | Grey default. Dyed black only if you already wrote Q30 | plan v2 §7, Q30 |
-| Finish | As printed for PA12-HP unless WP14 names a media-blast that the vendor's page states is skin-tested | plan v2 §7 R3; C1 open |
+| Colour | Natural Grey default. Dyed Black only if you already wrote Q30 | plan v2 §7, Q30; option names from `L7-research-v4.md` §5 |
+| Finish | Standard (as printed, bead-blasted). Not Chemical Vapor Smoothing unless the vendor's page states skin-contact testing of the smoothed part | plan v2 §7 R3; C1 open; option names from `L7-research-v4.md` §5 |
 | Ship to | Massachusetts, USA | plan v2 §9 |
 | Shipping | DDP as the JLC checkout shows it. Do not pick CPT | plan v2 §9 |
 | Duties | Write the DDP figure the checkout shows | plan v2 §9, §12 C13 |

@@ -29,8 +29,10 @@ Peel the pre-cut foam pad and lay the cell in its pocket; route its
 lead in the channel to the connector. (plan v2 §8)
 
 **Tool.** Fingers. No hex key yet.
-**Part.** Pre-cut foam 0.5 mm (Q57) and the G1b cell. Winner pocket is
-501015-class, centre (7.00, 9.30) mm (`packing-v2.md` §5).
+**Part.** Pre-cut foam 0.5 mm (Q57) and the G1b cell. The pocket is
+the 501015 bare-cell envelope, centre (7.00, 9.30) mm; the record cell
+is the 501012 pack, 2.6 mm shorter along the pocket, and foam fills the
+gap (`packing-v2.md` §5; the route is decision 69).
 **Check.** Foam is down. Cell sits in the pocket. Lead lies in the
 channel and is not pinched.
 **Picture.** `docs/fab/cad/v2/drawing.pdf` cell-pocket view (expected;
@@ -77,11 +79,11 @@ bosses. (plan v2 §8)
 
 **Tool.** Fingers. Board powered off. Electrodes off.
 **Part.** The assembled flex from order 1, tabs already at the rings.
-**Check.** Board underside rests on the three standoff tops. Pads face
+**Check.** Board underside rests on the standoff tops. Pads face
 the standoffs. USB-C is at the hook-end end face (`packing-v2.md` §5).
-Interface II has no board bosses (`packing-v2.md` §6 `V2_BOSS`); the
-plan's word "bosses" here is the standoff tops. Flex retention is
-WP14's.
+The board has no mounting holes, and the REF standoff sits past the
+board's end, so the island rests on two standoffs. The shell's two
+printed bosses have nothing to screw into (review r6, decision 73).
 **Picture.** `docs/fab/cad/v2/drawing.pdf` board-on-standoffs view
 (expected; WP14).
 
@@ -92,8 +94,8 @@ WP14's.
 Turn the board screws with the hex key until they seat. (plan v2 §8)
 
 **Tool.** 1.5 mm hex key.
-**Part.** The board screws WP14 names. If WP14 names none, stop. Write
-me one line. Interface II retention is WP14's (`packing-v2.md` §6).
+**Part.** The board screws WP14 names. On this tree it names none
+(decision 73). Stop here. Write me one line.
 **Check.** Screws seat. Board does not rock. Tabs are not folded
 against the cavity end wall (Q59). If a tab fights the wall, stop.
 **Picture.** `docs/fab/cad/v2/render_medial.png` (expected; WP14).
@@ -127,7 +129,8 @@ WP14).
 Close the lid per WP14's closure. (plan v2 §8)
 
 **Tool.** Fingers. Hex key only if WP14's closure is the concealed tail
-screw (plan v2 §7).
+screw (plan v2 §7). On this tree the lid has no undercut and lifts off
+(`V2_CLOSURE`, decision 71). Stop until that is decided.
 **Part.** The lid from order 2.
 **Check.** Lid is seated. Seam is the one WP14 drew. No screw shows on
 the lateral face (plan v2 §7).
@@ -186,24 +189,26 @@ Target runs from its own cell, off-body, electrodes disconnected
 (`board-v2.md` §4). Ground first (`L6-research-v3.md` §6.1).
 
 Kit on paper (plan v2 §8): Tag-Connect TC2030-IDC-NL, $33.95 listed,
-keyed orientation; Raspberry Pi Debug Probe, $12 listed, 3.3 V
-nominal I/O, on its supplied male 0.1" breakout. Q64: G4 is not
-passable with that probe on paper. Do not run this section until G4
-names the kit (`order-parts.md`).
+keyed orientation, plus a probe. Plan v2 §8 names the Raspberry Pi Debug
+Probe; it is not the probe for an erased part (3.3 V nominal I/O, no
+VTref sensing, target at 1.8 V with a 2.1 V absolute maximum; Q64).
+`L7-research-v4.md` §1.3 lists three VTref-sensing probes (ST-LINK
+V3MINIE, Black Magic Probe V2.3, J-Link EDU Mini); none is picked here.
+Do not run this section until G4 names the kit (`order-parts.md`).
 
 ### Net map (`board-v2.md` §4)
 
 TC2030-IDC-NL contacts 1–6 map one-for-one to IDC 1–6 (plan v2 §8,
 Tag-Connect Rev. B).
 
-| IDC | TC2030 pin | Net | Probe (proposed) | Rule |
+| IDC | TC2030 pin | Net | Probe lead (kit named at G4) | Rule |
 |---|---|---|---|---|
-| 1 | 1 | +VDD | VTref sense only | No power feed, no probe lead on this pin |
-| 2 | 2 | SWDIO | yellow SD | Module pin 51 |
-| 3 | 3 | GND | black | Ground first |
-| 4 | 4 | SWDCLK | orange SC | Module pin 53 |
+| 1 | 1 | +VDD | VTref sense only | No power feed from the probe |
+| 2 | 2 | SWDIO | SWDIO | Module pin 51 |
+| 3 | 3 | GND | GND | Ground first |
+| 4 | 4 | SWDCLK | SWCLK | Module pin 53 |
 | 5 | 5 | GND | GND | |
-| 6 | 6 | nRESET | reset | Module pin 40 (P0.18), shared with SW1 |
+| 6 | 6 | nRESET | nRESET | Module pin 40 (P0.18), shared with SW1 |
 
 ### REGOUT0 (`board-v2.md` §4)
 
