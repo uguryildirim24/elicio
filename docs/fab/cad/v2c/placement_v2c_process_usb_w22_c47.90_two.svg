@@ -2,6 +2,13 @@
 <title>v2c process usb w22 c47.90 two 66/66</title>
 <rect width="100%" height="100%" fill="#f7f4ef"/>
 <rect x="195.0" y="244.8" width="210.0" height="259.2" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<rect x="223.8" y="504.0" width="30.0" height="128.5" fill="#f3d27a" stroke="#a67c00" stroke-width="0.7"/>
+<rect x="200.4" y="594.1" width="76.8" height="76.8" fill="#c45c26" stroke="#7a2e0b" stroke-width="0.7"/>
+<text x="238.8" y="632.5" font-size="7" text-anchor="middle" fill="#fff">P1flat</text>
+<rect x="277.8" y="504.0" width="30.0" height="261.7" fill="#f3d27a" stroke="#a67c00" stroke-width="0.7"/>
+<rect x="254.4" y="727.3" width="76.8" height="76.8" fill="#c45c26" stroke="#7a2e0b" stroke-width="0.7"/>
+<text x="292.8" y="765.7" font-size="7" text-anchor="middle" fill="#fff">P2flat</text>
+<rect x="255.0" y="180.0" width="30.0" height="64.8" fill="#f3d27a" stroke="#a67c00" stroke-width="0.7"/>
 <rect x="195.0" y="244.8" width="138.0" height="198.0" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
 <text x="264.0" y="343.8" font-size="7" text-anchor="middle" fill="#fff">U1</text>
 <rect x="236.2" y="665.3" width="127.7" height="113.0" fill="#c45c26" stroke="#111" stroke-width="0.7"/>
@@ -136,5 +143,8 @@
 <text x="391.4" y="335.6" font-size="7" text-anchor="middle" fill="#fff">R30</text>
 <rect x="309.6" y="463.8" width="39.6" height="39.6" fill="#f7f4ef" stroke="#b33" stroke-width="0.7"/>
 <rect x="363.6" y="463.8" width="39.6" height="39.6" fill="#f7f4ef" stroke="#b33" stroke-width="0.7"/>
+<rect x="354.7" y="422.9" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
+<rect x="366.8" y="362.0" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
+<rect x="342.5" y="362.0" width="16.7" height="16.7" fill="none" stroke="#b33" stroke-width="0.7"/>
 <text x="12" y="16" font-size="11" fill="#111">process usb w22 chord 47.90 two 66/66 fold neck</text>
 </svg>
