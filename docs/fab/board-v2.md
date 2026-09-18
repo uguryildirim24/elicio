@@ -339,7 +339,21 @@ Stiffener drawings: Eco1.User = two FR4 0.4 pieces (parts island + leftover/pock
 
 Two-sided assembly: packing `side=bottom` rows (Q1–Q5, C6–C9, C13–C15, R4–R30) sit on B.Cu. JLC FPC assembly is two-sided when both copper layers carry parts. Copper-to-edge 0.30 everywhere.
 
-Encoded in the board design settings and in `elicio-v2.kicad_pro`.
+Encoded in the board design settings, in `elicio-v2.kicad_pro`, and in `elicio-v2.kicad_dru`.
+
+### Q84 — Contact clearance by area
+
+1.0 mm is creepage for exposed copper (plan v2 §5.3). It is not a netclass on the island 0402 that joins SIG1/SIG2/REF to the front end (pad gap 0.48 mm).
+
+| Region | Rule area | Contact-to-anything |
+|---|---|---|
+| Three tab strips and ring pads P1–P3 | `tabs` | 1.0 mm |
+| Tail pads P4, P5 | `tail_pads` | 1.0 mm (any net in the area) |
+| Island (R1–R3 and the rest of the body) | none | **0.20 mm** (Contact netclass; ≥ 0.20 JLC flex) |
+
+Board minimum clearance stays **0.10 mm** (JLC 1 oz 4/4 mil). Custom rules cannot go below that floor. The Contact netclass is 0.20 mm so the island 0402 passes; the `.kicad_dru` file raises 1.0 mm inside `tabs` and `tail_pads`.
+
+J4 NPTH holes are a both-side keep-out named `j4_holes`: hole diameter plus the board hole clearance (0.20 mm). No B.Cu footprint or pad in that zone.
 
 ## 13. BOM (placed, in-BOM, not DNP)
 

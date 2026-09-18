@@ -19,13 +19,22 @@ import pcbnew  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from maze_route import maze_route  # noqa: E402
-from placement_table import PlacementRow, parse_placement_markdown, wants_back_copper  # noqa: E402
+from placement_table import (  # noqa: E402
+    PlacementRow,
+    parse_j4_keepouts,
+    parse_pin_table_v2,
+    parse_placement_markdown,
+    wants_back_copper,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 BOARD_DIR = ROOT / "hardware" / "board"
 KICAD_FP = Path("/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints")
 LOCAL_FP = BOARD_DIR / "lib" / "elicio.pretty"
 TABLE = BOARD_DIR / "packing_5c_norec.md"
+V2_TABLE = BOARD_DIR / "packing_v2_flat.md"
+CONTACT_ISLAND_CLEARANCE = 0.20
+TAB_RULE_HALF = 3.20
 JAVA = Path("/opt/homebrew/opt/openjdk@25/bin/java")
 FREEROUTE_JAR = Path.home() / ".local" / "opt" / "freerouting" / "freerouting-2.4.1.jar"
 
@@ -140,20 +149,129 @@ def add_filled_rect(board, x0, y0, x1, y1, layer) -> None:
 
 
 def add_keepout(board, x0, y0, x1, y1, name, allow_pads: bool, allow_tracks: bool = False) -> None:
+    add_named_area(
+        board,
+        x0,
+        y0,
+        x1,
+        y1,
+        name,
+        layers=pcbnew.LSET.AllCuMask(),
+        allow_tracks=allow_tracks,
+        allow_vias=False,
+        allow_fills=False,
+        allow_pads=allow_pads,
+        allow_footprints=True,
+    )
+
+
+def add_named_area(
+    board,
+    x0,
+    y0,
+    x1,
+    y1,
+    name,
+    layers,
+    allow_tracks: bool,
+    allow_vias: bool,
+    allow_fills: bool,
+    allow_pads: bool,
+    allow_footprints: bool,
+) -> None:
     zone = pcbnew.ZONE(board)
     zone.SetIsRuleArea(True)
     zone.SetDoNotAllowTracks(not allow_tracks)
-    zone.SetDoNotAllowVias(True)
-    zone.SetDoNotAllowZoneFills(True)
+    zone.SetDoNotAllowVias(not allow_vias)
+    zone.SetDoNotAllowZoneFills(not allow_fills)
     zone.SetDoNotAllowPads(not allow_pads)
-    zone.SetDoNotAllowFootprints(False)
-    zone.SetLayerSet(pcbnew.LSET.AllCuMask())
+    zone.SetDoNotAllowFootprints(not allow_footprints)
+    zone.SetLayerSet(layers)
     zone.SetZoneName(name)
     poly = zone.Outline()
     poly.NewOutline()
     for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
         poly.Append(pcbnew.FromMM(x), pcbnew.FromMM(y))
     board.Add(zone)
+
+
+def add_drc_rule_area(board, x0, y0, x1, y1, name) -> None:
+    """Named area for custom DRC only. Does not keep copper out."""
+    add_named_area(
+        board,
+        x0,
+        y0,
+        x1,
+        y1,
+        name,
+        layers=pcbnew.LSET.AllCuMask(),
+        allow_tracks=True,
+        allow_vias=True,
+        allow_fills=True,
+        allow_pads=True,
+        allow_footprints=True,
+    )
+
+
+def add_q84_contact_areas(board) -> None:
+    """tabs = three strips plus P1–P3 rings; tail_pads = P4 and P5."""
+    hw = TAB_STRIP / 2
+    strips = (
+        (SIG1_FOLD_U - hw, NECK_FOLD_S0, SIG1_FOLD_U + hw, BOARD_S0),
+        (SIG2_FOLD_U - hw, NECK_FOLD_S0, SIG2_FOLD_U + hw, BOARD_S0),
+        (REF_SITE[0] - hw, BOARD_S1, REF_SITE[0] + hw, REF_SITE[1] + TAB_RULE_HALF),
+    )
+    for x0, y0, x1, y1 in strips:
+        add_drc_rule_area(board, x0, y0, x1, y1, "tabs")
+    for cx, cy in (SIG1_SITE, SIG2_SITE, REF_SITE):
+        add_drc_rule_area(
+            board, cx - TAB_RULE_HALF, cy - TAB_RULE_HALF, cx + TAB_RULE_HALF, cy + TAB_RULE_HALF, "tabs"
+        )
+    for cx, cy in (P4_SITE, P5_SITE):
+        add_drc_rule_area(
+            board,
+            cx - TAB_RULE_HALF,
+            cy - TAB_RULE_HALF,
+            cx + TAB_RULE_HALF,
+            cy + TAB_RULE_HALF,
+            "tail_pads",
+        )
+
+
+def add_j4_both_side_keepout(board) -> None:
+    """NPTH diameter plus board hole clearance; no B.Cu footprint or pad."""
+    j4 = next((fp for fp in board.GetFootprints() if fp.GetReference() == "J4"), None)
+    if j4 is None:
+        return
+    clearance = pcbnew.ToMM(board.GetDesignSettings().m_HoleClearance)
+    bcu = pcbnew.LSET()
+    bcu.AddLayer(pcbnew.B_Cu)
+    for pad in j4.Pads():
+        try:
+            attr = pad.GetAttribute()
+        except Exception:
+            continue
+        if attr != pcbnew.PAD_ATTRIB_NPTH:
+            continue
+        pos = pad.GetPosition()
+        drill = pcbnew.ToMM(pad.GetDrillSize().x)
+        radius = drill / 2.0 + clearance
+        x = pcbnew.ToMM(pos.x)
+        y = pcbnew.ToMM(pos.y)
+        add_named_area(
+            board,
+            x - radius,
+            y - radius,
+            x + radius,
+            y + radius,
+            "j4_holes",
+            layers=bcu,
+            allow_tracks=False,
+            allow_vias=False,
+            allow_fills=False,
+            allow_pads=False,
+            allow_footprints=False,
+        )
 
 
 def add_text(board, x, y, text, layer, size=0.7) -> None:
@@ -416,7 +534,13 @@ def stamp_paste_pad_nets(path: Path) -> None:
 
 
 def load_table() -> dict[str, PlacementRow]:
-    rows = parse_placement_markdown(TABLE.read_text())
+    path = V2_TABLE if V2_TABLE.exists() else TABLE
+    text = path.read_text()
+    if path == V2_TABLE or "pin table v2" in text.lower() or "folded" in text.lower():
+        rows = parse_pin_table_v2(text)
+    else:
+        rows = parse_placement_markdown(text)
+    print("placement table", path.name, "rows", len(rows))
     return {row.ref: row for row in rows}
 
 
@@ -451,6 +575,7 @@ def build() -> None:
 
     add_keepout(board, RF_BOX[0], RF_BOX[1], RF_BOX[2], RF_BOX[3], "RF_NO_COPPER", allow_pads=True)
     add_keepout(board, J4_KEEP[0], J4_KEEP[1], J4_KEEP[2], J4_KEEP[3], "J4_KEEP", allow_pads=True, allow_tracks=True)
+    add_q84_contact_areas(board)
     for (cx, cy), name in (
         (SIG1_SITE, "RING_SIG1_CLEAR"),
         (SIG2_SITE, "RING_SIG2_CLEAR"),
@@ -505,8 +630,12 @@ def build() -> None:
     assign_nets(board, nets)
     shrink_j3_pads(board)
     configure_rules(board)
+    add_j4_both_side_keepout(board)
+    if V2_TABLE.exists():
+        for zone in parse_j4_keepouts(V2_TABLE.read_text()):
+            print("v2 keepout", zone.name, zone.u, zone.s, zone.radius, zone.layers)
     # No copper zones on the un-routed land: a GND pour on the island shorts
-    # Contact rings (class 1.0 mm). Zones return after a DRC-0 route.
+    # Contact rings (class 1.0 mm on the tabs). Zones return after a DRC-0 route.
 
     board.SetFileName(str(out))
     board.Save(str(out))

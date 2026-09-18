@@ -1,15 +1,16 @@
-"""Parse a packing placement table with a copper side column.
+"""Parse packing pin tables with a copper side column.
 
-§5c uses columns ``ref | side | u | s | rot | courtyard | notes``.
-This parser takes a ``side`` column of ``top`` or ``bottom`` so WP12d can pin
-two-sided rows. ``face`` is accepted as an alias only when its cell is
-``top`` or ``bottom`` (pocket/floor are regions, not copper sides).
+§5c uses ``ref | side | u | s | rot``. Pin table v2 is the same plus a
+folded-site table (ignored) and J4 hole keep-outs. ``face`` is an alias
+only when its cell is ``top`` or ``bottom`` (pocket/floor are regions).
+Flat PCB columns ``x`` / ``y`` alias ``u`` / ``s``.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 SIDES = frozenset({"top", "bottom"})
+BACK_LAYERS = frozenset({"both", "bottom", "b.cu", "bcu", "*.cu"})
 
 
 @dataclass(frozen=True)
@@ -19,6 +20,17 @@ class PlacementRow:
     s: float
     rot: float
     side: str
+
+
+@dataclass(frozen=True)
+class KeepoutZone:
+    """Named keep-out for J4 holes (and any later both-side hole zone)."""
+
+    name: str
+    u: float
+    s: float
+    radius: float
+    layers: str
 
 
 def normalize_side(raw: str) -> str:
@@ -37,6 +49,99 @@ def _is_separator(line: str) -> bool:
     return body == ""
 
 
+def _heading_before(lines: list[str], idx: int) -> str:
+    for i in range(idx - 1, -1, -1):
+        raw = lines[i].strip()
+        if not raw:
+            continue
+        if raw.startswith("|"):
+            continue
+        return raw.lstrip("#").strip().lower()
+    return ""
+
+
+def iter_markdown_tables(text: str) -> list[tuple[str, list[str], list[list[str]]]]:
+    """Return (heading, header_cells, data_rows) for each markdown table."""
+    lines = text.splitlines()
+    tables: list[tuple[str, list[str], list[list[str]]]] = []
+    i = 0
+    while i < len(lines):
+        if not lines[i].strip().startswith("|"):
+            i += 1
+            continue
+        heading = _heading_before(lines, i)
+        block: list[str] = []
+        while i < len(lines) and lines[i].strip().startswith("|"):
+            block.append(lines[i].strip())
+            i += 1
+        if len(block) < 2:
+            continue
+        header = [c.lower() for c in _cells(block[0])]
+        rows: list[list[str]] = []
+        for line in block[1:]:
+            if _is_separator(line):
+                continue
+            rows.append(_cells(line))
+        tables.append((heading, header, rows))
+    return tables
+
+
+def _is_folded_table(heading: str, header: list[str]) -> bool:
+    blob = heading + " " + " ".join(header)
+    if "folded" in blob or "shell site" in blob or "shell-site" in blob:
+        return True
+    keys = set(header)
+    return "u" in keys and "s" in keys and "y" in keys
+
+
+def _is_keepout_table(heading: str, header: list[str]) -> bool:
+    blob = heading + " " + " ".join(header)
+    if "keep-out" in blob or "keepout" in blob:
+        return True
+    if "j4" in blob and "hole" in blob:
+        return True
+    keys = set(header)
+    if {"u0", "s0", "u1", "s1"} <= keys:
+        return True
+    return "radius" in keys or ("clearance" in keys and "diameter" in keys)
+
+
+def _is_pin_table(header: list[str]) -> bool:
+    keys = set(header)
+    has_xy = ("u" in keys and "s" in keys) or ("x" in keys and "y" in keys)
+    return "ref" in keys and has_xy
+
+
+def _coord(rec: dict[str, str], *names: str) -> str:
+    for name in names:
+        value = rec.get(name, "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _row_from_rec(rec: dict[str, str]) -> PlacementRow | None:
+    ref = rec.get("ref", "").strip()
+    if not ref or ref.lower() == "ref":
+        return None
+    u_raw = _coord(rec, "u", "x")
+    s_raw = _coord(rec, "s", "y")
+    if not u_raw or not s_raw:
+        return None
+    side_raw = rec.get("side") or rec.get("face") or "top"
+    if side_raw.strip().lower() in SIDES:
+        side = normalize_side(side_raw)
+    else:
+        side = "top"
+    return PlacementRow(
+        ref=ref,
+        u=float(u_raw),
+        s=float(s_raw),
+        rot=float(rec.get("rot") or 0.0),
+        side=side,
+    )
+
+
 def parse_placement_markdown(text: str) -> list[PlacementRow]:
     """Return rows from a markdown table that pins packing (u, s) and side."""
     lines = [ln.strip() for ln in text.splitlines() if ln.strip().startswith("|")]
@@ -52,24 +157,74 @@ def parse_placement_markdown(text: str) -> list[PlacementRow]:
             continue
         cells = _cells(line)
         rec = {key: cells[i] if i < len(cells) else "" for i, key in enumerate(header)}
-        ref = rec.get("ref", "").strip()
-        if not ref or ref.lower() == "ref":
-            continue
-        side_raw = rec.get("side") or rec.get("face") or "top"
-        if side_raw.strip().lower() in SIDES:
-            side = normalize_side(side_raw)
-        else:
-            side = "top"
-        rows.append(
-            PlacementRow(
-                ref=ref,
-                u=float(rec["u"]),
-                s=float(rec["s"]),
-                rot=float(rec.get("rot") or 0.0),
-                side=side,
-            )
-        )
+        row = _row_from_rec(rec)
+        if row is not None:
+            rows.append(row)
     return rows
+
+
+def parse_pin_table_v2(text: str) -> list[PlacementRow]:
+    """Flat-coordinate pin table. Skip the folded shell-site table."""
+    rows: list[PlacementRow] = []
+    for heading, header, data in iter_markdown_tables(text):
+        if _is_folded_table(heading, header) or _is_keepout_table(heading, header):
+            continue
+        if not _is_pin_table(header):
+            continue
+        for cells in data:
+            rec = {key: cells[i] if i < len(cells) else "" for i, key in enumerate(header)}
+            row = _row_from_rec(rec)
+            if row is not None:
+                rows.append(row)
+    if not rows:
+        raise ValueError("pin table v2 has no flat-coordinate footprint rows")
+    return rows
+
+
+def parse_j4_keepouts(text: str) -> list[KeepoutZone]:
+    """J4 NPTH keep-outs: centre plus radius, both sides unless stated."""
+    zones: list[KeepoutZone] = []
+    for heading, header, data in iter_markdown_tables(text):
+        if not _is_keepout_table(heading, header):
+            continue
+        keys = set(header)
+        for cells in data:
+            rec = {key: cells[i] if i < len(cells) else "" for i, key in enumerate(header)}
+            name = (rec.get("name") or rec.get("hole") or rec.get("keepout") or rec.get("ref") or "j4_holes").strip()
+            if not name or name.lower() in {"name", "hole", "keepout", "ref"}:
+                continue
+            layers = (rec.get("layers") or rec.get("side") or "both").strip().lower()
+            if {"u0", "s0", "u1", "s1"} <= keys:
+                u0, s0, u1, s1 = (float(rec[k]) for k in ("u0", "s0", "u1", "s1"))
+                zones.append(
+                    KeepoutZone(
+                        name=name,
+                        u=(u0 + u1) / 2,
+                        s=(s0 + s1) / 2,
+                        radius=max(abs(u1 - u0), abs(s1 - s0)) / 2,
+                        layers=layers,
+                    )
+                )
+                continue
+            u_raw = _coord(rec, "u", "x")
+            s_raw = _coord(rec, "s", "y")
+            if not u_raw or not s_raw:
+                continue
+            if rec.get("radius"):
+                radius = float(rec["radius"])
+            else:
+                diameter = float(rec.get("diameter") or rec.get("drill") or 0.0)
+                clearance = float(rec.get("clearance") or 0.0)
+                radius = diameter / 2.0 + clearance
+            zones.append(
+                KeepoutZone(name=name, u=float(u_raw), s=float(s_raw), radius=radius, layers=layers)
+            )
+    return zones
+
+
+def forbids_back_copper(zone: KeepoutZone) -> bool:
+    """True when the keep-out bans B.Cu footprints (J4 holes, both sides)."""
+    return zone.layers in BACK_LAYERS
 
 
 def wants_back_copper(row: PlacementRow) -> bool:

@@ -1,0 +1,17 @@
+(version 1)
+
+# Q84: 1.0 mm is creepage for exposed copper. It applies on the tab strips,
+# the three ring pads, and the two tail pads. Island Contact nets use the
+# Contact netclass (0.20 mm). Board min clearance stays 0.10 mm (JLC 1 oz).
+
+(rule "Q84 tabs Contact creepage"
+  (constraint clearance (min 1.0mm))
+  (condition "A.NetClass == 'Contact' && A.intersectsArea('tabs')"))
+
+(rule "Q84 tail_pads Contact creepage"
+  (constraint clearance (min 1.0mm))
+  (condition "A.NetClass == 'Contact' && A.intersectsArea('tail_pads')"))
+
+(rule "Q84 tail_pads exposed creepage"
+  (constraint clearance (min 1.0mm))
+  (condition "A.intersectsArea('tail_pads')"))
