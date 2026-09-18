@@ -626,6 +626,22 @@ def packing_is_v2(params: Mapping[str, Any]) -> bool:
     return str(params.get("PACKING", "")).upper() == "V2"
 
 
+def v2_spec(params: Mapping[str, Any]) -> Any:
+    """The WP11 V2Spec a PACKING=v2 parameter set names."""
+    v2 = load_placement()._v2()
+    return v2.V2Spec(
+        str(params.get("V2_ARCH", "A")),
+        str(params.get("V2_CELL", "501015")),
+        str(params.get("V2_LAYOUT", "series")),
+        float(params.get("V2_WIDTH", 20.0)),
+        float(params.get("V2_LID_Y", 8.0)),
+        float(params.get("V2_ARC_PLUS", 0.0)),
+        str(params.get("V2_IFACE", "I")),
+        float(params.get("V2_STANDOFF", 3.5)),
+        float(params.get("V2_RECESS", 0.0)),
+    )
+
+
 def apply_stage_b_packing(p: dict[str, Any]) -> None:
     """Packing A/B/C from placement.Layout, or v2 from placement_v2.V2Spec."""
     packing = str(p.get("PACKING", "C"))
@@ -1133,22 +1149,25 @@ def assert_override_matrix(overrides: Mapping[str, Any]) -> None:
 def q21_ref_lug_numbers(params: Mapping[str, Any]) -> dict[str, float]:
     """TE 31428 upright in the Ø7.5 pocket (contacts.md §5.3, Q21), plan numbers.
 
-    PACKING=v2 replaces the lug with the flex ring and DIN 439 nut (WP11).
+    PACKING=v2 replaces the lug with the brass standoff: in interface II the
+    flex ring lies under it (plan v2 §5.3); review r5 replaced the lane's
+    DIN 439 nut stack, which plan v2 no longer uses.
     """
     wall = float(params["WALL_MEDIAL"])
     lid_y = float(params["LID_Y"])
     pl = load_placement()
     if packing_is_v2(params):
         v2 = pl._v2()
+        spec = v2_spec(params)
+        st_y0, st_y1 = v2.standoff_y(spec)
         return {
-            "stack_top_y": round(v2.STACK_TOP_Y, 4),
+            "stack_top_y": round(st_y1, 4),
             "lid_y": lid_y,
             "ring_d": v2.RING_D,
-            "nut_s": v2.NUT_S,
-            "nut_m": v2.NUT_M,
-            "tab_t": v2.TAB_T,
-            "tip_past_nut": round(v2.TIP_PAST_NUT, 4),
-            "stack_inside": round(v2.STACK_INSIDE, 4),
+            "ring_t": round(v2.ring_under(spec), 4),
+            "standoff_h": spec.standoff,
+            "standoff_circumr": v2.STANDOFF_CIRCUMR,
+            "tip_below_top": round(v2.tip_below_standoff_top(spec), 4),
             "pocket_dia": POCKET_DIA,
             "pocket_r": POCKET_DIA / 2.0,
         }
@@ -1280,8 +1299,9 @@ def run_stage_b_pre_cad_checks(params: Mapping[str, Any], record: Callable[..., 
     if packing_is_v2(params):
         record(
             "Q21_REF_lug pre-CAD",
-            q21["stack_top_y"] < q21["lid_y"] and q21["ring_d"] <= q21["pocket_dia"],
-            "v2: ring Ø5.0 and nut s 5.0 against LID_Y and the Ø7.5 pocket; no TE 31428 lug",
+            q21["stack_top_y"] < q21["lid_y"]
+            and max(q21["ring_d"] / 2.0, q21["standoff_circumr"]) <= q21["pocket_r"],
+            "v2: ring and brass standoff (hex corners) against LID_Y and the Ø7.5 pocket; no TE 31428 lug",
             fatal=False,
             **q21,
         )
@@ -2039,17 +2059,7 @@ def run_stage_b_solid_checks(
     # REF_WIRE_envelope: Ø1.3 along the placement route, or the v2 REF flex tab.
     if packing_is_v2(params):
         v2 = pl._v2()
-        spec = v2.V2Spec(
-            str(params.get("V2_ARCH", "A")),
-            str(params.get("V2_CELL", "501015")),
-            str(params.get("V2_LAYOUT", "series")),
-            float(params.get("V2_WIDTH", 20.0)),
-            float(params.get("V2_LID_Y", 8.0)),
-            float(params.get("V2_ARC_PLUS", 0.0)),
-            str(params.get("V2_IFACE", "I")),
-            float(params.get("V2_STANDOFF", 3.5)),
-            float(params.get("V2_RECESS", 0.0)),
-        )
+        spec = v2_spec(params)
         layout_v2 = v2.run_spec(spec)
         if spec.iface == "I" or "REF" not in layout_v2.tabs:
             record(
@@ -2076,7 +2086,7 @@ def run_stage_b_solid_checks(
                 tab_shape is not None
                 and ref_tab["body_mm3"] <= noise
                 and ref_tab["lid_mm3"] <= noise,
-                "v2 REF flex tab 2.5 wide × 0.2 thick along the ring-to-board path holds no nylon",
+                f"v2 REF flex tab {v2.TAB_W:g} wide × {v2.TAB_T:g} thick along the ring-to-board path holds no nylon",
                 **ref_tab,
             )
     else:
@@ -2203,21 +2213,23 @@ def run_stage_b_solid_checks(
     lid_under_pocket = lid_over_pocket if lid_over_pocket is not None else math.inf
     if packing_is_v2(params):
         v2 = pl._v2()
+        spec = v2_spec(params)
         ring_r = v2.RING_D / 2.0
-        nut_r = v2.NUT_S / 2.0
-        stack_top = floor_y + v2.STACK_INSIDE
+        hex_r = v2.STANDOFF_CIRCUMR
+        stack_top = floor_y + v2.ring_under(spec) + spec.standoff
         record(
             "Q21_REF_lug",
-            stack_top < lid_under_pocket and max(ring_r, nut_r) <= pocket_r,
-            "v2: flex ring Ø5.0 and DIN 439 nut s 5.0 against the measured lid over the pocket "
-            "and the measured pocket radius; no TE 31428 lug (Q21, Q28)",
+            stack_top < lid_under_pocket and max(ring_r, hex_r) <= pocket_r,
+            "v2: ring and brass standoff (hex corners, circumradius 2.9) on the probed floor against "
+            "the measured lid over the pocket and the measured pocket radius; no TE 31428 lug (Q21, Q28)",
             stack_top_y=round(stack_top, 4),
             lid_y=round(lid_under_pocket, 3),
             ring_r=round(ring_r, 4),
-            nut_r=round(nut_r, 4),
+            standoff_circumr=round(hex_r, 4),
             pocket_r=round(pocket_r, 3),
             floor_y=round(floor_y, 4),
-            stack_inside=round(v2.STACK_INSIDE, 4),
+            ring_t=round(v2.ring_under(spec), 4),
+            standoff_h=round(spec.standoff, 4),
         )
     else:
         record(
@@ -2304,17 +2316,7 @@ def _record_v2_packing_checks(
 ) -> None:
     """WP11 envelopes measured on the order-1 construction path (no fork)."""
     v2 = load_placement()._v2()
-    spec = v2.V2Spec(
-        str(params.get("V2_ARCH", "A")),
-        str(params.get("V2_CELL", "501015")),
-        str(params.get("V2_LAYOUT", "series")),
-        float(params.get("V2_WIDTH", 20.0)),
-        float(params.get("V2_LID_Y", 8.0)),
-        float(params.get("V2_ARC_PLUS", 0.0)),
-        str(params.get("V2_IFACE", "I")),
-        float(params.get("V2_STANDOFF", 3.5)),
-        float(params.get("V2_RECESS", 0.0)),
-    )
+    spec = v2_spec(params)
     layout = v2.run_spec(spec)
     maker = path_solid_for(path, params)
 
@@ -2341,7 +2343,7 @@ def _record_v2_packing_checks(
     record(
         "V2_MODULE_envelope",
         _overlap_volume(body, mod_shape) <= noise and _overlap_volume(lid, mod_shape) <= noise,
-        "v2 module box holds no nylon; antenna keep-out is the sheet rectangle on the built solid",
+        "v2 module box holds no nylon; antenna_body_mm3 is nylon inside the keep-out prism over the board (reported, not gated: the keep-out is no copper, not air)",
         body_mm3=round(_overlap_volume(body, mod_shape), 4),
         lid_mm3=round(_overlap_volume(lid, mod_shape), 4),
         y0=round(module.y0, 4),
@@ -2352,11 +2354,14 @@ def _record_v2_packing_checks(
     )
     bu, bs = layout.board_u, layout.board_s
     board_shape = maker(bu[0], bu[1], bs[0], bs[1], layout.board_underside, layout.board_top)
+    board_body = _overlap_volume(body, board_shape)
+    board_lid = _overlap_volume(lid, board_shape)
     record(
         "V2_BOARD_envelope",
-        _overlap_volume(body, board_shape) <= noise,
-        "v2 board zone at the packing underside and top holds no nylon",
-        body_mm3=round(_overlap_volume(body, board_shape), 4),
+        board_body <= noise and board_lid <= noise,
+        "v2 board zone from its underside (the standoff tops) to its top holds no nylon, body or lid",
+        body_mm3=round(board_body, 4),
+        lid_mm3=round(board_lid, 4),
         underside=round(layout.board_underside, 4),
         top=round(layout.board_top, 4),
     )
@@ -2378,7 +2383,7 @@ def _record_v2_packing_checks(
         record(
             "V2_TAB_envelope",
             all(v <= noise for v in tab_hits.values()),
-            "v2 flex tabs 2.5 × 0.2 with Ø5.0 rings hold no nylon",
+            f"v2 flex tabs {v2.TAB_W:g} × {v2.TAB_T:g} with Ø{v2.RING_D:g} rings, on the floor, hold no nylon",
             **tab_hits,
         )
     if spec.iface == "I":
@@ -2408,7 +2413,9 @@ def _record_v2_packing_checks(
                 standoff_h=round(spec.standoff, 4),
             )
     else:
-        stack_top = floor_y + v2.STACK_INSIDE
+        ring_t = v2.ring_under(spec)
+        stack_top = floor_y + ring_t + spec.standoff
+        tip_depth = v2.tip_below_standoff_top(spec)
         try:
             lid_at_c1 = _bisect(
                 lambda y: _inside_uys(lid, path, v2.CONTACT_1[0], v2.CONTACT_1[1], y),
@@ -2417,13 +2424,18 @@ def _record_v2_packing_checks(
             )
             record(
                 "V2_CONTACT_STACK",
-                stack_top < lid_at_c1,
-                "measured floor plus stack inside the wall (tab 0.2 + nut 1.6 + tip 0.70) stays under the lid",
+                stack_top < lid_at_c1
+                and stack_top <= layout.board_underside + 1e-3
+                and tip_depth > 0.0,
+                "measured floor + flex ring + brass standoff: top at or under the board underside "
+                "and under the lid over SIG1; the screw tip ends inside the standoff",
                 floor_y=round(floor_y, 4),
-                stack_inside=round(v2.STACK_INSIDE, 4),
+                ring_t=round(ring_t, 4),
+                standoff_h=round(spec.standoff, 4),
                 stack_top_y=round(stack_top, 4),
+                board_underside=round(layout.board_underside, 4),
                 lid_over_SIG1=round(lid_at_c1, 4),
-                tip_past_nut=round(v2.TIP_PAST_NUT, 4),
+                tip_below_top=round(tip_depth, 4),
             )
         except CheckFail as exc:
             record(
@@ -2431,7 +2443,7 @@ def _record_v2_packing_checks(
                 False,
                 f"NOT_MEASURED: lid over SIG1 has no y-boundary ({exc})",
                 floor_y=round(floor_y, 4),
-                stack_inside=round(v2.STACK_INSIDE, 4),
+                standoff_h=round(spec.standoff, 4),
             )
     mid_u = (layout.cavity_u[0] + layout.cavity_u[1]) / 2.0
     mid_s = (layout.board_s[0] + layout.board_s[1]) / 2.0
@@ -2452,26 +2464,26 @@ def _record_v2_packing_checks(
             LID_Y=round(lid_y, 4),
         )
     try:
-        wall_u0 = _bisect(lambda u: _inside_uys(body, path, u, mid_s, 0.75), 0.05, 3.0)
-        wall_u1 = _bisect(lambda u: _inside_uys(body, path, u, mid_s, 0.75), width - 3.0, width - 0.05)
-        if min(wall_u0, width - wall_u1) < 1.0:
-            record(
-                "V2_WALL_minima",
-                False,
-                "NOT_MEASURED: probe at y 0.75 returned the outer skin, not the 1.5 inner face",
-                anterior_wall=round(wall_u0, 4),
-                posterior_wall=round(width - wall_u1, 4),
-                BODY_WIDTH=round(width, 4),
-            )
-        else:
-            record(
-                "V2_WALL_minima",
-                True,
-                "side-wall inner face at y 0.75, probed on the body at board mid-s",
-                anterior_wall=round(wall_u0, 4),
-                posterior_wall=round(width - wall_u1, 4),
-                BODY_WIDTH=round(width, 4),
-            )
+        # Review r5: the lane probed at y 0.75, inside the 1.5 floor, and
+        # read the outer fillet. The side walls are measured at mid cavity.
+        probe_y = (floor_y + lid_y) / 2.0
+        def in_body(u: float) -> bool:
+            return _inside_uys(body, path, u, mid_s, probe_y)
+
+        outer_u0 = _bisect(in_body, -0.5, 0.75)
+        inner_u0 = _bisect(in_body, 0.75, 3.0)
+        inner_u1 = _bisect(in_body, width - 3.0, width - 0.75)
+        outer_u1 = _bisect(in_body, width - 0.75, width + 0.5)
+        ant, post = inner_u0 - outer_u0, outer_u1 - inner_u1
+        record(
+            "V2_WALL_minima",
+            min(ant, post) >= float(params["WALL_MEDIAL"]) - 0.05,
+            "side walls probed on the body at board mid-s, mid cavity height: each at least the 1.5 wall",
+            anterior_wall=round(ant, 4),
+            posterior_wall=round(post, 4),
+            probe_y=round(probe_y, 4),
+            BODY_WIDTH=round(width, 4),
+        )
     except CheckFail as exc:
         record(
             "V2_WALL_minima",
@@ -2484,8 +2496,9 @@ def _record_v2_packing_checks(
     gate = chord + 3.0
     record(
         "V2_TOTAL_CHORD",
-        True,
-        "TOTAL_CHORD of the path that built this solid",
+        abs(chord - layout.total_chord) < 1e-3,
+        "TOTAL_CHORD of the path that built this solid equals the packing layout's",
+        packing_TOTAL_CHORD=round(layout.total_chord, 4),
         TOTAL_CHORD=round(chord, 4),
         BODY_ARC=round(float(params["BODY_ARC"]), 4),
         CREASE_BOW=round(float(params["CREASE_BOW"]), 4),
@@ -2544,36 +2557,67 @@ def _record_v2_packing_checks(
     record(
         "V2_BOSS",
         False,
-        "NOT_MEASURED: printed bosses 0.5 below the standoff top are not on the order-1 solid",
+        (
+            "NOT_MEASURED: printed bosses 0.5 below the standoff top are not on the order-1 solid"
+            if spec.iface == "I"
+            else "NOT_MEASURED: interface II has no board bosses (WP12: the flex rests on the standoff "
+            "tops); its retention is WP14's and G7's"
+        ),
         boss_top_y=round(layout.boss_top_y, 4),
         drop=v2.BOSS_DROP,
     )
-    record(
-        "V2_CELL_CLEARANCE",
-        False,
-        (
-            f"NOT_MEASURED on the solid: nominal {layout.nominal_clearance:+.2f} "
-            f"deformed {layout.deformed_clearance:+.2f} "
-            f"(standoff {spec.standoff:g}, recess {spec.recess:g}, boss drop {v2.BOSS_DROP:g})"
-        ),
-        nominal=round(layout.nominal_clearance, 4),
-        deformed=round(layout.deformed_clearance, 4),
-        recess=round(spec.recess, 4),
-        floor_web=round(layout.floor_web, 4),
-    )
-    record(
-        "V2_STACK",
-        False,
-        (
-            f"NOT_MEASURED as a solid stack: standoff+board 1.0+module = {layout.stack_over_module:.2f}; "
-            f"outer zero-clearance {layout.outer_zero:.2f}; outer at LID_Y {layout.outer_at_lid:.2f}; "
-            f"module-to-lid packing {layout.module_lid_clearance:+.2f}"
-        ),
-        stack=round(layout.stack_over_module, 4),
-        outer_zero=round(layout.outer_zero, 4),
-        outer_lid=round(layout.outer_at_lid, 4),
-        module_lid=round(layout.module_lid_clearance, 4),
-    )
+    cellb = layout.parts["cell"]
+    bu, bs = layout.board_u, layout.board_s
+    under_board = cellb.u1 > bu[0] and cellb.u0 < bu[1] and cellb.s1 > bs[0] and cellb.s0 < bs[1]
+    if under_board:
+        record(
+            "V2_CELL_CLEARANCE",
+            False,
+            (
+                f"NOT_MEASURED on the solid: nominal {layout.nominal_clearance:+.2f} "
+                f"deformed {layout.deformed_clearance:+.2f} "
+                f"(standoff {spec.standoff:g}, recess {spec.recess:g}, boss drop {v2.BOSS_DROP:g})"
+            ),
+            nominal=round(layout.nominal_clearance, 4),
+            deformed=round(layout.deformed_clearance, 4),
+            recess=round(spec.recess, 4),
+            floor_web=round(layout.floor_web, 4),
+        )
+    else:
+        record(
+            "V2_CELL_CLEARANCE",
+            True,
+            "the cell sits beside the board (no u-s overlap with the board zone); the under-board "
+            "clearance rule does not apply, V2_CELL_envelope measures the cell",
+            cell_s1=round(cellb.s1, 4),
+            board_s0=round(bs[0], 4),
+        )
+    try:
+        lid_over_module = _bisect(
+            lambda y: _inside_uys(lid, path, layout.parts["module"].u, layout.parts["module"].s, y),
+            layout.parts["module"].y1 - 1.0,
+            lid_y + 1.0,
+        )
+        module_gap = lid_over_module - layout.parts["module"].y1
+        record(
+            "V2_STACK",
+            module_gap > 0.0,
+            "module top (ring + standoff + board + module above the floor) under the lid underside "
+            "probed over the module centre",
+            stack=round(layout.stack_over_module, 4),
+            module_top_y=round(layout.parts["module"].y1, 4),
+            lid_over_module=round(lid_over_module, 4),
+            module_lid_gap=round(module_gap, 4),
+            outer_zero=round(layout.outer_zero, 4),
+            outer_lid=round(layout.outer_at_lid, 4),
+        )
+    except CheckFail as exc:
+        record(
+            "V2_STACK",
+            False,
+            f"NOT_MEASURED: lid over the module has no y-boundary ({exc})",
+            stack=round(layout.stack_over_module, 4),
+        )
     record(
         "V2_RECESS",
         False,
@@ -3274,6 +3318,14 @@ def write_manifest(
         failing = stage_b_failing(rows_by_body)
         payload["stage_b_failing"] = failing
         payload["stage_b_passed"] = not failing
+        # Review r5: rows that could not be measured stay failing (fail
+        # closed) and are also named, so a reader tells "measured and failed"
+        # from "not measured".
+        payload["stage_b_not_measured"] = sorted(
+            name
+            for name, row in payload["stage_b"].items()
+            if str(row["detail"]).startswith("NOT_MEASURED")
+        )
     dest = out_dir / "manifest.json"
     if dest.is_file():
         previous = json.loads(dest.read_text(encoding="utf-8"))

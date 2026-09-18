@@ -166,3 +166,11 @@ Not decided:
 - Stage B keys (`PACKING`, `CONTACT_*`, `CABLE_EXIT_S`, `TAB_HEIGHT`, `CLOSURE_PASSED`) fail on an order 1 overlay.
 
 The Stage B manifest keeps schema 1 and adds `stage`, `provisional`, `packing`, `closure_passed`, `contact_source`, `stage_b`, `stage_b_failing` and `stage_b_passed`. `manifest.py` validates them when `stage` is `B`. Order 1 manifests omit those keys, and a Stage B manifest never carries order 1 `views`. The Stage B lid is embossed `ELICIO V2 …`, 0.4 deep over the battery zone (Q11), so it cannot be mistaken for an order 1 lid.
+
+### Stage B v2 (packing v2, WP11)
+
+```bash
+.venv/bin/python scripts/cad/bte_fit_shell.py --params scripts/cad/params/stageb_v2.toml --out /tmp/elicio-stageb-v2/
+```
+
+Same construction and exit codes as above; `PACKING = "v2"` adds the `V2_*` checks for the packing-v2 layout named in the file. Each check reports a number or `NOT_MEASURED` by name, and the manifest lists the unmeasured ones under `stage_b_not_measured`. Today it exits 3: the floor-level REF tab crosses the cavity end wall (`V2_TAB_envelope`, `REF_WIRE_envelope`). `docs/fab/packing-v2.md` §6 has the numbers, and `tests/test_cad.py` checks them against a fresh build. The packing matrix and its drawings: `placement.py --all` (closers), `--kept-drawings` (the committed set) and `--all-drawings --out-dir <tmp>` (every run, never committed).

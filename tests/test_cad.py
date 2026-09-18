@@ -779,7 +779,10 @@ class CadStageBV2Tests(unittest.TestCase):
         self.assertTrue(tab.detail.startswith("NOT_MEASURED"))
         q21 = rows["Q21_REF_lug pre-CAD"]
         self.assertTrue(q21.passed)
-        self.assertIn("ring Ø5.0", q21.detail)
+        self.assertIn("brass standoff", q21.detail)
+        # Review r5: ring 0.31 + standoff 3.0 on the floor, no DIN 439 nut.
+        self.assertAlmostEqual(q21.numbers["stack_top_y"], 4.81)
+        self.assertAlmostEqual(q21.numbers["tip_below_top"], 0.81)
 
 
 STAGE_B_V2_FILE = ROOT / "scripts" / "cad" / "params" / "stageb_v2.toml"
@@ -844,6 +847,18 @@ class CadStageBV2BuildTests(unittest.TestCase):
         self.assertTrue(rows["Q21_REF_lug"].passed)
         self.assertIn("body_mm3", rows["V2_BOARD_envelope"].numbers)
         self.assertIn("body_mm3", rows["V2_CELL_envelope"].numbers)
+        # packing-v2.md §6 prints STAGE_B_V2_MEASURED; it must be this build.
+        v2 = CAD.load_placement()._v2()
+        for name, (status, nums, _text) in v2.STAGE_B_V2_MEASURED.items():
+            with self.subTest(check=name):
+                row = rows[name]
+                if status == "NOT_MEASURED":
+                    self.assertTrue(row.detail.startswith("NOT_MEASURED"), row.detail)
+                    self.assertFalse(row.passed)
+                else:
+                    self.assertEqual(row.passed, status == "pass", row.detail)
+                for key, value in nums.items():
+                    self.assertAlmostEqual(row.numbers[key], value, places=3, msg=key)
 
     def test_two_consecutive_v2_stage_b_runs_are_identical(self) -> None:
         cmd = [sys.executable, str(SCRIPT), "--params", str(STAGE_B_V2_FILE)]

@@ -2069,8 +2069,13 @@ def main(argv: list[str] | None = None) -> int:
         help="write the v2 SVG of every run (864 files, about 109 MB; use --out-dir, never commit, Q56)",
     )
     parser.add_argument("--out-dir", type=Path, default=None, help="folder for --all/--kept-drawings/--all-drawings")
+    parser.add_argument("--packing-doc", action="store_true", help="regenerate docs/fab/packing-v2.md from the v2 matrix")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
+    if args.packing_doc:
+        path = _v2().write_packing_doc()
+        print(f"wrote {path}")
+        return 0
     if args.all or args.kept_drawings or args.all_drawings:
         v2 = _v2()
         which = "all" if args.all_drawings else ("kept" if args.kept_drawings else "closers")
