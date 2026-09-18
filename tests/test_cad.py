@@ -902,10 +902,36 @@ class CadShellV2Tests(unittest.TestCase):
         self.assertEqual(params["V2_IFACE"], "II")
         self.assertAlmostEqual(params["V2_STANDOFF"], 3.0)
         self.assertAlmostEqual(params["LID_Y"], 8.0)
-        self.assertAlmostEqual(params["BODY_WIDTH"], 20.0)
+        self.assertAlmostEqual(params["BODY_WIDTH"], 22.0)
+        self.assertEqual(params["V2_CELL"], "pack501012")
+        self.assertAlmostEqual(params["BODY_THICK"], 9.0)
+        self.assertAlmostEqual(params["TOTAL_CHORD"], 47.9005, places=3)
+        self.assertAlmostEqual(params["CAVITY_U"][0], 1.5)
+        self.assertAlmostEqual(params["CAVITY_U"][1], 20.5)
+        self.assertAlmostEqual(params["BOARD_ZONE_U"][0], 2.25)
+        self.assertAlmostEqual(params["BOARD_ZONE_U"][1], 19.75)
+        self.assertAlmostEqual(params["BOARD_ZONE_S"][0], 16.0)
+        self.assertAlmostEqual(params["RIB_S"][0], 14.9, places=1)
         header = SHELL_FILE.read_text(encoding="utf-8")
-        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0", "Q71", "Q76"):
+        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0", "Q71", "Q76", "Q81", "Q82", "Q83"):
             self.assertIn(token, header)
+
+    def test_s5c_reader_uses_the_table(self) -> None:
+        s5c = CAD.load_s5c_no_receptacle()
+        self.assertEqual(s5c.packing_sha, CAD.S5C_PACKING_SHA)
+        self.assertEqual(s5c.holes, ((13.45, 17.70), (17.95, 17.70)))
+        self.assertEqual(s5c.p4, (0.75, 44.0))
+        self.assertEqual(s5c.p5, (21.25, 44.0))
+        self.assertAlmostEqual(s5c.sig1_strip, 10.71, places=2)
+        self.assertAlmostEqual(s5c.sig2_strip, 21.81, places=2)
+        self.assertEqual(s5c.island_u, (2.25, 19.75))
+        self.assertEqual(s5c.island_s, (16.00, 37.60))
+        self.assertTrue(any(row[0] == "P4" for row in s5c.courtyards))
+        inactive = CAD.Check("V2_USB_end", False, "NOT_APPLICABLE: Q81: no receptacle at M1 52")
+        self.assertEqual(
+            CAD.stage_b_failing({"full": {"V2_USB_end": inactive}}, skip_not_measured=True),
+            [],
+        )
 
     def test_shell_refuses_v1_and_allows_v2(self) -> None:
         params = stage_b_params(
@@ -913,9 +939,9 @@ class CadShellV2Tests(unittest.TestCase):
                 "PACKING": "v2",
                 "STAGE": "shell",
                 "V2_ARCH": "A",
-                "V2_CELL": "501015",
+                "V2_CELL": "pack501012",
                 "V2_LAYOUT": "series",
-                "V2_WIDTH": 20.0,
+                "V2_WIDTH": 22.0,
                 "V2_LID_Y": 8.0,
                 "V2_IFACE": "II",
                 "V2_STANDOFF": 3.0,
@@ -929,7 +955,7 @@ class CadShellV2Tests(unittest.TestCase):
 
 @unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadShellV2BuildTests(unittest.TestCase):
-    """Wearable body on the round 5 winner. Same construction path as Stage B v2."""
+    """Wearable body on the §5c width-22 winner. Same construction path as Stage B v2."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -938,9 +964,9 @@ class CadShellV2BuildTests(unittest.TestCase):
                 "PACKING": "v2",
                 "STAGE": "shell",
                 "V2_ARCH": "A",
-                "V2_CELL": "501015",
+                "V2_CELL": "pack501012",
                 "V2_LAYOUT": "series",
-                "V2_WIDTH": 20.0,
+                "V2_WIDTH": 22.0,
                 "V2_LID_Y": 8.0,
                 "V2_IFACE": "II",
                 "V2_STANDOFF": 3.0,
@@ -995,9 +1021,26 @@ class CadShellV2BuildTests(unittest.TestCase):
         self.assertGreaterEqual(rows["V2_EDGE_radii"].numbers["lid_rim_R"], 0.95)
         self.assertTrue(rows["V2_WALL_minima"].passed, rows["V2_WALL_minima"].numbers)
         self.assertFalse(rows["V2_USB_end"].passed)
-        self.assertTrue(rows["V2_USB_end"].detail.startswith("NOT_MEASURED"), rows["V2_USB_end"].detail)
-        self.assertIn("packing §5c", rows["V2_USB_end"].detail)
-        self.assertIn("Q70", rows["V2_USB_end"].detail)
+        self.assertTrue(rows["V2_USB_end"].detail.startswith("NOT_APPLICABLE"), rows["V2_USB_end"].detail)
+        self.assertIn("Q81: no receptacle at M1 52", rows["V2_USB_end"].detail)
+        self.assertTrue(rows["V2_BOSS_sites"].passed, rows["V2_BOSS_sites"].numbers)
+        self.assertLessEqual(rows["V2_BOSS_sites"].numbers["boss_1_err"], 0.05)
+        self.assertLessEqual(rows["V2_BOSS_sites"].numbers["boss_2_err"], 0.05)
+        self.assertEqual(rows["V2_BOSS_sites"].numbers["boss_1_courtyard_hits"], 0.0)
+        self.assertEqual(rows["V2_BOSS_sites"].numbers["boss_2_courtyard_hits"], 0.0)
+        self.assertTrue(rows["V2_CHARGE_pads"].passed, rows["V2_CHARGE_pads"].numbers)
+        self.assertEqual(rows["V2_CHARGE_pads"].numbers["flush_pads"], 1.0)
+        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["nylon_between"], 3.0)
+        self.assertEqual(rows["V2_TAB_envelope"].numbers["side_pocket"], 0.0)
+        self.assertAlmostEqual(rows["V2_TAB_envelope"].numbers["SIG1_strip"], 10.71, places=2)
+        self.assertAlmostEqual(rows["V2_TAB_envelope"].numbers["SIG2_strip"], 21.81, places=2)
+        self.assertAlmostEqual(self.params["BODY_WIDTH"], 22.0)
+        self.assertAlmostEqual(self.params["BODY_THICK"], 9.0)
+        self.assertAlmostEqual(self.params["CAVITY_U"][1], 20.5, places=2)
+        self.assertAlmostEqual(self.params["BOARD_ZONE_U"][0], 2.25, places=2)
+        self.assertAlmostEqual(self.params["BOARD_ZONE_U"][1], 19.75, places=2)
+        self.assertAlmostEqual(self.params["BOARD_ZONE_S"][0], 16.00, places=2)
+        self.assertAlmostEqual(self.params["RIB_S"][0], 14.9, places=2)
         stand = rows["V2_STANDOFF"].numbers
         for site in ("SIG1", "SIG2", "REF"):
             self.assertAlmostEqual(stand[f"{site}_well_af"], CAD.SHELL_HEX_AF, delta=0.01)

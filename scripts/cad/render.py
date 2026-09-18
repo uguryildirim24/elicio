@@ -556,13 +556,29 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
             arrowprops={"arrowstyle": "->", "lw": 0.7},
             zorder=8,
         )
+        s5c = cad.load_s5c_no_receptacle()
+        for label, site, dy in (
+            ("P4 CHARGE_VBUS (Q81)", s5c.p4, 16.0),
+            ("P5 CHARGE_GND (Q81)", s5c.p5, -12.0),
+        ):
+            xyz = np.array(cad.p_xyz(path, site[0], site[1], -0.4))
+            xyz = to_body_frame(xyz.reshape(1, 3), theta)[0]
+            q = view.project(xyz)
+            ax.annotate(
+                label,
+                xy=(q[0] + dx, q[1]),
+                xytext=(q[0] + dx + 14.0, q[1] + dy),
+                fontsize=8,
+                arrowprops={"arrowstyle": "->", "lw": 0.7},
+                zorder=8,
+            )
     ax.set_xlim(-2.0, cursor - 8.0)
     ax.set_ylim(bottom - 9.0, top + 13.0)
     ax.set_aspect("equal")
     ax.set_axis_off()
     scale_bar(ax, 0.0, bottom - 3.5)
     caption = (
-        "Medial (skin side): three contact domes, tail screw well, hook. Same scale throughout.\n"
+        "Medial (skin side): three EMG domes, two tail charging contacts (Q81), screw well, hook. Same scale throughout.\n"
         "Faint facet shading on curved edges is the STL mesh (0.02 mm chord), not geometry."
         if manifest.get("stage") == "shell"
         else
@@ -616,8 +632,8 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     if manifest.get("stage") == "shell":
         usb = at(10.0, 0.2, 2.8)
         ax.annotate(
-            "USB-C waits for packing §5c (Q70). Hook-end wall left solid.\n"
-            "V2_USB_end is NOT_MEASURED.",
+            "No USB opening (Q81: no receptacle at M1 52).\n"
+            "V2_USB_end is NOT_APPLICABLE.",
             xy=usb,
             xytext=(usb[0] + 28.0, usb[1] - 14.0),
             fontsize=8,
@@ -999,7 +1015,7 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
             f"solids commit {commit}   date {date}",
             "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
             "Closure: Q71 hinge lip at the hook-end wall plus one concealed medial-tail M2.5. S4 pull/drop qualitative.",
-            "USB-C waits for packing §5c (Q70). No text on the outside. Q59: packing-v2.md §5 REF_end_wall_slot.",
+            "Q81: no USB receptacle at M1 52. Two flush charging contacts on the tail. No text on the outside. Q59 slot stays.",
             *("  " + row for row in fillet_summary(manifest)),
             "Rolf approves the two renders before any shell order. Nothing is ordered here.",
         ]
