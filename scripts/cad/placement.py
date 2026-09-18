@@ -2049,7 +2049,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Draw a Stage B packing option or a v2 architecture.")
     parser.add_argument("--option", choices=OPTION_NAMES, default="A")
     parser.add_argument("--arch", choices=("A", "B", "C"), default=None)
-    parser.add_argument("--cell", choices=("dtp", "501015"), default=None)
+    parser.add_argument("--cell", choices=("dtp", "501015", "jauch"), default=None)
     parser.add_argument("--layout", choices=("series", "stacked"), default=None)
     parser.add_argument("--width", type=float, default=None)
     parser.add_argument("--lid-y", type=float, default=None)
@@ -2075,6 +2075,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run WP11b DTP301120 arc-plus series under interface II and print first conflicts",
     )
+    parser.add_argument(
+        "--jauch",
+        action="store_true",
+        help="run WP11b Jauch LP501218JH series under interface II (BODY_ARC and arc-plus)",
+    )
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
     if args.packing_doc:
@@ -2093,6 +2098,19 @@ def main(argv: list[str] | None = None) -> int:
                 rows = [r for r in rows if abs(r.spec.arc_plus - args.arc_plus) < 1e-9]
         closed = sum(1 for r in rows if r.closes)
         print(f"dtp-arc runs={len(rows)} closed={closed}")
+        for row in rows:
+            print(
+                f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
+                f"first={row.first_conflict}"
+            )
+        return 0
+    if args.jauch:
+        v2 = _v2()
+        rows = v2.run_jauch_series()
+        if args.arc_plus in (0.0, 1.5, 3.0) and args.arc_plus != 0.0:
+            rows = [r for r in rows if abs(r.spec.arc_plus - args.arc_plus) < 1e-9]
+        closed = sum(1 for r in rows if r.closes)
+        print(f"jauch runs={len(rows)} closed={closed}")
         for row in rows:
             print(
                 f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "

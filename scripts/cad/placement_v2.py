@@ -140,6 +140,10 @@ CELL = {
             "from": "SparkFun PRT-25270 drawing p.9, L5-research-v2.md §1"},
     "501015": {"name": "501015", "t": 5.2, "w": 10.4, "l": 15.6,
                "from": "v1 CELL_BODY_MAX (plan v1 §3.3)"},
+    # WP11b coordinator note: L7-research-v4.md §2. Not in CELLS, so the
+    # round-5 864-run matrix is unchanged.
+    "jauch": {"name": "LP501218JH", "t": 5.4, "w": 12.5, "l": 20.0,
+              "from": "Jauch LP501218JH+PCM+2 WIRE 50MM; DigiKey 1908-LP501218JH+PCM+2WIRE50MM-ND; L7-research-v4.md §2"},
 }
 
 VQFN = (5.0, 5.0, 1.0)  # brief; v1 packing courtyard was 4.60
@@ -195,8 +199,8 @@ class V2Spec:
     def __post_init__(self) -> None:
         if self.arch not in ARCHES:
             raise ValueError(f"arch must be A|B|C, got {self.arch!r}")
-        if self.cell not in CELLS:
-            raise ValueError(f"cell must be dtp|501015, got {self.cell!r}")
+        if self.cell not in CELL:
+            raise ValueError(f"cell must be {'|'.join(CELL)}, got {self.cell!r}")
         if self.layout not in LAYOUTS:
             raise ValueError(f"layout must be series|stacked, got {self.layout!r}")
         if self.width not in WIDTHS:
@@ -742,6 +746,34 @@ def run_dtp_arc_plus() -> list[V2Result]:
     if _DTP_ARC_PLUS_ROWS is None:
         _DTP_ARC_PLUS_ROWS = [run_spec(s) for s in dtp_arc_plus_specs()]
     return _DTP_ARC_PLUS_ROWS
+
+
+JAUCH_LID_YS = (7.0, 8.0, 8.5, 9.0)
+JAUCH_STANDOFFS = (3.0, 4.0)
+JAUCH_ARC_STEPS = (0.0, 1.5, 3.0)
+
+
+def jauch_specs() -> list[V2Spec]:
+    """WP11b: Jauch LP501218JH series, interface II, BODY_ARC and arc-plus (L7 §2)."""
+    specs: list[V2Spec] = []
+    for width in WIDTHS:
+        for lid_y in JAUCH_LID_YS:
+            for standoff in JAUCH_STANDOFFS:
+                for arc_plus in JAUCH_ARC_STEPS:
+                    specs.append(
+                        V2Spec("A", "jauch", "series", width, lid_y, arc_plus, "II", standoff, 0.0)
+                    )
+    return specs
+
+
+_JAUCH_ROWS: list[V2Result] | None = None
+
+
+def run_jauch_series() -> list[V2Result]:
+    global _JAUCH_ROWS
+    if _JAUCH_ROWS is None:
+        _JAUCH_ROWS = [run_spec(s) for s in jauch_specs()]
+    return _JAUCH_ROWS
 
 
 def _place_cell(spec: V2Spec, geom: dict[str, Any], module: Box | None) -> Box:
@@ -1984,6 +2016,133 @@ def _dtp_arc_plus_section(winner_chord: float) -> list[str]:
     return lines
 
 
+def _smallest_closed(rows: list[V2Result]) -> V2Result | None:
+    closed = [r for r in rows if r.closes]
+    if not closed:
+        return None
+    closed.sort(key=lambda r: (r.spec.width, r.spec.lid_y, r.spec.arc_plus, r.spec.standoff, r.total_chord))
+    return closed[0]
+
+
+def _jauch_section(winner_chord: float) -> list[str]:
+    """WP11b table: Jauch LP501218JH, interface II, BODY_ARC and arc-plus (L7 §2)."""
+    rows = run_jauch_series()
+    closed = [r for r in rows if r.closes]
+    cell = CELL["jauch"]
+    lines: list[str] = []
+    lines.append("## 1c. Jauch LP501218JH under interface II (WP11b, L7 §2)")
+    lines.append("")
+    lines.append(
+        f"Jauch Quartz {cell['name']}+PCM {cell['t']:g} × {cell['w']:g} × {cell['l']:g}, foam {FOAM:g} (Q57), "
+        "series, interface II, architecture A. Widths 18 to 20, LID_Y 7 to 9, standoffs 3 and 4, "
+        "BODY_ARC 48.4 and arc-plus +1.5 and +3.0. Conflict logic is the round 5 checker "
+        f"(no new constants). {len(rows)} runs. Source: `docs/fab/L7-research-v4.md` §2 "
+        "(DigiKey `1908-LP501218JH+PCM+2WIRE50MM-ND`, 60 mAh, page price and stock on 2026-09-17)."
+    )
+    lines.append("")
+    lines.append(
+        "Bare 2-wire leads (28 AWG, 50 ± 3 mm, no connector) per L7 §2. Plan v2 R2: "
+        "Rolf solders nothing (no soldering, glue, crimping or wire stripping). "
+        "This cell is a packing candidate only if the assembler or the seller terminates the leads."
+    )
+    lines.append("")
+    lines.append(
+        "| arch | standoff | width | lid | arc+ | closes | first conflict | TOTAL_CHORD | M1 gate |"
+    )
+    lines.append("|---|---:|---:|---:|---:|---|---|---:|---:|")
+    for r in rows:
+        spec = r.spec
+        first = "—" if r.closes else _md_cell(r.first_conflict)
+        lines.append(
+            f"| {spec.arch} | {spec.standoff:g} | {spec.width:g} | {spec.lid_y:g} | {spec.arc_plus:g} | "
+            f"{'yes' if r.closes else 'no'} | {first} | {r.total_chord:.2f} | {r.m1_gate:.2f} |"
+        )
+    lines.append("")
+    best = _smallest_closed(rows)
+    if best is not None:
+        cost = best.total_chord - winner_chord
+        lines.append(
+            f"{len(closed)} of {len(rows)} close. Smallest body: `{best.spec.tag}`. "
+            f"TOTAL_CHORD {best.total_chord:.2f} against M1−3 = {M1_DEFAULT - 3.0:.2f} "
+            f"(M1 = {M1_DEFAULT:g}, Q34). Length cost versus the 501015 winner chord {winner_chord:.2f}: "
+            f"{cost:+.2f} mm."
+        )
+    else:
+        plus0 = next(r for r in rows if r.spec.arc_plus == 0.0)
+        plus3 = next(r for r in rows if r.spec.arc_plus == 3.0)
+        cost3 = plus3.total_chord - winner_chord
+        lines.append(
+            f"0 of {len(rows)} close at BODY_ARC or +1.5 or +3.0. There is no Jauch body that closes. "
+            f"At BODY_ARC, TOTAL_CHORD {plus0.total_chord:.2f} against M1−3 = {M1_DEFAULT - 3.0:.2f}. "
+            f"At +3.0 mm of arc, TOTAL_CHORD {plus3.total_chord:.2f} "
+            f"({cost3:+.2f} mm of chord versus the 501015 winner). "
+            "First conflict of each run is in the table."
+        )
+    fam_counts: dict[str, int] = {}
+    for r in rows:
+        if not r.closes:
+            key = conflict_family(r.first_conflict)
+            fam_counts[key] = fam_counts.get(key, 0) + 1
+    if fam_counts:
+        lines.append("")
+        lines.append("First-conflict families (numbers masked), failing Jauch runs:")
+        lines.append("")
+        lines.append("| family | runs |")
+        lines.append("|---|---:|")
+        for fam, n in sorted(fam_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+            lines.append(f"| {_md_cell(fam)} | {n} |")
+    lines.append("")
+    return lines
+
+
+def _buyable_cell_compare_section(matrix_rows: list[V2Result], winner_chord: float) -> list[str]:
+    """Smallest closer per cell: 501015, DTP301120, Jauch LP501218JH."""
+    dtp_rows = [r for r in matrix_rows if r.spec.cell == "dtp" and r.spec.iface == "II" and r.spec.layout == "series"]
+    dtp_rows = dtp_rows + run_dtp_arc_plus()
+    rows_501015 = [
+        r for r in matrix_rows
+        if r.spec.cell == "501015" and r.spec.iface == "II" and r.spec.layout == "series" and r.spec.arch == "A"
+    ]
+    jauch_rows = run_jauch_series()
+    lines: list[str] = []
+    lines.append("### Smallest body per buyable cell (WP11b, L7 §2)")
+    lines.append("")
+    lines.append(
+        "L7-research-v4.md §2 found no 501015-class cell sold in ones. "
+        "The two buyable packs with page price, stock and a drawing are DTP301120 and LP501218JH."
+    )
+    lines.append("")
+    lines.append(
+        "| cell | sold in ones | smallest closer | width | lid | standoff | arc+ | TOTAL_CHORD | vs 501015 winner |"
+    )
+    lines.append("|---|---|---|---:|---:|---:|---:|---:|---:|")
+
+    def row_for(label: str, sold: str, rows: list[V2Result]) -> str:
+        best = _smallest_closed(rows)
+        if best is None:
+            return (
+                f"| {label} | {sold} | none | — | — | — | — | — | no closer |"
+            )
+        cost = best.total_chord - winner_chord
+        vs = "—" if abs(cost) < 1e-9 else f"{cost:+.2f} mm chord"
+        return (
+            f"| {label} | {sold} | `{best.spec.tag}` | {best.spec.width:g} | {best.spec.lid_y:g} | "
+            f"{best.spec.standoff:g} | {best.spec.arc_plus:g} | {best.total_chord:.2f} | {vs} |"
+        )
+
+    lines.append(row_for("501015", "no (L7 §2)", rows_501015))
+    lines.append(row_for("DTP301120", "yes, SparkFun PRT-25270", dtp_rows))
+    lines.append(
+        row_for(
+            "LP501218JH",
+            "yes, DigiKey (bare leads; needs a terminator)",
+            jauch_rows,
+        )
+    )
+    lines.append("")
+    return lines
+
+
 def _ref_tab_route_section() -> list[str]:
     """WP11b REF tab search on the 501015 winner board (Q59)."""
     routes = ref_tab_routes()
@@ -2059,6 +2218,7 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append("A 0.5-deep floor recess (web 1.0 remaining) is run at 3.5 and 4.0.")
     lines.append("Interface II is the flex-tab fallback.")
     lines.append("Arc-plus for the DTP301120 under interface II is §1b (WP11b, Q55).")
+    lines.append("The Jauch LP501218JH under interface II is §1c (WP11b, L7-research-v4.md §2).")
     lines.append("The REF tab route search is in §5 (WP11b, Q59).")
     lines.append("")
     lines.append("## 1. Every run at BODY_ARC 48.4")
@@ -2088,10 +2248,17 @@ def packing_markdown(rows: list[V2Result]) -> str:
     winner_row = next((r for r in rows if r.spec == winner), None)
     winner_chord = winner_row.total_chord if winner_row is not None else 47.9005
     lines.extend(_dtp_arc_plus_section(winner_chord))
+    lines.extend(_jauch_section(winner_chord))
+    lines.extend(_buyable_cell_compare_section(rows, winner_chord))
     lines.append("## 2. Clearance, stack, and first-conflict families")
     lines.append("")
     packs = "; ".join(
         f"{CELL[c]['name']} {CELL[c]['t']:g} + {FOAM:g} = {CELL[c]['t'] + FOAM:g}" for c in CELLS
+    )
+    j = CELL["jauch"]
+    packs = (
+        f"{packs}; {j['name']} {j['t']:g} + {FOAM:g} = {j['t'] + FOAM:g} "
+        "(WP11b Jauch series, not in the 864-run matrix)"
     )
     lines.append(f"Cell packed height = body + foam {FOAM:g}: {packs}.")
     lines.append(
@@ -2371,7 +2538,7 @@ def packing_markdown(rows: list[V2Result]) -> str:
         m = MODULE[key]
         lines.append(f"| {m['name']} | {m['w']:g} × {m['l']:g} × {m['h']:g} | {'out, plan v2 turn 02' if key == 'C' else 'plan v2 §3'} |")
         lines.append(f"| {m['name']} antenna keep-out | {m['ant'][0]:g} × {m['ant'][1]:g} | {m['ant_from']} |")
-    for key in CELLS:
+    for key in CELL:
         c = CELL[key]
         lines.append(f"| {c['name']} | {c['l']:g} × {c['w']:g} × {c['t']:g} | {c['from']} |")
     lines.append(f"| Foam on the cell | {FOAM:g} | plan v1 §5 and order-1 CELL_envelope; plan v2 §3 says 0.3 (decision 57) |")
@@ -2427,7 +2594,13 @@ def packing_markdown(rows: list[V2Result]) -> str:
         "- REF tab lid-to-wall gap: packing treats the cavity end wall as solid from floor "
         f"{FLOOR_Y:g} to LID_Y 8.0; a gap under the lid was not probed on the solid."
     )
-    lines.append("- DTP single-unit purchase and a 501015 pack in ones: Q55; this package does not order.")
+    lines.append(
+        "- 501015 pack in ones: none found (`docs/fab/L7-research-v4.md` §2). "
+        "DTP301120 is sold in ones (SparkFun PRT-25270). "
+        "LP501218JH is sold in ones (DigiKey 1908-LP501218JH+PCM+2WIRE50MM-ND) with bare 2-wire leads; "
+        "plan v2 R2, Rolf solders nothing, so it is a candidate only if the assembler or the seller "
+        "terminates the leads. This package does not order."
+    )
     lines.append("")
     lines.append("## 9. Drawings in the repo")
     lines.append("")
