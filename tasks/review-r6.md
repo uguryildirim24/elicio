@@ -34,7 +34,9 @@ Start line (the coordinator restarts you by copy-paste):
    (WP11b), `lane/w1-r6` (WP14; NOT `lane/w1`, which is round 5's branch
    with 109 MB of drawings and stays out of history, Q56), `lane/w5`
    (WP17b), `lane/w4` (WP13b), `lane/w9` (WP15), and `lane/w2` **at
-   commit `480e355` exactly** (`git merge 480e355`), because lane w2
+   commit `e3e085b` exactly** (`git merge e3e085b`; amended 00:32 from
+   `480e355` after the lane's queued BOM note landed one more schematic
+   and doc commit, no copper), because lane w2
    keeps working on `lane/w2` after that commit (WP12c, routing the
    copper) while you review. Each lane's diff against `main` shows
    `HANDOFF.md` and `HANDOFF.json` as changed only because `main` moved
