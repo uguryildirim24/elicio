@@ -93,7 +93,7 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
 | r6 | WP15 Rolf's sheets v2 (`docs/fab/measure.md`, `docs/fab/template.pdf`, `docs/fab/sheets/`, `docs/fab/order-board.md`, `docs/fab/order-shell.md`, `docs/fab/order-parts.md`, `docs/fab/assemble.md`) | MERGE-AFTER-DECISION | `110a79b` | `tasks/reviews/code-r6.md` |
 | r6 | WP12b board placed from packing §5 (`hardware/board/build_v2b.py`, `docs/fab/board-v2.md` §9 GPIO map, BOM from L7): not routed, release refused with `--routed`, footprint collisions (Q77) | MERGE-AFTER-DECISION | `110a79b` | `tasks/reviews/code-r6.md` |
 | r6 | decisions Q69–Q77 | coordinator | `58ae5b8` | `docs/fab/open-questions.md` |
-| r7 | briefs WP11c, WP14b, WP13c, WP11d, WP17c | coordinator | `e2c7f09`, `58ae5b8`, `0293d48`, `7983847` | `tasks/WP11c-courtyards.md` and siblings |
+| r7 | briefs WP11c, WP14b, WP13c, WP11d, WP17c, WP14c, WP12d-prep | coordinator | `e2c7f09`, `58ae5b8`, `0293d48`, `7983847`, `7b23eb5` | `tasks/WP11c-courtyards.md` and siblings |
 | r7 | decisions Q78–Q80 (edge rule and board area, Contact variant A, USB-C vs TC2030) | coordinator | `7983847` | `docs/fab/open-questions.md` |
 
 Round 6 gates at merge (`tasks/reviews/code-r6.md`, final `f407b12`): 206
@@ -115,7 +115,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11d, w5 WP17c), WP11c, WP13c and WP14b landed, w1, w2 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11d, w1 WP14c, w2 WP12d-prep), WP11c, WP13c, WP14b and WP17c landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -135,6 +135,15 @@ fast-forwarded to `110a79b`.
   idles; next: the second turn after `DONE WP11d` (USB wall from §5c,
   tab fold pockets, island bosses), merges in round 7's review. The new
   renders go on the answer sheet (version 7).
+- **w1 → WP14c shell v2c** (`tasks/WP14c-shell-v2c.md`, main `7b23eb5`):
+  RUNNING since 01:50 on `lane/w1-r6` on top of `bb0c788` (told to `git
+  merge main` first): the screw well moved off the lateral surface (tail
+  end face or medial tail) with a measured `V2_LATERAL_unbroken`, Ø2.10
+  pilots and OD ≥ 5.0 bosses at the tail and the two island boss sites
+  (`V2_BOSS_pilot`), `render.py` stamping the commit that built the
+  solids; USB and fold pockets still wait for §5c. Waits for nothing from
+  me. Report (expected) `.worktrees/w1/.reports/WP14c-report.md` →
+  `DONE WP14c`; then the §5c turn (WP14d) after `DONE WP11d`.
 - **w3 → WP11c courtyards** (`tasks/WP11c-courtyards.md`): LANDED, `DONE
   WP11c` at `1897df0` on `lane/w3` (two commits on top of `bcecc83`, tree
   clean, report `.worktrees/w3/.reports/WP11c-report.md` present, 187
@@ -157,13 +166,16 @@ fast-forwarded to `110a79b`.
   from me. Report (expected) `.worktrees/w3/.reports/WP11d-report.md` →
   `DONE WP11d`; then WP12d (w2) pins §5c and WP14b's second turn (w1)
   cuts the USB wall and pockets.
-- **w2**: idle on `lane/w2` at `f4376ca`, which holds WP12c (bus dropped,
-  `routed: false`, `hardware/board/route.md` (absent on main) with the
-  zero-track DRC diagnosis; recorded as Q77) on top of the merged
-  `e3e085b`. NOT merged and not fast-forwarded (not an ancestor). Next:
-  WP12d after `DONE WP11c`: merge main, place from §5b, route with
-  Freerouting 2.4.1 or its own router to DRC 0, R1–R3 on the island, J3
-  pads Ø1.5, one net per tab.
+- **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`, main `7b23eb5`):
+  RUNNING since 01:50 on `lane/w2` on top of `f4376ca` (told to `git merge
+  main` first; the branch holds WP12c, `hardware/board/route.md` (absent
+  on main), not yet merged): prove Freerouting 2.4.1 headless writes a
+  SES on this Mac (evidence only, not imported), `build_v2b.py` accepts a
+  `side` column for two-sided placement with a synthetic-table test, the
+  ten-line WP12d plan for Q79/Q80 in route.md; no copper, board file
+  unchanged. Waits for nothing from me. Report
+  `.worktrees/w2/.reports/WP12d-prep-report.md` (expected) → `DONE WP12d-prep`; then
+  WP12d proper on §5c after `DONE WP11d`.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
   report `.worktrees/w4/.reports/WP13c-report.md` present, 207 tests OK
@@ -173,15 +185,17 @@ fast-forwarded to `110a79b`.
   three dropout fields; `docs/fab/receiver-v2.md` table and one sentence
   in `docs/fab/assemble.md` follow; montage, plan and open-questions
   untouched. Nothing for a decision. w4 idles; merges in round 7's review.
-- **w5 → WP17c research v5** (`tasks/WP17c-research-v5.md`, main
-  `7983847`): RUNNING since 01:25 on `lane/w5` at `7983847` (agy,
-  prompted by `herdr pane run w1B:pD` plus enter): the JLC edge rule from
-  the pages (board outline or panel rail, rails added by JLC, FPC
-  depaneling), FPC assembly sides, a router that writes a file on this
-  Mac, the M2.5 titanium tail screw and the MJF pilot hole; delivers
-  `docs/fab/L8-research-v5.md` (absent on main). Waits for nothing from
-  me. Report (expected) `.worktrees/w5/.reports/WP17c-report.md` →
-  `DONE WP17c`; its item 1 decides Q78 with WP11d's grid.
+- **w5 → WP17c research v5** (`tasks/WP17c-research-v5.md`): LANDED,
+  `DONE WP17c` at `f8b1634` on `lane/w5` (one commit, tree clean, report
+  `.worktrees/w5/.reports/WP17c-report.md` present, 206 tests OK).
+  `docs/fab/L8-research-v5.md` (absent on main): the JLC 2.5 mm is to
+  the panel's process rail, which JLC adds ("Panel by JLCPCB"); with rails
+  the outline keeps copper-to-outline 0.20 pads / 0.30 traces; both sides
+  of a 2-layer flex are assembled; Freerouting 2.4.1 headless writes a
+  SES on macOS with Java 21; M2.5 Grade 5 titanium button heads in ones
+  (The Thomas RC $1.60) or 5-packs (1up Racing); MJF pilot Ø2.10 CAD,
+  boss OD ≥ 5.0. Noted under Q78 in open-questions at `7b23eb5`; the
+  reviewer checks the quotes. w5 idles; nothing queued.
 - **w9**: idle on `lane/w9` at `110a79b`. Next: WP15b, the sheets refilled
   after WP14b and WP12d settle the shell and board numbers; nothing
   queued.
@@ -236,13 +250,14 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP11d` (w3) or `DONE WP17c` (w5), or BLOCKED/GONE for
-  either (a DONE is checked: report present, tree clean; then read); with
-  WP11d's grid and WP17c's item 1 settle Q78 (the edge reading, width 20
-  or 22) in open-questions, then brief WP12d for w2 on §5c and WP14b's
-  second turn for w1; when WP11d, WP17c, WP12d and the w1 second turn
-  have landed (WP11c, WP13c, WP14b already have), open review r7
-  (`tasks/review-r7.md` (expected) from `tasks/review-code-template.md`).
+- Idle until `DONE WP11d` (w3), `DONE WP14c` (w1) or `DONE WP12d-prep`
+  (w2), or BLOCKED/GONE for any (a DONE is checked: report present, tree
+  clean; then read); after `DONE WP11d` settle Q78's width in
+  open-questions from the process-edge cells of the grid (WP17c confirmed
+  that reading), then brief WP12d for w2 on §5c and WP14d for w1 (USB
+  wall, fold pockets, island bosses from §5c); when WP11d, WP14c,
+  WP12d-prep, WP12d and WP14d have landed, open review r7 with a brief
+  at `tasks/review-r7.md` (expected), from `tasks/review-code-template.md`.
 
 ## Traps
 
