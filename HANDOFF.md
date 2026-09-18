@@ -103,6 +103,7 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
 | r7 | decisions Q78–Q80 (edge rule and board area, Contact variant A, USB-C vs TC2030) | coordinator | `7983847` | `docs/fab/open-questions.md` |
 | r7 | decisions Q81–Q83 (no receptacle until M1 is measured, bosses follow the island holes, neck-end strips) | coordinator, Q81 Rolf's | `a3960d6` | `docs/fab/open-questions.md` |
 | r7 | Q78 settled at width 22, Q81–Q83 with §5c's numbers; briefs WP14d, WP12d | coordinator | `d67e534` | `docs/fab/open-questions.md`, `tasks/WP14d-shell-v2d.md`, `tasks/WP12d-board-v2d.md` |
+| r7 | decisions Q84 (Contact rule by area), Q85 (flat pattern); briefs WP11e, WP12e | coordinator | `aea2345` | `docs/fab/open-questions.md`, `tasks/WP11e-flat-pattern.md`, `tasks/WP12e-route-v2.md` |
 
 Round 6 gates at merge (`tasks/reviews/code-r6.md`, final `f407b12`): 206
 tests OK none skipped with the cad and ble extras (34 named skips on the
@@ -123,7 +124,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w1 WP14d, w2 WP12d routing), WP11d landed with both pin tables, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w1 WP14d, w3 WP11e, w2 WP12e), WP12d landed un-routed, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -210,6 +211,16 @@ fast-forwarded to `110a79b`.
   Q83). The sha went to w2 at 03:00 as the line "§5c final" plus
   `c6bd2fe`; w1's WP14d numbers (pads, holes, strips) did not move, so
   no WP14e. w3 idles; merges in round 7's review.
+- **w3 → WP11e flat pattern** (`tasks/WP11e-flat-pattern.md`, main
+  `aea2345`): RUNNING since 03:20 on `lane/w3` on top of `c6bd2fe` (told
+  to `git merge main` first): the flat (unfolded) pattern of the build's
+  cell with the strips and ring pads in PCB coordinates leaving the
+  island's neck end, non-overlap proven, or the next exit with numbers;
+  pin table v2 (flat coordinates plus side) and a separate folded-site
+  table for the shell; J4's NPTH holes a both-side keep-out; every rule
+  re-checked. Waits for nothing from me. Report
+  `.worktrees/w3/.reports/WP11e-report.md` (expected) → `DONE WP11e`;
+  then I send w2 the line "pin table v2" plus the sha.
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
   WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
   package commit, tree clean, report
@@ -232,21 +243,33 @@ fast-forwarded to `110a79b`.
   package's. w2 idles; next WP12d proper on §5c after `DONE WP11d`
   (place from §5c with sides, R1–R3 on the island, J1/J4 per Q80 or the
   Q81 no-receptacle variant, route on OpenJDK 25, import, DRC 0).
-- **w2 → WP12d board v2d** (`tasks/WP12d-board-v2d.md`, main `d67e534`):
-  RUNNING again since 03:00 on `lane/w2` on top of `edf612f` (told to `git
-  merge main` first): J1 and U5 out, tail pads P4/P5 in, TVS on VBUS if
-  absent, ERC 0; outline and regions from §5c width 22 chord 47.90; place
-  from the no-receptacle two-sided pin table with sides, R1–R3 on the
-  island, holes at the Q82 sites, zero-track DRC 0 apart from
-  unconnected; then it STOPS with `WAITING WP12d §5c final sha` unless I
-  have already sent the line "§5c final" plus the sha (after w3's third `DONE WP11d`);
-  then route on OpenJDK 25 to DRC 0, `release.py --routed` exit 0,
-  Gerbers/BOM/CPL. Pre-route half committed (`fcaa6d4` J1/U5 out, P4/P5 in; `2cffd4e`
-  width-22 outline and two-sided place from §5c); it pushed `WAITING
-  WP12d §5c final sha` at 02:30 and got the line "§5c final" plus
-  `c6bd2fe` at 03:00; now re-pins from the no-receptacle table and routes
-  on OpenJDK 25 to DRC 0. Waits for nothing from me. Report
-  `.worktrees/w2/.reports/WP12d-report.md` (expected) → `DONE WP12d`.
+- **w2 → WP12d board v2d** (`tasks/WP12d-board-v2d.md`): LANDED
+  UN-ROUTED, `DONE WP12d` at `1e055de` on `lane/w2` (tree clean, report
+  `.worktrees/w2/.reports/WP12d-report.md` present, board tests OK, ERC
+  0). Built: J1/U5 out, P4/P5 tail pads in, D1 kept as the VBUS TVS, nRF
+  USB pins no-connect; width-22 outline from §5c, 68 footprints on two
+  sides pinned from the no-receptacle table within 0.1 (the table copied
+  to `hardware/board/packing_5c_norec.md` (absent on main), `c6bd2fe` not
+  merged since it only edits the packing doc); outline nudged so J3 meets
+  copper-to-edge; jar kept at `~/.local/opt/freerouting/`. Stopped by
+  step 5: zero-track DRC 56 errors, Freerouting's SES made it 374 and was
+  discarded, `routed: false`, `release.py --routed` refused. Three
+  structural reasons: SIG2 ring pad P2 pinned at its FOLDED site inside
+  U1's courtyard (the table's fault, Q85); Contact class 1.0 mm vs
+  R1–R3's 0.48 pad gap (Q84); J4 NPTH vs second-side 0402s (Q85). Its
+  last commit message says "routed" because my brief prescribed that
+  line (trap recorded); the reviewer notes it. BOM 57. 14 CAD test
+  failures in its venv (pins), as before.
+- **w2 → WP12e route v2** (`tasks/WP12e-route-v2.md`, main `aea2345`):
+  RUNNING since 03:20 on `lane/w2` on top of `1e055de` (told to `git
+  merge main` first): the Q84 Contact rule as DRC rule areas (1.0 mm on
+  strips, ring pads and tail pads; board default on the island) with a
+  test, the parser for pin table v2 (flat coordinates, J4 both-side
+  keep-out); then it STOPS with `WAITING WP12e pin table v2` unless I
+  have sent the line "pin table v2" plus the sha (after `DONE WP11e`);
+  then re-pin on the flat pattern, route on OpenJDK 25 to DRC 0, or stop
+  un-shorted with a truthful commit message. Report
+  `.worktrees/w2/.reports/WP12e-report.md` (expected) → `DONE WP12e`.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
   report `.worktrees/w4/.reports/WP13c-report.md` present, 207 tests OK
@@ -330,15 +353,16 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP14d` (w1) or `DONE WP12d` (w2), or BLOCKED/GONE/
-  WAITING for either (a DONE is checked: report present, tree clean;
-  then read); when both have landed (WP11c, WP11d, WP13c, WP14b, WP14c,
-  WP17c, WP12d-prep already have), open review r7: a review worktree
-  (expected) at `.worktrees/review` (expected) on a round 7 review branch
-  cut from main, a fresh Opus 5 high pane,
-  brief (expected) at `tasks/review-r7.md` (expected) from
-  `tasks/review-code-template.md` with the seams in Open item 6 and every
-  report pasted; merge order w3, w1-r6, w5, w4, w2.
+- Idle until `DONE WP14d` (w1), `DONE WP11e` (w3), `DONE WP12e` or
+  `WAITING WP12e pin table v2` (w2), or BLOCKED/GONE for any (a DONE is
+  checked: report present, tree clean; then read); on `DONE WP11e` send
+  w2 the line "pin table v2" plus the sha and check whether the folded
+  sites w1 used moved (if so, a WP14e); when WP14d, WP11e and WP12e have
+  landed, open review r7: a review worktree (expected) at
+  `.worktrees/review` (expected) on a round 7 review branch cut from
+  main, a fresh Opus 5 high pane, brief (expected) at `tasks/review-r7.md`
+  (expected) from `tasks/review-code-template.md` with the seams in Open
+  item 6 and every report pasted; merge order w3, w1-r6, w5, w4, w2.
 
 ## Traps
 
@@ -434,6 +458,14 @@ Outside those:
 <!-- Everything below this line is generated. Regenerate it at every
 checkpoint with:  python3 ~/.claude/skills/save-state/state.py snapshot
 Do not hand-edit ids into it. -->
+- A brief that prescribes the last commit message as a fact ("…,
+  routed") gets that message verbatim even when the gate failed (WP12d,
+  `1e055de`). Prescribe messages that describe the state, or "if the
+  gate passes"; tell lanes the message says what is true.
+- A pin table that mixes folded (shell) and flat (PCB) coordinates gets
+  pinned literally (WP12d: the SIG2 ring pad inside U1). Flex boards are
+  drawn flat: the packing publishes flat coordinates for the PCB and
+  folded sites for the shell, in two tables (Q85).
 
 ## Herdr (generated 2026-09-18T00:39:14-04:00 by state.py, herdr 0.9.0, session `default`)
 Workspace `w1B` (elicio), 8 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
