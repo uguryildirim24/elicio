@@ -58,6 +58,8 @@ TESTED_WITH = "numpy 2.5.3, matplotlib 3.11.2, pypdf 6.19.0, trimesh 5.1.0"
 COLOR_FULL = np.array([0.78, 0.79, 0.80])
 COLOR_THIN = np.array([0.66, 0.74, 0.84])
 COLOR_LID = np.array([0.88, 0.80, 0.62])
+COLOR_TITANIUM = np.array([0.55, 0.56, 0.60])
+COLOR_ENIG = np.array([0.82, 0.68, 0.34])
 EDGE_SHADE = 0.18
 CREASE_COS = math.cos(math.radians(28.0))
 DEPTH_JUMP_MM = 0.6
@@ -173,6 +175,38 @@ def load_stl(path: Path) -> tuple[np.ndarray, np.ndarray]:
     if vertices.size == 0 or faces.size == 0:
         raise RenderError(f"{path.name}: empty mesh")
     return vertices, faces
+
+
+def titanium_heads(manifest: dict[str, Any]) -> list[tuple[np.ndarray, np.ndarray, np.ndarray]]:
+    """Bought ISO 7380 heads at the three contact sites, body frame.
+
+    Review r7: the shell STL carries holes, not printed domes (plan §4:
+    only the gauge prints domes). The views draw the titanium heads as
+    hardware so the medial face reads as it will be worn.
+    """
+    cad = load_cad()
+    params = manifest["parameters"]
+    path = cad.make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
+    s5d = cad.load_s5d_folded()
+    meshes = []
+    for u, s in (s5d.p1, s5d.p2, s5d.p3):
+        cap = cad._cap_solid(path, float(u), float(s))
+        pts, tris = cap.tessellate(0.02, 0.2)
+        verts = np.array([[p.X, p.Y, p.Z] for p in pts], dtype=np.float64)
+        faces = np.array(tris, dtype=np.int64)
+        meshes.append((verts, faces, COLOR_TITANIUM))
+    # P4/P5 ring copper at the bottom of the open Ø5 holes (Q86), drawn so the
+    # holes read as pads rather than as see-through openings.
+    charge = next(c for c in manifest["checks"] if c["name"] == "V2_CHARGE_pads")["numbers"]
+    for name, (u, s) in (("P4", s5d.p4), ("P5", s5d.p5)):
+        origin = cad._vec(path, float(u), float(s), 0.0)
+        pad_y = float(charge[f"{name}_y"])
+        disc = cad._y_cylinder(origin.X, pad_y, origin.Z, cad.CHARGE_PAD_D / 2.0, 0.05)
+        pts, tris = disc.tessellate(0.02, 0.2)
+        verts = np.array([[p.X, p.Y, p.Z] for p in pts], dtype=np.float64)
+        faces = np.array(tris, dtype=np.int64)
+        meshes.append((verts, faces, COLOR_ENIG))
+    return meshes
 
 
 def rotate_x(vertices: np.ndarray, deg: float) -> np.ndarray:
@@ -506,6 +540,8 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
         verts, faces = load_stl(out_dir / f"{name}.stl")
         verts = to_body_frame(verts, theta)
         meshes = [(verts, faces, color)]
+        if manifest.get("stage") == "shell":
+            meshes += titanium_heads(manifest)
         thick = float(span[name]["BODY_THICK"])
         labels.append(
             (cursor, f"{label}:  BODY_THICK {thick:.1f} mm,  SPAN {float(span[name]['span']):.2f} (thickness + crown 1.35)")
@@ -549,7 +585,8 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
         p = view.project(well_xyz)
         ax.annotate(
             "concealed M2.5 well on the medial tail (Q71).\n"
-            "Skin hides the head. Lateral lid is unbroken.",
+            "Skin hides the head. Lateral lid is unbroken.\n"
+            "The M2.5×4 ends in the body tail, not the lid (Q89).",
             xy=(p[0] + dx, p[1]),
             xytext=(p[0] + dx + 18.0, p[1] + 10.0),
             fontsize=8,
@@ -558,8 +595,8 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
         )
         s5c = cad.load_s5d_folded()
         for label, site, dy in (
-            ("P4/P5 charging pads, hook end (Q86)", s5c.p4, 14.0),
-            ("P4/P5 charging pads, hook end (Q86)", s5c.p5, -10.0),
+            ("P4 charging pad, VBUS (Q86)", s5c.p4, -5.0),
+            ("P5 charging pad, GND (Q86)", s5c.p5, -9.0),
         ):
             xyz = np.array(cad.p_xyz(path, site[0], site[1], -0.4))
             xyz = to_body_frame(xyz.reshape(1, 3), theta)[0]
@@ -567,18 +604,21 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
             ax.annotate(
                 label,
                 xy=(q[0] + dx, q[1]),
-                xytext=(q[0] + dx + 14.0, q[1] + dy),
+                xytext=(q[0] + dx - 22.0, q[1] + dy),
+                ha="right",
                 fontsize=8,
                 arrowprops={"arrowstyle": "->", "lw": 0.7},
                 zorder=8,
             )
     ax.set_xlim(-2.0, cursor - 8.0)
-    ax.set_ylim(bottom - 9.0, top + 13.0)
+    ax.set_ylim(bottom - 9.0, top + (16.0 if manifest.get("stage") == "shell" else 13.0))
     ax.set_aspect("equal")
     ax.set_axis_off()
     scale_bar(ax, 0.0, bottom - 3.5)
     caption = (
-        "Medial (skin side): three EMG domes, two hook-end charging pads (Q86), screw well, hook. Same scale throughout.\n"
+        "Medial (skin side): three titanium ISO 7380 heads (bought, drawn dark; the print has Ø2.7 holes),\n"
+        "two open Ø5 holes over the P4/P5 ring copper (drawn gold, 1.5 below the skin face), screw well, hook.\n"
+        "Same scale throughout. "
         "Faint facet shading on curved edges is the STL mesh (0.02 mm chord), not geometry."
         if manifest.get("stage") == "shell"
         else
@@ -878,10 +918,11 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
     cursor = 0.0
     placed: dict[str, tuple[View, float]] = {}
     top = bottom = 0.0
+    hardware = titanium_heads(manifest) if manifest.get("stage") == "shell" else []
     for key, view, meshes, caption in (
         ("lateral", lateral, [body_mesh, lid_mesh], "lateral (lid side)"),
-        ("medial", medial, [body_mesh, lid_mesh], "medial (skin side)"),
-        ("posterior", posterior, [body_mesh, lid_mesh], "edge-on from posterior"),
+        ("medial", medial, [body_mesh, lid_mesh, *hardware], "medial (skin side)"),
+        ("posterior", posterior, [body_mesh, lid_mesh, *hardware], "edge-on from posterior"),
     ):
         ext = _view_block(view, meshes)
         img = rasterize(view, meshes, extent=ext, px_per_mm=ppm)
@@ -1015,6 +1056,8 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
             f"solids commit {commit}   date {date}",
             "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
             "Closure: Q71 hinge lip at the hook-end wall plus one concealed medial-tail M2.5. S4 pull/drop qualitative.",
+            "The M2.5×4 ends at y 5.55 in the body tail; the lid starts at 8.0 (V2_CLOSURE fails, Q89).",
+            "Contacts: titanium ISO 7380 heads through Ø2.7 holes (bought, not printed). P4/P5: open Ø5 holes.",
             "Q81: no USB receptacle at M1 52. P4/P5 charging pads, hook end (Q86). No text on the outside. Q59 slot stays.",
             *("  " + row for row in fillet_summary(manifest)),
             "Rolf approves the two renders before any shell order. Nothing is ordered here.",
