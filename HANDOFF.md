@@ -91,15 +91,22 @@ exit 3 on Q21 only.
 Round 6, opened 2026-09-17 22:15. Six lanes, all prompted with "read your
 brief in full and do it", nothing owed from me until their pushes.
 
-- **w1 → WP14 shell v2** (`tasks/WP14-shell-v2.md`), branch `lane/w1-r6`
-  fresh from `main` (the old `lane/w1` at `7df78b5` keeps round 5 and the
-  SVGs, Q56). Builds the wearable body on the round 5 winner: standoff
-  hex pockets, ring seats, REF tab slot or WP11b's in-cavity route, bosses
-  0.5 below the standoff tops, USB-C end-face wall, snap or concealed
-  screw closure, hook and tail, two renders and a drawing under
-  `docs/fab/cad/v2/` (expected) and `docs/fab/shell-v2.md` (expected).
-  Waits for nothing from me. Report `.reports/WP14-report.md` (expected)
-  → `DONE WP14`. It may read `lane/w3` for the tab route.
+- **w1 → WP14 shell v2**: LANDED, `DONE WP14` at `553b302` on
+  `lane/w1-r6` (three commits, tree clean, report
+  `.worktrees/w1/.reports/WP14-report.md` present, 174 tests OK with the
+  CAD tests running, order 1 byte-identical, Stage B v2 unchanged and
+  still exit 3 on Q59 by design, the shell build identical twice).
+  Delivered `docs/fab/cad/v2/` (absent on main) with body and lid STEP,
+  STL, 3MF, two renders, a drawing page and a manifest marked
+  provisional at M1 52; `docs/fab/shell-v2.md` (absent on main);
+  `scripts/cad/params/shell_v2.toml` (absent on main). The shell slots
+  the cavity end wall for the REF tab (Q59); closure is a tail hinge lip
+  plus two cantilever snaps with a strain number; USB-C on the hook-end
+  end face; standoff 3.0. Open from its report: printed hex well
+  oversized against the brass 5 mm across flats (G7), the hook joint
+  fillet left sharp by the kernel, snap forces not computed, Q17 REF
+  dome. The 23:05 slot note may run as a second turn; a second DONE is
+  possible. The renders are the pictures Rolf approves (answer sheet Q2).
 - **w3 → WP11b packing follow-ups**: LANDED, `DONE WP11b` at `284ec05`
   on `lane/w3` (two commits, tree clean, report
   `.worktrees/w3/.reports/WP11b-report.md` present, 177 tests OK, doc
