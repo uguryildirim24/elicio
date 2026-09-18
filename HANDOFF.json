@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-18T00:39:14-04:00",
+ "generated": "2026-09-18T07:19:18-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -35,7 +35,7 @@
    "session_id": "791832d5-f944-40f4-80ec-82deb5c4efca",
    "tokens": {
     "done": "1",
-    "lane": "WP14",
+    "lane": "WP14e",
     "parent": "w1B:p1"
    },
    "title": "Lane W1 Instructions"
@@ -47,7 +47,7 @@
    ],
    "name": "w2",
    "kind": "cursor",
-   "status": "done",
+   "status": "working",
    "pane_id": "w1B:pB",
    "tab_id": "w1B:tB",
    "tab_label": "w2",
@@ -56,8 +56,9 @@
    "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
    "tokens": {
     "done": "1",
-    "lane": "WP12c",
-    "parent": "w1B:p1"
+    "lane": "WP12g",
+    "parent": "w1B:p1",
+    "waiting": "pin table v2"
    },
    "title": "Lane W2 Instructions"
   },
@@ -68,7 +69,7 @@
    ],
    "name": "w4",
    "kind": "cursor",
-   "status": "done",
+   "status": "working",
    "pane_id": "w1B:pC",
    "tab_id": "w1B:tC",
    "tab_label": "w4",
@@ -77,7 +78,7 @@
    "session_id": "3f977624-113c-48fa-b55e-666aa970b9a3",
    "tokens": {
     "done": "1",
-    "lane": "WP13b",
+    "lane": "WP13c",
     "parent": "w1B:p1"
    },
    "title": "Lane W4 Instructions"
@@ -105,7 +106,7 @@
    "session_id": "18235bfb-f5b8-4365-9383-d66c69251f4b",
    "tokens": {
     "done": "1",
-    "lane": "WP17b",
+    "lane": "WP17c",
     "parent": "w1B:p1"
    },
    "title": null
@@ -148,7 +149,7 @@
    "session_id": "7ea81196-3c3e-42a4-8503-b481d90776cf",
    "tokens": {
     "done": "1",
-    "lane": "WP11b",
+    "lane": "WP11e",
     "parent": "w1B:p1"
    },
    "title": "New Package Brief"
@@ -164,7 +165,7 @@
   {
    "workspace_id": "w1D",
    "label": "ablirated",
-   "status": "done"
+   "status": "idle"
   },
   {
    "workspace_id": "w1E",
@@ -176,74 +177,75 @@
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
-   "110a79b Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
-   "f407b12 review(r6): decision numbers follow open-questions Q69 to Q77",
-   "231e2d1 handoff: In flight and Next after the round 6 verdict (rev6 second turn, WP12c landed un-routed, WP11c running, WP14b brief waits for the merge)",
-   "f9e4144 review(r6): coordinator note 2: re-pack with real courtyards is decision 70; zero-track DRC confirmed",
-   "59c7945 review(WP12b): release job and its test read and write UTF-8 explicitly",
-   "fdac6b2 handoff: round 6 verdict in (c7c4e5a), rev6 on a second turn for the footprint collisions; WP12c landed un-routed (Q77), WP11c running on w3, WP14b brief waits for the merge"
+   "9354834 Round 8: briefs WP11g (flat pattern v3, pads in the far side wall, J2 inside, J3 break-off, R9/R10 out), WP14f (lid boss and long screw, then wall pads), WP13d (Q96 sentences)",
+   "facb0c1 Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89\u2013Q97 recorded",
+   "5cef436 Round 7 verdict: Q89\u2013Q97 recorded with readings (lid boss and longer screw, charging pads off the skin face, J2 inside, break-off J3, flat pattern v3, stiffeners, R9/R10 DNP, montage scoring, contact envelope)",
+   "1be01ff review: code-r7 verdict MERGE-AFTER-DECISION; gates, defects, \u00a77 look, Q88 ruling, decisions 89\u201397",
+   "3696f5c review(WP11): undo the R24 packing move; the board moves to v2.1 in WP12g (Q87 closed)",
+   "210804d review(WP12): board-v2 \u00a711\u2013\u00a713 describe the Gerber this round carries"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "110a79b",
-    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
-    "dirty": 1
+    "head": "9354834",
+    "subject": "Round 8: briefs WP11g (flat pattern v3, pads in the far side wall, J2 inside, J3 break-off, R9/R10 out), WP14f (lid boss and long screw, then wall pads), WP13d (Q96 sentences)",
+    "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
     "branch": "lane/w1-r6",
-    "head": "110a79b",
-    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
+    "head": "facb0c1",
+    "subject": "Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89\u2013Q97 recorded",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "f4376ca",
-    "subject": "merge origin/lane/w2: restore e3e085b after the WP12c reset",
-    "dirty": 0
+    "head": "795d154",
+    "subject": "Merge remote-tracking branch 'origin/main' into lane/w2",
+    "dirty": 1
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w3",
     "branch": "lane/w3",
-    "head": "bcecc83",
-    "subject": "packing(v2b): L7 pack tables in packing-v2",
-    "dirty": 2
+    "head": "facb0c1",
+    "subject": "Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89\u2013Q97 recorded",
+    "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
-    "head": "110a79b",
-    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
+    "head": "9354834",
+    "subject": "Round 8: briefs WP11g (flat pattern v3, pads in the far side wall, J2 inside, J3 break-off, R9/R10 out), WP14f (lid boss and long screw, then wall pads), WP13d (Q96 sentences)",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w5",
     "branch": "lane/w5",
-    "head": "110a79b",
-    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
+    "head": "facb0c1",
+    "subject": "Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89\u2013Q97 recorded",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w9",
     "branch": "lane/w9",
-    "head": "110a79b",
-    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
+    "head": "facb0c1",
+    "subject": "Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89\u2013Q97 recorded",
     "dirty": 0
    }
   ],
   "branches": [
-   "lane/w1-r6",
    "lane/w4",
+   "main",
+   "lane/w1-r6",
+   "lane/w3",
    "lane/w5",
    "lane/w9",
-   "main",
-   "review/r6",
+   "review/r7",
    "lane/w2",
-   "lane/w3",
+   "review/r6",
    "review/r5",
    "lane/w1",
    "review/r4",
@@ -255,20 +257,21 @@
  },
  "files": {
   "briefs": [
-   "tasks/WP14b-shell-v2b.md",
-   "tasks/WP11c-courtyards.md",
-   "tasks/review-r6.md",
-   "tasks/WP12c-route.md",
-   "tasks/WP17b-research-v4.md",
-   "tasks/WP15-sheets-v2.md",
-   "tasks/WP13b-receiver.md",
-   "tasks/WP12b-board-route.md",
-   "tasks/WP11b-packing-followups.md",
-   "tasks/WP14-shell-v2.md",
-   "tasks/review-r5.md",
-   "tasks/WP17-research-v3.md"
+   "tasks/WP13d-montage-scoring.md",
+   "tasks/WP14f-shell-v2f.md",
+   "tasks/WP11g-flat-pattern-v3.md",
+   "tasks/WP12h-route-by-hand.md",
+   "tasks/review-r7.md",
+   "tasks/WP12g-route-v2-q88.md",
+   "tasks/WP11f-j4-holes.md",
+   "tasks/WP12f-route-v2.md",
+   "tasks/WP14e-shell-v2e.md",
+   "tasks/WP12e-route-v2.md",
+   "tasks/WP11e-flat-pattern.md",
+   "tasks/WP12d-board-v2d.md"
   ],
   "verdicts": [
+   "tasks/reviews/code-r7.md",
    "tasks/reviews/code-r6.md",
    "tasks/reviews/code-r5.md",
    "tasks/reviews/code-r4.md",
