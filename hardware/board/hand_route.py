@@ -122,35 +122,6 @@ def lock_via(board, net, x: float, y: float) -> None:
     lock_new(board, before)
 
 
-def nudge_track_x(board, netname: str, x_old: float, x_new: float, y0: float, y1: float) -> int:
-    """Move a vertical B.Cu run. Returns how many ends were moved."""
-    n = 0
-    lo, hi = min(y0, y1), max(y0, y1)
-    for t in board.GetTracks():
-        if t.GetClass() != "PCB_TRACK":
-            continue
-        if t.GetNetname() != netname or t.GetLayer() != pcbnew.B_Cu:
-            continue
-        s, e = t.GetStart(), t.GetEnd()
-        xs = [pcbnew.ToMM(s.x), pcbnew.ToMM(e.x)]
-        ys = [pcbnew.ToMM(s.y), pcbnew.ToMM(e.y)]
-        pts = [(xs[0], ys[0]), (xs[1], ys[1])]
-        changed = False
-        new = []
-        for x, y in pts:
-            if abs(x - x_old) < 0.04 and lo - 0.05 <= y <= hi + 0.05:
-                new.append((x_new, y))
-                changed = True
-                n += 1
-            else:
-                new.append((x, y))
-        if changed:
-            t.SetStart(maze.v2(new[0][0], new[0][1]))
-            t.SetEnd(maze.v2(new[1][0], new[1][1]))
-    print("nudged", netname, "x", x_old, "->", x_new, "ends", n)
-    return n
-
-
 def route_vbus_p4(board) -> None:
     """Do not add copper. Hole gap and east neck cannot take VBUS. See report."""
     print(
