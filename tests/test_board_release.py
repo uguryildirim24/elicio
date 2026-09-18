@@ -19,7 +19,7 @@ PACKING = ROOT / "hardware" / "board" / "packing_v2_flat.md"
 
 
 def packing_section5_centres() -> dict[str, tuple[float, float]]:
-    """Named SMT centres from the vendored pin table v2 (flat coordinates)."""
+    """Named SMT centres from the vendored pin table v3 (flat coordinates)."""
     sys.path.insert(0, str(ROOT / "hardware" / "board"))
     from placement_table import parse_pin_table_v2
 
@@ -132,35 +132,31 @@ class PackingAgreementTests(unittest.TestCase):
         self.assertNotIn("U5", packing)
         self.assertIn("P4", packing)
         self.assertIn("P5", packing)
-        self.assertAlmostEqual(packing["P4"][0], 37.47, places=2)
-        self.assertAlmostEqual(packing["P4"][1], 2.80, places=2)
-        self.assertAlmostEqual(packing["P5"][0], 30.05, places=2)
-        self.assertAlmostEqual(packing["P5"][1], 5.80, places=2)
+        self.assertAlmostEqual(packing["P4"][0], 23.32, places=2)
+        self.assertAlmostEqual(packing["P4"][1], 4.35, places=2)
+        self.assertAlmostEqual(packing["P5"][0], 23.32, places=2)
+        self.assertAlmostEqual(packing["P5"][1], 12.35, places=2)
         for ref, (px, py) in packing.items():
             if ref.startswith("H") or ref in {"R9", "R10"}:
                 continue
             self.assertIn(ref, found, ref)
             x, y = found[ref]
             dist = ((x - px) ** 2 + (y - py) ** 2) ** 0.5
-            limit = 0.50 if ref == "R24" else 0.1
             self.assertLessEqual(
-                dist, limit, f"{ref} pcb=({x},{y}) packing=({px},{py}) d={dist}"
+                dist, 0.1, f"{ref} pcb=({x},{y}) packing=({px},{py}) d={dist}"
             )
         self.assertIn("H1", found)
         self.assertIn("H2", found)
         self.assertLessEqual(
-            ((found["H1"][0] - 13.45) ** 2 + (found["H1"][1] - 17.70) ** 2) ** 0.5, 0.1
+            ((found["H1"][0] - 13.23) ** 2 + (found["H1"][1] - 17.70) ** 2) ** 0.5, 0.1
         )
         self.assertLessEqual(
             ((found["H2"][0] - 17.95) ** 2 + (found["H2"][1] - 17.70) ** 2) ** 0.5, 0.1
         )
 
 
-    def test_pcb_matches_packing_5d_pin_table_v21(self) -> None:
-        """Review r7: the board and packing §5d pin table v2.1 carry one set of
-        numbers, side and rotation included (bottom parts are mirrored, so pcb
-        rot = 180 - packing rot). R24 alone keeps the Q87 allowance: this board
-        (fbd56e6) has it at +0.47 u rot 0; WP12g moves it onto v2.1's site."""
+    def test_pcb_matches_packing_5e_pin_table_v3(self) -> None:
+        """Board and vendored pin table v3 carry one set of numbers, side and rotation."""
         text = PCB.read_text(encoding="utf-8")
         found: dict[str, tuple[float, float, float, str]] = {}
         for chunk in text.split("\n\t(footprint ")[1:]:
@@ -171,8 +167,8 @@ class PackingAgreementTests(unittest.TestCase):
                 found[ref.group(1)] = (
                     float(at.group(1)), float(at.group(2)), float(at.group(3) or 0.0), layer.group(1)
                 )
-        doc = (ROOT / "docs" / "fab" / "packing-v2.md").read_text(encoding="utf-8")
-        section = doc[doc.index("### Pin table v2.1"):]
+        packing = PACKING.read_text(encoding="utf-8")
+        section = packing[packing.index("### Pin table v3"):]
         section = section[: section.index("\n### ", 5)]
         rows = 0
         for line in section.splitlines():
@@ -186,18 +182,17 @@ class PackingAgreementTests(unittest.TestCase):
             ref, side = m.group(1), m.group(2)
             u, s, rot = float(m.group(3)), float(m.group(4)), float(m.group(5))
             with self.subTest(ref=ref):
-                if ref in {"R9", "R10"}:
-                    self.assertNotIn(ref, found)
-                    continue
+                self.assertNotIn(ref, {"R9", "R10"})
                 self.assertIn(ref, found)
                 x, y, prot, layer = found[ref]
-                limit = 0.50 if ref == "R24" else 0.1
-                self.assertLessEqual(((x - u) ** 2 + (y - s) ** 2) ** 0.5, limit, (ref, x, y, u, s))
-                self.assertEqual(layer, "B.Cu" if side == "bottom" else "F.Cu", ref)
-                if ref != "R24" and ref != "R23":
-                    want = (180.0 - rot) % 360.0 if side == "bottom" else rot % 360.0
-                    self.assertAlmostEqual(prot % 360.0, want, places=1, msg=ref)
-        self.assertEqual(rows, 68)
+                self.assertLessEqual(((x - u) ** 2 + (y - s) ** 2) ** 0.5, 0.1, (ref, x, y, u, s))
+                if side == "bottom":
+                    self.assertEqual(layer, "B.Cu", ref)
+                else:
+                    self.assertEqual(layer, "F.Cu", ref)
+                want = (180.0 - rot) % 360.0 if side == "bottom" else rot % 360.0
+                self.assertAlmostEqual(prot % 360.0, want, places=1, msg=ref)
+        self.assertEqual(rows, 66)
 
 
 class Wp12cRoutedAssertionTests(unittest.TestCase):
@@ -498,20 +493,28 @@ Pin table v2 flat
         self.assertAlmostEqual(zones[0].u, 16.25)
         self.assertAlmostEqual(zones[0].s, 22.06)
 
-    def test_vendored_v2_table_p4_p5_and_j4_keep_diameter(self) -> None:
+    def test_vendored_v3_table_p4_p5_and_j4_keep_diameter(self) -> None:
         import sys
 
         sys.path.insert(0, str(ROOT / "hardware" / "board"))
-        from placement_table import forbids_back_copper, parse_j4_keepouts, parse_pin_table_v2
+        from placement_table import forbids_back_copper, parse_j4_keepouts, parse_pin_table_v3
 
         text = PACKING.read_text(encoding="utf-8")
-        rows = {r.ref: r for r in parse_pin_table_v2(text)}
-        self.assertAlmostEqual(rows["P4"].u, 37.47)
-        self.assertAlmostEqual(rows["P4"].s, 2.80)
-        self.assertAlmostEqual(rows["P5"].u, 30.05)
-        self.assertAlmostEqual(rows["P5"].s, 5.80)
+        rows = {r.ref: r for r in parse_pin_table_v3(text)}
+        self.assertEqual(len(rows), 66)
+        self.assertNotIn("R9", rows)
+        self.assertNotIn("R10", rows)
+        self.assertAlmostEqual(rows["P4"].u, 23.32)
+        self.assertAlmostEqual(rows["P4"].s, 4.35)
+        self.assertAlmostEqual(rows["P5"].u, 23.32)
+        self.assertAlmostEqual(rows["P5"].s, 12.35)
         self.assertAlmostEqual(rows["P1"].s, 5.29)
         self.assertAlmostEqual(rows["P2"].s, -5.81)
+        self.assertAlmostEqual(rows["J2"].u, 15.15)
+        self.assertAlmostEqual(rows["J2"].s, 11.35)
+        self.assertAlmostEqual(rows["J3"].u, 28.41)
+        self.assertAlmostEqual(rows["J4"].u, 16.52)
+        self.assertAlmostEqual(rows["H1"].u, 13.23)
         zones = parse_j4_keepouts(text)
         self.assertEqual(len(zones), 3)
         self.assertTrue(all(forbids_back_copper(z) for z in zones))
@@ -622,7 +625,7 @@ class Wp12iStiffenerAndEnvelopeTests(unittest.TestCase):
         self.assertIn("(end 8 25.7)", text)
         self.assertIn("(start 8 29.5)", text)
         self.assertIn("(end 13.9 37.3)", text)
-        self.assertIn("(start 18.35 21.2)", text)
+        self.assertIn("(start 18.55 21.2)", text)
         self.assertNotIn("Eco1 FR4 0.4 #1 parts island", text)
 
     def test_q97_strip_has_only_its_contact_net(self) -> None:
@@ -653,8 +656,8 @@ class Wp12iStiffenerAndEnvelopeTests(unittest.TestCase):
             "P1": (5.90, 5.29),
             "P2": (10.40, -5.81),
             "P3": (8.50, 43.00),
-            "P4": (37.47, 2.80),
-            "P5": (30.05, 5.80),
+            "P4": (23.32, 4.35),
+            "P5": (23.32, 12.35),
         }
         half = 3.50
         hits = []
@@ -692,6 +695,36 @@ class Wp12iStiffenerAndEnvelopeTests(unittest.TestCase):
             if any(net in {"SIG1", "SIG2", "REF"} for net in pad_nets):
                 refs.append(ref)
         self.assertEqual(sorted(set(refs)), ["R1", "R2", "R3"])
+
+
+    def test_q98_named_channel_boxes(self) -> None:
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_channel_keepouts
+
+        want = {
+            "HOLE_CH": (14.880, 16.050, 16.300, 19.350),
+            "U2_CH": (11.620, 1.220, 18.080, 7.680),
+            "U3_CH": (14.000, 28.900, 18.160, 33.600),
+            "J4_CH": (13.925, 20.500, 19.125, 28.700),
+            "J4_VIA_SLOT": (13.775, 21.100, 14.525, 28.100),
+            "J4_APPROACH_EAST": (18.525, 20.500, 21.025, 28.700),
+        }
+        boxes = {z.name: z for z in parse_channel_keepouts(PACKING.read_text(encoding="utf-8"))}
+        self.assertEqual(set(boxes), set(want))
+        text = PCB.read_text(encoding="utf-8")
+        for name, (u0, s0, u1, s1) in want.items():
+            z = boxes[name]
+            self.assertAlmostEqual(z.u0, u0, places=3, msg=name)
+            self.assertAlmostEqual(z.s0, s0, places=3, msg=name)
+            self.assertAlmostEqual(z.u1, u1, places=3, msg=name)
+            self.assertAlmostEqual(z.s1, s1, places=3, msg=name)
+            self.assertIn(f'(name "{name}")', text, name)
+
+    def test_j3_breakoff_cut_on_fab_layer(self) -> None:
+        text = PCB.read_text(encoding="utf-8")
+        self.assertIn("J3 CUT u=22.25", text)
+        self.assertIn("(layer \"F.Fab\")", text)
+        self.assertIn("(start 22.25 ", text)
 
 
 class PinTableV3ParserTests(unittest.TestCase):

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Place elicio-v2 from pin table v2 (flat coordinates), sync nets, save.
+"""Place elicio-v2 from pin table v3 (flat coordinates), sync nets, save.
 
-WP12e. Packing (u, s) = PCB (x, y). Flat pattern with SIG/REF/CHARGE tabs.
+WP12i. Packing (u, s) = PCB (x, y). Flat pattern with SIG/REF/CHARGE tabs
+and the J3 break-off tab.
 """
 from __future__ import annotations
 
@@ -21,8 +22,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from maze_route import maze_route  # noqa: E402
 from placement_table import (  # noqa: E402
     PlacementRow,
+    extract_section5e,
+    parse_channel_keepouts,
     parse_j4_keepouts,
     parse_pin_table_v2,
+    parse_pin_table_v3,
     wants_back_copper,
 )
 
@@ -45,39 +49,50 @@ FREEROUTE_JAR = Path.home() / ".local" / "opt" / "freerouting" / "freerouting-2.
 
 BOARD_U0, BOARD_U1 = 2.25, 19.75
 BOARD_S0, BOARD_S1 = 16.00, 37.60
-# Leftover / pocket island (SW1, U2, J2) and J3 hang, copper-to-edge 0.30.
-POCKET_U0, POCKET_U1 = 12.00, 25.50
+# Leftover / pocket island (SW1, U2 B.Cu, J2). Charge tab leaves high-u at 20.50.
+POCKET_U0, POCKET_U1 = 12.00, 20.50
 POCKET_S0, POCKET_S1 = 1.35, 16.00
-J2_HANG_S0, J2_HANG_S1 = 7.40, 14.40
-HANG_U1 = 33.20
-HANG_S0, HANG_S1 = 16.00, 26.70
 TAB_STRIP = 2.5
 TAB_CAP_R = 3.2
-HOLES = ((13.45, 17.70), (17.95, 17.70))
+HOLES = ((13.23, 17.70), (17.95, 17.70))
 SIG1_ATTACH = (5.90, 16.00)
 SIG2_ATTACH = (10.40, 16.00)
 REF_ATTACH = (8.50, 37.60)
 SIG1_SITE = (5.90, 5.29)
 SIG2_SITE = (10.40, -5.81)
 REF_SITE = (8.50, 43.00)
-P4_SITE = (37.47, 2.80)
-P5_SITE = (30.05, 5.80)
-CHARGE_CX, CHARGE_CY = 33.02, 4.30
-CHARGE_WU, CHARGE_WS = 14.50, 8.60
+P4_SITE = (23.32, 4.35)
+P5_SITE = (23.32, 12.35)
+CHARGE_CX, CHARGE_CY = 23.32, 8.35
+CHARGE_WU, CHARGE_WS = 5.64, 13.64
 CHARGE_U0, CHARGE_U1 = CHARGE_CX - CHARGE_WU / 2, CHARGE_CX + CHARGE_WU / 2
 CHARGE_S0, CHARGE_S1 = CHARGE_CY - CHARGE_WS / 2, CHARGE_CY + CHARGE_WS / 2
+J3_SITE = (28.41, 26.80)
+J3_COURT_U, J3_COURT_S = 12.31, 8.62
+J3_CUT_U = 22.25
+J3_NECK_W = 2.50
+J3_TAB_MARGIN = 0.35
+J3_NECK_S0 = J3_SITE[1] - J3_NECK_W / 2
+J3_NECK_S1 = J3_SITE[1] + J3_NECK_W / 2
+J3_TAB_S0 = J3_SITE[1] - J3_COURT_S / 2 - J3_TAB_MARGIN
+# Header pitch 2.54; pad 3 copper is past the packing courtyard.
+J3_TAB_S1 = J3_SITE[1] + 2 * 2.54 + 0.75 + 0.35
+J3_TAB_U1 = J3_SITE[0] + J3_COURT_U / 2 + J3_TAB_MARGIN
 # U1 process pose keep-out 12.4 × 3.8 at the high-s antenna end.
 RF_BOX = (2.25, 33.80, 14.20, 37.60)
-J4_KEEP = (14.25, 21.10, 18.25, 28.10)
+# J4 (16.52, 24.60) rot 90, courtyard 4 × 7. Via slot is west of this box.
+J4_KEEP = (14.52, 21.10, 18.52, 28.10)
 SKIP_REFS = {"J1", "U5", "R9", "R10"}  # Q81 no USB-C; Q95 DNP, not on the PCB.
-# Pin table v2.1 (e4b857c): J4 holes from the KiCad footprint. R24 rot 90.
-V21_POSE = {
-    "R23": (18.32, 21.10, 0.0),
-    "R24": (18.49, 22.57, 90.0),
-    "R26": (14.21, 21.63, 90.0),
-}
 HOLE_REFS = {"H1", "H2"}
 RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
+Q98_CHANNEL_NAMES = (
+    "HOLE_CH",
+    "U2_CH",
+    "U3_CH",
+    "J4_CH",
+    "J4_VIA_SLOT",
+    "J4_APPROACH_EAST",
+)
 
 LIBS = {
     "elicio": LOCAL_FP,
@@ -175,14 +190,15 @@ def add_filled_circle(board, cx: float, cy: float, radius: float, layer) -> None
 
 
 # Q94. FR4 0.4 only where that face has no SMT lands. PI 0.1 on the thin
-# B.Cu-only sliver east of J4 (FR4 0.4 cannot sit in 1.1 mm). Eco2 = FR4 0.2
+# F.Cu sliver east of J4 (FR4 0.4 cannot sit in 1.1 mm). Eco2 = FR4 0.2
 # ring pieces (decision 72 / Q72). User.1 = PI 0.1.
+# leftover_B east of U2 (B.Cu at 14.85, 4.45) and of R27–R30 (B.Cu at 13.23).
 STIFF_FR4_04 = (
-    ("leftover_B", 12.20, 1.55, 19.55, 15.80),
+    ("leftover_B", 17.70, 1.55, 19.90, 15.80),
     ("u1_west_B", 2.55, 20.20, 8.00, 25.70),
     ("u1_rf_B", 8.00, 29.50, 13.90, 37.30),
 )
-STIFF_PI_01 = (("east_j4_F", 18.35, 21.20, 19.45, 26.10),)
+STIFF_PI_01 = (("east_j4_F", 18.55, 21.20, 19.55, 26.10),)
 RING_FR4_02_R = TAB_CAP_R
 STIFF_COUNT = len(STIFF_FR4_04) + len(STIFF_PI_01) + len(RING_REFS)
 
@@ -338,6 +354,29 @@ def add_drc_rule_area(board, x0, y0, x1, y1, name) -> None:
     )
 
 
+def add_q98_channels(board) -> None:
+    """Named Q98 boxes. They do not keep copper out; tests check the names."""
+    boxes = parse_channel_keepouts(TABLE.read_text())
+    by_name = {z.name: z for z in boxes}
+    for name in Q98_CHANNEL_NAMES:
+        z = by_name[name]
+        add_drc_rule_area(board, z.u0, z.s0, z.u1, z.s1, name)
+
+
+def add_j3_cut_line(board) -> None:
+    """Break-off cut at u=22.25 on fabrication layers. Not Edge.Cuts."""
+    for layer in (pcbnew.Dwgs_User, pcbnew.F_Fab):
+        s = pcbnew.PCB_SHAPE(board)
+        s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+        s.SetLayer(layer)
+        s.SetStart(v2(J3_CUT_U, J3_TAB_S0))
+        s.SetEnd(v2(J3_CUT_U, J3_TAB_S1))
+        s.SetWidth(pcbnew.FromMM(0.12))
+        board.Add(s)
+    add_text(board, J3_CUT_U + 0.8, J3_SITE[1], "J3 CUT u=22.25", pcbnew.Dwgs_User, 0.5)
+    add_text(board, J3_CUT_U + 0.8, J3_SITE[1] + 1.2, "J3 CUT u=22.25", pcbnew.F_Fab, 0.4)
+
+
 def add_q84_contact_areas(board) -> None:
     """Q88: 1.0 mm creepage on each Ø5 land plus 1.0 mm (7 × 7 of §12)."""
     half = TAB_RULE_HALF
@@ -417,26 +456,28 @@ def add_copper_zone(board, name: str, net, pts, layer) -> None:
 
 
 def outline_points():
-    """Flat pattern: island, leftover/pocket, J3 hang, SIG strips, REF tab, CHARGE tab."""
+    """Flat pattern: island, leftover/pocket, charge tab, J3 break-off, SIG/REF."""
     pts = [(BOARD_U0, BOARD_S0)]
     pts += tab_detour(SIG1_ATTACH, SIG1_SITE)
     pts += tab_detour(SIG2_ATTACH, SIG2_SITE)
     pts += [
         (POCKET_U0, BOARD_S0),
         (POCKET_U0, POCKET_S0),
-        (20.40, POCKET_S0),
-        (20.40, J2_HANG_S0),
-        (CHARGE_U0, J2_HANG_S0),
-        (CHARGE_U0, CHARGE_S0),
+        (POCKET_U1, POCKET_S0),
+        (POCKET_U1, CHARGE_S0),
         (CHARGE_U1, CHARGE_S0),
         (CHARGE_U1, CHARGE_S1),
-        (CHARGE_U0, CHARGE_S1),
-        (CHARGE_U0, J2_HANG_S1),
-        (BOARD_U1, J2_HANG_S1),
-        (BOARD_U1, HANG_S0),
-        (HANG_U1, HANG_S0),
-        (HANG_U1, HANG_S1),
-        (BOARD_U1, HANG_S1),
+        (POCKET_U1, CHARGE_S1),
+        (POCKET_U1, BOARD_S0),
+        (BOARD_U1, BOARD_S0),
+        (BOARD_U1, J3_NECK_S0),
+        (J3_CUT_U, J3_NECK_S0),
+        (J3_CUT_U, J3_TAB_S0),
+        (J3_TAB_U1, J3_TAB_S0),
+        (J3_TAB_U1, J3_TAB_S1),
+        (J3_CUT_U, J3_TAB_S1),
+        (J3_CUT_U, J3_NECK_S1),
+        (BOARD_U1, J3_NECK_S1),
         (BOARD_U1, BOARD_S1),
     ]
     pts += tab_detour(REF_ATTACH, REF_SITE)
@@ -445,20 +486,22 @@ def outline_points():
 
 
 def island_outline():
-    """GND fill: island + leftover/pocket + J3 hang. Tabs stay contact-only."""
+    """GND fill: island + leftover/pocket + J3 tab. Tabs stay contact-only."""
     return [
         (BOARD_U0, BOARD_S0),
         (POCKET_U0, BOARD_S0),
         (POCKET_U0, POCKET_S0),
-        (20.40, POCKET_S0),
-        (20.40, J2_HANG_S0),
-        (POCKET_U1, J2_HANG_S0),
-        (POCKET_U1, J2_HANG_S1),
-        (BOARD_U1, J2_HANG_S1),
-        (BOARD_U1, HANG_S0),
-        (HANG_U1, HANG_S0),
-        (HANG_U1, HANG_S1),
-        (BOARD_U1, HANG_S1),
+        (POCKET_U1, POCKET_S0),
+        (POCKET_U1, BOARD_S0),
+        (BOARD_U1, BOARD_S0),
+        (BOARD_U1, J3_NECK_S0),
+        (J3_CUT_U, J3_NECK_S0),
+        (J3_CUT_U, J3_TAB_S0),
+        (J3_TAB_U1, J3_TAB_S0),
+        (J3_TAB_U1, J3_TAB_S1),
+        (J3_CUT_U, J3_TAB_S1),
+        (J3_CUT_U, J3_NECK_S1),
+        (BOARD_U1, J3_NECK_S1),
         (BOARD_U1, BOARD_S1),
         (BOARD_U0, BOARD_S1),
     ]
@@ -662,19 +705,14 @@ def add_locked_path(board, pts: list[tuple[float, float]], net, layer, width: fl
 
 
 def pre_route_tabs(board) -> None:
-    """Locked Contact: ring → strip centre → island → R1–R3. Charge tab to first parts.
+    """Locked Contact: ring → strip centre → island → R1–R3. One layer.
 
-    Q88 7×7 ends at the land. A segment that only clips that box still carries
-    1.0 mm for its whole length, so REF and GND split at the box edge. SIG2
-    cannot enter at u=10.40 (D2 pad 2 sits on that centre line); it jogs on
-    the coverlaid strip to u=11.27, then to 11.50 to pass C1 west of H1.
-    VBUS stays on the CHARGE south edge: island VBUS to D1 crosses SIG1.
+    SIG2 stays at u=13.50 past the holes (east of U1 copper, west of the
+    J4 via slot). It jogs around C2 at (12.81, 20.11) then returns.
     """
     sig1 = ensure_net(board, "SIG1")
     sig2 = ensure_net(board, "SIG2")
     ref = ensure_net(board, "REF")
-    vbus = ensure_net(board, "VBUS")
-    gnd = ensure_net(board, "GND")
     fcu = pcbnew.F_Cu
     p1 = pad_center(board, "P1", "1")
     r1 = pad_center(board, "R1", "1")
@@ -693,7 +731,6 @@ def pre_route_tabs(board) -> None:
         CONTACT_TRACK,
     )
     p2 = pad_center(board, "P2", "1")
-    r2 = pad_center(board, "R2", "1")
     add_locked_path(
         board,
         [
@@ -702,63 +739,24 @@ def pre_route_tabs(board) -> None:
             (11.27, 15.50),
             (11.27, 16.50),
             (11.50, 16.50),
-            (11.50, 19.50),
-            (13.50, 19.50),
-            (13.50, 28.20),
-            (16.40, 28.20),
-            (16.40, r2[1]),
-            r2,
         ],
         sig2,
         fcu,
         CONTACT_TRACK,
     )
     p3 = pad_center(board, "P3", "1")
-    r3 = pad_center(board, "R3", "1")
-    # 7×7 south edge is s=39.50. Leave it on a short stub so the island
-    # run does not inherit 1.0 mm versus U1 pad 26.
     add_locked_path(board, [p3, (REF_ATTACH[0], 39.35)], ref, fcu, CONTACT_TRACK)
     add_locked_path(
         board,
         [
             (REF_ATTACH[0], 39.35),
             (REF_ATTACH[0], 37.20),
-            (14.40, 37.20),
-            (14.40, 33.20),
-            (18.47, 33.20),
-            (18.47, r3[1]),
-            r3,
         ],
         ref,
         fcu,
         CONTACT_TRACK,
     )
-    p4 = pad_center(board, "P4", "1")
-    add_locked_path(
-        board,
-        [p4, (p4[0], 1.20), (CHARGE_U0 + 0.5, 1.20)],
-        vbus,
-        fcu,
-        FLEX_TRACK,
-    )
-    p5 = pad_center(board, "P5", "1")
-    j2g = pad_center(board, "J2", "2")
-    p5_west = P5_SITE[0] - TAB_RULE_HALF
-    add_locked_path(
-        board,
-        [p5, (p5[0], 8.20), (p5_west, 8.20), (p5_west, 7.80), (p5_west - 0.15, 7.80)],
-        gnd,
-        fcu,
-        FLEX_TRACK,
-    )
-    add_locked_path(
-        board,
-        [(p5_west - 0.15, 7.80), (j2g[0], 7.80), j2g],
-        gnd,
-        fcu,
-        FLEX_TRACK,
-    )
-    print("pre-route locked Contact ring-to-R and charge-tab traces")
+    print("pre-route locked Contact ring-to-R")
 
 
 def add_strip_other_net_keepouts(board) -> None:
@@ -859,8 +857,12 @@ def hole_xy(table: dict[str, PlacementRow], href: str, index: int) -> tuple[floa
 
 def load_table() -> dict[str, PlacementRow]:
     text = TABLE.read_text()
-    rows = parse_pin_table_v2(text)
-    print("placement table", TABLE.name, "rows", len(rows))
+    if extract_section5e(text):
+        rows = parse_pin_table_v3(text)
+        print("placement table", TABLE.name, "v3 rows", len(rows))
+    else:
+        rows = parse_pin_table_v2(text)
+        print("placement table", TABLE.name, "v2 rows", len(rows))
     return {row.ref: row for row in rows}
 
 
@@ -896,6 +898,8 @@ def build() -> None:
     add_keepout(board, RF_BOX[0], RF_BOX[1], RF_BOX[2], RF_BOX[3], "RF_NO_COPPER", allow_pads=True, allow_tracks=True)
     add_keepout(board, J4_KEEP[0], J4_KEEP[1], J4_KEEP[2], J4_KEEP[3], "J4_KEEP", allow_pads=True, allow_tracks=True)
     add_q84_contact_areas(board)
+    add_q98_channels(board)
+    add_j3_cut_line(board)
     for (cx, cy), name in (
         (SIG1_SITE, "RING_SIG1_CLEAR"),
         (SIG2_SITE, "RING_SIG2_CLEAR"),
@@ -912,7 +916,8 @@ def build() -> None:
     add_text(board, 11.0, 15.2, "BEND R>=1.5 NO VIA/PART/STIFFENER", pcbnew.Dwgs_User, 0.6)
     add_text(board, 8.2, 10.6, "SIG1 STRIP FLAT 10.71", pcbnew.Cmts_User, 0.5)
     add_text(board, 13.5, 5.1, "SIG2 STRIP FLAT 21.81", pcbnew.Cmts_User, 0.5)
-    add_text(board, 33.0, 4.3, "CHARGE TAB Q86", pcbnew.Cmts_User, 0.5)
+    add_text(board, 23.3, 8.35, "CHARGE TAB Q90", pcbnew.Cmts_User, 0.5)
+    add_text(board, 30.5, 26.8, "J3 BREAK-OFF", pcbnew.Cmts_User, 0.5)
     add_filled_rect(board, 4.65, 14.40, 11.65, BOARD_S0, pcbnew.Cmts_User)
 
     missing_table = sorted(ref for ref in table if ref not in comps and ref not in skip)
@@ -930,12 +935,8 @@ def build() -> None:
         print("place", ref, fp_id, row.u, row.s, row.rot, row.side)
         fp = place_fp(board, ref, fp_id, row.u, row.s, row.rot, meta["value"], bool(meta.get("dnp")))
         apply_placement_row(fp, row)
-        pose = V21_POSE.get(ref)
-        if pose:
-            u, s, rot = pose
-            fp.SetPosition(v2(u, s))
-            fp.SetOrientationDegrees(rot)
-            print("v2.1 pose", ref, u, s, rot)
+
+    apply_u2_rsm_land(board)
 
     u1 = next(fp for fp in board.GetFootprints() if fp.GetReference() == "U1")
     # Packing: module keep-out empty. The Raytac library zone blocks B.Cu parts.
