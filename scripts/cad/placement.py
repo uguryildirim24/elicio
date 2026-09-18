@@ -2165,9 +2165,11 @@ def main(argv: list[str] | None = None) -> int:
         mod = v2._layout_v2c_mod()
         rows = mod.run_v2c_grid(v2)
         for lay in rows:
+            rec = "usb" if lay.receptacle else "norec"
             print(
-                f"{lay.edge} w{lay.width:g} c{lay.chord:.2f} {lay.sides} "
-                f"placed={lay.placed}/66 extra_u={lay.extra_u:+.2f} extra_s={lay.extra_s:+.2f} "
+                f"{lay.edge} {rec} w{lay.width:g} c{lay.chord:.2f} {lay.sides} "
+                f"placed={lay.placed}/{lay.bom_n} fold={lay.fold} holes={len(lay.hole_sites)} "
+                f"extra_u={lay.extra_u:+.2f} extra_s={lay.extra_s:+.2f} "
                 f"second={len(lay.second_side)} blocking={lay.first_blocking.split(':')[0] if lay.first_blocking else '—'}"
             )
         drawn = mod.write_v2c_drawings(v2)
