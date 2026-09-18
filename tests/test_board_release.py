@@ -223,5 +223,120 @@ class SideColumnTests(unittest.TestCase):
         self.assertEqual([wants_back_copper(r) for r in rows], [False, True, False])
 
 
+class Q84ContactAreaTests(unittest.TestCase):
+    def test_dru_file_names_tabs_and_tail_pads(self) -> None:
+        dru = (ROOT / "hardware" / "board" / "elicio-v2.kicad_dru").read_text(encoding="utf-8")
+        self.assertIn("(version 1)", dru)
+        self.assertIn("intersectsArea('tabs')", dru)
+        self.assertIn("intersectsArea('tail_pads')", dru)
+        self.assertIn("1.0mm", dru)
+
+    def test_contact_netclass_is_island_default_0_20(self) -> None:
+        pro = json.loads((ROOT / "hardware" / "board" / "elicio-v2.kicad_pro").read_text(encoding="utf-8"))
+        contact = next(c for c in pro["net_settings"]["classes"] if c["name"] == "Contact")
+        self.assertAlmostEqual(contact["clearance"], 0.2)
+
+    def test_zero_track_drc_has_no_contact_clearance_on_island_0402(self) -> None:
+        """Q84: R1–R3 on the island use 0.20 mm, not tab creepage 1.0 mm."""
+        if shutil.which("kicad-cli") is None:
+            self.fail(kicad_missing_message())
+        with tempfile.TemporaryDirectory() as tmp:
+            report = Path(tmp) / "drc.json"
+            proc = subprocess.run(
+                ["kicad-cli", "pcb", "drc", "--format", "json", "-o", str(report), str(PCB)],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            island_refs = (" of R1 ", " of R2 ", " of R3 ")
+            hits = []
+            for viol in data.get("violations") or []:
+                if viol.get("type") != "clearance":
+                    continue
+                desc = viol.get("description") or ""
+                if "Contact" not in desc:
+                    continue
+                blob = " " + " ".join(item.get("description") or "" for item in viol.get("items") or []) + " "
+                if any(ref in blob for ref in island_refs):
+                    hits.append((desc, blob.strip()))
+            self.assertEqual(hits, [], msg=hits)
+
+
+class PinTableV2ParserTests(unittest.TestCase):
+    SAMPLE = """
+# Pin table v2 (flat coordinates)
+
+| ref | side | u | s | rot | notes |
+|---|---|---:|---:|---:|---|
+| U1 | top | 8.00 | 29.35 | 0 | island |
+| R6 | bottom | 14.68 | 22.37 | 0 | second side |
+| P1 | top | 5.90 | 12.00 | 0 | flat strip end |
+
+## Folded shell sites (u, s, y) — shell lane only
+
+| ref | u | s | y |
+|---|---:|---:|---:|
+| P1 | 5.90 | 22.00 | 4.81 |
+| P2 | 10.40 | 33.10 | 4.81 |
+
+## J4 both-side keep-out (hole diameter plus hole clearance)
+
+| name | u | s | diameter | clearance | layers |
+|---|---:|---:|---:|---:|---|
+| j4_h1 | 16.25 | 22.06 | 0.9906 | 0.20 | both |
+| j4_h2 | 17.27 | 27.14 | 0.9906 | 0.20 | both |
+"""
+
+    XY_SAMPLE = """
+Pin table v2 flat
+
+| ref | side | x | y | rot |
+|---|---|---:|---:|---:|
+| J4 | top | 16.25 | 24.60 | 90 |
+"""
+
+    def test_flat_rows_ignore_folded_shell_sites(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_pin_table_v2
+
+        rows = parse_pin_table_v2(self.SAMPLE)
+        refs = [r.ref for r in rows]
+        self.assertEqual(refs, ["U1", "R6", "P1"])
+        p1 = next(r for r in rows if r.ref == "P1")
+        self.assertAlmostEqual(p1.s, 12.00)
+        self.assertEqual(p1.side, "top")
+        r6 = next(r for r in rows if r.ref == "R6")
+        self.assertEqual(r6.side, "bottom")
+
+    def test_flat_x_y_columns(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_pin_table_v2
+
+        rows = parse_pin_table_v2(self.XY_SAMPLE)
+        self.assertEqual(len(rows), 1)
+        self.assertAlmostEqual(rows[0].u, 16.25)
+        self.assertAlmostEqual(rows[0].s, 24.60)
+        self.assertAlmostEqual(rows[0].rot, 90)
+
+    def test_j4_keepout_is_both_side_and_forbids_back_copper(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import forbids_back_copper, parse_j4_keepouts
+
+        zones = parse_j4_keepouts(self.SAMPLE)
+        self.assertEqual(len(zones), 2)
+        self.assertTrue(all(forbids_back_copper(z) for z in zones))
+        self.assertAlmostEqual(zones[0].radius, 0.9906 / 2 + 0.20)
+        self.assertAlmostEqual(zones[0].u, 16.25)
+        self.assertAlmostEqual(zones[0].s, 22.06)
+
+
 if __name__ == "__main__":
     unittest.main()
