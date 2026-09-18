@@ -1,7 +1,7 @@
 # HANDOFF — Elicio coordinator
 
-Written 2026-09-17 22:20 (America/New_York) by the coordinator (`elicio`,
-pane `w1B:p1`) right after opening round 6. Rolf is asleep; the
+Written 2026-09-18 00:25 (America/New_York) by the coordinator (`elicio`,
+pane `w1B:p1`) right after opening the round 6 review. Rolf is asleep; the
 delegation below is in force.
 
 ## Goal
@@ -134,11 +134,23 @@ brief in full and do it", nothing owed from me until their pushes.
   w3 idles; nothing queued. Reading in the r6 brief: shell and board stay
   on w20 × y8, the carried cell becomes the 501012 pack, the purchase
   route is Rolf's (decision 69).
-- **w2 → WP12b board route** (`tasks/WP12b-board-route.md`), branch
-  `lane/w2`. Re-place from packing-v2 §5, sync, route, `release.py
-  --routed` exit 0, stiffeners ≤ 3 (Q60), decoupling (Q68), standby load
-  (Q65), BOM re-read (Q63), G7 joint inputs. Report
-  `.reports/WP12b-report.md` (expected) → `DONE WP12b`.
+- **w2 → WP12b board route**: LANDED, `DONE WP12b` at `480e355` on
+  `lane/w2` (three commits, tree clean, report
+  `.worktrees/w2/.reports/WP12b-report.md` present). Placement from
+  packing §5 within 0.1 mm (test), every net synced, GPIO map in
+  board-v2 §9, Q68 decoupling, BOM codes from L7 (stock and price
+  UNVERIFIED), two stiffeners, Q64 and Q65 stated. Routing FAILED:
+  Freerouting hung, a bus fallback wrote shorting copper (DRC 1290, 31
+  unconnected), `release.py --routed` refused; its last commit message
+  says "routed, released" and it is not. 13 CadRegen failures in its
+  venv again (round 5: the lane's pins).
+- **w2 → WP12c route** (`tasks/WP12c-route.md`), prompted 00:20 on
+  `lane/w2` continuing from `480e355`, in parallel with the reviewer:
+  drop the shorting copper first, diagnose the Freerouting hang, route to
+  DRC 0 or stop un-shorted with `routed: false`; owns only the PCB
+  copper, the two routing scripts, `hardware/board/route.md` (expected)
+  and board-v2 §15. Report `.reports/WP12c-report.md` (expected) →
+  `DONE WP12c`; lands in round 7.
 - **w4 → WP13b receiver**: LANDED, `DONE WP13b` at `e7c366a` on
   `lane/w4` (five commits, tree clean, report
   `.worktrees/w4/.reports/WP13b-report.md` present, 179 tests OK with 21
@@ -185,15 +197,20 @@ brief in full and do it", nothing owed from me until their pushes.
   sheets, so the plan's 15.6 envelope is a bare cell; only marketplace
   501012 packs (13.0 × 10.1 × 5.1 with PCM, 40 mAh, eBay/AliExpress) fit.
   w5 idles; nothing queued.
-- **Reviewer r6**: not started. When all six DONEs are in: `git worktree
-  add .worktrees/review -b review/r6 main` (path absent on main, removed
-  after r5), brief `tasks/review-r6.md` (expected) from `tasks/review-r5.md`,
-  one fresh Opus 5 high Claude reviewer (`--model claude-opus-5 --effort
-  high --dangerously-skip-permissions`), merge order w3, w1-r6, w2, w4,
-  w9, w5; seams: `packing-v2.md` between w3 and what w1 read, `board_pins.h`
-  against w2's §9 map, the size of `docs/fab/cad/v2/` (expected), `pyproject.toml` (w4 adds
-  the `ble` group, w9 may add matplotlib), `tests/`.
-- No lane is WAITING or BLOCKED as of writing. `rev5` pushed `GONE` after
+- **Reviewer r6**: RUNNING since 00:20, agent `rev6` (Claude Opus 5
+  high, skip-permissions) in worktree `.worktrees/review` on `review/r6`
+  from `main` at `b710ed1`, brief `tasks/review-r6.md` (all six reports
+  pasted; merge order w3, w1-r6, w5, w4, w9, then `lane/w2` at `480e355`
+  exactly; routing is not the reviewer's; decisions from 69, the first
+  being the cell). Waits for nothing from me. Report
+  `.reports/review-r6-report.md` (expected in that worktree) →
+  `DONE review-r6`. Then: read `tasks/reviews/code-r6.md` (expected),
+  record decisions as Q69 onward, `git merge --no-ff review/r6` from the
+  clean root checkout (main will have moved), fast-forward the idle lanes
+  whose branches were merged, close the review tab and remove the
+  worktree, checkpoint, file round 6 into the vault, refresh the answer
+  sheet with the reviewed renders.
+- No lane is WAITING or BLOCKED as of writing (00:25). `rev5` pushed `GONE` after
   I closed its tab (expected). The `pro` tab is closed; `pro-mcp start
   --name pro` reopens it if another spec dialogue is needed.
 
@@ -224,9 +241,9 @@ Outside those:
 
 ## Next
 
-- Idle until the six `DONE` pushes (or WAITING/BLOCKED/GONE); on each,
-  check the report file and a clean worktree, read the report; when all
-  six are in, open the round 6 reviewer as described under In flight, then
+- Idle until `DONE review-r6` (or WAITING/BLOCKED/GONE for rev6, or
+  `DONE WP12c` from w2, which is checked and recorded but merges in round
+  7); then do the post-review steps listed under Reviewer r6 and
   checkpoint.
 
 ## Traps
@@ -324,19 +341,20 @@ Outside those:
 checkpoint with:  python3 ~/.claude/skills/save-state/state.py snapshot
 Do not hand-edit ids into it. -->
 
-## Herdr (generated 2026-09-17T22:19:24-04:00 by state.py, herdr 0.9.0, session `default`)
-Workspace `w1B` (elicio), 8 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
+## Herdr (generated 2026-09-17T23:37:59-04:00 by state.py, herdr 0.9.0, session `default`)
+Workspace `w1B` (elicio), 9 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
 Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl`.
 
 ### Workers nested under the coordinator
 | name | kind | status | pane | tab (label) | cwd | tokens | last title |
 |---|---|---|---|---|---|---|---|
-| w1 | cursor | working | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP11 | Lane W1 Instructions |
-| w2 | cursor | working | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP12 | Lane W2 Instructions |
-| w4 | cursor | working | `w1B:pC` | `w1B:tC` (w4) | `/Users/rolfie/projects/elicio/.worktrees/w4` | done=1 lane=WP13 | Lane W4 Instructions |
-| w5 | agy | working | `w1B:pD` | `w1B:tD` (w5) | `/Users/rolfie/projects/elicio/.worktrees/w5` | done=1 lane=WP17 |  |
-| w9 | cursor | working | `w1B:pE` | `w1B:tE` (w9) | `/Users/rolfie/projects/elicio/.worktrees/w9` | done=1 lane=WP16 | Lane W9 Instructions |
-| w3 | cursor | working | `w1B:pR` | `w1B:tR` (w3) | `/Users/rolfie/projects/elicio/.worktrees/w3` | - | New Package Brief |
+| w1 | cursor | done | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP14 | Lane W1 Instructions |
+| w2 | cursor | working | `w1B:pB` | `w1B:tB` (w2) | `/Users/rolfie/projects/elicio/.worktrees/w2` | done=1 lane=WP12b | Lane W2 Instructions |
+| w4 | cursor | done | `w1B:pC` | `w1B:tC` (w4) | `/Users/rolfie/projects/elicio/.worktrees/w4` | done=1 lane=WP13b | Lane W4 Instructions |
+| w5 | agy | done | `w1B:pD` | `w1B:tD` (w5) | `/Users/rolfie/projects/elicio/.worktrees/w5` | done=1 lane=WP17b |  |
+| w9 | cursor | done | `w1B:pE` | `w1B:tE` (w9) | `/Users/rolfie/projects/elicio/.worktrees/w9` | done=1 lane=WP15 | Lane W9 Instructions |
+| w3 | cursor | done | `w1B:pR` | `w1B:tR` (w3) | `/Users/rolfie/projects/elicio/.worktrees/w3` | done=1 lane=WP11b | New Package Brief |
+| rev6 | claude | working | `w1B:pS` | `w1B:tS` (review) | `/Users/rolfie/projects/elicio/.worktrees/review` | - | Review round 6 |
 
 Start lines as they run now (from `pane process-info`), for restarting a worker that is gone:
 
@@ -347,6 +365,7 @@ herdr agent start w4 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -
 herdr agent start w5 --kind agy --pane <new pane> --parent "$HERDR_PANE_ID" -- --conversation 18235bfb-f5b8-4365-9383-d66c69251f4b --dangerously-skip-permissions --add-dir /Users/rolfie/projects/elicio --effort high --model gemini-3.8-flash-high
 herdr agent start w9 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume ea20ccc0-04da-408f-a016-57766846ee99
 herdr agent start w3 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --model cursor-grok-4.6-xhigh --force
+herdr agent start rev6 --kind claude --pane <new pane> --parent "$HERDR_PANE_ID" -- --model claude-opus-5 --effort high --dangerously-skip-permissions
 ```
 
 Other workspaces on this server (not yours to touch): `w16` flyonenomics (done), `w1D` ablirated (done), `w1E` jevtest (idle)
@@ -356,28 +375,29 @@ Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behi
 
 | worktree | branch | head | dirty files | last commit |
 |---|---|---|---|---|
-| `/Users/rolfie/projects/elicio` | `main` | dbe39ff | 0 | docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4 |
-| `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | dbe39ff | 0 | docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4 |
-| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | dbe39ff | 0 | docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4 |
-| `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | dbe39ff | 0 | docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4 |
-| `/Users/rolfie/projects/elicio/.worktrees/w4` | `lane/w4` | dbe39ff | 0 | docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4 |
-| `/Users/rolfie/projects/elicio/.worktrees/w5` | `lane/w5` | dbe39ff | 0 | docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4 |
-| `/Users/rolfie/projects/elicio/.worktrees/w9` | `lane/w9` | dbe39ff | 0 | docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4 |
+| `/Users/rolfie/projects/elicio` | `main` | b710ed1 | 0 | docs(tasks): round 6 review brief (review-r6) and WP12c routing brief |
+| `/Users/rolfie/projects/elicio/.worktrees/review` | `review/r6` | a01eb53 | 0 | merge lane/w1-r6 (WP14) into review/r6 |
+| `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | c3c11d8 | 0 | shell(v2): cut REF_end_wall_slot from packing-v2 §5 |
+| `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 480e355 | 0 | board(v2b): placed from the packing, routed, released |
+| `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | bcecc83 | 0 | packing(v2b): L7 pack tables in packing-v2 |
+| `/Users/rolfie/projects/elicio/.worktrees/w4` | `lane/w4` | e7c366a | 0 | receiver(v2): record and check a stream on the Mac |
+| `/Users/rolfie/projects/elicio/.worktrees/w5` | `lane/w5` | ba45071 | 0 | research(v4b): cells under 16 mm |
+| `/Users/rolfie/projects/elicio/.worktrees/w9` | `lane/w9` | 018ac58 | 0 | sheets(v2): measure, three checkouts, assemble, first load |
 
 Last commits on the integration branch:
 
 ```
-dbe39ff docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4
-0195b66 Merge review/r5: round 5 (WP10, WP11, WP12, WP13, WP16, WP17), 36 review fixes, MERGE-AFTER-DECISION
-f306532 Round 5: record the reviewer's decisions 57 to 68 as Q57 to Q68 with the readings the build follows
-30ab0ac review(r5): code-r5.md — gates, 36 defects, decisions 57-68
-c5f87cb review(WP12): Q54 Raytac routes in §8 and the BOM; LCSC C5118826 vs C5142646 UNVERIFIED; G4 probe limits from the page
-e1a8639 review(WP17): eight spot-checks; misquotes replaced with page text; 3.63 V, 70x70, fee, 0x20007F7C retagged UNVERIFIED; DigiKey 5.50 vs drawing 5.00 A/F; E73 sheet unreachable
+b710ed1 docs(tasks): round 6 review brief (review-r6) and WP12c routing brief
+9aa2934 handoff: answer sheet v5 asks the battery route
+cb3bff2 handoff: WP11b fourth DONE at bcecc83 (winner fails with the real 501015 pack; 501012 closes)
+d3e5159 handoff: WP14 second DONE at c3c11d8 (REF slot cut, Q59 checks pass on the shell)
+ed727ea handoff: WP17b second DONE at ba45071 (501015 pack is 17 mm with PCM); rerun to w3
+dd684dd handoff: answer sheet v4 carries the shell renders
 ```
 
 ### Record files (newest first)
 - handoff: `HANDOFF.md`
-- briefs: `tasks/WP17b-research-v4.md`, `tasks/WP15-sheets-v2.md`, `tasks/WP13b-receiver.md`, `tasks/WP12b-board-route.md`, `tasks/WP11b-packing-followups.md`, `tasks/WP14-shell-v2.md`, `tasks/review-r5.md`, `tasks/WP17-research-v3.md`, `tasks/WP16-record.md`, `tasks/WP13-firmware.md`, `tasks/WP12-board.md`, `tasks/WP11-packing-v2.md`
+- briefs: `tasks/review-r6.md`, `tasks/WP12c-route.md`, `tasks/WP17b-research-v4.md`, `tasks/WP15-sheets-v2.md`, `tasks/WP13b-receiver.md`, `tasks/WP12b-board-route.md`, `tasks/WP11b-packing-followups.md`, `tasks/WP14-shell-v2.md`, `tasks/review-r5.md`, `tasks/WP17-research-v3.md`, `tasks/WP16-record.md`, `tasks/WP13-firmware.md`
 - verdicts: `tasks/reviews/code-r5.md`, `tasks/reviews/code-r4.md`, `tasks/reviews/code-r3.md`, `tasks/reviews/code-r2.md`, `tasks/reviews/code-r1.md`
 
 ### Restore
