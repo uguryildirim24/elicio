@@ -8,7 +8,11 @@ cell under the board only with positive nominal clearance and no load
 after the board bends onto the bosses. Standoffs 3.0, 3.5 and 4.0.
 A 0.5-deep floor recess (web 1.0 remaining) is run at 3.5 and 4.0.
 Interface II is the flex-tab fallback.
-Arc-plus was not run: layouts already close at BODY_ARC 48.4.
+Arc-plus for the DTP301120 under interface II is §1b (WP11b, Q55).
+The Jauch LP501218JH under interface II is §1c (WP11b, L7-research-v4.md §2).
+A bigger lid and width for the two buyable cells is §1d (WP11b note 2).
+The 501015 pack (17.0 mm with PCM) and 501012 pack are §1e (WP11b note 3, L7 §7).
+The REF tab route search is in §5 (WP11b, Q59).
 
 ## 1. Every run at BODY_ARC 48.4
 
@@ -879,9 +883,497 @@ Arc-plus was not run: layouts already close at BODY_ARC 48.4.
 | B | I | 4 | 0.5 | 501015 | stacked | 20 | 9 | no | nominal cell clearance -1.2 is not positive (cell 5.7 under standoff 4 recess 0.5) | -1.2 | -1.7 | 7.0 | 9.5 | 10.0 | 163.9 | 47.90 | 50.90 |
 | B | II | 3 | 0 | 501015 | stacked | 20 | 9 | no | cell top 13.02 > LID_Y 9 | -2.7 | -3.2 | 5.8 | 8.3 | 10.0 | 163.9 | 47.90 | 50.90 |
 
+## 1b. DTP301120 arc-plus under interface II (WP11b)
+
+DTP301120 22.0 × 11.5 × 3.2, foam 0.5 (Q57), series, interface II, architecture A. Widths 18 to 20, LID_Y 7 to 9 (the v2 lid steps in that range), standoffs 3 and 4. Conflict logic is the round 5 checker (no new constants). 48 runs.
+
+| arch | standoff | width | lid | arc+ | closes | first conflict | TOTAL_CHORD | M1 gate |
+|---|---:|---:|---:|---:|---|---|---:|---:|
+| A | 3 | 18 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 18 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 18 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 18 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 18 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 18 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 18 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 18 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 18 | 8.5 | 1.5 | no | module 10.50×15.50 at (7.50,31.35) outside the board | 49.42 | 52.42 |
+| A | 3 | 18 | 8.5 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 18 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 18 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 18 | 9 | 1.5 | no | module 10.50×15.50 at (7.50,31.35) outside the board | 49.42 | 52.42 |
+| A | 3 | 18 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 18 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 18 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+| A | 3 | 19 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 19 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 19 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 19 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 19 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 19 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 19 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 19 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 19 | 8.5 | 1.5 | no | module 10.50×15.50 at (7.50,31.35) outside the board | 49.42 | 52.42 |
+| A | 3 | 19 | 8.5 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 19 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 19 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 19 | 9 | 1.5 | no | module 10.50×15.50 at (7.50,31.35) outside the board | 49.42 | 52.42 |
+| A | 3 | 19 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 19 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 19 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+| A | 3 | 20 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 20 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 20 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 20 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 20 | 8 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| A | 3 | 20 | 8 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| A | 4 | 20 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 20 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 20 | 8.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| A | 3 | 20 | 8.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| A | 4 | 20 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 20 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 20 | 9 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| A | 3 | 20 | 9 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| A | 4 | 20 | 9 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| A | 4 | 20 | 9 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+
+0 of 48 close at +1.5 or +3.0. There is no DTP body that closes. At +1.5 mm of arc, TOTAL_CHORD 49.42 against M1−3 = 49.00 (M1 = 52, Q34 blank, default.toml). At +3.0 mm of arc, TOTAL_CHORD 50.93 (M1 gate 53.93). Length cost versus the 501015 winner chord 47.90 is not a closer: +3.0 mm of arc is +3.03 mm of chord. First conflict of each run is in the table.
+
+First-conflict families (numbers masked), failing DTP arc-plus runs:
+
+| family | runs |
+|---|---:|
+| module top # > LID_Y # | 24 |
+| JST_SH top # > LID_Y # | 8 |
+| ADS#_RSM in the antenna keep-out | 4 |
+| cell to antenna zone # < # mm | 4 |
+| module #×# at (#,#) outside the board | 4 |
+| module overlaps ADS#_RSM | 4 |
+
+## 1c. Jauch LP501218JH under interface II (WP11b, L7 §2)
+
+Jauch Quartz LP501218JH+PCM 5.4 × 12.5 × 20, foam 0.5 (Q57), series, interface II, architecture A. Widths 18 to 20, LID_Y 7 to 9, standoffs 3 and 4, BODY_ARC 48.4 and arc-plus +1.5 and +3.0. Conflict logic is the round 5 checker (no new constants). 72 runs. Source: `docs/fab/L7-research-v4.md` §2 (DigiKey `1908-LP501218JH+PCM+2WIRE50MM-ND`, 60 mAh, page price and stock on 2026-09-17).
+
+Bare 2-wire leads (28 AWG, 50 ± 3 mm, no connector) per L7 §2. Plan v2 R2: Rolf solders nothing (no soldering, glue, crimping or wire stripping). This cell is a packing candidate only if the assembler or the seller terminates the leads.
+
+| arch | standoff | width | lid | arc+ | closes | first conflict | TOTAL_CHORD | M1 gate |
+|---|---:|---:|---:|---:|---|---|---:|---:|
+| A | 3 | 18 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 3 | 18 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 18 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 18 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 4 | 18 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 18 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 18 | 8 | 0 | no | JST_SH top 8.22 > LID_Y 8 | 47.90 | 50.90 |
+| A | 3 | 18 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 18 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 18 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 |
+| A | 4 | 18 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 18 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 18 | 8.5 | 0 | no | module 10.50×15.50 at (7.50,29.85) outside the board | 47.90 | 50.90 |
+| A | 3 | 18 | 8.5 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 |
+| A | 3 | 18 | 8.5 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 18 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 |
+| A | 4 | 18 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 18 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 18 | 9 | 0 | no | module 10.50×15.50 at (7.50,29.85) outside the board | 47.90 | 50.90 |
+| A | 3 | 18 | 9 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 |
+| A | 3 | 18 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 18 | 9 | 0 | no | JST_SH top 9.22 > LID_Y 9 | 47.90 | 50.90 |
+| A | 4 | 18 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 18 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+| A | 3 | 19 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 3 | 19 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 19 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 19 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 4 | 19 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 19 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 19 | 8 | 0 | no | JST_SH top 8.22 > LID_Y 8 | 47.90 | 50.90 |
+| A | 3 | 19 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 19 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 19 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 |
+| A | 4 | 19 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 19 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 19 | 8.5 | 0 | no | module 10.50×15.50 at (7.50,29.85) outside the board | 47.90 | 50.90 |
+| A | 3 | 19 | 8.5 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 |
+| A | 3 | 19 | 8.5 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 19 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 |
+| A | 4 | 19 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 19 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 19 | 9 | 0 | no | module 10.50×15.50 at (7.50,29.85) outside the board | 47.90 | 50.90 |
+| A | 3 | 19 | 9 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 |
+| A | 3 | 19 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 19 | 9 | 0 | no | JST_SH top 9.22 > LID_Y 9 | 47.90 | 50.90 |
+| A | 4 | 19 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 19 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+| A | 3 | 20 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 3 | 20 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 20 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 20 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 4 | 20 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 20 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 20 | 8 | 0 | no | JST_SH top 8.22 > LID_Y 8 | 47.90 | 50.90 |
+| A | 3 | 20 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 20 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 20 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 |
+| A | 4 | 20 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 20 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 20 | 8.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| A | 3 | 20 | 8.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| A | 3 | 20 | 8.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| A | 4 | 20 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 |
+| A | 4 | 20 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 20 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 20 | 9 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| A | 3 | 20 | 9 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| A | 3 | 20 | 9 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| A | 4 | 20 | 9 | 0 | no | JST_SH top 9.22 > LID_Y 9 | 47.90 | 50.90 |
+| A | 4 | 20 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 20 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+
+0 of 72 close at BODY_ARC or +1.5 or +3.0. There is no Jauch body that closes. At BODY_ARC, TOTAL_CHORD 47.90 against M1−3 = 49.00. At +3.0 mm of arc, TOTAL_CHORD 50.93 (+3.03 mm of chord versus the 501015 winner). First conflict of each run is in the table.
+
+First-conflict families (numbers masked), failing Jauch runs:
+
+| family | runs |
+|---|---:|
+| module top # > LID_Y # | 36 |
+| JST_SH top # > LID_Y # | 18 |
+| module overlaps ADS#_RSM | 8 |
+| module #×# at (#,#) outside the board | 4 |
+| JST_SH in the antenna keep-out | 2 |
+| cell overlaps standoff_SIG# | 2 |
+| cell to antenna zone # < # mm | 2 |
+
+## 1d. Bigger body for the two buyable cells (WP11b note 2)
+
+DTP301120 and LP501218JH only. Series, interface II, architecture A, foam 0.5, standoffs 3 and 4, BODY_ARC and arc-plus +1.5 and +3.0. LID_Y 9.5, 10.0 and 10.5; widths 20, 21 and 22. Conflict logic is the round 5 checker (no new constants). 108 runs. The plan's ≤ 9.0 high and 20 wide cap still records a conflict; a run packs here if that cap is the only remaining conflict, so the table can answer how much bigger a buyable cell needs.
+
+| cell | standoff | width | lid | outer | arc+ | packs | first packing conflict | TOTAL_CHORD | M1 gate |
+|---|---:|---:|---:|---:|---:|---|---|---:|---:|
+| DTP301120 | 3 | 20 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 20 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 20 | 9.5 | 10.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 4 | 20 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 20 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 20 | 9.5 | 10.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 3 | 20 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 20 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 20 | 10 | 11.0 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 4 | 20 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 20 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 20 | 10 | 11.0 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 3 | 20 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 20 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 20 | 10.5 | 11.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 4 | 20 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 20 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 20 | 10.5 | 11.5 | 3 | no | ADS1292_RSM in the antenna keep-out | 50.93 | 53.93 |
+| DTP301120 | 3 | 21 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 21 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 21 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 21 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 21 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 21 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 21 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 21 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 21 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 21 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 21 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 21 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 21 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 21 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 21 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 21 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 21 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 21 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 22 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 22 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 22 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 22 | 9.5 | 10.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 22 | 9.5 | 10.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 22 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 22 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 22 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 22 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 22 | 10 | 11.0 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 22 | 10 | 11.0 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 22 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 3 | 22 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 3 | 22 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 3 | 22 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| DTP301120 | 4 | 22 | 10.5 | 11.5 | 0 | no | cell to antenna zone 2.65 < 5 mm | 47.90 | 50.90 |
+| DTP301120 | 4 | 22 | 10.5 | 11.5 | 1.5 | no | cell to antenna zone 4.15 < 5 mm | 49.42 | 52.42 |
+| DTP301120 | 4 | 22 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 20 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 20 | 9.5 | 10.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 20 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 20 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 20 | 9.5 | 10.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 20 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 20 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 20 | 10 | 11.0 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 20 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 20 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 20 | 10 | 11.0 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 20 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 20 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 20 | 10.5 | 11.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 20 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 20 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 20 | 10.5 | 11.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 20 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 21 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 21 | 9.5 | 10.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 21 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 21 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 21 | 9.5 | 10.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 21 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 21 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 21 | 10 | 11.0 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 21 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 21 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 21 | 10 | 11.0 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 21 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 21 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 21 | 10.5 | 11.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 21 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 21 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 21 | 10.5 | 11.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 21 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 22 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 22 | 9.5 | 10.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 22 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 22 | 9.5 | 10.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 22 | 9.5 | 10.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 22 | 9.5 | 10.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 22 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 22 | 10 | 11.0 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 22 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 22 | 10 | 11.0 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 22 | 10 | 11.0 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 22 | 10 | 11.0 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 3 | 22 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 3 | 22 | 10.5 | 11.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 3 | 22 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| LP501218JH | 4 | 22 | 10.5 | 11.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| LP501218JH | 4 | 22 | 10.5 | 11.5 | 1.5 | no | switch in the antenna keep-out | 49.42 | 52.42 |
+| LP501218JH | 4 | 22 | 10.5 | 11.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+
+0 of 108 close under every round-5 check (including the ≤9×20 cap). 0 of 108 pack if that cap is set aside. No new drawing: Q56 keeps closers only.
+
+- **DTP301120**: no body packs. Family that never clears: `SIG# tab crosses boss_# courtyard`, `cell overlaps standoff_SIG#`. Height cost: no closer; the search reaches LID_Y 10.5, outer 11.5 (+2.5 mm vs winner outer 9.0). Chord cost: no closer; BODY_ARC TOTAL_CHORD 47.90 (same as the 501015 winner 47.90); +3.0 mm of arc is 50.93 (+3.03 mm) and fails M1−3 = 49.00.
+
+- **LP501218JH**: no body packs. Family that never clears: `cell overlaps standoff_SIG#`. Height cost: no closer; the search reaches LID_Y 10.5, outer 11.5 (+2.5 mm vs winner outer 9.0). Chord cost: no closer; BODY_ARC TOTAL_CHORD 47.90 (same as the 501015 winner 47.90); +3.0 mm of arc is 50.93 (+3.03 mm) and fails M1−3 = 49.00.
+
+First packing-conflict families (numbers masked), failing bigger-box runs:
+
+| family | runs |
+|---|---:|
+| cell to antenna zone # < # mm | 54 |
+| cell overlaps standoff_SIG# | 30 |
+| switch in the antenna keep-out | 12 |
+| ADS#_RSM in the antenna keep-out | 6 |
+| JST_SH in the antenna keep-out | 6 |
+
+## 1e. 501015 pack and 501012 pack under interface II (WP11b note 3, L7 §7)
+
+L7-research-v4.md §7 and §7.8: a 501015 pack **with** its protection board is 17.0 × 10.0 × 5.0 mm on the manufacturers' sheets (DNK Power DNK501015 'Dimensions: 17 × 10 × 5.0 mm', Benzo '5mm x 10mm x 17mm'). The plan's envelope 15.6 × 10.4 × 5.2 is a bare cell, not a pack. Packs that fit under 16 mm exist only as marketplace listings. This search uses the 501012 pack 13.0 × 10.1 × 5.1 with PCM, 40 mAh (eBay quote 'approx 13.0mm x 10.1mm x 5.1mm'). The 401012 listing is not run here.
+
+Series, interface II, architecture A, foam 0.5, standoffs 3.0 and 4.0, widths 18 to 20, LID_Y 7 to 9, BODY_ARC and arc-plus +1.5 and +3.0. Conflict logic is the round 5 checker (no new constants). 144 runs. Neither cell is in the 864-run matrix.
+
+The current winner `A_501015_series_w20_y8_iII_s3` with the real 17.0 mm pack (`A_pack501015_series_w20_y8_iII_s3`) does **not** close. First conflict: `BQ25100 overlaps header`. The 17.0 mm body length moves the pocket and shortens the board from s 18.6–37.6 (bare 15.6 mm cell) to 20.0–37.6. Packed height 5.0 + 0.5 = 5.5 (cell top 7.0). No body in this grid closes for the 17.0 mm pack. No first-conflict family is present on every run. On the winner body, BODY_ARC fails first as `BQ25100 overlaps header` (also TLV713 and switch overlap the header). Arc-plus +1.5 on that body leaves only `TOTAL_CHORD 49.42 > M1−3 (49.00)`; the overlap clears, the M1 gate does not.
+
+| arch | cell | standoff | width | lid | arc+ | closes | first conflict | TOTAL_CHORD | M1 gate | outer |
+|---|---|---:|---:|---:|---:|---|---|---:|---:|---:|
+| A | 501015 pack | 3 | 18 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501015 pack | 3 | 18 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501015 pack | 3 | 18 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501015 pack | 4 | 18 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501015 pack | 4 | 18 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501015 pack | 4 | 18 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501015 pack | 3 | 18 | 8 | 0 | no | module overlaps ADS1292_RSM | 47.90 | 50.90 | 9.0 |
+| A | 501015 pack | 3 | 18 | 8 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 | 9.0 |
+| A | 501015 pack | 3 | 18 | 8 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 | 9.0 |
+| A | 501015 pack | 4 | 18 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 | 9.0 |
+| A | 501015 pack | 4 | 18 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 | 9.0 |
+| A | 501015 pack | 4 | 18 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 | 9.0 |
+| A | 501015 pack | 3 | 18 | 8.5 | 0 | no | module overlaps ADS1292_RSM | 47.90 | 50.90 | 9.5 |
+| A | 501015 pack | 3 | 18 | 8.5 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 | 9.5 |
+| A | 501015 pack | 3 | 18 | 8.5 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 | 9.5 |
+| A | 501015 pack | 4 | 18 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 | 9.5 |
+| A | 501015 pack | 4 | 18 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 | 9.5 |
+| A | 501015 pack | 4 | 18 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 | 9.5 |
+| A | 501015 pack | 3 | 18 | 9 | 0 | no | module overlaps ADS1292_RSM | 47.90 | 50.90 | 10.0 |
+| A | 501015 pack | 3 | 18 | 9 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 | 10.0 |
+| A | 501015 pack | 3 | 18 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 | 10.0 |
+| A | 501015 pack | 4 | 18 | 9 | 0 | no | module overlaps ADS1292_RSM | 47.90 | 50.90 | 10.0 |
+| A | 501015 pack | 4 | 18 | 9 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 | 10.0 |
+| A | 501015 pack | 4 | 18 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 | 10.0 |
+| A | 501015 pack | 3 | 19 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501015 pack | 3 | 19 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501015 pack | 3 | 19 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501015 pack | 4 | 19 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501015 pack | 4 | 19 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501015 pack | 4 | 19 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501015 pack | 3 | 19 | 8 | 0 | no | module overlaps switch | 47.90 | 50.90 | 9.0 |
+| A | 501015 pack | 3 | 19 | 8 | 1.5 | no | module overlaps switch | 49.42 | 52.42 | 9.0 |
+| A | 501015 pack | 3 | 19 | 8 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.0 |
+| A | 501015 pack | 4 | 19 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 | 9.0 |
+| A | 501015 pack | 4 | 19 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 | 9.0 |
+| A | 501015 pack | 4 | 19 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 | 9.0 |
+| A | 501015 pack | 3 | 19 | 8.5 | 0 | no | module overlaps switch | 47.90 | 50.90 | 9.5 |
+| A | 501015 pack | 3 | 19 | 8.5 | 1.5 | no | module overlaps switch | 49.42 | 52.42 | 9.5 |
+| A | 501015 pack | 3 | 19 | 8.5 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.5 |
+| A | 501015 pack | 4 | 19 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 | 9.5 |
+| A | 501015 pack | 4 | 19 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 | 9.5 |
+| A | 501015 pack | 4 | 19 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 | 9.5 |
+| A | 501015 pack | 3 | 19 | 9 | 0 | no | module overlaps switch | 47.90 | 50.90 | 10.0 |
+| A | 501015 pack | 3 | 19 | 9 | 1.5 | no | module overlaps switch | 49.42 | 52.42 | 10.0 |
+| A | 501015 pack | 3 | 19 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+| A | 501015 pack | 4 | 19 | 9 | 0 | no | module overlaps switch | 47.90 | 50.90 | 10.0 |
+| A | 501015 pack | 4 | 19 | 9 | 1.5 | no | module overlaps switch | 49.42 | 52.42 | 10.0 |
+| A | 501015 pack | 4 | 19 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+| A | 501015 pack | 3 | 20 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501015 pack | 3 | 20 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501015 pack | 3 | 20 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501015 pack | 4 | 20 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501015 pack | 4 | 20 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501015 pack | 4 | 20 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501015 pack | 3 | 20 | 8 | 0 | no | BQ25100 overlaps header | 47.90 | 50.90 | 9.0 |
+| A | 501015 pack | 3 | 20 | 8 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 9.0 |
+| A | 501015 pack | 3 | 20 | 8 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.0 |
+| A | 501015 pack | 4 | 20 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 | 9.0 |
+| A | 501015 pack | 4 | 20 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 | 9.0 |
+| A | 501015 pack | 4 | 20 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 | 9.0 |
+| A | 501015 pack | 3 | 20 | 8.5 | 0 | no | BQ25100 overlaps header | 47.90 | 50.90 | 9.5 |
+| A | 501015 pack | 3 | 20 | 8.5 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 9.5 |
+| A | 501015 pack | 3 | 20 | 8.5 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.5 |
+| A | 501015 pack | 4 | 20 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 | 9.5 |
+| A | 501015 pack | 4 | 20 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 | 9.5 |
+| A | 501015 pack | 4 | 20 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 | 9.5 |
+| A | 501015 pack | 3 | 20 | 9 | 0 | no | BQ25100 overlaps header | 47.90 | 50.90 | 10.0 |
+| A | 501015 pack | 3 | 20 | 9 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 10.0 |
+| A | 501015 pack | 3 | 20 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+| A | 501015 pack | 4 | 20 | 9 | 0 | no | BQ25100 overlaps header | 47.90 | 50.90 | 10.0 |
+| A | 501015 pack | 4 | 20 | 9 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 10.0 |
+| A | 501015 pack | 4 | 20 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+| A | 501012 pack | 3 | 18 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501012 pack | 3 | 18 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501012 pack | 3 | 18 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501012 pack | 4 | 18 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501012 pack | 4 | 18 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501012 pack | 4 | 18 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501012 pack | 3 | 18 | 8 | 0 | no | ADS1292_RSM overlaps switch | 47.90 | 50.90 | 9.0 |
+| A | 501012 pack | 3 | 18 | 8 | 1.5 | no | ADS1292_RSM overlaps switch | 49.42 | 52.42 | 9.0 |
+| A | 501012 pack | 3 | 18 | 8 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.0 |
+| A | 501012 pack | 4 | 18 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 | 9.0 |
+| A | 501012 pack | 4 | 18 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 | 9.0 |
+| A | 501012 pack | 4 | 18 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 | 9.0 |
+| A | 501012 pack | 3 | 18 | 8.5 | 0 | no | ADS1292_RSM overlaps switch | 47.90 | 50.90 | 9.5 |
+| A | 501012 pack | 3 | 18 | 8.5 | 1.5 | no | ADS1292_RSM overlaps switch | 49.42 | 52.42 | 9.5 |
+| A | 501012 pack | 3 | 18 | 8.5 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.5 |
+| A | 501012 pack | 4 | 18 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 | 9.5 |
+| A | 501012 pack | 4 | 18 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 | 9.5 |
+| A | 501012 pack | 4 | 18 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 | 9.5 |
+| A | 501012 pack | 3 | 18 | 9 | 0 | no | ADS1292_RSM overlaps switch | 47.90 | 50.90 | 10.0 |
+| A | 501012 pack | 3 | 18 | 9 | 1.5 | no | ADS1292_RSM overlaps switch | 49.42 | 52.42 | 10.0 |
+| A | 501012 pack | 3 | 18 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+| A | 501012 pack | 4 | 18 | 9 | 0 | no | ADS1292_RSM overlaps switch | 47.90 | 50.90 | 10.0 |
+| A | 501012 pack | 4 | 18 | 9 | 1.5 | no | ADS1292_RSM overlaps switch | 49.42 | 52.42 | 10.0 |
+| A | 501012 pack | 4 | 18 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+| A | 501012 pack | 3 | 19 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501012 pack | 3 | 19 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501012 pack | 3 | 19 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501012 pack | 4 | 19 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501012 pack | 4 | 19 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501012 pack | 4 | 19 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501012 pack | 3 | 19 | 8 | 0 | yes | — | 47.90 | 50.90 | 9.0 |
+| A | 501012 pack | 3 | 19 | 8 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 9.0 |
+| A | 501012 pack | 3 | 19 | 8 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.0 |
+| A | 501012 pack | 4 | 19 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 | 9.0 |
+| A | 501012 pack | 4 | 19 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 | 9.0 |
+| A | 501012 pack | 4 | 19 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 | 9.0 |
+| A | 501012 pack | 3 | 19 | 8.5 | 0 | yes | — | 47.90 | 50.90 | 9.5 |
+| A | 501012 pack | 3 | 19 | 8.5 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 9.5 |
+| A | 501012 pack | 3 | 19 | 8.5 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.5 |
+| A | 501012 pack | 4 | 19 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 | 9.5 |
+| A | 501012 pack | 4 | 19 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 | 9.5 |
+| A | 501012 pack | 4 | 19 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 | 9.5 |
+| A | 501012 pack | 3 | 19 | 9 | 0 | yes | — | 47.90 | 50.90 | 10.0 |
+| A | 501012 pack | 3 | 19 | 9 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 10.0 |
+| A | 501012 pack | 3 | 19 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+| A | 501012 pack | 4 | 19 | 9 | 0 | yes | — | 47.90 | 50.90 | 10.0 |
+| A | 501012 pack | 4 | 19 | 9 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 10.0 |
+| A | 501012 pack | 4 | 19 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+| A | 501012 pack | 3 | 20 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501012 pack | 3 | 20 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501012 pack | 3 | 20 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501012 pack | 4 | 20 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 | 8.0 |
+| A | 501012 pack | 4 | 20 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 | 8.0 |
+| A | 501012 pack | 4 | 20 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 | 8.0 |
+| A | 501012 pack | 3 | 20 | 8 | 0 | yes | — | 47.90 | 50.90 | 9.0 |
+| A | 501012 pack | 3 | 20 | 8 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 9.0 |
+| A | 501012 pack | 3 | 20 | 8 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.0 |
+| A | 501012 pack | 4 | 20 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 | 9.0 |
+| A | 501012 pack | 4 | 20 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 | 9.0 |
+| A | 501012 pack | 4 | 20 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 | 9.0 |
+| A | 501012 pack | 3 | 20 | 8.5 | 0 | yes | — | 47.90 | 50.90 | 9.5 |
+| A | 501012 pack | 3 | 20 | 8.5 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 9.5 |
+| A | 501012 pack | 3 | 20 | 8.5 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 9.5 |
+| A | 501012 pack | 4 | 20 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 | 9.5 |
+| A | 501012 pack | 4 | 20 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 | 9.5 |
+| A | 501012 pack | 4 | 20 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 | 9.5 |
+| A | 501012 pack | 3 | 20 | 9 | 0 | yes | — | 47.90 | 50.90 | 10.0 |
+| A | 501012 pack | 3 | 20 | 9 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 10.0 |
+| A | 501012 pack | 3 | 20 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+| A | 501012 pack | 4 | 20 | 9 | 0 | yes | — | 47.90 | 50.90 | 10.0 |
+| A | 501012 pack | 4 | 20 | 9 | 1.5 | no | TOTAL_CHORD 49.42 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 49.42 | 52.42 | 10.0 |
+| A | 501012 pack | 4 | 20 | 9 | 3 | no | TOTAL_CHORD 50.93 > M1−3 (49.00); M1=52 (Q34 blank, default.toml) | 50.93 | 53.93 | 10.0 |
+
+8 of 144 close under every round-5 check. Drawings of those closers are not added under `docs/fab/cad/v1/`: the round-5 14-file kept set is pinned (`placement_v2_*.svg` = `kept_drawing_specs` of the 864-run matrix), and 14 + 8 would exceed the WP11b Q56 cap of 20.
+
+- **501015 pack**: no body closes. Family that never clears: none (first conflict rotates). Winner-body first conflict: `BQ25100 overlaps header`. BODY_ARC TOTAL_CHORD 47.90 (same as the 501015 winner 47.90). +1.5 mm of arc on the winner body is 49.42 and fails M1−3 = 49.00. +3.0 mm of arc is 50.93 (+3.03 mm).
+
+- **501012 pack**: smallest closer `A_pack501012_series_w19_y8_iII_s3`. Width 19 (-1 mm vs winner 20), LID_Y 8, standoff 3, arc+ 0. TOTAL_CHORD 47.90 against M1−3 = 49.00 (+0.00 mm vs winner 47.90). Outer thickness 9.0 (+0.0 mm vs winner 9.0).
+
+First-conflict families (numbers masked), failing pack-cell runs:
+
+| family | runs |
+|---|---:|
+| module top # > LID_Y # | 72 |
+| TOTAL_CHORD # > M#−# (#); M#=# (Q# blank, default.toml) | 32 |
+| module overlaps ADS#_RSM | 12 |
+| ADS#_RSM overlaps switch | 8 |
+| module overlaps switch | 8 |
+| BQ# overlaps header | 4 |
+
+### Smallest body per buyable cell (WP11b, L7 §2)
+
+L7-research-v4.md §2 found no 501015-class cell sold in ones. The two buyable packs with page price, stock and a drawing are DTP301120 and LP501218JH.
+
+| cell | sold in ones | smallest closer | width | lid | standoff | arc+ | TOTAL_CHORD | vs 501015 winner |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| 501015 | no (L7 §2) | `A_501015_series_w20_y8_iII_s3` | 20 | 8 | 3 | 0 | 47.90 | — |
+| DTP301120 | yes, SparkFun PRT-25270 | none | — | — | — | — | — | no closer |
+| LP501218JH | yes, DigiKey (bare leads; needs a terminator) | none | — | — | — | — | — | no closer |
+| 501015 pack | sheets (DNK/Benzo with PCM; L7 §7.8); not sold as a verified one-off here | none | — | — | — | — | — | no closer |
+| 501012 pack | marketplace listing (eBay quote with PCM; L7 §7) | `A_pack501012_series_w19_y8_iII_s3` | 19 | 8 | 3 | 0 | 47.90 | — |
+
+Extended (WP11b note 2): LID_Y 9.5, 10.0 and 10.5; widths 20, 21 and 22. A run packs if the only extra conflict is the plan's ≤ 9.0 high and 20 wide cap.
+
+| cell | box | smallest closer | width | lid | outer | TOTAL_CHORD | height vs winner | chord vs winner | never-clears family |
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| 501015 | ≤9×20 | `A_501015_series_w20_y8_iII_s3` | 20 | 8 | 9.0 | 47.90 | — | — | — |
+| DTP301120 | lid 9.5–10.5, w 20–22 | none | — | — | 11.5 | — | +2.5 mm still open | +0 / +3.03 mm, no closer | `SIG# tab crosses boss_# courtyard`, `cell overlaps standoff_SIG#` |
+| LP501218JH | lid 9.5–10.5, w 20–22 | none | — | — | 11.5 | — | +2.5 mm still open | +0 / +3.03 mm, no closer | `cell overlaps standoff_SIG#` |
+| 501015 pack | ≤9×20 II series (L7 §7) | none | — | — | 9.0 | 47.90 | — | — | `BQ25100 overlaps header` on winner body; none (first conflict rotates) |
+| 501012 pack | ≤9×20 II series (L7 §7) | `A_pack501012_series_w19_y8_iII_s3` | 19 | 8 | 9.0 | 47.90 | +0.0 mm | +0.00 mm | — |
+
 ## 2. Clearance, stack, and first-conflict families
 
-Cell packed height = body + foam 0.5: DTP301120 3.2 + 0.5 = 3.7; 501015 5.2 + 0.5 = 5.7.
+Cell packed height = body + foam 0.5: DTP301120 3.2 + 0.5 = 3.7; 501015 5.2 + 0.5 = 5.7; LP501218JH 5.4 + 0.5 = 5.9 (WP11b Jauch series, not in the 864-run matrix); 501015 pack 5 + 0.5 = 5.5; 501012 pack 5.1 + 0.5 = 5.6 (WP11b note 3, L7 §7, not in the 864-run matrix).
 Foam 0.5 is plan v1 §5's number and the one the order-1 Stage B `CELL_envelope` measures on the solid. Plan v2 §3 says 0.3; this file and Stage B use one number (review r5, decision 57).
 Nominal clearance = standoff − (packed − recess). The board underside is at the standoff top (rigid).
 Deformed clearance = (standoff − 0.5) − (packed − recess). The board bends down onto the bosses.
@@ -977,6 +1469,7 @@ Hand `A_501015_series_w20_y8_iII_s3` to the board lane. Interface II. Board 0.51
 Board zone u 2.25–17.75, s 18.60–37.60. Underside y 4.81 (the standoff tops), top y 5.32.
 
 - Cell 501015 + foam 0.5 10.4 × 15.6 × 5.70, centre (7.00, 9.30), y 1.50–7.20 (floor).
+  Cell record (review r6): the pocket is the bare-cell envelope. The cell the record carries is the 501012 pack, 13.0 × 10.1 × 5.1 as listed (L7 §7.7.3; PCM inferred, not quoted; packed 5.6 ≤ 5.7), which closes on this body (§1e, `A_pack501012_series_w20_y8_iII_s3`) and leaves 2.6 of the pocket's 15.6 along s for foam (Q57); J2 beside the pocket takes its leads unchanged. The 17.0 501015 pack does not close here (§1e). The purchase route is Rolf's (decision 69 in `tasks/reviews/code-r6.md`).
 - Module Raytac MDBT50Q-1MV2 15.5 × 10.5 × 2.30, centre (10.00, 32.35), y 5.32–7.62 (top), length along u.
 - Antenna keep-out (no copper, every layer) u 2.25–6.05, s 26.15–38.55 (3.8 × 12.4; Raytac Spec K p.9/p.13, interface §6.3; height 2.3 plan v2 §3).
 - ADS1292 VQFN-32 5 × 5 × 1.00, centre (4.90, 21.25), y 5.32–6.32 (top).
@@ -995,6 +1488,34 @@ Flex tabs (ring Ø5, hole Ø2.7, strip 2.5, bend R ≥ 1):
 - SIG1: (5.90, 22.00) → (5.90, 29.00).
 - SIG2: (10.40, 33.10) → (10.40, 26.10).
 - REF: (8.50, 43.00) → (8.50, 36.80).
+
+### REF tab route (WP11b, Q59)
+
+Winner board `A_501015_series_w20_y8_iII_s3`, tail site CONTACT_REF (8.50, 43.00). Flex at the tab 0.31 (PI 0.11 + FR4 0.2). Bend R 1.5 (board-v2.md §11). The packing tab itself is unchanged (Stage B still measures the straight floor path).
+
+| name | y | points | length | added | min wall | side wall | end wall | in cavity | bend R 1.5 |
+|---|---|---|---:|---:|---:|---:|---|---|---|
+| `along_floor` | 1.50–1.81 | (8.50, 43.00) → (8.50, 36.80) | 6.20 | +0.00 | 0.00 | 5.75 | s 38.20–39.25 at u 8.50 | no | yes |
+| `along_lateral_wall` | 1.50–1.81 | (8.50, 43.00) → (2.75, 43.00) → (2.75, 36.80) → (8.50, 36.80) | 17.70 | +11.50 | 0.00 | 0.00 | s 38.20–39.25 at u 2.75 | no | yes |
+| `over_pocket_air` | 7.30–7.61 | (8.50, 43.00) → (8.50, 36.80) | 6.20 | +0.00 | 0.00 | 5.75 | s 38.20–39.25 at u 8.50 | no | yes |
+
+- `along_floor`: current packing tab, ring to board along s at u 8.50; cavity ends at s 38.20; Ø7.5 pocket starts at s 39.25; 1.05 mm of nylon between them
+- `along_lateral_wall`: hug posterior inner wall at u 2.75, then to the ring; the ring is past the cavity, so the high-s leg leaves cavity air; cavity ends at s 38.20; Ø7.5 pocket starts at s 39.25; 1.05 mm of nylon between them
+- `over_pocket_air`: same (u, s) as along_floor at y 7.30–7.61 (cell top 7.20 + 0.10, lid 8); cell-pocket free air at low s does not reach the tail site without the end wall; cavity ends at s 38.20; Ø7.5 pocket starts at s 39.25; 1.05 mm of nylon between them
+
+No in-cavity route exists. The Ø7.5 tail pocket starts at s 39.25 and the cavity ends at s 38.20, so 1.05 mm of nylon sits between them. Every searched path crosses that wall. WP14 cuts a slot that contains the straight floor tab:
+
+| item | number |
+|---|---|
+| name | `REF_end_wall_slot` |
+| u | 7.25–9.75 (centre 8.50) |
+| s | 38.20–39.25 (centre 38.73) |
+| y | 1.50–1.81 |
+| width | 2.50 |
+| through (s) | 1.05 |
+| height (y) | 0.31 |
+| volume (rect) | 0.814 mm³ |
+
 
 Stack at each site: floor 1.5, ring 0.31, brass standoff 3 (5 AF, circumradius 2.9) from y 1.81 to 4.81 = board underside. ISO 7380 M2.5×4 from outside projects 2.5 past the floor and ends 0.81 below the standoff top. No nut: the standoff's female thread takes the screw (plan v2 §5.3). The flex over the standoffs is not fastened to them; its retention is WP14's.
 Harness 100 ± 3 mm: NOT_MEASURED (routed length, not a solid).
@@ -1050,6 +1571,9 @@ Measured on the built `A_501015_series_w20_y8_iII_s3` solid (review r5; `tests/t
 | Seeed XIAO nRF52840 antenna keep-out | 12.4 × 3.8 | sheet unreachable; v1 rule interface §6.3; C is out |
 | DTP301120 | 22 × 11.5 × 3.2 | SparkFun PRT-25270 drawing p.9, L5-research-v2.md §1 |
 | 501015 | 15.6 × 10.4 × 5.2 | v1 CELL_BODY_MAX (plan v1 §3.3) |
+| LP501218JH | 20 × 12.5 × 5.4 | Jauch LP501218JH+PCM+2 WIRE 50MM; DigiKey 1908-LP501218JH+PCM+2WIRE50MM-ND; L7-research-v4.md §2 |
+| 501015 pack | 17 × 10 × 5 | DNK Power DNK501015 'Dimensions: 17 × 10 × 5.0 mm'; Benzo '5mm x 10mm x 17mm'; L7-research-v4.md §7 and §7.8 |
+| 501012 pack | 13 × 10.1 × 5.1 | eBay quote 'approx 13.0mm x 10.1mm x 5.1mm' with PCM, 40 mAh; L7-research-v4.md §7 |
 | Foam on the cell | 0.5 | plan v1 §5 and order-1 CELL_envelope; plan v2 §3 says 0.3 (decision 57) |
 | Interface I board | FR4 1, 4-layer | plan v2 §5.2 |
 | Interface I pad | 8 × 8 ENIG | turn 07 |
@@ -1069,6 +1593,7 @@ Measured on the built `A_501015_series_w20_y8_iII_s3` solid (review r5; `tests/t
 | Plug volume | 12 × 6.5 × 15 | plan v2 §5.4 |
 | JST-SH | 4 × 6 × 2.9 side entry | WP11 brief |
 | Ring pad | Ø5, hole Ø2.7, strip 2.5 | plan v2 §5.3 interface II |
+| Flex tab bend (WP11b REF search) | R 1.5 | board-v2.md §11 |
 | Screw ISO 7380 M2.5×4 | projects 2.5 past the floor | v1 |
 | Harness | 100 ± 3 mm | plan v2; NOT_MEASURED as a solid |
 | BODY_WIDTH / LID_Y / BODY_ARC | 18–20 / 6–9 / 48.4 | coordinator note 1; other params stageb_provisional.toml |
@@ -1086,6 +1611,9 @@ Measured on the built `A_501015_series_w20_y8_iII_s3` solid (review r5; `tests/t
 - Nominal and deformed cell clearance for Interface I: packing arithmetic, not a solid probe. G5/G7 remain open.
 - E73 antenna sheet: unreachable; v1 12.4 × 3.8 used.
 - M1 on Rolf (Q34): default 52 used for the gate.
+- REF tab lid-to-wall gap: packing treats the cavity end wall as solid from floor 1.5 to LID_Y 8.0; a gap under the lid was not probed on the solid.
+- 501015 pack in ones: none found (`docs/fab/L7-research-v4.md` §2). DTP301120 is sold in ones (SparkFun PRT-25270). LP501218JH is sold in ones (DigiKey 1908-LP501218JH+PCM+2WIRE50MM-ND) with bare 2-wire leads; plan v2 R2, Rolf solders nothing, so it is a candidate only if the assembler or the seller terminates the leads. This package does not order.
+- 501015 pack with PCM: DNK/Benzo sheets give 17 × 10 × 5.0 (L7-research-v4.md §7 and §7.8). The 17.0 mm pack was not probed on a solid; packing arithmetic only. The 501012 13.0 × 10.1 × 5.1 figure is an eBay marketplace quote (L7 §7), not a manufacturer sheet.
 
 ## 9. Drawings in the repo
 

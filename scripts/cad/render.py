@@ -116,7 +116,7 @@ def pin_png(data: bytes) -> bytes:
     return bytes(out)
 
 
-def pin_pdf(data: bytes) -> bytes:
+def pin_pdf(data: bytes, title: str = "Elicio BTE fit gauge v1 drawing") -> bytes:
     from pypdf import PdfReader, PdfWriter
     from pypdf.generic import ArrayObject, ByteStringObject
 
@@ -125,7 +125,7 @@ def pin_pdf(data: bytes) -> bytes:
     writer.append(reader)
     writer.add_metadata(
         {
-            "/Title": "Elicio BTE fit gauge v1 drawing",
+            "/Title": title,
             "/Creator": "elicio-cad",
             "/Producer": "elicio-cad",
             "/CreationDate": PDF_DATE,
@@ -411,13 +411,13 @@ def save_png(fig) -> bytes:
     return pin_png(buf.getvalue())
 
 
-def save_pdf(fig) -> bytes:
+def save_pdf(fig, title: str = "Elicio BTE fit gauge v1 drawing") -> bytes:
     import matplotlib.pyplot as plt
 
     buf = io.BytesIO()
     fig.savefig(buf, format="pdf", facecolor="white", edgecolor="none")
     plt.close(fig)
-    return pin_pdf(buf.getvalue())
+    return pin_pdf(buf.getvalue(), title=title)
 
 
 def write_bytes(path: Path, data: bytes) -> dict[str, Any]:
@@ -436,10 +436,13 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
 
     theta = float(manifest["parameters"]["THETA_DEG"])
     span = manifest["span"]
-    bodies = (
-        ("body_full_p15", COLOR_FULL, "full p15"),
-        ("body_thin_p15", COLOR_THIN, "thin p15"),
-    )
+    if manifest.get("stage") == "shell":
+        bodies = (("body_full_p15", COLOR_FULL, "shell body"),)
+    else:
+        bodies = (
+            ("body_full_p15", COLOR_FULL, "full p15"),
+            ("body_thin_p15", COLOR_THIN, "thin p15"),
+        )
     medial, posterior = View(MEDIAL), View(POSTERIOR)
     ppm = 13.0
     fig, ax = plt.subplots(figsize=(11.0, 6.6), dpi=DPI, facecolor="white")
@@ -482,12 +485,19 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
     ax.set_aspect("equal")
     ax.set_axis_off()
     scale_bar(ax, 0.0, bottom - 3.5)
+    caption = (
+        "Medial (skin side): three contact domes, tail, hook. Same scale throughout.\n"
+        "Faint facet shading on curved edges is the STL mesh (0.02 mm chord), not geometry."
+        if manifest.get("stage") == "shell"
+        else
+        "Medial (skin side): three mock contact caps, tail, hook. Same scale throughout; "
+        "edge-on views show the 9.0 vs 7.0 thickness.\nFaint facet shading on curved edges is the STL mesh "
+        "(0.02 mm chord), not geometry."
+    )
     ax.text(
         0.0,
         1.0,
-        "Medial (skin side): three mock contact caps, tail, hook. Same scale throughout; "
-        "edge-on views show the 9.0 vs 7.0 thickness.\nFaint facet shading on curved edges is the STL mesh "
-        "(0.02 mm chord), not geometry.",
+        caption,
         transform=ax.transAxes,
         fontsize=8.5,
         va="top",
@@ -527,27 +537,49 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     def at(u: float, s: float, y: float) -> np.ndarray:
         return lateral.project(np.array(cad.p_xyz(path, u, s, y)))
 
-    lip = at(sum(cad.LIP_U) / 2.0, sum(cad.LIP_S) / 2.0, lid_y + 1.0)
-    ax.annotate(
-        "lid lip (E5) and plate edge stand past the body's top end by\n"
-        "design: the lip hooks over the top face and its bump snaps\n"
-        "into the groove (plan §3.3 LID_LIP, §3.5 step 7). The only lid\n"
-        "area outside the body outline in this view: about 9 mm²",
-        xy=lip,
-        xytext=(lip[0] + 30.0, lip[1] - 12.0),
-        fontsize=8,
-        arrowprops={"arrowstyle": "->", "lw": 0.7},
-        zorder=6,
-    )
-    tail = at(8.5, cad.TONGUE_SLOT_S[1] - 0.8, lid_y + 1.0)
-    ax.annotate(
-        "tail lip, full thickness; the lid tongue (E1)\nis hidden in the slot under it",
-        xy=tail,
-        xytext=(tail[0] + 14.0, tail[1] - 2.0),
-        fontsize=8,
-        arrowprops={"arrowstyle": "->", "lw": 0.7},
-        zorder=6,
-    )
+    if manifest.get("stage") == "shell":
+        usb = at(10.0, 0.2, 2.8)
+        ax.annotate(
+            "USB-C 9.0 × 3.5 on the hook-end end face (plan v2 §5.4 fallback).\n"
+            "Receptacle sits 4.8 outside the face; the hook fills 0.9 of the\n"
+            "opening. V2_USB_end fails (review r6, decision 70).",
+            xy=usb,
+            xytext=(usb[0] + 28.0, usb[1] - 14.0),
+            fontsize=8,
+            arrowprops={"arrowstyle": "->", "lw": 0.7},
+            zorder=6,
+        )
+        tail = at(10.0, 39.4, lid_y + 0.5)
+        ax.annotate(
+            "hinge lip in the tail plus two snaps: no undercut,\nthe lid lifts off. V2_CLOSURE fails (decision 71).",
+            xy=tail,
+            xytext=(tail[0] + 16.0, tail[1] - 4.0),
+            fontsize=8,
+            arrowprops={"arrowstyle": "->", "lw": 0.7},
+            zorder=6,
+        )
+    else:
+        lip = at(sum(cad.LIP_U) / 2.0, sum(cad.LIP_S) / 2.0, lid_y + 1.0)
+        ax.annotate(
+            "lid lip (E5) and plate edge stand past the body's top end by\n"
+            "design: the lip hooks over the top face and its bump snaps\n"
+            "into the groove (plan §3.3 LID_LIP, §3.5 step 7). The only lid\n"
+            "area outside the body outline in this view: about 9 mm²",
+            xy=lip,
+            xytext=(lip[0] + 30.0, lip[1] - 12.0),
+            fontsize=8,
+            arrowprops={"arrowstyle": "->", "lw": 0.7},
+            zorder=6,
+        )
+        tail = at(8.5, cad.TONGUE_SLOT_S[1] - 0.8, lid_y + 1.0)
+        ax.annotate(
+            "tail lip, full thickness; the lid tongue (E1)\nis hidden in the slot under it",
+            xy=tail,
+            xytext=(tail[0] + 14.0, tail[1] - 2.0),
+            fontsize=8,
+            arrowprops={"arrowstyle": "->", "lw": 0.7},
+            zorder=6,
+        )
     hook_c = rotate_x(
         np.array([float(params["HOOK_ROOT_X"]) - float(params["HOOK_RADIUS"]), float(params["HOOK_ROOT_Y"]), 0.0]),
         theta,
@@ -555,7 +587,9 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     hc = lateral.project(hook_c)
     hook_mid = lateral.project(rotate_x(np.array([float(params["HOOK_ROOT_X"]) - float(params["HOOK_RADIUS"]), float(params["HOOK_ROOT_Y"]), float(params["HOOK_RADIUS"])]), theta))
     ax.annotate(
-        "hook, glasses flat on its lateral-superior side",
+        "hook, elliptical section, glasses flat on its lateral-superior side"
+        if manifest.get("stage") == "shell"
+        else "hook, glasses flat on its lateral-superior side",
         xy=hook_mid,
         xytext=(hook_mid[0] + 8.0, hook_mid[1] + 3.0),
         fontsize=8,
@@ -568,7 +602,16 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     ax.set_aspect("equal")
     ax.set_axis_off()
     scale_bar(ax, ext[0], ext[2] - 3.0)
-    ax.text(0.0, 1.0, "Lateral (outer side): full p15, lid seated, hook", transform=ax.transAxes, fontsize=9.5, va="top")
+    ax.text(
+        0.0,
+        1.0,
+        "Lateral (outer side): shell v2, lid seated, elliptical hook"
+        if manifest.get("stage") == "shell"
+        else "Lateral (outer side): full p15, lid seated, hook",
+        transform=ax.transAxes,
+        fontsize=9.5,
+        va="top",
+    )
     stamp(ax, commit, date)
     fig.subplots_adjust(left=0.02, right=0.98, top=0.97, bottom=0.03)
     return write_bytes(out_dir / "render_lateral.png", save_png(fig))
@@ -683,7 +726,8 @@ def parameter_set_name(manifest: dict[str, Any]) -> str:
 
 def fillet_summary(manifest: dict[str, Any]) -> list[str]:
     rows = []
-    for name in ("body_full_p15", "body_thin_p15", "body_full_p25"):
+    names = ("body_full_p15",) if manifest.get("stage") == "shell" else ("body_full_p15", "body_thin_p15", "body_full_p25")
+    for name in names:
         notes = manifest["notes"].get(name, {})
         hook = next((f for f in notes.get("fillets", []) if "hook joint" in f), "hook joint: not recorded")
         lip = next((f for f in notes.get("fillets", []) if "lip root" in f), "lip root: not recorded")
@@ -706,7 +750,13 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
     path = cad.make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
 
     fig = plt.figure(figsize=(8.27, 11.69), dpi=100, facecolor="white")
-    fig.suptitle("Elicio BTE fit gauge v1 — reference body (full p15) and lid", fontsize=12, y=0.985)
+    fig.suptitle(
+        "Elicio shell v2 — wearable body (round 5 winner) and lid"
+        if manifest.get("stage") == "shell"
+        else "Elicio BTE fit gauge v1 — reference body (full p15) and lid",
+        fontsize=12,
+        y=0.985,
+    )
     gs = GridSpec(
         4, 6, figure=fig, height_ratios=[1.85, 0.95, 1.05, 0.95],
         hspace=0.28, wspace=0.45, left=0.05, right=0.98, top=0.955, bottom=0.02,
@@ -852,17 +902,40 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
         "orthographic STL shading at one scale; sections are drawn from the constants. Thin p15 and",
         "full p25 differ only in BODY_THICK 7.0 and HOOK_PRELOAD 2.5 (see render_medial.png).",
     ]
+    if manifest.get("stage") == "shell":
+        lines = [
+            f"Winner {manifest.get('winner', '')}   STAGE=shell   provisional: true",
+            f"params {manifest.get('params_file', '')}   sha256 {str(manifest.get('params_sha256', ''))[:12]}…",
+            f"Q34 M1={params['M1']:.1f} default.toml (blank). Interface II, standoff {params.get('V2_STANDOFF', 3.0)} mm.",
+            f"VARIANT={params['VARIANT']}   HOOK_PRELOAD={params['HOOK_PRELOAD']}",
+            f"CREASE_BOW={params['CREASE_BOW']:.2f}   TOTAL_CHORD={gate['total_chord']:.3f}   "
+            f"chord gate: M1 ≥ {gate['gate']:.3f}",
+            f"solids commit {commit}   date {date}",
+            "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
+            "Closure: hinge lip plus two snaps, no undercut; V2_CLOSURE fails (shell-v2.md §2, code-r6 decision 71).",
+            "USB-C on the hook-end end face. No text on the outside. Q59: packing-v2.md §5 REF_end_wall_slot.",
+            *("  " + row for row in fillet_summary(manifest)),
+            "Rolf approves the two renders before any shell order. Nothing is ordered here.",
+        ]
     ax_block.text(0.0, 1.0, "\n".join(lines), ha="left", va="top", fontsize=6.6, family="monospace", linespacing=1.35)
 
-    data = save_pdf_and_debug(fig, debug_png)
+    data = save_pdf_and_debug(
+        fig,
+        debug_png,
+        title=(
+            "Elicio shell v2 drawing"
+            if manifest.get("stage") == "shell"
+            else "Elicio BTE fit gauge v1 drawing"
+        ),
+    )
     return write_bytes(out_dir / "drawing.pdf", data)
 
 
-def save_pdf_and_debug(fig, debug_png: Path | None) -> bytes:
+def save_pdf_and_debug(fig, debug_png: Path | None, title: str = "Elicio BTE fit gauge v1 drawing") -> bytes:
     if debug_png is not None:
         debug_png.mkdir(parents=True, exist_ok=True)
         fig.savefig(debug_png / "drawing_page.png", format="png", dpi=160, facecolor="white")
-    return save_pdf(fig)
+    return save_pdf(fig, title=title)
 
 
 def update_manifest(out_dir: Path, views: dict[str, Any], views_commit: str, solids_commit: str) -> None:
@@ -884,13 +957,20 @@ def main(argv: list[str] | None = None) -> int:
     manifest_path = out_dir / "manifest.json"
     if not manifest_path.is_file():
         raise RenderError(f"missing {manifest_path}")
-    for name in ("body_full_p15.stl", "body_thin_p15.stl", "lid.stl"):
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    needed = (
+        ("body_full_p15.stl", "lid.stl")
+        if manifest.get("stage") == "shell"
+        else ("body_full_p15.stl", "body_thin_p15.stl", "lid.stl")
+    )
+    for name in needed:
         if not (out_dir / name).is_file():
             raise RenderError(f"missing {out_dir / name}")
     configure_matplotlib()
     cad = load_cad()
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    solids_commit = cad.git_commit_solids(REPO_ROOT)
+    solids_commit = cad.git_commit_solids(
+        REPO_ROOT, out_dir if manifest.get("stage") == "shell" else None
+    )
     date = git_commit_date(solids_commit)
     views = {
         "render_medial.png": render_medial(out_dir, manifest=manifest, commit=solids_commit, date=date),
