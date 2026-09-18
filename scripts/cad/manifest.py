@@ -293,12 +293,34 @@ STAGE_B_CHECKS = (
 )
 
 
+# WP11 packing v2 rows (review r5: every one must be present, measured or NOT_MEASURED).
+STAGE_B_V2_CHECKS = (
+    "V2_ADJUSTMENT",
+    "V2_BOARD_envelope",
+    "V2_BOSS",
+    "V2_CELL_CLEARANCE",
+    "V2_CELL_envelope",
+    "V2_CONTACT_STACK",
+    "V2_HARNESS",
+    "V2_LID_band",
+    "V2_M1_gate",
+    "V2_MODULE_envelope",
+    "V2_RECESS",
+    "V2_STACK",
+    "V2_STANDOFF",
+    "V2_TAB_envelope",
+    "V2_TOTAL_CHORD",
+    "V2_USB_medial",
+    "V2_WALL_minima",
+)
+
+
 def _validate_stage_b(payload: dict[str, Any], path: str) -> None:
     if payload.get("provisional") is not True:
         _fail(f"{path}.provisional", "Stage B manifest must set provisional true")
     packing = payload.get("packing")
-    if packing not in ("A", "B", "C"):
-        _fail(f"{path}.packing", "must be A, B or C")
+    if packing not in ("A", "B", "C", "v2"):
+        _fail(f"{path}.packing", "must be A, B, C or v2")
     if not isinstance(payload.get("closure_passed"), bool):
         _fail(f"{path}.closure_passed", "must be a bool")
     if not isinstance(payload.get("contact_source"), str) or not payload["contact_source"].strip():
@@ -318,6 +340,21 @@ def _validate_stage_b(payload: dict[str, Any], path: str) -> None:
             _fail(f"{path}.stage_b.{name}.bodies", "must be a non-empty object")
         if row["passed"] != all(b.get("passed") is True for b in bodies.values()):
             _fail(f"{path}.stage_b.{name}.passed", "must be true only if every body passed")
+    if packing == "v2":
+        for name in STAGE_B_V2_CHECKS:
+            if name not in stage_b:
+                _fail(f"{path}.stage_b", f"missing v2 check {name!r}")
+        if "stage_b_not_measured" not in payload:
+            _fail(f"{path}.stage_b_not_measured", "a v2 manifest must name the checks it could not measure")
+    if "stage_b_not_measured" in payload:
+        not_measured = sorted(
+            name for name, row in stage_b.items() if str(row["detail"]).startswith("NOT_MEASURED")
+        )
+        if payload["stage_b_not_measured"] != not_measured:
+            _fail(f"{path}.stage_b_not_measured", f"must list {not_measured}")
+        for name in not_measured:
+            if stage_b[name]["passed"]:
+                _fail(f"{path}.stage_b.{name}.passed", "a NOT_MEASURED check cannot pass")
     failing = sorted(name for name, row in stage_b.items() if not row["passed"])
     if payload.get("stage_b_failing") != failing:
         _fail(f"{path}.stage_b_failing", f"must list the failing checks {failing}")
