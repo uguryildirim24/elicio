@@ -1,10 +1,10 @@
-# WP14 wearable shell. Overlay on stageb_v2.toml (same packing-C
-# construction, PACKING = "v2" checks). Not an order. Writes
+# WP14d wearable shell. Overlay on stageb_v2.toml. Not an order. Writes
 # docs/fab/cad/v2/ with --stage shell.
 #
-# Winner: A_501015_series_w20_y8_iII_s3 (packing-v2.md §5–§6).
-# Standoff in this file is 3.0 mm (Q43, Q58, WP11 closer). The 4.0 mm
-# Harwin R25-1000402 stays a listed alternate; do not switch it here.
+# Winner: A_pack501012_series_w22_y8_iII_s3 (packing-v2.md §5c on lane/w3
+# at e1f1d6facf37526d358569dace7ebf75ee4e160f). Width 22, height 9.0,
+# 501012 pack (Q69), island u 2.25–19.75 × s 16.00–37.60. Standoff 3.0 mm
+# (Q43, Q58). The 4.0 mm Harwin R25-1000402 stays a listed alternate.
 # M1 = 52 from default.toml (Q34 blank); provisional: true.
 #
 # Each value below is provisional and waits on:
@@ -21,14 +21,17 @@
 # - Q59: packing-v2.md §5 on lane/w3 at 284ec05: no in-cavity REF route.
 #   This shell cuts REF_end_wall_slot (u 7.25–9.75, s 38.20–39.25,
 #   y 1.50–1.81) plus 0.20 mm flex clearance per side in u.
+# - Q81: no USB receptacle at M1 52. Two charging contacts at §5c P4/P5.
+# - Q82: island bosses at §5c hole sites (13.45, 17.70) and (17.95, 17.70).
+# - Q83: neck-end tab strips, no side-wall pockets.
 # - Q17: reference dome on the tail, provisional.
 
 PACKING = "v2"
 STAGE = "shell"
 V2_ARCH = "A"
-V2_CELL = "501015"
+V2_CELL = "pack501012"
 V2_LAYOUT = "series"
-V2_WIDTH = 20.0
+V2_WIDTH = 22.0
 V2_LID_Y = 8.0
 V2_ARC_PLUS = 0.0
 V2_IFACE = "II"

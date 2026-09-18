@@ -321,6 +321,8 @@ STAGE_B_V2_CHECKS = (
 SHELL_CHECKS = (
     "V2_BOSS",
     "V2_BOSS_pilot",
+    "V2_BOSS_sites",
+    "V2_CHARGE_pads",
     "V2_CLOSURE",
     "V2_EDGE_radii",
     "V2_LATERAL_unbroken",
@@ -374,7 +376,13 @@ def _validate_stage_b(payload: dict[str, Any], path: str, *, shell: bool = False
         name
         for name, row in stage_b.items()
         if not row["passed"]
-        and not (shell and str(row["detail"]).startswith("NOT_MEASURED"))
+        and not (
+            shell
+            and (
+                str(row["detail"]).startswith("NOT_MEASURED")
+                or str(row["detail"]).startswith("NOT_APPLICABLE")
+            )
+        )
     )
     if payload.get("stage_b_failing") != failing:
         _fail(f"{path}.stage_b_failing", f"must list the failing checks {failing}")
