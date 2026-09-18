@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import math
 import shutil
 import subprocess
 import sys
@@ -957,18 +958,35 @@ class CadShellV2BuildTests(unittest.TestCase):
         self.assertTrue(rows["REF_WIRE_envelope"].passed, rows["REF_WIRE_envelope"].detail)
         self.assertLessEqual(rows["V2_TAB_envelope"].numbers["REF_body_mm3"], 0.005)
         self.assertLessEqual(rows["REF_WIRE_envelope"].numbers["body_mm3"], 0.005)
-        for name in (
-            "V2_BOSS",
-            "V2_RING_seat",
-            "V2_USB_end",
-            "V2_SWITCH_reach",
-            "V2_CLOSURE",
-            "V2_EDGE_radii",
-            "V2_WALL_minima",
-        ):
+        for name in ("V2_BOSS", "V2_RING_seat", "V2_SWITCH_reach", "V2_STANDOFF"):
             self.assertIn(name, rows)
             self.assertTrue(rows[name].passed, f"{name}: {rows[name].detail} {rows[name].numbers}")
             self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
+        # Review r6: measured on the solid, and failing until the decisions
+        # in tasks/reviews/code-r6.md are taken. A pass here needs a design
+        # change, not a constant.
+        for name in ("V2_USB_end", "V2_CLOSURE", "V2_EDGE_radii", "V2_WALL_minima"):
+            self.assertIn(name, rows)
+            self.assertFalse(rows[name].passed, f"{name}: {rows[name].numbers}")
+            self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
+        usb = rows["V2_USB_end"].numbers
+        self.assertLess(usb["ligament_hook"], 0.0)  # the hook fills the opening's anterior edge
+        self.assertLess(usb["mouth_recess"], 0.0)  # packing places the receptacle outside the face
+        closure = rows["V2_CLOSURE"].numbers
+        self.assertEqual(closure["ant_undercut"], 0.0)
+        self.assertEqual(closure["post_undercut"], 0.0)
+        self.assertEqual(closure["hinge_lip_undercut"], 0.0)
+        self.assertLess(closure["ant_beam_t"], CAD.JLC_MIN_WALL)
+        stand = rows["V2_STANDOFF"].numbers
+        for site in ("SIG1", "SIG2", "REF"):
+            self.assertAlmostEqual(stand[f"{site}_well_af"], CAD.SHELL_HEX_AF, delta=0.01)
+            self.assertLess(stand[f"{site}_well_af"] + CAD.PRINT_TOL, 2.0 * CAD.STANDOFF_AF / math.sqrt(3.0))
+            self.assertAlmostEqual(rows["V2_RING_seat"].numbers[f"{site}_seat_d"], CAD.SHELL_RING_SEAT_D, delta=0.01)
+        for name in ("CLOSURE_PASSED", "KEEPOUT_SIGNAL_air", "KEEPOUT_REF_air", "CABLE_EXIT_cavity"):
+            self.assertFalse(rows[name].passed, name)
+            self.assertTrue(rows[name].detail.startswith("NOT_MEASURED"), name)
+        self.assertEqual(sum(1 for c in checks if c.name == "V2_STANDOFF"), 1)
+        self.assertEqual(self.notes["stage_b_cuts"]["exit_removed_mm3"], 0.0)
         wall = rows["V2_WALL_minima"].numbers
         self.assertGreaterEqual(wall["slot_wall_s_left"], 1.0)
         self.assertGreaterEqual(wall["slot_wall_s_right"], 1.0)
@@ -994,14 +1012,24 @@ class CadShellV2BuildTests(unittest.TestCase):
                 done = subprocess.run(
                     cmd + ["--out", str(dest)], capture_output=True, text=True
                 )
-                self.assertEqual(done.returncode, 0, done.stderr + done.stdout)
+                self.assertEqual(done.returncode, 3, done.stderr + done.stdout)
                 payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
                 hashes.append(payload["files"])
+                self.assertEqual(
+                    payload["stage_b_failing"],
+                    ["V2_CLOSURE", "V2_EDGE_radii", "V2_USB_end", "V2_WALL_minima"],
+                )
+                for part in ("body_full_p15.step", "lid.step", "body_full_p15.stl", "lid.stl"):
+                    self.assertEqual(
+                        (dest / part).read_bytes(), (CAD.V2_DIR / part).read_bytes(), part
+                    )
                 self.assertEqual(payload["stage"], "shell")
                 self.assertEqual(payload["winner"], CAD.SHELL_WINNER)
                 self.assertTrue(payload["provisional"])
                 load_manifest_mod().validate(payload)
         self.assertEqual(hashes[0], hashes[1])
+        committed = json.loads((CAD.V2_DIR / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(hashes[0], committed["files"])
 
 
 if __name__ == "__main__":

@@ -341,11 +341,27 @@ SHELL_PARAMS_FILE = SCRIPT_DIR / "params" / "shell_v2.toml"
 # ISO 7380 M2.5×4 head (v1 contact dome stays the skin seat).
 ISO_7380_HEAD_D = 4.6
 ISO_7380_HEAD_H = 1.5
-# Hex pocket: 5 mm AF standoff, 0.2 mm print clearance on the flats.
-SHELL_HEX_AF = 6.3  # clears the packing 5×5 standoff box corners (2.5√2)
-SHELL_HEX_OUTER_AF = 7.8
+# Captive hex well for the 5 AF brass standoff (review r6). Inputs: the
+# standoff is 5.00 A/F max (Harwin DRG-01991; the Spacer Express 3.0 part
+# is sold as "5 mm across flats"); JLC PA12-HP "Tolerance: ±0.3mm (Within
+# 100mm)" (jlc3dp.com/help/article/pa12-hp-nylon, plan v2 §12 C15).
+# Fit: the smallest printed well (AF − 0.3) must take the largest standoff,
+# AF − 0.3 ≥ 5.00, so AF ≥ 5.30. Lock: the largest printed well (AF + 0.3)
+# must stay under the standoff's across-corners, 5.60 < 1.1547 × AF_standoff,
+# which holds for any standoff at or above 4.85 AF. 5.30 is the one value
+# that satisfies both at every print tolerance.
+STANDOFF_AF = 5.00
+PRINT_TOL = 0.30
+SHELL_HEX_AF = STANDOFF_AF + PRINT_TOL  # 5.30
+# Collar: JLC's 1.0 minimum wall around the Ø6.4 ring seat at its base.
+SHELL_HEX_OUTER_AF = 8.4
 SHELL_COLLAR_H = 2.0
+# Ring seat at the collar base: the flex ring outline is Ø6.0 (cap radius
+# 3.0 around the Ø5.0 pad, board-v2.md §11), FPC outline ±0.10
+# (board-v2.md §12) plus the print ±0.3: Ø6.4.
+SHELL_RING_SEAT_D = 6.0 + 0.10 + PRINT_TOL
 SHELL_SCREW_HOLE = 2.7  # brief; Stage B already opens CONTACT_HOLE 2.9
+JLC_MIN_WALL = 1.0  # JLC PA12-HP "Wall thickness: 1mm" (plan v2 §12)
 SHELL_PILOT = 2.0  # M2.5 self-tap in PA12 (~80 % of 2.5)
 # Cantilever snap (PA12). Strain ε ≈ 1.5 t y / L².
 SHELL_SNAP_L = 8.0
@@ -1939,6 +1955,17 @@ def _cut_stage_b_contacts(
         hole = _y_cylinder(origin.X, -0.5, origin.Z, hole_r, wall + 0.5 + ENVELOPE_LIFT * 10.0)
         measure["hole_removed_mm3"][name] = round(_overlap_volume(body, hole), 4)
         body = body.cut(hole)
+    if stage_is_shell(params):
+        # Review r6: the v1 REF wire channel (1.6 × 1.6 through the end wall
+        # above the Q59 slot) and the Ø2.0 bench-cable exit through the
+        # posterior wall serve v1's wired contacts. The shell carries the
+        # REF flex tab in REF_end_wall_slot and has no external cable, so
+        # neither is cut (plan v2 §7: nothing outside but the domes and the
+        # port). Stage B (no STAGE=shell) is unchanged.
+        measure["exit_removed_mm3"] = 0.0
+        measure["exit_nylon_in_cavity_mm3"] = 0.0
+        measure["shell_skipped"] = "v1 REF wire channel and bench-cable exit"
+        return body, measure
     ws0, ws1 = wire_s_pair(params)
     channel = path_solid(WIRE_U[0], WIRE_U[1], ws0, ws1, WIRE_Y[0], WIRE_Y[1])
     body = body.cut(channel)
@@ -1955,7 +1982,7 @@ def _bisect(inside: Callable[[float], bool], lo: float, hi: float, tol: float = 
     at_lo = inside(lo)
     if inside(hi) == at_lo:
         raise CheckFail(f"probe: no boundary between {lo} and {hi}")
-    while hi - lo > tol:
+    while abs(hi - lo) > tol:  # review r6: descending ranges bisect too
         mid = (lo + hi) / 2.0
         if inside(mid) == at_lo:
             lo = mid
@@ -2023,7 +2050,14 @@ def run_stage_b_solid_checks(
     checks: list[Check] = []
 
     def record(name: str, passed: bool, detail: str, **numbers: float) -> None:
-        checks.append(Check(name, bool(passed), detail, numbers))
+        row = Check(name, bool(passed), detail, numbers)
+        # A shell row supersedes the Stage B row of the same name in place,
+        # so the manifest lists each check once (review r6).
+        for i, old in enumerate(checks):
+            if old.name == name:
+                checks[i] = row
+                return
+        checks.append(row)
 
     noise = OVERLAP_NOISE_MM3
     wall = float(params["WALL_MEDIAL"])
@@ -2221,19 +2255,30 @@ def run_stage_b_solid_checks(
     opens = not _inside_uys(body, path, cu1 - 0.3, s_exit, CABLE_EXIT_Y)
     in_cavity_s = cs0 < s_exit - CABLE_EXIT_DIA / 2.0 and s_exit + CABLE_EXIT_DIA / 2.0 < cavity_s(params)[1]
     off_battery = s_exit - CABLE_EXIT_DIA / 2.0 > RIB_S[1]
-    record(
-        "CABLE_EXIT_cavity",
-        pierced and opens and in_cavity_s and off_battery
-        and float(cuts["exit_nylon_in_cavity_mm3"]) <= noise,
-        "Ø2.0 exit pierces the posterior wall and meets cavity air only "
-        "(no pad, rib or battery pocket)",
-        CABLE_EXIT_S=s_exit,
-        nylon_in_cavity_mm3=float(cuts["exit_nylon_in_cavity_mm3"]),
-        removed_mm3=float(cuts["exit_removed_mm3"]),
-        pierced=1.0 if pierced else 0.0,
-        opens_into_cavity=1.0 if opens else 0.0,
-        board_side_of_rib=1.0 if off_battery else 0.0,
-    )
+    if stage_is_shell(params):
+        # Review r6: the shell has no bench cable, so no exit is cut; the
+        # posterior wall at CABLE_EXIT_S is measured closed instead.
+        record(
+            "CABLE_EXIT_cavity",
+            False,
+            "NOT_MEASURED: no bench-cable exit on the shell (plan v2 §7); posterior wall closed at CABLE_EXIT_S",
+            CABLE_EXIT_S=s_exit,
+            wall_closed=0.0 if pierced else 1.0,
+        )
+    else:
+        record(
+            "CABLE_EXIT_cavity",
+            pierced and opens and in_cavity_s and off_battery
+            and float(cuts["exit_nylon_in_cavity_mm3"]) <= noise,
+            "Ø2.0 exit pierces the posterior wall and meets cavity air only "
+            "(no pad, rib or battery pocket)",
+            CABLE_EXIT_S=s_exit,
+            nylon_in_cavity_mm3=float(cuts["exit_nylon_in_cavity_mm3"]),
+            removed_mm3=float(cuts["exit_removed_mm3"]),
+            pierced=1.0 if pierced else 0.0,
+            opens_into_cavity=1.0 if opens else 0.0,
+            board_side_of_rib=1.0 if off_battery else 0.0,
+        )
 
     # CELL_envelope: 5.2 × 10.4 × 15.6 plus 0.5 foam, on the floor, centred
     # in the plan pocket reservation, against body and seated lid.
@@ -2770,13 +2815,70 @@ def _record_shell_checks(
         ring_nums[f"{label}_hole_open"] = 1.0 if hole_open else 0.0
         if not in_well or not hole_open:
             ring_ok = False
+    ring_t = v2.ring_under(spec)
+    sites = (
+        ("SIG1", contact_1_us(params)),
+        ("SIG2", (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))),
+        ("REF", contact_ref_us(params)),
+    )
+    seat_need = 6.0 + 0.10  # flex ring outline Ø6.0, FPC outline ±0.10
+    for label, (u, s) in sites:
+        seat_r = _radial_air(body, path, u, s, floor_y + ring_t / 2.0, "u", 4.5)
+        ring_nums[f"{label}_seat_d"] = round(2.0 * seat_r, 4) if seat_r > 0 else -1.0
+        if seat_r <= 0 or 2.0 * seat_r - PRINT_TOL < seat_need - 0.01:
+            ring_ok = False
     record(
         "V2_RING_seat",
         ring_ok,
-        "ring-pad seat: air over the floor at each site (Ø5 ring + Ø2.7 hole through the 1.5 wall)",
-        ring_t=round(v2.ring_under(spec), 4),
+        (
+            f"ring-pad seat: air over the floor at each site, Ø2.7 hole through the 1.5 wall, "
+            f"seat Ø measured on the solid ≥ Ø{seat_need:g} ring outline + {PRINT_TOL:g} print"
+        ),
+        ring_t=round(ring_t, 4),
         hole=SHELL_SCREW_HOLE,
         **ring_nums,
+    )
+
+    # Captive hex (review r6): a 5 AF prism from the ring to the standoff top
+    # holds no nylon, and the well's measured flats and corners give fit at
+    # −0.3 and lock at +0.3 print tolerance.
+    stand_ok = True
+    stand_nums: dict[str, float] = {}
+    so_r = _af_circumr(STANDOFF_AF)
+    probe_y = floor_y + ring_t + 1.0
+    corner_to_corner = 2.0 * so_r
+    for label, (u, s) in sites:
+        prism = _hex_prism(
+            path,
+            u,
+            s,
+            floor_y + ring_t + ENVELOPE_LIFT,
+            layout.standoff_top_y - floor_y - ring_t - 2.0 * ENVELOPE_LIFT,
+            so_r,
+        )
+        over = _overlap_volume(body, prism)
+        flat = _radial_air(body, path, u, s, probe_y, "s", SHELL_HEX_OUTER_AF / 2.0 - 0.2)
+        corner = _radial_air(body, path, u, s, probe_y, "u", _af_circumr(SHELL_HEX_OUTER_AF) - 0.2)
+        af = 2.0 * flat
+        stand_nums[f"{label}_body_mm3"] = round(over, 4)
+        stand_nums[f"{label}_well_af"] = round(af, 4) if flat > 0 else -1.0
+        stand_nums[f"{label}_well_corner_r"] = round(corner, 4) if corner > 0 else -1.0
+        fit = flat > 0 and af - PRINT_TOL >= STANDOFF_AF - 0.01
+        lock = flat > 0 and af + PRINT_TOL < corner_to_corner
+        if over > noise or not fit or not lock:
+            stand_ok = False
+    record(
+        "V2_STANDOFF",
+        stand_ok,
+        (
+            f"5 AF brass standoff: prism from the ring to the standoff top holds no nylon; "
+            f"well AF − {PRINT_TOL:g} ≥ {STANDOFF_AF:g} (fit) and well AF + {PRINT_TOL:g} < "
+            f"{corner_to_corner:.3f} across corners (no turn)"
+        ),
+        standoff_h=round(spec.standoff, 4),
+        top_y=round(layout.standoff_top_y, 4),
+        probe_y=round(probe_y, 4),
+        **stand_nums,
     )
 
     usb_u = 10.0
@@ -2798,16 +2900,57 @@ def _record_shell_checks(
             layout.parts["cell"].s0, layout.parts["cell"].s1,
             layout.parts["cell"].y0, layout.parts["cell"].y1,
         ))
-    lig_hook = (usb_u - v2.USB_OPENING[0] / 2.0) - float(params.get("HOOK_ROOT_X", 4.0))
-    lig_sig1 = contact_1_us(params)[1] - 0.0
+    # Review r6: measured, not u_edge − HOOK_ROOT_X. The hook is fused in
+    # assemble_shell, so it is built here in the body frame (the export
+    # rotates body and hook together by −THETA_DEG) and probed on the face.
+    open_u0 = usb_u - v2.USB_OPENING[0] / 2.0
+    usb_y0 = 1.00
+    usb_y1 = usb_y0 + v2.USB_OPENING[1]
+    hook_b = build_hook(params).rotate(Axis.X, float(params["THETA_DEG"]))
+    hook_u_max = -1.0e9
+    for s_face in (-v2.USB_RECESS, 0.0, wall / 2.0, wall):
+        for k in range(15):
+            y = usb_y0 + (usb_y1 - usb_y0) * k / 14.0
+            if not _inside_uys(hook_b, path, 0.0, s_face, y) and not _inside_uys(
+                hook_b, path, float(params.get("HOOK_ROOT_X", 4.0)), s_face, y
+            ):
+                continue
+            lo = 0.0 if _inside_uys(hook_b, path, 0.0, s_face, y) else float(params.get("HOOK_ROOT_X", 4.0))
+            try:
+                edge = _bisect(lambda uu: _inside_uys(hook_b, path, uu, s_face, y), lo, usb_u)
+            except CheckFail:
+                continue
+            hook_u_max = max(hook_u_max, edge)
+    lig_hook = open_u0 - hook_u_max if hook_u_max > -1.0e8 else 99.0
+    usb = layout.parts.get("usb")
+    face_s = _bisect(
+        lambda ss: _inside_uys(body, path, open_u0 + v2.USB_OPENING[0] + v2.USB_LIGAMENT / 2.0, ss, usb_y0 + 1.0),
+        -4.0,
+        wall / 2.0,
+    )
+    mouth_recess = (usb.s0 - face_s) if usb is not None else -99.0
+    lig_sig1 = contact_1_us(params)[1] - (usb.s1 if usb is not None else 0.0) - _af_circumr(SHELL_HEX_OUTER_AF)
     record(
         "V2_USB_end",
-        opening_air and plug_cell <= noise and lig_hook >= v2.USB_LIGAMENT - 0.05,
-        "USB-C hook-end end face: opening 9.0 × 3.5, recess 1.0, ligaments, plug volume clear of the cell",
+        opening_air
+        and plug_cell <= noise
+        and lig_hook >= v2.USB_LIGAMENT - 0.05
+        and mouth_recess >= v2.USB_RECESS - 0.05,
+        (
+            "USB-C hook-end end face: opening 9.0 × 3.5 open, receptacle mouth ≥ 1.0 behind the "
+            "outer face (measured face vs packing usb box), ligament ≥ 1.5 from the opening to the "
+            "hook measured on the face with the hook in the body frame, plug volume clear of the cell"
+        ),
         opening_air=1.0 if opening_air else 0.0,
         recess=v2.USB_RECESS,
+        outer_face_s=round(face_s, 4),
+        receptacle_s0=round(usb.s0, 4) if usb is not None else -99.0,
+        receptacle_s1=round(usb.s1, 4) if usb is not None else -99.0,
+        mouth_recess=round(mouth_recess, 4),
+        hook_u_max_on_face=round(hook_u_max, 4),
+        opening_u0=round(open_u0, 4),
         ligament_hook=round(lig_hook, 4),
-        ligament_SIG1_s=round(lig_sig1, 4),
+        ligament_SIG1_collar_s=round(lig_sig1, 4),
         plug_cell_mm3=round(plug_cell, 4),
         plug_x=v2.PLUG_VOLUME[0],
         plug_y=v2.PLUG_VOLUME[1],
@@ -2847,54 +2990,105 @@ def _record_shell_checks(
         **switch_nums,
     )
 
-    strain = snap_strain(SHELL_SNAP_L, SHELL_SNAP_T, SHELL_SNAP_Y)
-    snap_air = not _inside_uys(
-        body, path, cavity_u(params)[0] - SHELL_SNAP_CATCH / 2.0, SHELL_SNAP_S0 + 1.0, lid_y - 0.4
+    # Review r6: measured on the built lid and body. A snap retains only if
+    # body nylon sits over its hook (an undercut); the lane's grooves run to
+    # lid_y + 0.15, so the lid lifts straight off. The beam is the one built
+    # (hangs in y, bends in u), not the SHELL_SNAP_* constants.
+    cu0, cu1 = cavity_u(params)
+    s_hook = SHELL_SNAP_S0 + 2.5
+    snap_nums: dict[str, float] = {}
+    undercuts: list[bool] = []
+    strains: list[float] = []
+    beam_ts: list[float] = []
+    for label, u_wall, sign in (("ant", cu0, 1.0), ("post", cu1, -1.0)):
+        u_beam = u_wall + 0.43 * sign
+        u_hook = u_wall - 0.10 * sign
+        try:
+            t_lo = _bisect(lambda uu: _inside_uys(lid, path, uu, s_hook - 1.5, lid_y - 0.5), u_beam - 0.6 * sign, u_beam)
+            t_hi = _bisect(lambda uu: _inside_uys(lid, path, uu, s_hook - 1.5, lid_y - 0.5), u_beam, u_beam + 0.6 * sign)
+            beam_t = abs(t_hi - t_lo)
+            beam_bottom = _bisect(lambda yy: _inside_uys(lid, path, u_beam, s_hook - 1.5, yy), lid_y - 2.0, lid_y - 0.2)
+            beam_L = lid_y - beam_bottom
+            # Deflection to insert: how far the hook stands past the wall face.
+            hook_outer = _bisect(lambda uu: _inside_uys(lid, path, uu, s_hook, lid_y - 0.5), u_hook, u_wall - 0.5 * sign)
+            deflect = abs(hook_outer - u_wall)
+        except CheckFail:
+            beam_t = beam_L = deflect = -1.0
+        # Undercut: body nylon above the hook, below or at the lid seat.
+        over = any(
+            _inside_uys(body, path, u_hook, ss, y)
+            for ss in (s_hook - 0.6, s_hook, s_hook + 0.6)
+            for y in (lid_y - 0.12, lid_y - 0.05, lid_y + 0.05, lid_y + 0.3)
+        )
+        undercuts.append(over)
+        eps = snap_strain(beam_L, beam_t, deflect) if beam_L > 0 else 1.0
+        strains.append(eps)
+        beam_ts.append(beam_t)
+        snap_nums[f"{label}_beam_t"] = round(beam_t, 4)
+        snap_nums[f"{label}_beam_L"] = round(beam_L, 4)
+        snap_nums[f"{label}_deflection"] = round(deflect, 4)
+        snap_nums[f"{label}_strain"] = round(eps, 5)
+        snap_nums[f"{label}_undercut"] = 1.0 if over else 0.0
+    ts_ = tail_s0(params)
+    lip_over = any(
+        _inside_uys(body, path, 11.0, ts_ + 1.0, y) for y in (lid_y - 0.05, lid_y + 0.05, lid_y + 0.3)
     )
-    slot_clear = not _inside_uys(
-        body, path, contact_ref_us(params)[0], cavity_s(params)[1] + 0.2, floor_y + 0.15
+    snap_nums["hinge_lip_undercut"] = 1.0 if lip_over else 0.0
+    closure_ok = (
+        all(undercuts)
+        and lip_over
+        and max(strains) <= 0.04
+        and min(beam_ts) >= JLC_MIN_WALL - 0.05
     )
     record(
         "V2_CLOSURE",
-        strain <= 0.04 and snap_air,
+        closure_ok,
         (
-            f"cantilever snap L={SHELL_SNAP_L:g} t={SHELL_SNAP_T:g} y={SHELL_SNAP_Y:g} "
-            f"plus hinge lip at the cavity-tail wall; strain {strain:.4f} (limit 0.04 for PA12 repeated snap)"
+            "built lid: body nylon over each snap hook and over the hinge lip (undercut), "
+            f"beam ≥ JLC {JLC_MIN_WALL:g} wall, strain 1.5·t·y/L² of the built beam ≤ 0.04 (PA12 repeated snap)"
         ),
-        beam_L=SHELL_SNAP_L,
-        beam_t=SHELL_SNAP_T,
-        beam_w=SHELL_SNAP_W,
-        deflection=SHELL_SNAP_Y,
-        catch=SHELL_SNAP_CATCH,
-        strain=round(strain, 5),
-        snap_groove_air=1.0 if snap_air else 0.0,
-        slot_air=1.0 if slot_clear else 0.0,
-        usb_ligament_hook=round(lig_hook, 4),
+        jlc_min_wall=JLC_MIN_WALL,
+        **snap_nums,
     )
 
-    try:
-        lid_c = _bisect(
-            lambda y: _inside_uys(lid, path, width / 2.0, 18.0, y),
-            lid_y + 0.4,
-            lid_y + float(params["LID_THICK"]) + SHELL_LID_CROWN + 0.8,
-        )
-        lid_e = _bisect(
-            lambda y: _inside_uys(lid, path, 2.5, 18.0, y),
-            lid_y + 0.4,
-            lid_y + float(params["LID_THICK"]) + SHELL_LID_CROWN + 0.8,
-        )
-        crown = lid_c - lid_e
-        facet_ok = crown >= 0.15
-    except CheckFail:
-        crown = 0.0
-        facet_ok = False
+    # Review r6: plan v2 §7 "no planar facet over 3 mm" is probed along the
+    # whole lid, not at one station inside the Ø19 crown. At each station
+    # the top is sampled 3 mm apart across u; a rise under 0.02 over 3 mm in
+    # both directions is a facet. Lid rim R is the built LID_EDGE fillet.
+    top_hi = lid_y + float(params["LID_THICK"]) + SHELL_LID_CROWN + 0.8
+
+    def lid_top(uu: float, ss: float) -> float:
+        return _bisect(lambda y: _inside_uys(lid, path, uu, ss, y), lid_y + 0.4, top_hi)
+
+    facets = 0
+    stations = 0
+    crown_min = 1.0e9
+    for ss in (4.0, 10.0, 16.0, 22.0, 28.0, 34.0, 40.0):
+        try:
+            mid_top = lid_top(width / 2.0, ss)
+            side_top = lid_top(width / 2.0 - 3.0, ss)
+            s_top = lid_top(width / 2.0, ss + 3.0)
+        except CheckFail:
+            continue
+        stations += 1
+        rise_u = mid_top - side_top
+        rise_s = abs(mid_top - s_top)
+        crown_min = min(crown_min, rise_u)
+        if rise_u < 0.02 and rise_s < 0.02:
+            facets += 1
+    rim_r = float(params["LID_EDGE"])
     record(
         "V2_EDGE_radii",
-        facet_ok,
-        "plan v2 §7 probe: lateral lid crown vs a 3 mm planar facet; medial face stays flat",
-        lid_crown_mm=round(crown, 4),
+        stations > 0 and facets == 0 and rim_r >= 1.0 - 1e-9,
+        (
+            "plan v2 §7: no planar facet over 3 mm on the lid (top sampled 3 mm apart at 7 stations), "
+            "outside edges R ≥ 1.0 (lid rim is the built LID_EDGE fillet)"
+        ),
+        stations=float(stations),
+        flat_stations=float(facets),
+        min_rise_over_3mm=round(crown_min, 4) if stations else -1.0,
+        lid_rim_R=rim_r,
         medial_fillet=float(params["FILLET_MEDIAL"]),
-        outside_min_R=1.0,
     )
 
     # Snap catch is 0.4 into the 1.5 side wall (residual 1.1). USB ligaments
@@ -2906,9 +3100,14 @@ def _record_shell_checks(
     cut_u0 = REF_SLOT_U[0] - REF_SLOT_CLEAR_U
     cut_u1 = REF_SLOT_U[1] + REF_SLOT_CLEAR_U
     slot_open = not _inside_uys(body, path, slot_u, slot_s, slot_y)
-    usb_open_u0 = 10.0 - v2.USB_OPENING[0] / 2.0
-    lig_ant = usb_open_u0 - float(params.get("HOOK_ROOT_X", 4.0))
-    snap_residual = wall - SHELL_SNAP_CATCH
+    lig_ant = lig_hook
+    # Residual side wall behind the snap groove, measured.
+    try:
+        g_in = _bisect(lambda uu: _inside_uys(body, path, uu, s_hook, lid_y - 0.6), cu0 + 0.05, cu0 - 1.0)
+        g_out = _bisect(lambda uu: _inside_uys(body, path, uu, s_hook, lid_y - 0.6), cu0 - 1.0, -0.5)
+        snap_residual = abs(g_in - g_out)
+    except CheckFail:
+        snap_residual = -1.0
     wall_nums: dict[str, float] = {
         "usb_ligament_hook": round(lig_ant, 4),
         "snap_residual": round(snap_residual, 4),
@@ -2990,26 +3189,25 @@ def _record_shell_checks(
         **wall_nums,
     )
 
+    # Review r6: these were recorded True as constants. They are v1 rows:
+    # the E1 flag and the TE 31428 / lug keep-outs, which interface II fills
+    # with hex collars by design. The shell's rows are V2_CLOSURE,
+    # V2_STANDOFF and V2_RING_seat.
     record(
         "CLOSURE_PASSED",
-        True,
-        "E1 omitted (Q28); shell closure is the tail hinge lip plus two cantilever snaps (V2_CLOSURE)",
+        False,
+        "NOT_MEASURED: v1 E1 flag (Q28, E1 dropped); the shell closure is V2_CLOSURE",
         flag=0.0,
-        strain=round(strain, 5),
     )
-
-    # Hex collars occupy the v1 TE keep-out; say so instead of failing closed.
     record(
         "KEEPOUT_SIGNAL_air",
-        True,
-        "v1 Ø7.1 keep-out holds the interface II hex collars on this shell; V2_STANDOFF measures the well",
-        note=1.0,
+        False,
+        "NOT_MEASURED: v1 Ø7.1 TE keep-out; interface II puts the hex collar there (V2_STANDOFF, V2_RING_seat)",
     )
     record(
         "KEEPOUT_REF_air",
-        True,
-        "v1 Ø7.5 lug pocket holds the REF hex collar and Q59 slot on this shell",
-        note=1.0,
+        False,
+        "NOT_MEASURED: v1 Ø7.5 lug pocket; interface II puts the REF hex collar and the Q59 slot there",
     )
 
 
@@ -3038,6 +3236,31 @@ def _cell_box(path: PathGeom, params: Mapping[str, Any], floor_y: float) -> Shap
 
 def _af_circumr(across_flats: float) -> float:
     return across_flats / math.sqrt(3.0)
+
+
+def _radial_air(
+    body: Shape, path: PathGeom, u: float, s: float, y: float, axis: str, reach: float
+) -> float:
+    """Smallest distance in mm from (u, s) to nylon along ±u or ±s at height y.
+
+    Air at the centre is required. Along s the probe is scaled to arc length
+    at radius R + u. Directions with no boundary inside reach are skipped
+    (a tab channel); −1.0 when no direction finds one.
+    """
+    if _inside_uys(body, path, u, s, y):
+        return -1.0
+    scale = (path.radius + u) / path.radius if axis == "s" else 1.0
+    found: list[float] = []
+    for sign in (1.0, -1.0):
+        if axis == "u":
+            fn = lambda d: _inside_uys(body, path, u + sign * d, s, y)  # noqa: E731
+        else:
+            fn = lambda d: _inside_uys(body, path, u, s + sign * d / scale, y)  # noqa: E731
+        try:
+            found.append(_bisect(fn, 0.0, reach))
+        except CheckFail:
+            continue
+    return min(found) if found else -1.0
 
 
 def _hex_prism(
@@ -3162,17 +3385,19 @@ def _apply_shell_features(
         collar = _hex_prism(path, u, s, floor_y, SHELL_COLLAR_H, outer_r)
         origin = _vec(path, u, s, 0.0)
         well_h = layout.standoff_top_y - floor_y + 0.2
+        # Review r6: the well is the 5.30 AF hex alone. The Ø7.4 cylinder the
+        # lane cut with it swallowed the hex (circumradius 3.06 < 3.70), so
+        # the standoff could turn and the collar flats were 0.2 thick.
         well = _hex_prism(path, u, s, floor_y - 0.05, well_h, inner_r)
-        well_cyl = _y_cylinder(origin.X, floor_y - 0.05, origin.Z, 3.70, well_h)
         try:
-            body = body.fuse(collar).cut(well).cut(well_cyl)
+            body = body.fuse(collar).cut(well)
         except Exception as exc:
             raise CheckFail(f"hex pocket {name}: {exc}") from exc
         ring_seat = _y_cylinder(
             origin.X,
             floor_y - 0.02,
             origin.Z,
-            v2.RING_R + 0.35,
+            SHELL_RING_SEAT_D / 2.0,
             ring_t + 0.05,
         )
         body = body.cut(ring_seat)
@@ -3199,15 +3424,27 @@ def _apply_shell_features(
                 )
                 if channel is not None:
                     body = body.cut(channel)
+            else:
+                # REF: the slot's own clearance from the slot to the ring
+                # seat, through the REF collar (review r6: the exact tab box
+                # left zero clearance in the collar).
+                body = body.cut(
+                    maker(
+                        REF_SLOT_U[0] - REF_SLOT_CLEAR_U,
+                        REF_SLOT_U[1] + REF_SLOT_CLEAR_U,
+                        REF_SLOT_S[1],
+                        contact_ref_us(params)[1],
+                        REF_SLOT_Y[0] - 0.02,
+                        REF_SLOT_Y[1] + REF_SLOT_CLEAR_Y,
+                    )
+                )
             for box in v2._tab_boxes(tab, v2.FLOOR_Y, v2.FLOOR_Y + v2.TAB_T):
                 body = body.cut(
                     maker(box.u0, box.u1, box.s0, box.s1, box.y0, box.y1)
                 )
-    for name in ("standoff_SIG1", "standoff_SIG2", "standoff_REF"):
-        if name not in layout.parts:
-            continue
-        box = layout.parts[name]
-        body = body.cut(maker(box.u0, box.u1, box.s0, box.s1, box.y0, box.y1))
+    # Review r6: the packing's 5 × 5 standoff boxes are not cut any more;
+    # their corners (radius 3.54) opened the hex well past the standoff's
+    # corners (2.89) and undid the lock. V2_STANDOFF measures the hex.
 
     bosses = _shell_boss_sites(layout, v2)
     for name, u, s in bosses:
