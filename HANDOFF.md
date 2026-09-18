@@ -336,6 +336,16 @@ Outside those:
    (Pro amendment, Rolf's call); WP14c's screw well on the medial tail
    vs the REF contact and skin (Q17), and whether a well against skin
    collects sweat (the tail-end-face variant is the alternative).
+   Round 7 additions: WP14d built the P4/P5 charging domes inside the
+   1.5 mm side walls at §5c's sites (u 0.75 / 21.25), protruding past
+   the silhouette (WP11e moves them, WP14e follows); its render stamp is
+   the solids commit `f52afc5` while HEAD `ecfff54` is a one-line read
+   fix; it read §5c at `e1f1d6f`, the same sites as `c6bd2fe`. WP12d's
+   last commit message says "routed" on an un-routed tree, and its
+   `packing_5c_norec.md` copy of the table goes stale once v2 lands
+   (absent on main). The §5c pin table mixed folded and flat coordinates
+   (Q85); the review checks that v2, the board and the shell each use the
+   right one.
 
 ## Next
 
