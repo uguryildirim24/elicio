@@ -9634,7 +9634,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C881401"
 			(at 177.8 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9737,7 +9737,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C881401"
 			(at 190.5 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9840,7 +9840,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C881401"
 			(at 203.2 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9943,7 +9943,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C2782127"
 			(at 165.1 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11076,7 +11076,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C91601"
 			(at 76.2 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11385,7 +11385,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C25741"
 			(at 76.2 139.7 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11488,7 +11488,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C25741"
 			(at 101.6 139.7 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11591,7 +11591,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C25741"
 			(at 127.0 127.0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11694,7 +11694,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C2782127"
 			(at 139.7 127.0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12003,7 +12003,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C2782127"
 			(at 101.6 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12106,7 +12106,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C2782127"
 			(at 114.3 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12280,7 +12280,7 @@
 				)
 			)
 		)
-		(property "Value" "1uF"
+		(property "Value" "10uF"
 			(at 127.0 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12290,7 +12290,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 127.0 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12312,7 +12312,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C15849"
+		(property "LCSC" "C19702"
 			(at 127.0 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12393,7 +12393,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 139.7 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12415,7 +12415,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C14663"
 			(at 139.7 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12486,7 +12486,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "10uF"
 			(at 152.4 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12496,7 +12496,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 152.4 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12518,7 +12518,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C19702"
 			(at 152.4 177.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12567,6 +12567,109 @@
 			(justify left)
 		)
 		(uuid "9fbc3ea4-edd4-4e58-bd86-d1645e4cda2a")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 165.1 177.8 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "dfaa274c-676a-4b5a-ad1d-9fcad946b3b1")
+		(property "Reference" "C15"
+			(at 165.1 177.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 165.1 177.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 165.1 177.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 165.1 177.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
+			(at 165.1 177.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "d5d2b602-116b-486d-bb1e-7e52ee9cafcd")
+		)
+		(pin "2"
+			(uuid "475d2392-9a84-4807-a5c1-4bd0ca2363bf")
+		)
+		(instances
+			(project "elicio-v2"
+				(path "/420b5650-2bf7-4a1a-b8d9-f0e848e2539f"
+					(reference "C15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(global_label "+3V0"
+		(shape input)
+		(at 165.1 173.99 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "d8f97240-021d-4c6a-a78f-a9b6ea89bc9e")
+	)
+	(global_label "GND"
+		(shape input)
+		(at 165.1 181.61 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "1b85c640-ad93-4c55-866b-514e15bcf679")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -12621,7 +12724,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C15850"
+		(property "LCSC" "C19702"
 			(at 215.9 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12827,7 +12930,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1525"
 			(at 241.3 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12930,7 +13033,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1525"
 			(at 25.4 38.1 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13342,7 +13445,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C11702"
 			(at 195.58 165.1 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13445,7 +13548,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C25741"
 			(at 127.0 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13548,7 +13651,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C25741"
 			(at 139.7 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
