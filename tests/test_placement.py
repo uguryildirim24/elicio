@@ -1040,10 +1040,6 @@ class PlacementWP11dTests(unittest.TestCase):
             outline = self.mod._copper_outline_for(p.u, p.s, p.wu, p.ws, lay.island, None)
             if outline is None:
                 continue
-            # Review r7 (Q87): J3's hang continues the board outline past u 19.75.
-            outline = self.mod._outline_with_j3_hang(
-                self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, outline, lay.island, lay.parts
-            )
             edge_mm = self.mod._pad_edge(
                 self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, outline
             )
