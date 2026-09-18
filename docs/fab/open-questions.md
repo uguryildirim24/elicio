@@ -100,6 +100,25 @@ blocks the merge; all sit before WP8 proper (order 2).
 | Q55 | WP11's closing layouts use the 501015 cell of plan v1, whose single-unit purchase was never verified (Q18; WP10 found only inquiry-form vendors for that size); the buyable DTP301120 (22 mm long) closes in no layout at v1 length | G1 gates the cell: before S0, either a 501015-class pack with a page price, stock and a drawing in ones, or a re-run of WP11 with the body 1.5 and 3.0 mm longer (the brief's arc-plus, skipped because something closed) for the DTP in series under interface II. The next packing package (WP11b) runs the arc-plus cases regardless so the decision has numbers | Coordinator; Rolf sees the length trade in the renders |
 | Q56 | `lane/w1` carries 864 drawings, 109 MB, committed and pushed by the post-commit hook; merging the branch as is would put them in `main`'s history for good | The round 5 reviewer squash-merges `lane/w1`, keeps at most forty drawings (closers, the Stage B winner, one per first-conflict family) and makes the tool write drawings only for closers by default. `lane/w1` itself stays bloated on origin until Rolf decides to delete or force-rewrite it (a destructive git action no agent takes). Briefs from now on cap generated artefacts in the repo at a stated size | Coordinator; the branch cleanup is **Rolf's** |
 
+## Round 5 (review `tasks/reviews/code-r5.md`, merged 2026-09-17 night)
+
+The reviewer (Opus 5, `rev5`) merged WP10, WP11, WP12, WP13, WP16 and WP17, fixed 36 defects itself and verdicted MERGE-AFTER-DECISION with decisions 57 to 68. Its readings below are the coordinator's; rows marked **Rolf** wait for him.
+
+| # | Question | Reading the build follows | Owner |
+|---|---|---|---|
+| Q57 | Foam under the cell: plan v2 §3 says 0.3, the solid, the Stage B file and the review use 0.5 (plan v1 §5); with 0.5 the LID_Y 7.0 layout no longer closes | 0.5, measured in the solid; plan v2 §3's 0.3 is an erratum of the signed plan recorded here. The closers are LID_Y 8.0, 8.5 and 9.0; the body Rolf is told about (Q38) stays 9.0 outer at width 20 | Coordinator |
+| Q58 | Interface II stack: plan text and WP11 had a DIN 439 nut under the standoff; with the board resting on the standoff tops the clamp is ring pad + standoff + board, no nut (board underside 4.81, top 5.32) | The no-nut clamp: the ring pad sits under the standoff on the wall, the standoff is threaded onto the screw, the board rests on the standoff tops on its bosses. Q6 (nut metal) is closed by having no nut. WP14 draws it; G7 qualifies it | Coordinator; Rolf sees it in the joint drawing |
+| Q59 | The REF flex tab crosses the cavity end wall at s 38.2–39.25 (Stage B v2 exit 3: V2_TAB_envelope and REF_WIRE_envelope fail by 1.19 mm³) | Nothing orders until it passes. WP14 (shell v2) slots the end wall for the tab or WP11b routes the tab inside the cavity; whichever costs less wall | Coordinator |
+| Q60 | Six FR4 stiffener pieces (one 0.4 island, Ø6 rings, tab pieces) against JLC's extra fee at four or more pieces | WP12 turn 3 merges pieces where the geometry allows; what remains is a quoted ledger line, not a design change | Coordinator |
+| Q61 | The flex allowance in `orders-v2.md` was not re-derived for the 0.4 stiffener and the fixture line | It stays an allowance, marked so, until a configured checkout exists (R8) | Coordinator |
+| Q62 | The PCB follows the lane's own packing run, not `packing-v2.md` §5; 3 nets, 877 DRC errors; not synced from the schematic | WP12 turn 3: re-place from §5, sync from the schematic, route, release with `--routed`. S0 needs that release | Coordinator |
+| Q63 | 18 BOM lines had duplicate or wrong LCSC codes and were blanked; U1's number is disputed (C5118826 vs C5142646) | Codes are read from the assembler's library at G3, on the day, and written into `board-v2.md` then; no code is guessed before | Coordinator |
+| Q64 | First load: an erased nRF52840 runs its I/O at 1.8 V (REGOUT0 default) and the Raspberry Pi Debug Probe's page states only 3.3 V nominal I/O | G4 is not passable with that probe on paper. Reading: the kit changes to a probe with target-voltage sensing (J-Link EDU Mini class, page price) or a level shifter, verified by the next research package, unless the factory programs the bootloader and sets REGOUT0. No purchase yet | Coordinator; **Rolf** buys nothing until G4 names the kit |
+| Q65 | Standby load during charge against the BQ25100's termination floor ("2 mA" item) | WP12 turn 3 computes the board's charge-time load from the sheets (nRF idle or system-off, LDO quiescent, ADS powered down, dividers) and states the margin against 1 mA termination; a measured number follows at S2 | Coordinator |
+| Q66 | Interface I's REF site (s 43) lies past every rigid board in the 720 runs | Interface I stays out (Q50) unless the REF site moves or a flex tail carries it; not pursued | Coordinator |
+| Q67 | Raytac route: JLC global sourcing or consignment from DigiKey/Mouser (Q54 holds both with their fees) | Global sourcing if JLC quotes it without a request on the day; else consignment, one more parcel. Rolf picks at G3 with the two prices in front of him | **Rolf** at G3 |
+| Q68 | ADS1292 decoupling: the board has 1 µF + 2 × 100 nF on a shared +3V0; the datasheet asks for 10 µF + 0.1 µF per supply | Follow the datasheet: WP12 turn 3 changes the BOM (two 10 µF plus two 0.1 µF, 0603) and moves them to the pins; no measured-noise waiver before there is a board | Coordinator |
+
 ## For Rolf
 
 Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
@@ -124,3 +143,5 @@ Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
 - Q44 with Q36: China (JLC) or a US board house at a higher price.
 - Q46 veto, if you want, KiCad and a firmware toolchain being installed on your Mac.
 - Q47 the order of objectives after the gates, and the residual-risk list in plan v2 §10.
+- Q67 at G3: Raytac by JLC global sourcing or by consignment, with both prices.
+- Q58 when the joint drawing exists: the no-nut clamp (Q6 closes with it).
