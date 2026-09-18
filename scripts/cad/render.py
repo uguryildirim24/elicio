@@ -540,18 +540,28 @@ def render_lateral(out_dir: Path, *, manifest: dict[str, Any], commit: str, date
     if manifest.get("stage") == "shell":
         usb = at(10.0, 0.2, 2.8)
         ax.annotate(
-            "USB-C 9.0 × 3.5 on the hook-end end face (plan v2 §5.4 fallback).\n"
-            "Receptacle sits 4.8 outside the face; the hook fills 0.9 of the\n"
-            "opening. V2_USB_end fails (review r6, decision 70).",
+            "USB-C waits for packing §5b (Q70). Hook-end wall left solid.\n"
+            "V2_USB_end is NOT_MEASURED.",
             xy=usb,
             xytext=(usb[0] + 28.0, usb[1] - 14.0),
             fontsize=8,
             arrowprops={"arrowstyle": "->", "lw": 0.7},
             zorder=6,
         )
-        tail = at(10.0, 39.4, lid_y + 0.5)
+        hinge = at(10.0, 1.2, 7.5)
         ax.annotate(
-            "hinge lip in the tail plus two snaps: no undercut,\nthe lid lifts off. V2_CLOSURE fails (decision 71).",
+            "hinge lip in the hook-end wall (Q71).\n"
+            "0.30 mm of body nylon over the lip.",
+            xy=hinge,
+            xytext=(hinge[0] + 22.0, hinge[1] + 10.0),
+            fontsize=8,
+            arrowprops={"arrowstyle": "->", "lw": 0.7},
+            zorder=6,
+        )
+        tail = at(14.5, 41.0, lid_y + 1.2)
+        ax.annotate(
+            "concealed ISO 7380 M2.5×4 at the tail (Q71).\n"
+            "Head in a well, not visible as a lateral screw.",
             xy=tail,
             xytext=(tail[0] + 16.0, tail[1] - 4.0),
             fontsize=8,
@@ -912,8 +922,8 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
             f"chord gate: M1 ≥ {gate['gate']:.3f}",
             f"solids commit {commit}   date {date}",
             "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
-            "Closure: hinge lip plus two snaps, no undercut; V2_CLOSURE fails (shell-v2.md §2, code-r6 decision 71).",
-            "USB-C on the hook-end end face. No text on the outside. Q59: packing-v2.md §5 REF_end_wall_slot.",
+            "Closure: Q71 hinge lip at the hook-end wall plus one concealed tail M2.5. S4 pull/drop qualitative.",
+            "USB-C waits for packing §5b (Q70). No text on the outside. Q59: packing-v2.md §5 REF_end_wall_slot.",
             *("  " + row for row in fillet_summary(manifest)),
             "Rolf approves the two renders before any shell order. Nothing is ordered here.",
         ]
