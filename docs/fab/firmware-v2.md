@@ -227,3 +227,7 @@ overrun, not transport loss. A STREAM frame stops at the first gap in the
 ring's acquisition indices, so its samples are always consecutive DRDYs,
 and the frame after a gap carries OVERRUN. That behaviour is coded, not
 measured.
+
+## Pin header (WP13b, 2026-09-17)
+
+`firmware/src/board_pins.h` now follows `docs/fab/board-v2.md` §9 (MDBT50Q nRF P0.xx), not the Feather header numbers. The Feather FQBN still compiles; those integers are not the product wiring on a Feather.

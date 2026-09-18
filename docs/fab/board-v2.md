@@ -1,28 +1,36 @@
 # Board v2 — schematic, G2/G4 records, release job
 
-Status: design record for WP12. Not for order, quote or upload.
+Status: design record for WP12b. Not for order, quote or upload.
 Date: 2026-09-17.
 KiCad: 10.0.6 (`kicad-cli`).
-Interface: **II** (plan v2 §5.3 fallback). WP11 packing winner `A_501015_series_w20_y8_iII_s3` (review r5 numbers, `packing-v2.md` §5). USB-C sits on the hook-end end face (plan v2 §5.4 fallback). LID_Y 8.0 to 9.0 (7.0 no longer closes: module top 7.62). Standoff 3.0 mm on a 0.31 ring: board underside y 4.81, top y 5.32. Cell 501015 in series, foam 0.5. Board width 20 mm body, board zone u 2.25–17.75, s 18.60–37.60.
+Interface: **II** (plan v2 §5.3 fallback). WP11 packing winner `A_501015_series_w20_y8_iII_s3` (`packing-v2.md` §5). USB-C sits on the hook-end end face (plan v2 §5.4 fallback). LID_Y 8.0. Standoff 3.0 mm on a 0.31 ring: board underside y 4.81, top y 5.32. Cell 501015 in series, foam 0.5. Board width 20 mm body, board zone u 2.25–17.75, s 18.60–37.60.
 
 Project: `hardware/board/elicio-v2.kicad_pro`.
-The schematic contract is unchanged (nets, parts, values, G2/G4). The land is a 2-layer flex with FR4 stiffeners and three ring-pad tabs.
+The schematic contract is the review-r5 sheet plus WP12b Q68 (10 µF + 0.1 µF on AVDD and on DVDD). The land is a 2-layer flex with two FR4 0.4 stiffeners and three ring-pad tabs.
 
-Packing (u, s) = PCB (x, y). The PCB was placed from the lane's packing run (`43a982a`); review r5 changed the packing (antenna keep-out pose, the board's real LDO and ESD packages, foam 0.5, the standoff stack). `packing-v2.md` §5 is the handoff; this PCB does not follow it yet and is not a valid placement (§15):
+Packing (u, s) = PCB (x, y). Named SMT centres follow `packing-v2.md` §5 (within 0.1 mm; `tests/test_board_release.py`). SIG1/SIG2 rings are unfolded off the island so the Gerber is flat. WP11b `lane/w3` §5 REF tab search (Q59) left the packing tab unchanged (`along_floor` (8.50, 43.00) → (8.50, 36.80)). This board uses that path. SMT centres match merged `packing-v2.md` §5. Review r6 decision 77: that placement cannot be built. At `845bac7` with zero tracks, DRC reports 128 errors and 132 unconnected, because footprint courtyards collide (the packing envelopes are smaller than the footprints). Re-pack from the real courtyards (WP11c) before routing.
 
-| Item | PCB centre (u, s) | `packing-v2.md` §5 centre (review r5) | Size / note |
+| Item | PCB centre (u, s) | `packing-v2.md` §5 centre | Size / note |
 |---|---|---|---|
-| Board zone | u 2.25–17.75, s 18.60–37.60 | same | PI 0.11 + FR4 0.4 at parts, + FR4 0.2 at the rings |
-| Module | (10.00, 32.35) | (10.00, 32.35) | 15.50 × 10.50 × 2.3, length along u |
-| ADS1292 | (11.20, 21.25) | (4.90, 21.25) | 5.0 × 5.0 × 1.0 |
-| BQ25100 | (3.45, 25.30) | (3.45, 24.85) | |
-| TLV71330 (SOT-23-5) | (5.40, 25.35) | (9.45, 20.20) | 3.3 × 2.9 × 1.45; PCB site is inside the antenna keep-out |
-| SW1 | (4.80, 21.15) | (10.10, 24.20) | 4.5 × 4.5 × 1.6 |
-| J3 | (15.40, 22.60) | (14.05, 22.60) | 2.5 × 7.6 × 2.5 |
-| USBLC6-2SC6 / PESD5V0L1UL | (6.40, −5.20) / (13.80, −5.20) | (14.05, 3.10) / (13.50, 5.30), pocket | PCB sites overlap the USB-C land |
-| JST-SH | (14.40, 4.65) | (14.40, 9.15) | pocket |
-| USB-C | (10.00, −2.15) | (10.00, −2.15) | hook-end end face |
-| Cell 501015 | (7.00, 9.30) | (7.00, 9.30) | 10.4 × 15.6 × 5.2 + foam 0.5; not on the flex |
+| Board zone | u 2.25–17.75, s 18.60–37.60 | same | PI 0.11 + FR4 0.4 at parts. Packing and the shell take the rings as PI 0.11 + FR4 0.2 = 0.31; this Gerber has no ring FR4 (§12), so its rings are 0.11. Review r6 decision 72 |
+| Module U1 | (10.00, 32.35) rot 90° | (10.00, 32.35) | 15.50 × 10.50 × 2.3, length along u; 0 pads in the RF box |
+| Antenna keep-out | u 2.25–6.05, s 26.15–38.55 | same | no extra copper; module pads allowed |
+| ADS1292 U2 | (4.90, 21.25) | (4.90, 21.25) | VQFN-32 4×4 courtyard in a 5×5 packing box |
+| BQ25100 U3 | (3.45, 24.85) | (3.45, 24.85) | YFP-6 |
+| TLV71330 U4 | (9.45, 20.20) | (9.45, 20.20) | SOT-23-5 |
+| SW1 | (10.10, 24.20) | (10.10, 24.20) | 4.5 × 4.5 × 1.6 |
+| J3 bench | (14.05, 22.60) | (14.05, 22.60) | 2.5 × 7.6 × 2.5 |
+| USBLC6 U5 | (14.05, 3.10) | (14.05, 3.10) | pocket |
+| PESD D1 | (13.50, 5.30) | (13.50, 5.30) | pocket |
+| JST-SH J2 | (14.40, 9.15) | (14.40, 9.15) | pocket |
+| USB-C J1 | (10.00, −2.15) | (10.00, −2.15) | hook-end end face |
+| TC2030 J4 | (15.10, 5.40) rot 90° | SWD proxies were 1.0 mm pads | real Tag-Connect land on the pocket/neck, not the 1 mm packing dots |
+| Cell 501015 | (7.00, 9.30) | (7.00, 9.30) | not on the flex |
+| R1 220 kΩ | tab midpoint SIG1 | — | past the 4 mm strain-relief window |
+| R2 220 kΩ | tab midpoint SIG2 | — | same |
+| R3 220 kΩ | tab midpoint REF | — | same |
+
+Leftover 0402/0603/SOT parts sit on B.Cu under the module and under the USB tongue so the front island matches the packing. Q68 0603 caps C6/C7/C8/C15 sit on B.Cu under the ADS.
 
 ## 1. Block diagram
 
@@ -119,6 +127,13 @@ Target runs from its own cell, off-body, electrodes disconnected. TC2030-IDC-NL 
 
 SW1 is 4.5 × 4.5 × 1.6 (XKB TS-1187A). Double-press recovery is WP13's.
 
+Q64 — REGOUT0 and first-load. L7-research-v4.md §1 (lane/w5, 2026-09-17) quotes nRF52840 Product Specification v1.7, https://infocenter.nordicsemi.com/pdf/nRF52840_PS_v1.7.pdf:
+
+- Verbatim: "Output voltage from the REG0 regulator stage. The voltage is only applied when the high voltage (HV) operating conditions are supplied to the device." Default: "0: 1.8 V (default)". An erased part is **1.8 V** on first power-up.
+- Verbatim, Absolute maximum ratings: "VI/O VDD ≤ 3.6 V -0.3 V VDD + 0.3 V". At VDD = 1.8 V that is **2.1 V**.
+- The board offers **VTref on TC2030 pin 1 from the actual +VDD rail**. It does not feed the target from the probe.
+- A 3.3 V probe high into an erased 1.8 V pin exceeds 2.1 V by 1.2 V. This board **cannot** take a 3.3 V probe on first load. Kit/level-shifter choice is WP17b. This land does not add a shifter.
+
 ## 5. Charger calculations (G1)
 
 Part: **BQ25100YFPR**, 4.20 V variant, YFP DSBGA-6. LCSC C527572 (extended). Datasheet SLUSA09C, https://www.ti.com/lit/ds/symlink/bq25100.pdf, read 2026-09-17 (Rev. C text).
@@ -135,16 +150,29 @@ There is **no /CHG pin** on BQ25100. Charge status is read from ISET on CHG_MON 
 | ISET capacitor | 10 nF to GND | Required for IOUT < 50 mA |
 | KTERM typical (10–50 %) | 600 Ω/% | RPRETERM 6 kΩ–30 kΩ |
 | RPRETERM | 6.04 kΩ | 10 % × 600 Ω/% = 6.00 kΩ |
-| %TERM / ITERM | 10.07 % / 2.00 mA | 6040/600; min ITERM is 1 mA |
-| Precharge | 2 × termination ≈ 4.0 mA | PRETERM programs both |
+| %TERM / ITERM | 10.07 % / 2.00 mA | 6040/600. L7 §4.3 verbatim (SLUSBA8 §9.3.7): "The termination current threshold, ITERM, is user-programmable from 1 mA to 50 mA with an external resistor connected to the PRETERM pin." |
+| Precharge | ITERM (≈ 2.00 mA) | L7 §4.3 verbatim (SLUSBA8 §9.3.6): "The pre-charge current, IPRECHG, is also programmed through the PRETERM pin and is equal to the termination current threshold (IPRECHG = ITERM)." Not 2 × ITERM. |
 | TS | 10 kΩ to VSS | Pack has no thermistor; TS is never floated. 0–45 °C is Rolf's sheet, not automatic cell protection |
-| Fast-charge safety timer | typical 38800 s (about 10.8 h) | Internal; always on |
+| Fast-charge safety timer | 10 h class | L7 §4.3 verbatim (SLUSBA8 §9.3.1): "A system load can be placed in parallel with the battery, as long as the average system load does not prevent the battery from charging fully within the 10-hour safety timer limit." Sheet typical 38800 s remains the electricals row. |
 | Precharge timer | typical 1940 s | Internal; always on |
 | Termination floor vs pack | 2.0 mA vs sheet 0.4 mA EOC | Plan G1: this charger's floor is 1 mA; capacity effect unknown until characterised |
 
 LED (review r5): anode from VBUS through R22 1 kΩ, cathode at Q4's drain, Q4's gate on LED_EN (P0.04, module pin 20) with R28 10 kΩ to GND. It can light only with USB present, draws nothing from VBAT or the charger output, and firmware sets it from CHG_MON. The lane's LED hung Q4's gate on ISET (about 1 V, below a 2N7002's worst-case threshold) and took about 2 mA from VBAT, the same order as ITERM, through the charger output.
 
-Parallel system load during charge: nRF + REG0 from VBAT while VBUS is present. Current is UNVERIFIED (order-of-magnitude 1–15 mA depending on radio and USB). If I_sys > ITERM, termination may not occur. The datasheet requires the average system load not to prevent a full charge inside the 10 h timer. **Needs a decision** if firmware must sleep the radio while charging.
+Parallel system load during charge (Q65), sheets read 2026-09-17:
+
+| Load | Charge-time state | Current |
+|---|---|---|
+| nRF52840 System OFF | firmware must hold this while VBUS is present | 0.4 µA typ at 3 V (PS v1.11) |
+| nRF52840 System ON idle, no radio | not the charge policy | 1.5 µA typ at 3 V |
+| nRF CPU/USB idle | if firmware stays awake | milliamps, **above** ITERM |
+| TLV71330 Iq | LDO EN=IN but AFE_VIN is off (Q1 off on VBUS), so the LDO is unpowered | 0. L7 §4.4 verbatim (SBVS195 Features): "Low IQ: 50 µA" and "Shutdown current: 0.1 µA (typical)". Those apply only when AFE_VIN is up. Dropout line from the same Features list: "Low dropout: 230 mV at 150 mA". |
+| ADS1292 | unpowered (AFE_VIN off) | 0 |
+| VBAT 1 MΩ/1 MΩ divider | always on | 4.2 V / 2 MΩ ≈ 2.1 µA |
+| Gate leakage Q1–Q4 | nA class | ignore vs 1 mA |
+| BQ25100 ITERM floor | typical 10 % of 19.85 mA | 2.0 mA (min 1 mA) |
+
+I_sys in System OFF + divider ≈ 3 µA, margin vs 1 mA ITERM ≈ 1000×. Average I_sys at 3 µA also leaves the 10-hour safety timer (L7 §4.3) intact at ~20 mA charge. If firmware leaves the CPU or USB up, I_sys exceeds ITERM and termination may not occur. **Firmware must hold System OFF (or equivalent) while charging.** The LED draws from VBUS through R22, not from VBAT, so it is not in I_sys.
 
 C3 1 µF on IN, C4 1 µF on OUT: **per typical application**.
 
@@ -173,17 +201,19 @@ Derivation:
 
 **TLV71330PDBVR**, 3.0 V, SOT-23-5, LCSC C2863702 (extended when last read). EN tied to AFE_VIN (always on when the P-FET is on). Pin 4 NC.
 
-Iq: tens of µA class (SBVS195). Dropout as in §6. AVDD = DVDD = +3V0. **Per ADS1292 typical** (single analog/digital 3.0 V, internal 2.42 V reference, C9 10 µF on VREFP).
+Iq: **50 µA** typical when powered (L7 §4.4, SBVS195 "Low IQ: 50 µA"). Dropout 230 mV at 150 mA (same Features line). AVDD = DVDD = +3V0. **Per ADS1292 typical** (single analog/digital 3.0 V, internal 2.42 V reference, C9 10 µF on VREFP).
 
 ## 8. Module, RF keep-out, USB, cell connector
 
 - Module: Raytac MDBT50Q-1MV2, footprint `RF_Module:Raytac_MDBT50Q`, LCSC **C5118826** (C5142646 was 404). HV mode: VDDH = VBAT, 10 µH DCCH → +VDD **per Raytac spec 8.1**. Centre **(10.00, 32.35)** mm in packing (u, s). Body 15.50 × 10.50, length along u. KiCad rotation 90° so that 15.5 mm lies on u, which puts the footprint's antenna end at low u.
 - Module sourcing (Q54, review r5): two routes, no design change. (1) JLC global sourcing, if the part is quotable in JLC's library without a request; (2) consignment: Rolf buys the modules at DigiKey or Mouser and ships them to JLC, which adds one parcel and JLC's consignment fee, both to be quoted from pages at G3. The LCSC number is **UNVERIFIED (2026-09-17)**: this lane read C5118826 and says C5142646 was 404; WP17 lists C5142646 as extended/consigned and out of stock. Neither page was re-read by the review. `orders-v2.md` carries the Raytac line.
-- RF no-copper: rule area u 2.25–6.00, s 26.15–38.55 (3.8 × 12.4) on every copper layer at that antenna end, plus a top-layer feed-notch area u 6.05–7.25, s 33.05–34.65. `packing-v2.md` §5 gives the same pose (u 2.25–6.05). The lane also drew u 3.80–16.20, s 33.80–37.60, the length-along-s rectangle, which covered 15 module pads; review r5 removed it. R11–R13, C2 and U4 still sit in the u-end area on this PCB (DRC `items_not_allowed`).
+- RF no-copper: rule area u 2.25–6.05, s 26.15–38.55 (3.8 × 12.4) on every copper layer. U1 rot 90°: 0 pads in that box.
 - USB-C: 16-pin HRO TYPE-C-31-M-12 land, LCSC C223907, 5.1 kΩ on CC1 and CC2, USBLC6-2SC6 on D+/D−, PESD5V0L1UL on VBUS (cathode to VBUS). Centre **(10.00, −2.15)** mm. It hangs off the **hook-end end face** (plan v2 §5.4 fallback). Recess 1.0, ligaments 1.5, plug volume 12 × 6.5 × 15. The medial opening is not cut on the order-1 solid.
-- Cell: JST-SH SM02B-SRSS-TB placed in the pocket at **(14.40, 4.65)** mm on this PCB (packing r5: (14.40, 9.15)) (SparkFun PRT-25270 page, 2026-09-17; that page's “2 mm pitch” text is wrong — SH is 1.00 mm). Silkscreen `J2 BAT+ pin1` is against the connector contacts, not a wire colour. JST-PH S2B-PH-SM4-TB is in `lib/` as the G1b alternate, unplaced. Cell 501015 10.4 × 15.6 × 5.2 plus foam 0.5, centre (7.00, 9.30); the flex neck stays to the right of that pocket. The 501015 harness length 100 ± 3 mm is **NOT_MEASURED** as a solid (`packing-v2.md` §7). **G1b.**
+- Cell: JST-SH SM02B-SRSS-TB placed in the pocket at **(14.40, 9.15)** mm (SparkFun PRT-25270 page, 2026-09-17; that page's “2 mm pitch” text is wrong — SH is 1.00 mm). Silkscreen `J2 BAT+ pin1` is against the connector contacts, not a wire colour. JST-PH S2B-PH-SM4-TB is in `lib/` as the G1b alternate, unplaced. Cell 501015 10.4 × 15.6 × 5.2 plus foam 0.5, centre (7.00, 9.30); the flex neck stays to the right of that pocket. The 501015 harness length 100 ± 3 mm is **NOT_MEASURED** as a solid (`packing-v2.md` §7). **G1b.**
 
 ## 9. G4 / firmware GPIO map (MDBT50Q pin → nRF)
+
+WP12b publishes this map as the input for WP13b `firmware/src/board_pins.h`. Pin numbers are from the schematic netlist on this board (Raytac MDBT50Q-1MV2). Do not remap them in firmware.
 
 | Function | Module pin | nRF |
 |---|---|---|
@@ -236,7 +266,7 @@ A board that uses B is a different placement, not a stuffing option on this land
 
 ## 11. Contacts — interface II (this board)
 
-The whole board is a 2-layer polyimide flex with FR4 stiffeners under the parts. Three flex tabs each end in a ring pad Ø5.0 mm with a Ø2.7 mm hole. The ring is ENIG on both copper layers. The brass standoff bottom face is the contact. An ISO 7380 M2.5×4 screw from outside passes the 1.5 floor and the ring into the standoff's female thread and clamps the ring between floor and standoff. No nut (plan v2 §5.3). Stack: floor 1.5 + ring 0.31 (PI 0.11 + FR4 0.2) + standoff 3.0 = y 4.81, where the board island rests on the standoff tops; the screw projects 2.5 past the floor and ends 0.81 below the standoff top (`packing-v2.md` §5, Stage B `V2_CONTACT_STACK`). The lane's DIN 439 nut stack (2.50) was v1's.
+The whole board is a 2-layer polyimide flex with FR4 stiffeners under the parts. Three flex tabs each end in a ring pad Ø5.0 mm with a Ø2.7 mm hole. The ring is ENIG on both copper layers. The brass standoff bottom face is the contact. An ISO 7380 M2.5×4 screw from outside passes the 1.5 floor and the ring into the standoff's female thread and clamps the ring between floor and standoff. No nut (plan v2 §5.3). Stack: floor 1.5 + ring 0.31 (PI 0.11 + FR4 0.2) + standoff 3.0 = y 4.81 in packing and the shell. Review r6: this Gerber draws no ring FR4 (§12), so as drawn the ring is 0.11, the standoff top lands at 4.61 and the island hangs 0.2 above it; either three FR4 0.2 ring pieces (count 5, over JLC's extra-fee threshold of 4) or a shell 0.2 lower closes it (decision 72 in `tasks/reviews/code-r6.md`). With the 0.31 ring, where the board island rests on the standoff tops; the screw projects 2.5 past the floor and ends 0.81 below the standoff top (`packing-v2.md` §5, Stage B `V2_CONTACT_STACK`). The lane's DIN 439 nut stack (2.50) was v1's.
 
 | Pad | Net | Folded site (packing) | Packing attach | Unfolded ring (this Gerber) |
 |---|---|---|---|---|
@@ -244,7 +274,7 @@ The whole board is a 2-layer polyimide flex with FR4 stiffeners under the parts.
 | P2 | SIG2 | (10.40, 33.10) | (10.40, 26.10) | (24.75, 33.10) |
 | P3 | REF | (8.50, 43.00) | (8.50, 36.80) | (8.50, 43.00) |
 
-SIG1 and SIG2 packing XY sit under the parts island. A flat Gerber cannot place a ring and the module in the same XY. Those two tabs leave the left and right board edges with packing strip length 7.0 mm. REF already leaves the tail; its Gerber matches packing. Assembly folds SIG1 and SIG2 onto the packing sites before the cell goes in. WP14 owns the fold.
+SIG1 and SIG2 packing XY sit under the parts island. A flat Gerber cannot place a ring and the module in the same XY. Those two tabs leave the left and right board edges with packing strip length 7.0 mm. REF already leaves the tail; its Gerber matches packing (`along_floor`). WP11b found no in-cavity REF route; WP14 cuts `REF_end_wall_slot`. Assembly folds SIG1 and SIG2 onto the packing sites before the cell goes in. WP14 owns the fold.
 
 Tab strip width 2.5 mm. Outline cap radius 3.0 mm around the Ø5.0 pad (JLC copper-to-edge ≥ 0.3 mm). Strain relief: 4 mm of flex at each tab root has no via, no part, and no stiffener. Neck s 12.0–18.6 is the drop from the board island (underside y 4.81) to the pocket; same rule.
 
@@ -252,7 +282,23 @@ Bend radius: packing R ≥ 1.0 mm. JLC 2-layer static bend ≥ 10 × finished th
 
 Each ring has a 7.0 × 7.0 mm other-net keep-out (1.0 mm beyond the Ø5.0 land). Pads themselves are allowed.
 
-There are no separate M2.5 boss holes. The ring holes are the fasteners.
+There are no separate M2.5 boss holes. The ring holes are the fasteners. Review r6: the shell still carries two printed bosses with pilots at (14.85, 21.50) and (14.85, 28.10), under J3 and under U1; nothing on this board can screw into them, and P3 (s 43.00) is past the island's end (s 37.60), so the island rests on two standoffs. Retention of the island is decision 73.
+
+Fold (review r6): SIG1 and SIG2 leave the island edges on 7.0 mm strips and fold 180° at R 1.5 to reach the packing sites. A 180° fold at R 1.5 stands about 1.6 mm outside the edge, and the island edge is 0.75 mm from the cavity wall; the flat length from the edge to the ring centre is about 8.5, not 7.0. P1's packing attach (5.90, 29.00) is inside the antenna keep-out. Decision 74.
+
+G7 joint inputs (this board):
+
+| Item | Number | Source |
+|---|---|---|
+| Ring copper | Ø5.0 mm, both layers, tied | footprint `elicio:RING_PAD_D5_H2.7` |
+| Coverlay opening | ≥ Ø5.2 mm (0.1 mm expansion one-sided) | JLC FPC coverlay, read 2026-09-17 |
+| ENIG | 1 u" or 2 u" (order tick) | JLC FPC page, read 2026-09-17; HASL is not on FPC |
+| Tab bend | R = 1.5 mm static | 10 × 0.11 mm = 1.1 mm min; packing R ≥ 1.0 |
+| Strain relief | 4 mm tab root: no via, no part, no stiffener | this drawing, Dwgs.User |
+| Datum ring hole → outline | cap radius 3.0 mm around the hole; copper-to-edge ≥ 0.3 | outline in `elicio-v2.kicad_pcb` |
+| Printed seat and well (shell) | ring seat Ø6.4 (Ø6.0 outline + 0.10 + 0.3 print); hex well AF 5.30 (5.00 A/F max + 0.3), locks below 5.77 across corners; collar AF 8.4, 2.0 tall | `shell-v2.md` §3, `V2_STANDOFF`, `V2_RING_seat` (review r6) |
+| Capture | ISO 7380 M2.5×4 from outside into standoff female thread; ring between floor and standoff; **no nut** (Q58) | packing-v2.md §5 |
+| STEP | `release/elicio-v2.step` models the tabs **flat**. Fold of SIG1/SIG2 onto packing XY is WP14's. | release job |
 
 ### 11a. Rejected candidate — interface I (8 × 8 pads)
 
@@ -274,58 +320,90 @@ Source: https://jlcpcb.com/capabilities/flex-pcb-capabilities read 2026-09-17. S
 | Min track / space | 3/3 mil (0.076 mm) at 12 µm copper; 3.5/3.5 mil at 18 µm; **4/4 mil (0.10 mm) at 1 oz / 35 µm** | Encoded 0.10 / 0.10 as the 1 oz regular limit |
 | Coverlay opening | expansion 0.1 mm one-sided; opening-to-trace ≥ 0.15 mm | Encoded pad-to-mask 0.1 mm |
 | Coverlay colour | Yellow recommended | Yellow / black / white / transparent |
-| Via (regular 2-layer) | 0.30 mm hole / 0.55 mm pad | Extreme 0.10 / 0.30 costs extra; not used |
+| Via (regular 2-layer) | 0.30 mm hole / 0.70 mm pad | JLC 0.30/0.55; this board uses 0.70 so annular ≥ 0.18 |
 | PTH annular ring | ≥ 0.25 mm recommended, 0.18 mm absolute | Ring pad (5.0 − 2.7) / 2 = 1.15 mm |
 | Copper to outline | ≥ 0.30 mm (laser) | Encoded as DRC min copper-edge clearance |
 | Outline tolerance | ±0.10 mm | ±0.05 mm on request; not requested |
 | Bend | 2-layer ≥ 10 × thickness (static) | 1.1 mm at 0.11; this board uses 1.5 mm |
 | Passives | 0402 minimum | Plan |
 | Stiffener at parts | FR4 0.4 mm on Eco1.User (packing: 0.11 + 0.4 = 0.51, review r5) | JLC FR4 list is 0.1 / 0.2 / 0.4, no 0.3 |
-| Stiffener at tabs | FR4 0.2 mm on Eco2.User (WP11 tab 0.2) | JLC FR4 0.2 mm exists |
+| Stiffener at tabs | none drawn (Q58 clamp; Q60 merge). Packing, the shell and §11's stack take FR4 0.2 at the rings; decision 72 | JLC FR4 0.2 mm exists; Eco2.User unused |
 
 PI stiffener catalogue: 0.1 / 0.15 / 0.20 / 0.225 / 0.25 mm. Stainless 0.1 / 0.2 / 0.3 mm. FR4 0.1 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.2 / 1.6 mm. WP11's 0.3 mm FR4 is **not** on that list; review r5 took 0.4 and moved the packing numbers with it. No request was sent.
 
-Stiffener drawings: Eco1.User = FR4 0.4 under the board island and the pocket parts; Eco2.User = Ø6 circles at the three rings; Cmts.User = neck bend window. JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
+Stiffener drawings: Eco1.User = two FR4 0.4 pieces (parts island + USB/pocket). Eco2.User is unused (no tab FR4: Q58 clamp). Cmts.User = neck bend window. Count = **2** (under JLC's extra-fee threshold of 4). JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
 
 Encoded in the board design settings and in `elicio-v2.kicad_pro`.
 
 ## 13. BOM (placed, in-BOM, not DNP)
 
-Release job writes `hardware/board/release/bom.csv` (gitignored). 58 rows = 58 placed parts (Q5 is DNP). LCSC numbers for ICs and connectors were read on JLCPCB/LCSC pages on 2026-09-17 in this lane. 0402 passives use catalogue-typical basic/extended line codes and are **UNVERIFIED** as live stock on the close-out of this package.
+Release job writes `hardware/board/release/bom.csv` (gitignored). LCSC numbers were re-read on JLC/LCSC pages on 2026-09-17 after L7-research-v4.md §4.1 (`git show lane/w5:docs/fab/L7-research-v4.md`). Take L7 only where the page still shows that MPN. Stock and unit price on JLC partdetail pages were often not displayed (tier label only). LCSC.com did show some qty-1 prices.
 
-Review r5: three codes were each on two different values (C25803 on 220 kΩ R1–R3 and on 100 kΩ, C25765 on 1 MΩ and on the 1 kΩ R22, C1525 on 10 nF and 100 nF), so at least one line of each was wrong, and R1–R3 are the G2 per-path bound. The LCSC field is blank on all 18 of those lines (C2, C7, C8, C11, C12, R1–R4, R14–R17, R20–R24); each needs a code read from the assembler's library at G3. UNVERIFIED, 2026-09-17.
+U1: **C5118826** is MDBT50Q-1MV2 Extended, X-ray (https://jlcpcb.com/partdetail/C5118826, 2026-09-17). **C5142646** is a GOOSVN screw terminal GS034-3.81-02P (https://jlcpcb.com/partdetail/C5142646). L7 §4.1's "C5142646 is LCSC catalog code" for the Raytac module does **not** match the page. This board uses C5118826.
+
+L7 §4.1 SKUs that **fail** today's pages (not used):
+
+| L7 SKU | L7 claim | Page 2026-09-17 |
+|---|---|---|
+| C134015 | ADS1292RIRSMT | SN65C1168EPW RS-485 TSSOP-16 (JLC and LCSC) |
+| C2841443 | ADS1292IRSMR | CPDH3V3UP-TP ESD SOD-523 |
+| C132291 | TLV71330PDBVR | FUSB302BMPX USB-C controller |
+| C18001 | 220 kΩ 0402 Basic | 240 kΩ 1206 |
+| C25768 | 220 kΩ 0402 Basic | 22 kΩ 0402 Basic |
+| C25744 | 100 kΩ 0402 Basic | 10 kΩ 0402 Basic (used here for the 10 kΩ lines) |
+| C15609 | 1 MΩ 0402 Basic | empty JLC partdetail |
+| C15672 | 1 kΩ 0402 Basic | empty JLC partdetail |
+| C89288 "invalid" | — | ADS1292IRSMT VQFN-32, LCSC 70 in stock, $6.50 qty 1 |
+| C2863702 "invalid" | — | TLV71330PDBVR SOT-23-5, LCSC 190 in stock |
+
+U2 stays **C89288** ADS1292IRSMT non-R (PWDN on pin 15). The R-device is a different pinout.
+
+J2: L7 and the page agree. C160404 is SM04B-SRSS-TB **4P**. C160402 is SM02B-SRSS-TB **2P**. This board now uses C160402.
+
+Blanked / corrected lines from the same day's pages:
+
+| Ref | Value | LCSC | Tier (page) | Note |
+|---|---|---|---|---|
+| C2 | 10 nF 0402 | C1524 | Extended | L7 §4.1. Page: 10 nF X7R 0402. Not Basic. |
+| C6, C8, C9 | 10 µF 0603 | C19702 | — | Q68 10 µF; stay 0603 |
+| C7, C15 | 100 nF 0603 | C14663 | — | Q68 0.1 µF at the ADS pins. L7's C1525 is the 0402 100 nF used on C11/C12. |
+| C11, C12 | 100 nF 0402 | C1525 | Basic | L7 §4.1. Page: CL05B104KO5NNNC 100 nF. |
+| R1–R3 | 220 kΩ 1% 0402 | C881401 | Extended | Page: 220 kΩ 0402. L7 C18001/C25768 fail. |
+| R4, R17, R20, R21 | 1 MΩ 0402 | C26083 | Basic | Page: 0402WGF1004TCE 1 MΩ. L7 C15609 empty. |
+| R5–R8, R13, R25–R28 | 10 kΩ 0402 | C25744 | Basic | Page: 10 kΩ. Old C25792 is 47 kΩ. |
+| R14–R16, R23, R24 | 100 kΩ 0402 | C25741 | Basic | Page: 100 kΩ. L7 C25744 is 10 kΩ. |
+| R18 | 47 kΩ 0402 | C25792 | Basic | VBUS_DET. Old C25780 is 348 kΩ. |
+| R19 | 27 kΩ 0402 | C25771 | Extended | Page: 27 kΩ. |
+| R22 | 1 kΩ 0402 | C11702 | Basic | Page: 1 kΩ. L7 C15672 empty. |
+| R11 | 6.80 kΩ 0402 | C25917 | Extended | Page: 6.8 kΩ 0402. Old C25848 is 8.2 kΩ 0201. |
+| R12 | 6.04 kΩ 0402 | C966759 | Extended | Page: 6.04 kΩ 0402. Old C25841 is 2.2 kΩ 0201. |
 
 | Ref | MPN / value | LCSC | Tier (when read) | Notes |
 |---|---|---|---|---|
-| U1 | MDBT50Q-1MV2 | C5118826 (UNVERIFIED; WP17 says C5142646) | — | Q54: JLC global sourcing or consignment from DigiKey/Mouser (§8) |
-| U2 | ADS1292IRSMT | C89288 | — | Non-R, VQFN-32. L5's C134015/C2841443 were wrong parts |
-| U3 | BQ25100YFPR | C527572 | Extended | OOS / high when last read |
-| U4 | TLV71330PDBVR | C2863702 | Extended | Stock existed |
+| U1 | MDBT50Q-1MV2 | C5118826 | Extended | Not C5142646 |
+| U2 | ADS1292IRSMT | C89288 | Extended | Non-R, VQFN-32. L7 replacements fail the page. |
+| U3 | BQ25100YFPR | C527572 | Extended | |
+| U4 | TLV71330PDBVR | C2863702 | Extended | L7 C132291 is FUSB302. Keep C2863702. |
 | U5 | USBLC6-2SC6 | C7519 | — | USB ESD |
 | Q1 | AO3401A | C15127 | — | P-FET |
 | Q2–Q4 | 2N7002 | C2128 | Basic typical | Inhibit, LED (Q5 DNP) |
 | D1 | PESD5V0L1UL | C24109 | — | VBUS ESD |
-| D2 | 0402 LED | C72043 | — | Firmware LED on LED_EN, anode from VBUS |
+| D2 | 0402 LED | C72043 | — | Firmware LED on LED_EN |
 | J1 | TYPE-C-31-M-14 | C223907 | Extended | 16P USB2 |
-| J2 | SM02B-SRSS-TB | C160404 | — | JST-SH |
+| J2 | SM02B-SRSS-TB | C160402 | Extended | 2P SH. Was C160404 4P. |
 | J3 | 1×03 RA 2.54 | C49257 | — | Bench |
 | SW1 | TS-1187A | C318884 | — | 4.5 × 4.5 × 1.6 |
 | L1 | 10 µH 0603 | C1045 | — | nRF DCCH |
-| R1–R3 | 220 kΩ 0402 | blank (see above) | — | Per-path bound |
-| R11 | 6.80 kΩ | C25848 | — | ISET |
-| R12 | 6.04 kΩ | C25841 | — | PRETERM |
-| R13, R25, R26, R28 | 10 kΩ | C25792 | — | TS, CHG_MON, nRESET, LED_EN pull-down |
-| R9, R10 | 5.1 kΩ | C25905 | — | CC |
-| others | see BOM | — | — | Decoupling **per ADS1292 / BQ25100 / TLV713 typical** |
+| R9, R10 | 5.1 kΩ | C25905 | Basic | CC. Page: 5.1 kΩ 0402. |
 
-Not in BOM: J4 TC2030-NL, P1–P3 ring pads, R29–R30 DNP 10 MΩ, Q5 DNP, power flags. `PAD_8x8_ENIG` and `MountingHole_M2.5` stay in the library and are not placed.
+Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.com qty-1 seen today: U2 C89288 $6.50 (70); U4 C2863702 from $0.23 (190). Not in BOM: J4 TC2030-NL, P1–P3 ring pads, R29–R30 DNP 10 MΩ (LCSC C26082 for the 10 MΩ land, not stuffed), Q5 DNP, power flags.
 
 ## 14. Reference-circuit check (each choice)
 
 | Choice | Verdict |
 |---|---|
 | ADS1292 3.0 V AVDD=DVDD, internal ref, 10 µF VREFP, 1 µF VCAP1, 100 nF VCAP2 | Per typical (SBAS502C) |
-| Supply bypass 1 µF + 2 × 100 nF on the shared +3V0 | Deviates: SBAS502C asks for 10 µF + 0.1 µF on each supply (review r5; the lane wrote "per typical") |
+| Supply bypass 10 µF + 0.1 µF on AVDD and on DVDD (C6+C7, C8+C15, 0603) | L7 §4.2 verbatim (SBAS502C §11.1): "Each supply pin (AVDD and DVDD) should be bypassed using both a 10-µF and a 0.1-µF ceramic capacitor." And: "To achieve the best performance, it is recommended that the capacitors be placed as close to the device as possible." Caps on B.Cu under the ADS. |
 | RLD 1 MΩ + 1.5 nF | Per typical |
 | 220 kΩ on SIG1, SIG2, REF | Per plan v2 §5.5, not a TI typical value |
 | Unused IN2 tied to +3V0 | Per SBAS502C ("connect unused analog inputs to AVDD"); firmware powers CH2 down with its input shorted (CH2SET 0x81) |
@@ -345,28 +423,30 @@ Not in BOM: J4 TC2030-NL, P1–P3 ring pads, R29–R30 DNP 10 MΩ, Q5 DNP, power
 
 Command: `kicad-cli pcb drc --format json` via `scripts/board/release.py`.
 
-This round does not route, and the PCB is not a valid placement either. Review r5 run, 2026-09-17:
+WP12b placed from packing §5 and assigned every schematic net. Tracks exist. Freerouting v2.1.0 hung in this environment; a B.Cu bus fallback connects leftover nets. That copper still shorts and violates clearance. **Order release is not green.**
+
+Run 2026-09-17 (this lane, after the packing place; `release.py --routed` to `/tmp/wp12b-release`):
 
 | Item | Result |
 |---|---|
-| DRC errors | 877: silk 398, pad-to-pad clearance 155, solder-mask bridge 154, courtyard overlap 109, copper to edge 31, keep-out 23, hole 7 |
-| DRC warnings | 34 |
-| Unconnected items | 0, which means nothing: the PCB declares 3 nets and 251 of its 254 pads have no net (it was never updated from the schematic) |
-| Routing | None (0 tracks) |
+| DRC errors | 1290 (clearance, shorting, mask bridge, hole, tracks crossing, copper-to-edge) |
+| DRC warnings | 25 |
+| Unconnected items | 31 (GND pads vs zone fill, including C8 under the ADS) |
+| Pads without a net | 0 |
+| pcb_tracks | 465 |
+| Routing | tracks > 0; `"routed": true` only when `--routed` is passed |
 
-The 155 clearance errors are pads of different parts overlapping (for example U5 inside the USB-C land, C8/C11/R1 into the ADS1292), not missing tracks. The next board pass must update the PCB from the schematic and place from `packing-v2.md` §5. `summary.json` records `"routed": false` with these counts. The job does not fail on them. `release.py --routed` is the order release and fails closed on any DRC error, unconnected item, pad without a net or a board with no tracks; on this board it fails.
+`release.py --routed` still fails closed on DRC errors and unconnected items (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
 
 ## 16. ERC
 
-`kicad-cli sch erc --format json`: **0 errors, 0 warnings** (review r5).
-
-The lane had 13 warnings: 12 `lib_symbol_mismatch` and one `footprint_link_issues`. The mismatches were symbols whose embedded copy differed from the library's: review r5 put the embedded copies of AO3401A, 2N7002, TLV71330PDBV, USBLC6-2SC6, PESD5V0L1UL, BQ25100 and PAD_8x8 into `lib/elicio.kicad_sym` and points the sheet at `elicio:`; the netlist is unchanged. J3's footprint named a library `Connector_PinHeader_2.54` that does not exist; it is `Connector_PinHeader_2.54mm`.
+`kicad-cli sch erc --format json`: **0 errors, 0 warnings** (review r5, still true after Q68 C15).
 
 ## 17. Release job
 
-`scripts/board/release.py` runs ERC, DRC, JLC-column BOM, JLC CPL (SMD only), gerbers+drill, STEP with the component models (missing models are listed in the summary), and `release/summary.json`. Non-zero exit on any ERC error or any missing output; with `--routed`, also on the DRC blockers in §15.
+`scripts/board/release.py` runs ERC, DRC, JLC-column BOM, JLC CPL (the BOM's designators, SMD and the THT header J3; review r6), gerbers+drill, STEP, and `release/summary.json`. Non-zero exit on any ERC error, any missing output, or a BOM part without a CPL row; with `--routed`, also on DRC errors, unconnected items, pads without a net, or no tracks.
 
-`tests/test_board_release.py` asserts ERC 0 errors and 0 warnings, BOM rows = placed parts, the DRC counts and `"routed": false` in the summary, and that `--routed` fails on this board. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
+`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks > 0, and named SMT centres within 0.1 mm of packing §5. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
 
 ## 18. Assembler consequences and C7 (quote only)
 
@@ -387,23 +467,37 @@ FPC assembly acceptance, quoted, no request:
 - https://jlcpcb.com/blog/fpc-panelization-design-standards (read 2026-09-17): FPC+SMT minimum panel 70 × 70 mm; below that, panelise or add process edges. FPC does not use V-cut or mouse bites; bridge tabs 0.7–1.0 mm.
 - https://jlcpcb.com/blog/design-guidelines-flex-pcb-panels and https://jlcpcb.com/blog/fast-turn-flex-pcb (read 2026-09-17): 5 mm process edges; 2 mm board spacing (3 mm with metal stiffeners); SMT fiducials 1 mm at 3.85 mm from the panel edge; tooling holes 2 mm; local fiducial beside each unit; carrier / SMT pallet for flex.
 
-https://jlcpcb.com/help/article/fpc-extra-charges (read 2026-09-17, last updated 2026-08-18): extra fee when a prototype has **4 or more stiffeners**. This drawing has three FR4 0.4 pieces plus three FR4 0.2 tab circles (**6**). That trips the extra-stiffener rule. Also: extra cost if stiffeners must go on after SMT because parts sit around them.
+https://jlcpcb.com/help/article/fpc-extra-charges (re-read 2026-09-17, last updated 2026-09-09), same wording as L7 §3.1:
 
-Packing SW1 centre (4.80, 21.15) on a 4.5 mm switch sits about 0.3 mm from the left outline. That is inside JLC's 2.5 mm assembly edge rule. Record as an assembler conflict; do not move the packing centre in this package.
+- Prototype: "For prototype orders, when there are 4 or more stiffeners on the board, an extra fee is required."
+- Small batch / mass: "when there are 4pcs or more stiffeners on the board, or the total stiffener area on both sides is no less than 90% of the board area, extra cost is required."
+- Stacked: "When you need to stack up stiffeners in the same location, there will be an additional cost of $8.14+$24.44/m² for every extra stiffener."
+
+This drawing has **two** FR4 0.4 pieces (Eco1.User: island + USB/pocket). No tab FR4 (Q58 clamp). Count = 2, under the extra-stiffener rule. Review r6: packing and the shell assume FR4 0.2 at the three rings; drawing them makes the count 5, which is over the threshold (decision 72).
+
+L7 §3.1 also lists FR4 **0.3 mm** on the stiffener catalogue. This land still uses 0.4 mm (review r5 / packing). A 0.3 mm change is WP11/WP14.
+
+Q67 Raytac routes. L7 §3.3–§3.4 quotes (pages named there, 2026-09-17). The same JLC help URLs returned only the chat widget when this lane fetched them today, so live page text is **UNVERIFIED here**; the sentences below are L7's quotes:
+
+- Consignment overseas handling: "2% of the declared value, with a minimum charge of USD 10 per shipment".
+- Pickup: "Fewer than 20 component types: USD 30 service fee. More than 20 component types: USD 30 service fee + an additional USD 1 per extra component type."
+- Storage: "There is no inventory cost for consigned parts."
+- Global sourcing estimate: "This estimated price is for reference only and is determined by the JLCPCB purchasing department based on data evaluation." "Because component prices can be volatile, estimated prices do not update in real-time."
+- Extended feeder: "JLCPCB charges a $3 fee per extended component type".
+
+LCSC C5118826 is the part this BOM names. Nothing was ordered.
+
+Packing SW1 centre is now (10.10, 24.20). The old 0.3 mm-to-outline conflict was the pre-r5 site (4.80, 21.15). The new site is inward of the left edge.
 
 ## 19. Needs a decision
 
-1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Freeze one revision with polarity and lead length. Cell is now **501015** with a 100 ± 3 mm harness (**NOT_MEASURED**). Same G1b bag.
-2. **JLC FR4 0.3 mm** — closed by review r5: FR4 0.4 under the parts, packing moved with it.
-3. **Stiffener count** — six pieces vs JLC extra-fee threshold of four. Combine or accept the fee at order time.
-4. **SW1 to outline** — packing vs JLC 2.5 mm assembly edge. WP14/panel.
-5. **SIG1/SIG2 unfold** — Gerber rings are off the island; packing XY is the folded site. WP14 must fold them before the cell is fitted.
-6. **Charge LED from ISET** — closed by review r5: the LED is a firmware output (LED_EN) from VBUS.
-7. **System load vs termination** — if nRF current while charging exceeds ~2 mA, BQ25100 may not terminate.
-8. **Probe I/O at 3.0 V target** — G4 must measure; do not infer from 3.3 V nominal.
-9. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
-10. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.
-11. **No BAV199 clamps** — closed by review r5: §3 states the ESD the board uses.
-12. **BQ25100YFPR stock** — last read was extended and weak; G3 is not this package.
-13. **Protective monitor cadence** — V_STOP is a firmware constant; the divider is always connected now, and firmware must sample at the protective cadence, not only every 10 s.
-14. **Board placement** — the PCB must be updated from the schematic and placed from `packing-v2.md` §5 before any DRC number means anything (§15).
+1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Cell is **501015** with a 100 ± 3 mm harness (**NOT_MEASURED**).
+2. **SIG1/SIG2 unfold** — Gerber rings are off the island; packing XY is the folded site. WP14 must fold them before the cell is fitted.
+3. **Order route** — `--routed` is still fail-closed: bus copper shorts and GND zone islands remain. A human or a working autorouter must finish the 2-layer flex before G3.
+4. **3.3 V probe vs 1.8 V first-load** — Q64: this board cannot set REGOUT0 through a 3.3 V probe. WP17b kit.
+5. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
+6. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.
+7. **BQ25100YFPR stock** — extended; G3 is not this package.
+8. **Protective monitor cadence** — V_STOP is a firmware constant; the divider is always connected; firmware must sample at the protective cadence.
+9. **Displayed LCSC stock/price** — JLC partdetail widgets often hide qty. G3 re-reads. L7 §4.1 SKUs that fail today's pages stay unused (C134015, C2841443, C132291, C18001, C25768).
+10. **JLC assembly edge 2.5 mm** — several packing centres (U3, tab 220 kΩ) sit closer than 2.5 mm to an outline. WP14/panel.
