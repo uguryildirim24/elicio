@@ -408,7 +408,7 @@ v2 names DTP301120 (D-4, Q40).
 
 Plan v2 (`docs/fab/plan-v2.md`) was signed off at `ef369bd`. Each
 decision below appears once. The reading is from
-`docs/fab/open-questions.md` Q37 to Q49. Where Rolf still owes an
+`docs/fab/open-questions.md` Q37 to Q55. Where Rolf still owes an
 answer, the paragraph says waits for Rolf.
 
 ### Q37 — Which plan governs
@@ -424,7 +424,8 @@ Rolf picked thin. Thin (4.5 mm cavity) is expected to fail with the
 board on standoffs; the stack over the module is 6.0 to 7.3 mm before
 clearance, so the body lands between 9.0 and 9.8 mm outer. WP11's table
 says which layouts close. The build follows that table. Rolf accepts
-the number when he sees the renders. This waits for Rolf.
+the number when he sees the renders. This waits for Rolf. The table
+closed thin: see Q51.
 
 ### D-2 — Gates then objectives (Q47)
 
@@ -442,6 +443,7 @@ dome, screw thread, standoff, gold pad, board. There are no discrete
 spring contacts, no wires, no lugs, and no solder by Rolf. Interface I
 is unqualified until G7 passes. Interface II (flex under the standoffs)
 is the fallback. SMD spring contacts are research only (C16).
+Interface I did not close: see Q50.
 
 ### Q43 — Standoff height and part
 
@@ -461,7 +463,8 @@ The charger is a BQ25100 4.20 V variant at about 20 mA, with
 termination and timers active and TS a fixed 10 kΩ to VSS; the
 temperature window is by procedure. The exact harness revision is gate
 G1b: SparkFun's page says JST-SH and the linked drawing says JST-PHR,
-so no footprint is frozen until one document settles it.
+so no footprint is frozen until one document settles it. The cell
+itself is reopened by Q55.
 
 ### D-5 — Electrode boundary (Q41)
 
@@ -487,7 +490,8 @@ written before dry data.
 WP13 chooses between the Adafruit nRF52 Arduino core built with
 arduino-cli and Zephyr, both free and installable without sign-up, with
 the reason in its report. The Adafruit UF2 bootloader is the factory
-image either way. The frame contract v2 is written before code.
+image either way. The frame contract v2 is written before code. WP13
+chose Arduino: see Q52.
 
 ### D-7 — Order sequence
 
@@ -524,7 +528,7 @@ This waits for Rolf.
 ### Q48 — First firmware load
 
 The kit is Tag-Connect TC2030-IDC-NL and the Raspberry Pi Debug Probe
-($45.95 listed) unless WP17 finds JLC's programming service
+($33.95 and $12.00 listed, $45.95 together) unless WP17 finds JLC's programming service
 catalogue-priced without a quote request. Completion time is recorded
 at the first off-body execution, not promised.
 
@@ -533,6 +537,67 @@ at the first off-body execution, not promised.
 Rolf answered titanium on 2026-09-17 (Q28). Requirement 5 in this file
 now names ISO 7380 M2.5 Grade 5 button heads. The old stainless and
 carbon-TPU wording is in History.
+
+### Q50 — Contact interface
+
+No interface I layout closes in WP11's matrix (0 of 720 after review
+r5): no cell fits under a 3.0 or 3.5 mm standoff without carrying the
+board, and the REF site lies past the end of any rigid board. The build
+uses interface II, the plan v2 §5.3 fallback: a 2-layer polyimide flex
+with FR4 stiffeners, whose three ring pads are clamped between the floor
+and the brass standoffs by the titanium screws, with the board resting on
+the standoff tops. Interface II carries its own qualification (G7) and
+JLC's flex fixture fee (C7). Interface I stays in `docs/fab/board-v2.md`
+as the rejected candidate with its reason. Rolf can override.
+
+### Q51 — USB face and body size
+
+The closing layouts put the USB-C on the hook-end end face, the plan v2
+§5.4 fallback, not the medial face. That changes only R7's ergonomic
+deterrent; the disconnection procedure and G2 stand, and the position
+goes on the residual-risk list. The smallest body that closes is 20 mm
+wide with LID_Y 8.0, outer 9.0, the v1 full body, so thin is closed.
+Q38 stays Rolf's: he accepts the number when he sees the renders.
+
+### Q52 — Firmware base
+
+WP13 built on the Adafruit nRF52 Arduino core with arduino-cli (Q45),
+and that stands for S0 to S2: the Adafruit UF2 bootloader is the factory
+image either way, BLE NUS is built in, and no Nordic account is needed.
+Plan v2 §6 still names the nRF Connect SDK; that is an erratum of the
+signed plan, recorded here and not edited there. A Zephyr port is needed
+only if S2 shows a problem the core cannot fix. V_STOP and V_START are
+WP12's 3.00 V and 3.20 V; review r5 replaced the lane's placeholders.
+
+### Q53 — Firmware tools on Rolf's Mac
+
+WP13 installed about 3.8 GB: arduino-cli, the Adafruit nRF52 core
+(1.3 GB), the Arm GNU Toolchain cask (1.0 GB), an unused
+`arm-none-eabi-gcc` formula (540 MB) with binutils, and Rosetta 2 for
+the core's x86_64 tools. `brew uninstall arm-none-eabi-gcc` removes the
+unused formula; no agent removes it. Whether Rosetta 2 stays is Rolf's
+call. This is for Rolf's information.
+
+### Q54 — Raytac sourcing
+
+When WP17 read JLC's parts library, the Raytac MDBT50Q-1MV2 was out of
+stock and the Ebyte E73 was stocked, but only the Raytac closes in
+packing. The board stays designed for the Raytac. Sourcing is a ledger
+line with two routes: JLC global sourcing if the part is quotable there
+without a request, otherwise consignment, where Rolf buys the modules
+at DigiKey or Mouser and ships them to JLC, which adds one parcel and
+JLC's consignment fee, both taken from pages.
+
+### Q55 — Cell
+
+The closing layouts use plan v1's 501015 cell, and nobody has verified
+buying one in ones (Q18). The buyable DTP301120 is 22 mm long and closes
+in no layout at the v1 length. Gate G1 decides the cell: before S0,
+either a 501015-class pack with a page price, stock and a drawing in
+ones, or a WP11b re-run with the body 1.5 and 3.0 mm longer for the DTP
+in series under interface II. WP11b runs those longer cases either way,
+so the decision has numbers. The charger in D-4 stands. Rolf sees the
+length trade in the renders.
 
 ## Open questions
 
