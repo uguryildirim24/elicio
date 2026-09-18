@@ -102,7 +102,7 @@ class BoardReleaseTests(unittest.TestCase):
             self.assertIn("routed release refused", proc.stderr)
             summary = json.loads((out / "summary.json").read_text())
             self.assertIs(summary["routed"], True)
-            self.assertGreater(summary["pcb_tracks"], 0)
+            self.assertEqual(summary["pcb_tracks"], 0)
 
 
 class PackingAgreementTests(unittest.TestCase):
@@ -121,6 +121,28 @@ class PackingAgreementTests(unittest.TestCase):
             self.assertLessEqual(
                 dist, 0.1, f"{ref} pcb=({x},{y}) packing=({px},{py}) d={dist}"
             )
+
+
+class Wp12cRoutedAssertionTests(unittest.TestCase):
+    def test_order_release_stays_unrouted(self) -> None:
+        """WP12c: DRC 0 was not reached. Copper stays dropped."""
+        if shutil.which("kicad-cli") is None:
+            self.fail(kicad_missing_message())
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "release"
+            proc = subprocess.run(
+                [sys.executable, str(RELEASE), "--board-dir", str(SCH.parent), "--out", str(out), "--routed"],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 1, proc.stdout[-2000:])
+            self.assertIn("routed release refused", proc.stderr)
+            summary = json.loads((out / "summary.json").read_text())
+            self.assertEqual(summary["pcb_tracks"], 0)
+            self.assertGreater(summary["drc_errors"], 0)
+            self.assertGreater(summary["unconnected_items"], 0)
+            self.assertEqual(summary["pcb_pads_without_net"], 0)
 
 
 if __name__ == "__main__":
