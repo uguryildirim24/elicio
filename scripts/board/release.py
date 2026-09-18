@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Run the elicio-v2 board release job (ERC, DRC, BOM, CPL, gerbers, STEP).
 
-Fails closed on any ERC error or any missing output. DRC errors are recorded
-and do not fail the job (routing is not required this round).
+Fails closed on any ERC error or any missing output. The board is not routed
+this round: DRC runs and its counts go into summary.json with
+``"routed": false``, and DRC errors do not fail that job. ``--routed`` is the
+order release: it fails closed on any DRC error, any unconnected item, any
+PCB pad without a net or a board with no tracks (review r5).
 """
 from __future__ import annotations
 
@@ -112,6 +115,19 @@ def count_placed_parts(sch: Path) -> int:
     return count
 
 
+def pcb_stats(pcb: Path) -> dict[str, int]:
+    """Tracks, declared nets and pads with no net on the PCB (not the schematic)."""
+    text = pcb.read_text()
+    pads = re.findall(r"\(pad \"[^\"]*\" (?:smd|thru_hole|connect)\b(.*?)\n\t\t\)", text, re.S)
+    no_net = sum(1 for body in pads if "(net " not in body)
+    return {
+        "pcb_tracks": len(re.findall(r"\n\t\((?:segment|arc)\b", text)),
+        "pcb_nets": len(set(re.findall(r"\(net \"([^\"]+)\"\)", text))),
+        "pcb_pads": len(pads),
+        "pcb_pads_without_net": no_net,
+    }
+
+
 def bom_row_count(path: Path) -> int:
     with path.open(newline="") as fh:
         reader = csv.reader(fh)
@@ -132,6 +148,11 @@ def main() -> int:
         type=Path,
         default=None,
         help="Release output directory (default: <board-dir>/release)",
+    )
+    parser.add_argument(
+        "--routed",
+        action="store_true",
+        help="Order release: fail on any DRC error, unconnected item, pad without a net or no tracks",
     )
     args = parser.parse_args()
     configure_kicad_env()
@@ -255,7 +276,6 @@ def main() -> int:
             "export",
             "step",
             "--force",
-            "--board-only",
             "-o",
             str(step),
             str(pcb),
@@ -270,6 +290,8 @@ def main() -> int:
     gerber_files = sorted(p.name for p in gerber_dir.iterdir() if p.is_file()) if gerber_dir.is_dir() else []
     bom_rows = bom_row_count(bom_csv) if bom_csv.is_file() else 0
     placed_parts = count_placed_parts(sch)
+    stats = pcb_stats(pcb)
+    step_missing = sorted(set(re.findall(r"File not found: (\S+)", step_run.stdout + step_run.stderr)))
 
     outputs = {
         "erc.json": erc_json.is_file(),
@@ -280,6 +302,8 @@ def main() -> int:
         "gerbers": len(gerber_files) > 0,
     }
     payload = {
+        "routed": bool(args.routed),
+        **stats,
         "erc_errors": erc_errors,
         "erc_warnings": erc_warnings,
         "drc_errors": drc_errors,
@@ -289,6 +313,7 @@ def main() -> int:
         "placed_parts": placed_parts,
         "cpl_rows": cpl_rows,
         "gerber_files": gerber_files,
+        "step_missing_models": [Path(m).name for m in step_missing],
         "outputs": outputs,
         "commands": {
             "erc": erc.returncode,
@@ -309,6 +334,17 @@ def main() -> int:
     if missing_outputs:
         sys.stderr.write("missing outputs: " + ", ".join(missing_outputs) + "\n")
         return 1
+    if args.routed:
+        blockers = {
+            "drc_errors": drc_errors,
+            "unconnected_items": unconnected,
+            "pcb_pads_without_net": stats["pcb_pads_without_net"],
+            "no_tracks": int(stats["pcb_tracks"] == 0),
+        }
+        bad = {k: v for k, v in blockers.items() if v}
+        if bad:
+            sys.stderr.write("routed release refused: " + json.dumps(bad) + "\n")
+            return 1
     print(json.dumps(payload, indent=2))
     return 0
 

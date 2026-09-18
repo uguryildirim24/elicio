@@ -694,7 +694,7 @@
   "text_variables": {
     "BOARD": "elicio-v2",
     "REV": "0",
-    "STACKUP": "JLCPCB 2-layer FPC 0.11 mm PI ENIG, FR4 stiffener 0.3 parts / 0.2 tabs"
+    "STACKUP": "JLCPCB 2-layer FPC 0.11 mm PI ENIG, FR4 stiffener 0.4 parts / 0.2 tabs"
   },
   "tuning_profiles": {
     "meta": {
