@@ -41,17 +41,17 @@ HELLO reconnect.
 Montage §8's table marks only lines 3.5 to 3.10 "same criterion". Line
 3.4 is marked "revised"; its dropout half keeps the original rule (rail
 or flat for more than 200 sample intervals, counted on the acquisition
-stream). The tool follows the table: a same-criterion failure and a 3.4
-dropout get different codes. Whether a 3.4 dropout stops S2 is open
-decision 75 in `tasks/reviews/code-r6.md`; until it is taken, treat code 3
-as a stop and write the agent one line.
+stream). Q75: a 3.4 dropout is a report, not a stop. Exit 3 stays a
+distinct code. S2 continues. The dropout count goes in the session
+note (`sidecar.json`). Lines 3.5 to 3.10 stay stops (exit 1). Exit 1
+and 2 stay stops.
 
 | Code | Meaning |
 |---:|---|
 | 0 | No dropout; no scored same-criterion line failed |
-| 1 | A scored same-criterion line (3.5 to 3.10) is not `pass` (wins over 3) |
-| 2 | Not a session folder (`samples.npz`, `sidecar.json` or `meta.json` missing) |
-| 3 | A line 3.4 dropout: rail or flat for more than 200 sample intervals |
+| 1 | A scored same-criterion line (3.5 to 3.10) is not `pass` (wins over 3). Stop. |
+| 2 | Not a session folder (`samples.npz`, `sidecar.json` or `meta.json` missing). Stop. |
+| 3 | A line 3.4 dropout: report, not a stop (Q75). S2 continues; the dropout count goes in the session note. |
 
 Not scored for dropout (montage §8 start-up exclusions): samples flagged
 INVALID, the 200 conversions after each RESTART flag, and OVERRUN gaps
