@@ -27,6 +27,11 @@ cad = [
 ble = [
   "bleak>=0.22",
 ]
+# Phone sheets, the placement drawings and their tests without the CAD kernel.
+sheets = [
+  "matplotlib>=3.9",
+  "pypdf>=5",
+]
 
 [project.scripts]
 elicio = "elicio.cli:main"

@@ -247,7 +247,12 @@ class PlacementMathTests(unittest.TestCase):
         self.assertIn("Packing is **not confirmed**", text)
 
 
-@unittest.skipUnless(P.HAS_MATPLOTLIB, "matplotlib is not installed")
+NEEDS_MATPLOTLIB = unittest.skipUnless(
+    P.HAS_MATPLOTLIB, "needs the sheets or cad extra: matplotlib is not installed"
+)
+
+
+@NEEDS_MATPLOTLIB
 class PlacementRegenTests(unittest.TestCase):
     def test_drawing_regenerates_byte_identical(self) -> None:
         first = P.render_svg()
@@ -470,6 +475,7 @@ class PlacementV2Tests(unittest.TestCase):
         self.assertFalse(result.closes)
         self.assertTrue(any("TOTAL_CHORD" in c and "M1" in c for c in result.conflicts))
 
+    @NEEDS_MATPLOTLIB
     def test_v2_svg_regenerates_byte_identical(self) -> None:
         spec = self.spec()
         first = self.v2.render_svg(spec)
@@ -479,6 +485,7 @@ class PlacementV2Tests(unittest.TestCase):
         self.assertTrue(named.is_file(), named)
         self.assertEqual(named.read_bytes(), first)
 
+    @NEEDS_MATPLOTLIB
     def test_failing_svg_lists_the_conflict(self) -> None:
         spec = self.spec(arch="C")
         data = self.v2.render_svg(spec).decode("utf-8")
@@ -486,6 +493,7 @@ class PlacementV2Tests(unittest.TestCase):
         self.assertIn("closes=0", data)
         self.assertIn("architecture C is out", data)
 
+    @NEEDS_MATPLOTLIB
     def test_every_committed_v2_svg_matches_a_fresh_render(self) -> None:
         rows = self.rows
         self.assertEqual(len(rows), 864)
@@ -513,6 +521,7 @@ class PlacementV2Tests(unittest.TestCase):
             self.v2.conflict_family("module top 6.70 > LID_Y 6"), "module top # > LID_Y #"
         )
 
+    @NEEDS_MATPLOTLIB
     def test_all_writes_closers_only_unless_all_drawings(self) -> None:
         rows = self.rows
         closers = {r.spec.filename for r in rows if r.closes}
@@ -535,6 +544,7 @@ class PlacementV2Tests(unittest.TestCase):
         rows = self.rows
         self.assertEqual(doc.read_text(encoding="utf-8"), self.v2.packing_markdown(rows))
 
+    @NEEDS_MATPLOTLIB
     def test_cli_writes_the_named_v2_drawing(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             out = Path(temp_dir) / "one.svg"
