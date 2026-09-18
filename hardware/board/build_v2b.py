@@ -666,15 +666,7 @@ def build() -> None:
     print("maze route...")
     failed = maze_route(board, outline_points())
     print("route failed nets", failed)
-
-    gnd = ensure_net(board, "GND")
-    for u in (3.20, 7.60, 9.60, 11.60, 13.60, 16.20):
-        for s in (19.20, 21.40, 23.60, 25.50, 27.20, 29.40, 31.60, 34.00, 36.20):
-            if 2.25 <= u <= 6.05 and 26.15 <= s <= 38.55:
-                continue
-            if 12.50 <= u <= 17.75 and 12.00 <= s <= 18.60:
-                continue
-            add_via(board, gnd, u, s)
+    # WP12c: no GND stitch vias until a real route exists.
 
     filler = pcbnew.ZONE_FILLER(board)
     filler.Fill(board.Zones())

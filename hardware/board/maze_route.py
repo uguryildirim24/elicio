@@ -349,62 +349,8 @@ def maze_route(board, outline) -> list[str]:
         if len(pads) < 2:
             continue
         names.append(name)
-    fallback_bus(board, pads_by_net, names)
-    return []
-
-
-def fallback_bus(board, pads_by_net, failed: list[str]) -> None:
-    """Connect nets on B.Cu. Island rows first, USB-tongue rows next."""
-    island = [18.85 + 0.25 * i for i in range(29)]
-    tongue = [-6.50 + 0.25 * i for i in range(26)]
-    channels = [("island", y) for y in island] + [("tongue", y) for y in tongue]
-    si = 0
-    seen = set()
-    for name in failed:
-        if name in seen:
-            continue
-        seen.add(name)
-        pads = None
-        for plist in pads_by_net.values():
-            if plist[0].GetNet().GetNetname() == name:
-                pads = plist
-                break
-        if not pads or si >= len(channels):
-            print("fallback skip", name)
-            continue
-        region, yb = channels[si]
-        si += 1
-        net = pads[0].GetNet()
-        hubs = []
-        for pad in pads:
-            x, y = pad_xy(pad)
-            layers = pad_layers(pad)
-            owner = tab_owner(x, y)
-            if owner == "SIG1":
-                vx, vy0 = 2.55, y
-            elif owner == "SIG2":
-                vx, vy0 = 17.45, y
-            elif owner == "REF":
-                vx, vy0 = x, 37.35
-            else:
-                dist = math.hypot(10.0 - x, 22.0 - y) or 1.0
-                vx = x + 0.90 * (10.0 - x) / dist
-                vy0 = y + 0.90 * (22.0 - y) / dist
-                if RF[0] <= vx <= RF[2] and RF[1] <= vy0 <= RF[3]:
-                    vx = 7.4
-            hx = 10.0 if region == "island" else 10.0
-            if region == "tongue":
-                hx = min(14.5, max(5.5, vx))
-            else:
-                hx = min(16.5, max(7.4, vx))
-            layer0 = pcbnew.F_Cu if 0 in layers else pcbnew.B_Cu
-            add_seg(board, net, x, y, vx, vy0, layer0)
-            if 0 in layers and 1 not in layers:
-                add_via(board, net, vx, vy0)
-            add_seg(board, net, vx, vy0, hx, vy0, pcbnew.B_Cu)
-            add_seg(board, net, hx, vy0, hx, yb, pcbnew.B_Cu)
-            hubs.append((hx, yb))
-        for (x0, y0), (x1, y1) in zip(hubs, hubs[1:]):
-            add_seg(board, net, x0, y0, x1, y1, pcbnew.B_Cu)
-        print("fallback", name, region, "yb", round(yb, 2))
+    # WP12c: do not write the shorting B.Cu bus. Copper is added only by a
+    # real router (Freerouting or a clearance-aware maze).
+    print("unrouted nets", len(names))
+    return names
 
