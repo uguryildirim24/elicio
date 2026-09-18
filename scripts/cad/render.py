@@ -586,7 +586,7 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
         ax.annotate(
             "concealed M2.5 well on the medial tail (Q71).\n"
             "Skin hides the head. Lateral lid is unbroken.\n"
-            "The M2.5×4 ends in the body tail, not the lid (Q89).",
+            "M2.5×8 into a lid boss in the tail pocket (Q89).",
             xy=(p[0] + dx, p[1]),
             xytext=(p[0] + dx + 18.0, p[1] + 10.0),
             fontsize=8,
@@ -1055,8 +1055,8 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
             f"chord gate: M1 ≥ {gate['gate']:.3f}",
             f"solids commit {commit}   date {date}",
             "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
-            "Closure: Q71 hinge lip at the hook-end wall plus one concealed medial-tail M2.5. S4 pull/drop qualitative.",
-            "The M2.5×4 ends at y 5.55 in the body tail; the lid starts at 8.0 (V2_CLOSURE fails, Q89).",
+            "Closure: Q89 hinge lip plus concealed medial-tail M2.5×8 into a lid boss. S4 pull/drop qualitative.",
+            "Head in the well at y 1.55; lid boss drops 3.2 mm; ≥ 3 mm of thread in the lid (V2_CLOSURE).",
             "Contacts: titanium ISO 7380 heads through Ø2.7 holes (bought, not printed). P4/P5: open Ø5 holes.",
             "Q81: no USB receptacle at M1 52. P4/P5 charging pads, hook end (Q86). No text on the outside. Q59 slot stays.",
             *("  " + row for row in fillet_summary(manifest)),
