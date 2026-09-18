@@ -327,7 +327,7 @@ Source: https://jlcpcb.com/capabilities/flex-pcb-capabilities read 2026-09-17. S
 | Min track / space | 3/3 mil (0.076 mm) at 12 µm copper; 3.5/3.5 mil at 18 µm; **4/4 mil (0.10 mm) at 1 oz / 35 µm** | Encoded 0.10 / 0.10 as the 1 oz regular limit |
 | Coverlay opening | expansion 0.1 mm one-sided; opening-to-trace ≥ 0.15 mm | Encoded pad-to-mask 0.1 mm |
 | Coverlay colour | Yellow recommended | Yellow / black / white / transparent |
-| Via (regular 2-layer) | 0.30 mm hole / 0.70 mm pad | JLC 0.30/0.55; this board uses 0.70 so annular ≥ 0.18 |
+| Via (regular 2-layer) | 0.30 mm hole / 0.55 mm pad | JLC 0.30/0.55; WP12g dropped 0.70 because 0.70 blocked layer changes |
 | PTH annular ring | ≥ 0.25 mm recommended, 0.18 mm absolute | Ring pad (5.0 − 2.7) / 2 = 1.15 mm |
 | Copper to outline | ≥ 0.30 mm (laser) | Encoded as DRC min copper-edge clearance |
 | Outline tolerance | ±0.10 mm | ±0.05 mm on request; not requested |
@@ -344,14 +344,15 @@ Two-sided assembly: packing `side=bottom` rows (Q1–Q5, C6–C9, C13–C15, R4�
 
 Encoded in the board design settings, in `elicio-v2.kicad_pro`, and in `elicio-v2.kicad_dru`.
 
-### Q84 — Contact clearance by area
+### Q84 / Q88 — Contact clearance by area
 
-1.0 mm is creepage for exposed copper (plan v2 §5.3). It is not a netclass on the island 0402 that joins SIG1/SIG2/REF to the front end (pad gap 0.48 mm).
+1.0 mm is creepage for exposed copper (plan v2 §5.3, Q88). It is not a netclass on the island 0402 that joins SIG1/SIG2/REF to the front end (pad gap 0.48 mm). Coverlaid strips use the Contact class only.
 
 | Region | Rule area | Contact-to-anything |
 |---|---|---|
-| Three tab strips and ring pads P1–P3 | `tabs` | 1.0 mm |
-| CHARGE rectangle and pads P4, P5 | `tail_pads` | 1.0 mm (any net in the area) |
+| Ø5 lands P1–P3 plus 1.0 mm (7 × 7) | `tabs` | 1.0 mm |
+| Ø5 lands P4, P5 plus 1.0 mm (7 × 7) | `tail_pads` | 1.0 mm (any net in the area) |
+| Coverlaid SIG/REF strips | `strip_sig1` / `strip_sig2` / `strip_ref` (foreign-net keep-out; vias and fills off) | **0.20 mm** (one Contact trace) |
 | Island (R1–R3 and the rest of the body) | none | **0.20 mm** (Contact netclass; ≥ 0.20 JLC flex) |
 
 Board minimum clearance stays **0.10 mm** (JLC 1 oz 4/4 mil). Custom rules cannot go below that floor. The Contact netclass is 0.20 mm so the island 0402 passes; the `.kicad_dru` file raises 1.0 mm inside `tabs` and `tail_pads`.
@@ -445,38 +446,37 @@ Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.c
 
 ## 15. What DRC says
 
-Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md` §10.
+Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md` §11.
 
-WP12f moved R24 +0.47 mm u (Q87). Zero-track DRC on that land is **0 errors**, 146 unconnected, 0 tracks. Locked strip and CHARGE-tab stubs (7 tracks, Specctra `type fix`) are on the owned PCB. Freerouting 2.4.1 on OpenJDK 25 wrote a SES; import on a copy (with the `.kicad_pro` beside it) is 12 errors / 60 unconnected. The SES was not written back. **Order release is not green. `routed`: false.**
+WP12g took pin table v2.1 R24 (18.49, 22.57) rot 90 (Q87 closes on copper). Q88 shrunk `tabs` / `tail_pads` to the 7 × 7 around P1–P5. Locked Contact ring→strip→R1–R3 and CHARGE stubs are DRC **0 errors** before the router (1 VBUS dangling warning, 142 unconnected). Freerouting 2.4.1 then via 0.55/0.30 wrote a SES that was imported. **Order release is not green. `routed`: false.**
 
-Zero-track DRC after the R24 move (`kicad-cli pcb drc --format json`, 2026-09-18):
-
-| Item | Result |
-|---|---|
-| DRC errors | 0 |
-| DRC warnings | 0 |
-| Unconnected items | 146 |
-| Pads without a net | 0 |
-| pcb_tracks | 0 |
-| Vias | 0 |
-
-Owned PCB after locked stubs: 5 `track_dangling` **warnings**, 0 DRC errors, 146 unconnected, 7 tracks. SES not written back.
+Locked-only DRC (`kicad-cli pcb drc --format json`, 2026-09-18):
 
 | Item | Result |
 |---|---|
 | DRC errors | 0 |
-| DRC warnings | 5 |
-| Unconnected items | 146 |
+| DRC warnings | 1 (`track_dangling` on the VBUS CHARGE stub) |
+| Unconnected items | 142 |
 | Pads without a net | 0 |
-| pcb_tracks | 7 |
-| Vias | 0 |
+| pcb_tracks | 30 |
+| Shorts | 0 |
 
-The five violations are `track_dangling` **warnings** on SIG1, SIG2, REF, VBUS, and GND (the locked stub ends). DRC errors 0. Shorts 0. Copper-to-edge 0. Hole clearance 0.
+Owned PCB after SES import (via 0.55/0.30, 20 auto-route passes, fanout 80):
+
+| Item | Result |
+|---|---|
+| DRC errors | 0 |
+| DRC warnings | 3 (2 `via_dangling`, 1 `track_dangling`) |
+| Unconnected items | 63 |
+| Pads without a net | 0 |
+| pcb_tracks | 421 |
+| Vias | 33 |
+| Foreign nets in strips | 0 |
 
 Netclasses in the DSN (`scripts/board/route_v2.py --dsn-check`), unit um:
 
 ```text
-(via "Via[0-1]_700:300_um")
+(via "Via[0-1]_550:300_um" "Via[0-1]_700:300_um")
 (width 100)
 (clearance 100)
 (class kicad_default …
@@ -487,13 +487,9 @@ Netclasses in the DSN (`scripts/board/route_v2.py --dsn-check`), unit um:
         (clearance 200)
 ```
 
-The WP12e 199 `track_width` hits were min width 0.2000 mm vs actual 0.1000 mm. The DSN already carried 100 um Default. SES import copies Contact 0.15/0.20 onto Default unless the project file sits next to the copy. `import_ses` now restores §12 and clamps necks below 0.10 mm. A copy DRC without the `.kicad_pro` was 204 errors; with it, 12.
+**First structural reason DRC 0 with 0 unconnected cannot land:** the island still has 63 rats after Q88, locked Contact to R1–R3, and Freerouting with the JLC 0.55/0.30 via. They are U2 QFN escapes, J4 SWD, VBUS from P4 onto the island, J3 Contact, and F.Cu↔B.Cu stitches that a 0.55 via still does not finish. A scripted GND pour plus J3 manhattan produced shorts (SIG1/SIG2) and was discarded. The owned copper stays un-shorted.
 
-**First structural reason DRC 0 with 0 unconnected cannot land:** Q84 1.0 mm on `tabs` cannot be met at the strip roots. L1 pad 1 (DCCH) starts 0.70 mm from the SIG1 attach line at s=16.00. D2 pad 2 (D2_A) starts 0.60 mm from SIG2 attach. U1 pad 26 starts 0.90 mm from REF attach. No copper can leave a strip onto the island without Contact-to-part clearance under 1.0 mm. Freerouting joined R1–R3 to J3 on the island and left the locked ring stubs dangling.
-
-Freerouting **v2.4.1** on OpenJDK 25.0.4.1 (`~/.local/opt/freerouting/freerouting-2.4.1.jar`): fanout 40 passes, 126/230 SMD pins escaped (54.8 %), 12 auto-route passes, 1 m 48 s, SES 33305 bytes, 60 unrouted / 25 router violations. Copy import with project file: 444 tracks, 37 vias, 12 DRC, 60 unconnected, 0 shorts, 0 foreign nets in the strips. Owned PCB stays un-shorted.
-
-`release.py --routed` fails closed on DRC errors and unconnected items (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
+`release.py --routed` fails closed on unconnected items (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
 
 ## 16. ERC
 
@@ -503,7 +499,7 @@ Freerouting **v2.4.1** on OpenJDK 25.0.4.1 (`~/.local/opt/freerouting/freeroutin
 
 `scripts/board/release.py` runs ERC, DRC, JLC-column BOM, JLC CPL (the BOM's designators, SMD and the THT header J3; review r6), gerbers+drill, STEP, and `release/summary.json`. Non-zero exit on any ERC error, any missing output, or a BOM part without a CPL row; with `--routed`, also on DRC errors, unconnected items, pads without a net, or no tracks.
 
-`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks > 0 (locked stubs), R24 within 0.50 mm of the table (Q87), and other named SMT centres within 0.1 mm of `packing_v2_flat.md`. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
+`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks > 0, R24 within 0.50 mm of the v2 table (v2.1 pose), Q88 (no 1.0 mm at the strip roots; foreign strip copper fails), and other named SMT centres within 0.1 mm of `packing_v2_flat.md`. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
 
 ## 18. Assembler consequences and C7 (quote only)
 
@@ -550,7 +546,7 @@ Packing SW1 centre is (16.25, 4.45) on the pocket island.
 
 1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Cell is **501015** with a 100 ± 3 mm harness (**NOT_MEASURED**).
 2. **SIG1/SIG2/CHARGE unfold** — Gerber rings are the flat sites. WP14 folds them onto the shell sites (rib-slot for CHARGE, Q86).
-3. **Order route** — `--routed` is fail-closed: Q84 1.0 mm on `tabs` versus L1, D2, and U1 at the strip roots. R24 is off the real J4 hole (+0.47 mm u, Q87). Packing must fold that deviation back and keep L1/D2/U1 off the 1.0 mm tab creepage, or Q84 must be redrawn to stop at the ring copper only.
+3. **Order route** — `--routed` is fail-closed: 63 unconnected after Q88, locked Contact to R1–R3, and Freerouting with via 0.55/0.30. R24 is pin table v2.1 (18.49, 22.57) rot 90. J3 Contact, U2 escapes, and VBUS from the CHARGE tab still have no DRC-clean channel.
 4. **3.3 V probe vs 1.8 V first-load** — Q64: this board cannot set REGOUT0 through a 3.3 V probe. WP17b kit.
 5. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
 6. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.

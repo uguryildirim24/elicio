@@ -113,7 +113,7 @@ class BoardReleaseTests(unittest.TestCase):
             self.assertIs(summary["routed_requested"], True)
             self.assertTrue(summary["refused"])
             self.assertGreater(summary["refused"].get("unconnected_items", 0), 0)
-            # WP12f: locked tab stubs are present; nets are not finished.
+            # WP12g: Contact and SES copper are present; 63 nets are not finished.
             self.assertGreater(summary["pcb_tracks"], 0)
 
 
@@ -158,7 +158,7 @@ class PackingAgreementTests(unittest.TestCase):
 
 class Wp12cRoutedAssertionTests(unittest.TestCase):
     def test_order_release_stays_unrouted(self) -> None:
-        """WP12f: tab stubs exist; DRC 0 with 0 unconnected was not reached."""
+        """WP12g: Contact and SES copper exist; DRC 0 with 0 unconnected was not reached."""
         if shutil.which("kicad-cli") is None:
             self.fail(kicad_missing_message())
         with tempfile.TemporaryDirectory() as tmp:
@@ -195,7 +195,7 @@ class FlexDsnClassTests(unittest.TestCase):
         (clearance 200)
       )
     )
-    (via "Via[0-1]_700:300_um")
+    (via "Via[0-1]_550:300_um")
 """
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "elicio-v2.dsn"
@@ -252,14 +252,15 @@ class Q84ContactAreaTests(unittest.TestCase):
         self.assertIn("intersectsArea('tabs')", dru)
         self.assertIn("intersectsArea('tail_pads')", dru)
         self.assertIn("1.0mm", dru)
+        self.assertIn("Q88", dru)
 
     def test_contact_netclass_is_island_default_0_20(self) -> None:
         pro = json.loads((ROOT / "hardware" / "board" / "elicio-v2.kicad_pro").read_text(encoding="utf-8"))
         contact = next(c for c in pro["net_settings"]["classes"] if c["name"] == "Contact")
         self.assertAlmostEqual(contact["clearance"], 0.2)
 
-    def test_zero_track_drc_has_no_contact_clearance_on_island_0402(self) -> None:
-        """Q84: R1–R3 on the island use 0.20 mm, not tab creepage 1.0 mm."""
+    def test_drc_has_no_contact_clearance_on_island_0402(self) -> None:
+        """Q84/Q88: R1–R3 on the island use 0.20 mm, not tab creepage 1.0 mm."""
         if shutil.which("kicad-cli") is None:
             self.fail(kicad_missing_message())
         with tempfile.TemporaryDirectory() as tmp:
@@ -284,6 +285,100 @@ class Q84ContactAreaTests(unittest.TestCase):
                 if any(ref in blob for ref in island_refs):
                     hits.append((desc, blob.strip()))
             self.assertEqual(hits, [], msg=hits)
+
+    def test_drc_has_no_one_mm_creepage_at_strip_roots(self) -> None:
+        """Q88: L1, D2, U1 at the attach line are not under 1.0 mm tab creepage."""
+        if shutil.which("kicad-cli") is None:
+            self.fail(kicad_missing_message())
+        with tempfile.TemporaryDirectory() as tmp:
+            report = Path(tmp) / "drc.json"
+            proc = subprocess.run(
+                ["kicad-cli", "pcb", "drc", "--format", "json", "-o", str(report), str(PCB)],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            roots = (" of L1 ", " of D2 ", " of U1 ")
+            hits = []
+            for viol in data.get("violations") or []:
+                if viol.get("type") != "clearance":
+                    continue
+                desc = viol.get("description") or ""
+                if "1.0000 mm" not in desc and "1.0 mm" not in desc:
+                    continue
+                blob = " " + " ".join(item.get("description") or "" for item in viol.get("items") or []) + " "
+                if any(ref in blob for ref in roots):
+                    hits.append((desc, blob.strip()))
+            self.assertEqual(hits, [], msg=hits)
+
+    def test_strip_keepout_names_are_on_the_board(self) -> None:
+        text = PCB.read_text(encoding="utf-8")
+        for name in ("strip_sig1", "strip_sig2", "strip_ref"):
+            self.assertIn(name, text)
+
+    def test_foreign_copper_in_a_strip_fails_drc(self) -> None:
+        """A GND track beside the SIG1 strip centre must fail Contact clearance."""
+        if shutil.which("kicad-cli") is None:
+            self.fail(kicad_missing_message())
+        kicad_py = Path(
+            "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/3.9/bin/python3"
+        )
+        if not kicad_py.is_file():
+            self.fail("KiCad python3 is absent")
+        with tempfile.TemporaryDirectory() as tmp:
+            dirty = Path(tmp) / "dirty.kicad_pcb"
+            shutil.copy2(PCB, dirty)
+            pro = PCB.with_suffix(".kicad_pro")
+            dru = PCB.with_suffix(".kicad_dru")
+            if pro.is_file():
+                shutil.copy2(pro, dirty.with_suffix(".kicad_pro"))
+            if dru.is_file():
+                shutil.copy2(dru, dirty.with_suffix(".kicad_dru"))
+            add_py = Path(tmp) / "add_gnd.py"
+            add_py.write_text(
+                "\n".join(
+                    [
+                        "import wx",
+                        "_APP = wx.App(False)",
+                        "import pcbnew",
+                        f"b = pcbnew.LoadBoard({str(dirty)!r})",
+                        "net = b.FindNet('GND')",
+                        "t = pcbnew.PCB_TRACK(b)",
+                        "t.SetStart(pcbnew.VECTOR2I(pcbnew.FromMM(6.05), pcbnew.FromMM(10.00)))",
+                        "t.SetEnd(pcbnew.VECTOR2I(pcbnew.FromMM(6.05), pcbnew.FromMM(12.00)))",
+                        "t.SetWidth(pcbnew.FromMM(0.10))",
+                        "t.SetLayer(pcbnew.F_Cu)",
+                        "t.SetNet(net)",
+                        "b.Add(t)",
+                        "b.Save(str(b.GetFileName()))",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            proc = subprocess.run(
+                [str(kicad_py), str(add_py)],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            report = Path(tmp) / "drc.json"
+            proc = subprocess.run(
+                ["kicad-cli", "pcb", "drc", "--format", "json", "-o", str(report), str(dirty)],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            hits = [
+                v
+                for v in (data.get("violations") or [])
+                if v.get("severity") == "error"
+                and v.get("type") in {"clearance", "shorting_items", "tracks_crossing"}
+            ]
+            self.assertGreater(len(hits), 0, "foreign strip copper produced no DRC error")
 
 
 class PinTableV2ParserTests(unittest.TestCase):

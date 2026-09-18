@@ -396,4 +396,59 @@ Copy DRC types (with project file): 6 via_dangling, 5 track_dangling (the locked
 
 Q84 1.0 mm on `tabs` versus parts at the attach line: L1 pad 1 is 0.70 mm from SIG1 attach, D2 pad 2 is 0.60 mm from SIG2 attach, U1 pad 26 is 0.90 mm from REF attach. No copper can leave a strip onto the island without Contact-to-part clearance under 1.0 mm. Freerouting joined R1–R3 to J3 on the island and left the ring stubs dangling. Step 5: stop **un-shorted**, `routed: false`.
 
+## 11. WP12g route (Q88, pin table v2.1, locked Contact)
+
+Repeat: `.venv/bin/python scripts/board/route_v2.py --dsn-check` then `--route`.
+Jar: `~/.local/opt/freerouting/freerouting-2.4.1.jar`. OpenJDK 25.0.4.1.
+KiCad python for DSN/SES. Copy import copies `elicio-v2.kicad_pro` and `.kicad_dru` beside the copy PCB.
+
+### Q88 rule areas
+
+`tabs` is three 7 × 7 boxes around P1–P3. `tail_pads` is two 7 × 7 boxes around P4–P5. Strips carry one Contact 0.15/0.20 trace and a foreign-net keep-out. Island Contact stays 0.20.
+
+### Q87 / pin table v2.1 (`e4b857c`)
+
+| Ref | Table v2 (u, s, rot) | v2.1 (u, s, rot) | On copper |
+|---|---|---|---|
+| R23 | (18.28, 21.17, 0) | (18.32, 21.10, 0) | yes, DRC 0 |
+| R24 | (18.28, 22.37, 0) | (18.49, 22.57, 90) | yes; 0.29 mm from v2; Q87 deviation closes |
+| R26 | (14.22, 21.63, 90) | (14.21, 21.63, 90) | yes, DRC 0 |
+
+Zero-track DRC with v2.1 poses: **0 errors**. R24 rot 90 clears J4 NPTH.
+
+### Locked Contact (before router)
+
+Ring → strip centre → island → R1–R3. VBUS stub on the CHARGE south edge to (26.27, 1.20). GND to J2 pad 2, split at the P5 7 × 7. Locked-only DRC: **0 errors**, 1 VBUS `track_dangling` warning, 142 unconnected, 30 tracks. Paste:
+
+```text
+Found 1 violations
+Found 142 unconnected items
+locked DRC errors 0 warnings 1 unconnected 142
+types Counter({('track_dangling', 'warning'): 1})
+```
+
+### Freerouting 2.4.1 runs (OpenJDK 25)
+
+Via first 0.70/0.30, then §12 JLC 0.55/0.30 because 0.70 blocked F.Cu↔B.Cu. Flags: `-mp 20 -mt 4 --router.job_timeout=00:20:00 --router.fanout.max_passes=80 --router.fanout.ripup_allowed=true --router.automatic_neckdown=false --router.strict_drc=true --router.neck_width_um=100 --router.copper_to_edge_clearance_um=300 --router.hole_clearance_um=200`.
+
+| Item | 0.70 via (first SES) | 0.55 via (imported) |
+|---|---|---|
+| Wall time | 2 m 40.80 s | 1 m 37.38 s |
+| Fanout | 47 already connected from locks; 80 passes | 123/230 (53.5 %), 9 passes |
+| Auto-route | 20 passes; 70 unrouted, 28 violations | 20 passes; 67 unrouted, 30 violations |
+| SES | `/tmp/wp12g/elicio-v2.ses` 25768 bytes | `/tmp/wp12g-via55/elicio-v2.ses` 53381 bytes |
+| Copy DRC | 0 errors, 70 unconnected | 0 errors, 63 unconnected |
+| Copy tracks / vias | 353 / 23 | 421 / 33 |
+| Foreign nets in strips | 0 | 0 |
+| Owned PCB | first SES imported, then replaced by 0.55 SES | **yes** 0.55 SES |
+
+DSN class check OK: Default 100/100 um, Contact 150/200 um, via 550:300 um (700:300 vias from the first pass remain).
+
+A later GND pour plus J3 Contact manhattan produced 15 DRC errors including SIG1/SIG2 shorts. That copper was discarded.
+
+### First structural reason
+
+63 unconnected after Q88, locked R1–R3 Contact, and Freerouting with via 0.55/0.30. Remaining rats are U2 QFN escapes, J4 SWD, VBUS P4→island, J3 Contact, and layer stitches. Step 5: stop **un-shorted**, `routed: false`.
+
+
 
