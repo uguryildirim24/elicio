@@ -41,11 +41,12 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
      The first shell pictures are on the sheet (version 6) with the
      reviewer's findings: the size is right, the closure and the USB end
      fail as drawn and are being redone (WP14b).
-  1a. Q81 with Q34: the USB-C receptacle needs M1 ≥ 58.5 (a body 7.3
+  1a. Q81 with Q34: the USB-C receptacle needs M1 ≥ 58.3 (a body 7.3
      longer); until he measures, the build carries two charging contacts
      on the tail and a magnetic cable, and USB-C returns if M1 allows.
      Reading: contacts; his M1 decides. A plan v2 §5.4 amendment turn
-     with Pro if he confirms.
+     with Pro if he confirms. With Q78 the body is now 22 wide (the parts
+     fit nowhere at 20, receptacle or not); Q38's approval covers it.
   1b. Q69 the battery route (sheet question 2b): the marketplace 501012
      pack (13.0 × 10.1 × 5.1 with PCM, 40 mAh, no drawing) or a factory
      sample of the real 17.0 mm 501015 pack with M1 ≥ 52.5 and a body 1.5
@@ -101,6 +102,7 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
 | r7 | briefs WP11c, WP14b, WP13c, WP11d, WP17c, WP14c, WP12d-prep | coordinator | `e2c7f09`, `58ae5b8`, `0293d48`, `7983847`, `7b23eb5` | `tasks/WP11c-courtyards.md` and siblings |
 | r7 | decisions Q78–Q80 (edge rule and board area, Contact variant A, USB-C vs TC2030) | coordinator | `7983847` | `docs/fab/open-questions.md` |
 | r7 | decisions Q81–Q83 (no receptacle until M1 is measured, bosses follow the island holes, neck-end strips) | coordinator, Q81 Rolf's | `a3960d6` | `docs/fab/open-questions.md` |
+| r7 | Q78 settled at width 22, Q81–Q83 with §5c's numbers; briefs WP14d, WP12d | coordinator | `d67e534` | `docs/fab/open-questions.md`, `tasks/WP14d-shell-v2d.md`, `tasks/WP12d-board-v2d.md` |
 
 Round 6 gates at merge (`tasks/reviews/code-r6.md`, final `f407b12`): 206
 tests OK none skipped with the cad and ble extras (34 named skips on the
@@ -121,7 +123,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11d, first pass landed, two queued turns), WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w1, w2, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11d last queued turn, w1 WP14d, w2 WP12d), WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -157,6 +159,16 @@ fast-forwarded to `110a79b`.
   on the tail); the tail-end-face option was not built. w1 idles; next
   WP14d after `DONE WP11d` (bosses to §5c's hole sites, neck-end strip
   channels or pockets, the USB wall or the two tail charging pads, Q81).
+- **w1 → WP14d shell v2d** (`tasks/WP14d-shell-v2d.md`, main `d67e534`):
+  RUNNING since 02:10 on `lane/w1-r6` on top of `7d111c6` (told to `git
+  merge main` first): width 22 on §5c (height 9.0 unchanged), the two
+  island bosses at §5c's hole sites with a table-reading check, neck-end
+  strips, two tail charging contacts at §5c's P4/P5 sites measured as
+  `V2_CHARGE_pads`, no USB opening (`V2_USB_end` NOT_APPLICABLE by name,
+  Q81). Reads §5c on `lane/w3` and reports the sha it used; if w3's last
+  nudge turn moves a number it used, a WP14e follows. Waits for nothing
+  from me. Report `.worktrees/w1/.reports/WP14d-report.md` (expected) →
+  `DONE WP14d`.
 - **w3 → WP11c courtyards** (`tasks/WP11c-courtyards.md`): LANDED, `DONE
   WP11c` at `1897df0` on `lane/w3` (two commits on top of `bcecc83`, tree
   clean, report `.worktrees/w3/.reports/WP11c-report.md` present, 187
@@ -182,22 +194,20 @@ fast-forwarded to `110a79b`.
   strips, 501012 body SIG1 10.71 / SIG2 21.81); three FR4 ring pieces
   fine (count 5). Recorded at `a3960d6`.
 - **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): first `DONE
-  WP11d` at `e2a0e01` on `lane/w3` (two package commits on the main merge
-  `57c03ad`, tree clean, report `.worktrees/w3/.reports/WP11d-report.md`
-  present, 219 tests OK). `scripts/cad/layout_v2c.py` (absent on main),
-  §5c generated, two drawings under `docs/fab/cad/v2c/` (absent on
-  main). Grid: process-edge reading, width 20 two-sided 54/66, width 22
-  two-sided 66/66 (36 parts on the second side, under-board air 3.31,
-  residual copper-to-edge misses on D1, C3, C10, C11, C12, U1 over a
-  Q73 boss site); chord 49.00 changes little; body-outline reading at
-  best 32/66, J4 never fits. Noted in open-questions at `0f09c19`. Two
-  queued turns follow on the same lane: the Q81–Q83 addendum
-  (no-receptacle cells, Q82 hole sites, neck-end strips) and the pin-table
-  note (nudge the five edge parts to 0.30, holes at the Q82 sites, publish
-  the pin table for the smallest all-66 cell with the receptacle and, if
-  one exists at width 20, without it). Each pushes another `DONE WP11d`.
-  Waits for nothing from me. After the last one: settle Q78's width and
-  Q81's variant, brief WP12d (w2) and WP14d (w1).
+  WP11d` at `e2a0e01`, second at `e1f1d6f` on `lane/w3` (tree clean,
+  report `.worktrees/w3/.reports/WP11d-report.md` present, 221 tests OK).
+  §5c now has 32 cells: with the receptacle, width 20 two-sided 52/66 and
+  width 22 two-sided 66/66; without it (J1, U5 out, tail pads P4/P5 at
+  (0.75, 44.0) and (21.25, 44.0)), width 20 two-sided 58/64 and width 22
+  two-sided 64/64; every body-outline cell fails on J4; island holes for
+  the width-22 closer at (13.45, 17.70) and (17.95, 17.70); neck-end
+  strips on every cell (side wall would be 0.65). Settled in
+  open-questions at `d67e534`: Q78 width 22, Q81 no-receptacle variant,
+  Q82 those hole sites, Q83 neck-end strips. One queued turn remains (the
+  pin-table note: nudge D1, C3, C10, C11, C12 to copper-to-edge 0.30,
+  publish the pin tables for the width-22 closers with and without the
+  receptacle); it pushes a third `DONE WP11d`, after which I send w2
+  the line "§5c final" plus the sha. Waits for nothing from me.
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
   WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
   package commit, tree clean, report
@@ -220,6 +230,17 @@ fast-forwarded to `110a79b`.
   package's. w2 idles; next WP12d proper on §5c after `DONE WP11d`
   (place from §5c with sides, R1–R3 on the island, J1/J4 per Q80 or the
   Q81 no-receptacle variant, route on OpenJDK 25, import, DRC 0).
+- **w2 → WP12d board v2d** (`tasks/WP12d-board-v2d.md`, main `d67e534`):
+  RUNNING since 02:10 on `lane/w2` on top of `edf612f` (told to `git
+  merge main` first): J1 and U5 out, tail pads P4/P5 in, TVS on VBUS if
+  absent, ERC 0; outline and regions from §5c width 22 chord 47.90; place
+  from the no-receptacle two-sided pin table with sides, R1–R3 on the
+  island, holes at the Q82 sites, zero-track DRC 0 apart from
+  unconnected; then it STOPS with `WAITING WP12d §5c final sha` unless I
+  have already sent the line "§5c final" plus the sha (after w3's third `DONE WP11d`);
+  then route on OpenJDK 25 to DRC 0, `release.py --routed` exit 0,
+  Gerbers/BOM/CPL. Waits for that one line from me. Report
+  `.worktrees/w2/.reports/WP12d-report.md` (expected) → `DONE WP12d`.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
   report `.worktrees/w4/.reports/WP13c-report.md` present, 207 tests OK
@@ -303,18 +324,15 @@ Outside those:
 
 ## Next
 
-- Idle until the next `DONE WP11d` from w3 (two more expected: the
-  Q81–Q83 addendum, then the pin-table note), or BLOCKED/GONE for it (a
-  DONE is checked: report present, tree clean; then read); after the
-  last one settle Q78's width (20 with the tail contacts if a
-  no-receptacle cell places all 66, else 22) and Q81's variant in
-  open-questions, then brief WP12d for w2 on the §5c pin table (the
-  OpenJDK router, sides, Q79/Q80 or the no-receptacle BOM) and WP14d
-  for w1 (width, bosses to §5c's hole sites, neck-end strip channels,
-  the USB wall or the two tail pads); when WP11d, WP12d and WP14d have
-  landed (WP11c, WP13c, WP14b, WP14c, WP17c, WP12d-prep already have),
-  open review r7 with a brief (expected) at `tasks/review-r7.md`
-  (expected), from `tasks/review-code-template.md`.
+- Idle until the third `DONE WP11d` (w3), `DONE WP14d` (w1), `DONE
+  WP12d` or `WAITING WP12d §5c final sha` (w2), or BLOCKED/GONE for any
+  (a DONE is checked: report present, tree clean; then read); on the
+  third `DONE WP11d` send w2 the line "§5c final" plus the sha (a prompt; if w2 is
+  WAITING it continues, if not the line is queued) and, if a number w1
+  used moved, note a WP14e; when WP11d, WP14d and WP12d have landed
+  (WP11c, WP13c, WP14b, WP14c, WP17c, WP12d-prep already have), open
+  review r7 with a brief (expected) at `tasks/review-r7.md` (expected),
+  from `tasks/review-code-template.md`.
 
 ## Traps
 
