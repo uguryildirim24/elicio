@@ -32,7 +32,13 @@ KICAD_FP = Path("/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints
 LOCAL_FP = BOARD_DIR / "lib" / "elicio.pretty"
 TABLE = BOARD_DIR / "packing_v2_flat.md"
 V2_TABLE = TABLE
-CONTACT_ISLAND_CLEARANCE = 0.20
+FLEX_TRACK = 0.10
+FLEX_CLEAR = 0.10
+FLEX_VIA_D = 0.70
+FLEX_VIA_DRILL = 0.30
+CONTACT_TRACK = 0.15
+CONTACT_CLEAR = 0.20
+CONTACT_NETS = ("SIG1", "SIG2", "REF")
 TAB_RULE_HALF = 3.20
 JAVA = Path("/opt/homebrew/opt/openjdk@25/bin/java")
 FREEROUTE_JAR = Path.home() / ".local" / "opt" / "freerouting" / "freerouting-2.4.1.jar"
@@ -64,10 +70,12 @@ CHARGE_S0, CHARGE_S1 = CHARGE_CY - CHARGE_WS / 2, CHARGE_CY + CHARGE_WS / 2
 RF_BOX = (2.25, 33.80, 14.20, 37.60)
 J4_KEEP = (14.25, 21.10, 18.25, 28.10)
 SKIP_REFS = {"J1", "U5"}
-# Smallest B.Cu nudges that stay inside the 0.1 mm pin. R24 still hits a J4 hole.
+# Q87: 0.1 mm pin does not bind for a hole the table got wrong. R24 +0.47 u
+# clears J4 NPTH (17.266, 22.06) hole clearance 0.20. R23/R26 stay inside 0.1 mm.
 HOLE_NUDGE = {
     "R23": (0.09, 0.0),
     "R26": (-0.05, 0.0),
+    "R24": (0.47, 0.0),
 }
 HOLE_REFS = {"H1", "H2"}
 RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
@@ -513,17 +521,165 @@ def assign_nets(board, nets: dict[tuple[str, str], str]) -> None:
 def configure_rules(board) -> None:
     ds = board.GetDesignSettings()
     ds.SetBoardThickness(pcbnew.FromMM(0.11))
-    ds.m_TrackMinWidth = pcbnew.FromMM(0.10)
-    ds.m_MinClearance = pcbnew.FromMM(0.10)
-    ds.m_ViasMinSize = pcbnew.FromMM(0.70)
-    ds.m_ViasMinDrill = pcbnew.FromMM(0.30)
+    ds.m_TrackMinWidth = pcbnew.FromMM(FLEX_TRACK)
+    ds.m_MinClearance = pcbnew.FromMM(FLEX_CLEAR)
+    ds.m_ViasMinSize = pcbnew.FromMM(FLEX_VIA_D)
+    ds.m_ViasMinDrill = pcbnew.FromMM(FLEX_VIA_DRILL)
     ds.m_ViasMinAnnularWidth = pcbnew.FromMM(0.18)
     ds.m_CopperEdgeClearance = pcbnew.FromMM(0.30)
     ds.m_HoleToHoleMin = pcbnew.FromMM(0.25)
-    ds.m_MinThroughDrill = pcbnew.FromMM(0.30)
+    ds.m_MinThroughDrill = pcbnew.FromMM(FLEX_VIA_DRILL)
     ds.m_HoleClearance = pcbnew.FromMM(0.20)
     if hasattr(ds, "m_SolderMaskMargin"):
         ds.m_SolderMaskMargin = pcbnew.FromMM(0.10)
+    apply_flex_netclasses(board)
+
+
+def apply_flex_netclasses(board) -> None:
+    """JLC 2-layer flex 1 oz: track/space 0.10, via 0.70/0.30. Contact 0.15/0.20."""
+    ns = board.GetDesignSettings().m_NetSettings
+    default = ns.GetDefaultNetclass()
+    default.SetTrackWidth(pcbnew.FromMM(FLEX_TRACK))
+    default.SetClearance(pcbnew.FromMM(FLEX_CLEAR))
+    default.SetViaDiameter(pcbnew.FromMM(FLEX_VIA_D))
+    default.SetViaDrill(pcbnew.FromMM(FLEX_VIA_DRILL))
+    contact = ns.GetNetClassByName("Contact")
+    if contact is None:
+        contact = default
+    else:
+        contact.SetTrackWidth(pcbnew.FromMM(CONTACT_TRACK))
+        contact.SetClearance(pcbnew.FromMM(CONTACT_CLEAR))
+        contact.SetViaDiameter(pcbnew.FromMM(FLEX_VIA_D))
+        contact.SetViaDrill(pcbnew.FromMM(FLEX_VIA_DRILL))
+    for name in CONTACT_NETS:
+        net = board.FindNet(name)
+        if net is not None and contact is not default:
+            net.SetNetClass(contact)
+
+
+def pad_center(board, ref: str, num: str) -> tuple[float, float]:
+    fp = next(f for f in board.GetFootprints() if f.GetReference() == ref)
+    for pad in fp.Pads():
+        if pad.GetNumber() == num:
+            p = pad.GetPosition()
+            return pcbnew.ToMM(p.x), pcbnew.ToMM(p.y)
+    raise KeyError(f"{ref}.{num}")
+
+
+def add_locked_track(board, x0: float, y0: float, x1: float, y1: float, net, layer, width: float) -> None:
+    if math.hypot(x1 - x0, y1 - y0) < 0.01:
+        return
+    t = pcbnew.PCB_TRACK(board)
+    t.SetStart(v2(x0, y0))
+    t.SetEnd(v2(x1, y1))
+    t.SetWidth(pcbnew.FromMM(width))
+    t.SetLayer(layer)
+    t.SetNet(net)
+    t.SetLocked(True)
+    board.Add(t)
+
+
+def add_locked_path(board, pts: list[tuple[float, float]], net, layer, width: float) -> None:
+    for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+        add_locked_track(board, x0, y0, x1, y1, net, layer, width)
+
+
+def pre_route_tabs(board) -> None:
+    """Locked traces on each strip centre and on the CHARGE tab (WP12f).
+
+    Stop on the strip 1.0 mm before L1/D2 (Q84). Island legs to R1–R3
+    and VBUS to D1 stay for Freerouting: a scripted manhattan shorts
+    J2, crosses SIG2/REF, and still intersects the tabs area.
+    """
+    sig1 = ensure_net(board, "SIG1")
+    sig2 = ensure_net(board, "SIG2")
+    ref = ensure_net(board, "REF")
+    vbus = ensure_net(board, "VBUS")
+    gnd = ensure_net(board, "GND")
+    fcu = pcbnew.F_Cu
+    p1 = pad_center(board, "P1", "1")
+    add_locked_path(board, [p1, (SIG1_ATTACH[0], 15.50)], sig1, fcu, CONTACT_TRACK)
+    p2 = pad_center(board, "P2", "1")
+    add_locked_path(board, [p2, (SIG2_ATTACH[0], 15.50)], sig2, fcu, CONTACT_TRACK)
+    p3 = pad_center(board, "P3", "1")
+    add_locked_path(board, [p3, (REF_ATTACH[0], 37.95)], ref, fcu, CONTACT_TRACK)
+    p4 = pad_center(board, "P4", "1")
+    add_locked_path(
+        board,
+        [p4, (p4[0], 1.20), (CHARGE_U0 + 0.5, 1.20)],
+        vbus,
+        fcu,
+        FLEX_TRACK,
+    )
+    p5 = pad_center(board, "P5", "1")
+    add_locked_path(
+        board,
+        [p5, (p5[0], 7.80), (CHARGE_U0 + 0.5, 7.80)],
+        gnd,
+        fcu,
+        FLEX_TRACK,
+    )
+    print("pre-route locked strip and charge-tab traces")
+
+
+def add_strip_other_net_keepouts(board) -> None:
+    """Vias and fills stay off the strips. Locked Contact traces already sit there."""
+    hw = TAB_STRIP / 2
+    boxes = (
+        (SIG1_SITE[0] - hw, min(SIG1_SITE[1], SIG1_ATTACH[1]) - TAB_CAP_R, SIG1_SITE[0] + hw, SIG1_ATTACH[1], "strip_sig1"),
+        (SIG2_SITE[0] - hw, min(SIG2_SITE[1], SIG2_ATTACH[1]) - TAB_CAP_R, SIG2_SITE[0] + hw, SIG2_ATTACH[1], "strip_sig2"),
+        (REF_SITE[0] - hw, REF_ATTACH[1], REF_SITE[0] + hw, REF_SITE[1] + TAB_CAP_R, "strip_ref"),
+    )
+    for x0, y0, x1, y1, name in boxes:
+        add_named_area(
+            board,
+            x0,
+            y0,
+            x1,
+            y1,
+            name,
+            layers=pcbnew.LSET.AllCuMask(),
+            allow_tracks=True,
+            allow_vias=False,
+            allow_fills=False,
+            allow_pads=True,
+            allow_footprints=True,
+        )
+
+
+def clamp_track_widths(board) -> int:
+    """SES import can write 0.075 mm necks. Floor is JLC 1 oz 0.10 mm."""
+    n = 0
+    floor = pcbnew.FromMM(FLEX_TRACK)
+    for t in board.GetTracks():
+        if t.GetClass() not in {"PCB_TRACK", "PCB_ARC"}:
+            continue
+        if t.GetWidth() < floor:
+            t.SetWidth(floor)
+            n += 1
+    print("clamped tracks to", FLEX_TRACK, "mm:", n)
+    return n
+
+
+def foreign_tracks_in_strips(board) -> list[str]:
+    """Other nets must not enter the SIG/REF strips or the CHARGE rectangle."""
+    hits: list[str] = []
+    regions = (
+        ("SIG1", SIG1_SITE[0] - 1.25, min(SIG1_SITE[1], SIG1_ATTACH[1]) - 3.2, SIG1_SITE[0] + 1.25, SIG1_ATTACH[1], {"SIG1"}),
+        ("SIG2", SIG2_SITE[0] - 1.25, min(SIG2_SITE[1], SIG2_ATTACH[1]) - 3.2, SIG2_SITE[0] + 1.25, SIG2_ATTACH[1], {"SIG2"}),
+        ("REF", REF_SITE[0] - 1.25, REF_ATTACH[1], REF_SITE[0] + 1.25, REF_SITE[1] + 3.2, {"REF"}),
+        ("CHARGE", CHARGE_U0, CHARGE_S0, CHARGE_U1, CHARGE_S1, {"VBUS", "GND"}),
+    )
+    for t in board.GetTracks():
+        if t.GetClass() not in {"PCB_TRACK", "PCB_ARC"}:
+            continue
+        net = t.GetNetname()
+        x = pcbnew.ToMM(t.GetX())
+        y = pcbnew.ToMM(t.GetY())
+        for name, x0, y0, x1, y1, allowed in regions:
+            if x0 <= x <= x1 and y0 <= y <= y1 and net not in allowed:
+                hits.append(f"{net} in {name} at ({x:.2f},{y:.2f})")
+    return hits
 
 
 def shrink_j3_pads(board) -> None:
@@ -571,7 +727,7 @@ def load_table() -> dict[str, PlacementRow]:
 
 def build() -> None:
     sch = BOARD_DIR / "elicio-v2.kicad_sch"
-    net_path = Path("/tmp/wp12e/elicio-v2.net")
+    net_path = Path("/tmp/wp12f/elicio-v2.net")
     net_path.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         ["kicad-cli", "sch", "export", "netlist", "--format", "kicadsexpr", "-o", str(net_path), str(sch)],
@@ -598,7 +754,7 @@ def build() -> None:
     configure_rules(board)
     add_segments(board, outline_points(), pcbnew.Edge_Cuts, close=True)
 
-    add_keepout(board, RF_BOX[0], RF_BOX[1], RF_BOX[2], RF_BOX[3], "RF_NO_COPPER", allow_pads=True)
+    add_keepout(board, RF_BOX[0], RF_BOX[1], RF_BOX[2], RF_BOX[3], "RF_NO_COPPER", allow_pads=True, allow_tracks=True)
     add_keepout(board, J4_KEEP[0], J4_KEEP[1], J4_KEEP[2], J4_KEEP[3], "J4_KEEP", allow_pads=True, allow_tracks=True)
     add_q84_contact_areas(board)
     for (cx, cy), name in (
@@ -663,6 +819,10 @@ def build() -> None:
     shrink_j3_pads(board)
     configure_rules(board)
     add_j4_both_side_keepout(board)
+    add_strip_other_net_keepouts(board)
+    if "--no-pre-route" not in sys.argv:
+        pre_route_tabs(board)
+    apply_flex_netclasses(board)
     # No copper zones on the un-routed land: a GND pour on the island shorts
     # Contact rings on the tabs. Zones return after a DRC-0 route.
 
@@ -712,11 +872,16 @@ def export_dsn(pcb_path: Path, dsn_path: Path) -> None:
 def import_ses(pcb_path: Path, ses_path: Path) -> None:
     board = pcbnew.LoadBoard(str(pcb_path))
     ok = pcbnew.ImportSpecctraSES(board, str(ses_path))
+    configure_rules(board)
+    clamp_track_widths(board)
+    apply_flex_netclasses(board)
     board.SetFileName(str(pcb_path))
     board.Save(str(pcb_path))
     ntracks = len([t for t in board.GetTracks() if t.GetClass() in {"PCB_TRACK", "PCB_ARC"}])
     nvias = len([t for t in board.GetTracks() if t.GetClass() == "PCB_VIA"])
     print("imported ses", ses_path, "ok", ok, "tracks", ntracks, "vias", nvias)
+    foreign = foreign_tracks_in_strips(board)
+    print("foreign tracks in strips", len(foreign), foreign[:8])
 
 
 if __name__ == "__main__":
@@ -725,12 +890,20 @@ if __name__ == "__main__":
         rest = [a for a in args if a != "--route-only"]
         route_only(Path(rest[0]) if rest else None)
     elif "--export-dsn" in args:
-        rest = [a for a in args if a != "--export-dsn"]
-        dsn = Path(rest[0]) if rest else Path("/tmp/wp12d/elicio-v2.dsn")
+        rest = [a for a in args if a not in {"--export-dsn", "--no-pre-route"}]
+        dsn = Path(rest[0]) if rest else Path("/tmp/wp12f/elicio-v2.dsn")
         export_dsn(BOARD_DIR / "elicio-v2.kicad_pcb", dsn)
     elif "--import-ses" in args:
-        rest = [a for a in args if a != "--import-ses"]
-        ses = Path(rest[0]) if rest else Path("/tmp/wp12d/elicio-v2.ses")
-        import_ses(BOARD_DIR / "elicio-v2.kicad_pcb", ses)
+        rest = [a for a in args if a not in {"--import-ses", "--no-pre-route"}]
+        ses = Path(rest[0]) if rest else Path("/tmp/wp12f/elicio-v2.ses")
+        pcb = Path(rest[1]) if len(rest) > 1 else BOARD_DIR / "elicio-v2.kicad_pcb"
+        import_ses(pcb, ses)
+    elif "--pre-route" in args:
+        out = BOARD_DIR / "elicio-v2.kicad_pcb"
+        board = pcbnew.LoadBoard(str(out))
+        pre_route_tabs(board)
+        apply_flex_netclasses(board)
+        board.SetFileName(str(out))
+        board.Save(str(out))
     else:
         build()
