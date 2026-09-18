@@ -135,8 +135,8 @@
 <text x="373.0" y="115.6" font-size="7" text-anchor="middle" fill="#fff">R22</text>
 <rect x="376.7" y="288.4" width="22.3" height="11.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
 <text x="387.8" y="294.0" font-size="7" text-anchor="middle" fill="#fff">R23</text>
-<rect x="384.2" y="265.2" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
-<text x="389.9" y="276.4" font-size="7" text-anchor="middle" fill="#fff">R24</text>
+<rect x="381.8" y="273.1" width="22.3" height="11.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="393.0" y="278.8" font-size="7" text-anchor="middle" fill="#fff">R24</text>
 <rect x="256.2" y="329.3" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
 <text x="261.8" y="340.4" font-size="7" text-anchor="middle" fill="#fff">R25</text>
 <rect x="332.9" y="276.5" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
