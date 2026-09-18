@@ -2069,7 +2069,7 @@ def main(argv: list[str] | None = None) -> int:
         help="write the v2 SVG of every run (864 files, about 109 MB; use --out-dir, never commit, Q56)",
     )
     parser.add_argument("--out-dir", type=Path, default=None, help="folder for --all/--kept-drawings/--all-drawings")
-    parser.add_argument("--packing-doc", action="store_true", help="regenerate docs/fab/packing-v2.md from the v2 matrix")
+    parser.add_argument("--packing-doc", action="store_true", help="regenerate docs/fab/packing-v2.md from the v2 matrix (§5c grid and §5d flat pattern)")
     parser.add_argument(
         "--dtp-arc",
         action="store_true",
@@ -2089,6 +2089,16 @@ def main(argv: list[str] | None = None) -> int:
         "--pack-cells",
         action="store_true",
         help="run WP11b 501015-pack and 501012-pack series under interface II (L7 §7)",
+    )
+    parser.add_argument(
+        "--layout-v2",
+        action="store_true",
+        help="run WP11c real-courtyard layout on the 501012 w20 y8 body (and the 17 mm +1.5 case)",
+    )
+    parser.add_argument(
+        "--layout-v2c",
+        action="store_true",
+        help="run WP11d/WP11e layout grid (both edge readings, two widths, two chords, two sides; Q85 flat pattern)",
     )
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
@@ -2149,6 +2159,28 @@ def main(argv: list[str] | None = None) -> int:
                 f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
                 f"outer={row.outer_at_lid:.1f} first={row.first_conflict or '—'}"
             )
+        return 0
+    if args.layout_v2c:
+        v2 = _v2()
+        mod = v2._layout_v2c_mod()
+        rows = mod.run_v2c_grid(v2)
+        for lay in rows:
+            rec = "usb" if lay.receptacle else "norec"
+            print(
+                f"{lay.edge} {rec} w{lay.width:g} c{lay.chord:.2f} {lay.sides} "
+                f"placed={lay.placed}/{lay.bom_n} fold={lay.fold} holes={len(lay.hole_sites)} "
+                f"extra_u={lay.extra_u:+.2f} extra_s={lay.extra_s:+.2f} "
+                f"second={len(lay.second_side)} blocking={lay.first_blocking.split(':')[0] if lay.first_blocking else '—'}"
+            )
+        drawn = mod.write_v2c_drawings(v2)
+        print(f"drawings={len(drawn)}")
+        return 0
+    if args.layout_v2:
+        v2 = _v2()
+        for lay in (v2.layout_v2_501012(), v2.layout_v2_501015_arc()):
+            print(f"{lay.name} parts={len(lay.parts)} blocking={lay.first_blocking or '—'}")
+            for name, ok, why in lay.rules:
+                print(f"  {'OK' if ok else 'NO'} {name}: {why}")
         return 0
     if args.all or args.kept_drawings or args.all_drawings:
         v2 = _v2()
