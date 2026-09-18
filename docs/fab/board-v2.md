@@ -443,6 +443,8 @@ Blockers that routing cannot clear (placement + `elicio-v2.kicad_pro`, both froz
 
 `release.py --routed` still fails closed on DRC errors, unconnected items, and no tracks (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
 
+WP12d-prep (2026-09-18): Freerouting **v2.4.1** headless **writes a SES** on this Mac. The official jar is Java 25 (class 69); Java 21 cannot load it. Command (L8 §3 flags, `-mp 5`): OpenJDK 25.0.4.1, `--gui.enabled=false -de <dsn> -do <ses> -mp 5 -mt 4`. Wall 39.52 s. SES 14531 bytes, 60 wires, 19 vias, not imported. Copper on the committed board is still zero. Redo: `hardware/board/route.md` §6–§7.
+
 ## 16. ERC
 
 `kicad-cli sch erc --format json`: **0 errors, 0 warnings** (review r5, still true after Q68 C15).

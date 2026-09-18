@@ -193,5 +193,47 @@ class Wp12cRoutedAssertionTests(unittest.TestCase):
             self.assertEqual(summary["pcb_pads_without_net"], 0)
 
 
+class SideColumnTests(unittest.TestCase):
+    def test_synthetic_two_row_table_marks_bottom_for_flip(self) -> None:
+        # Two-row packing table: one top, one bottom. Does not load the PCB.
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_placement_markdown, wants_back_copper
+
+        table = """
+| ref | u | s | rot | side |
+|---|---:|---:|---:|---|
+| U1 | 10.00 | 32.35 | 90 | top |
+| C6 | 3.70 | 20.20 | 0 | bottom |
+"""
+        rows = parse_placement_markdown(table)
+        self.assertEqual([r.ref for r in rows], ["U1", "C6"])
+        self.assertEqual(rows[0].side, "top")
+        self.assertEqual(rows[1].side, "bottom")
+        self.assertAlmostEqual(rows[0].u, 10.00)
+        self.assertAlmostEqual(rows[0].s, 32.35)
+        self.assertAlmostEqual(rows[0].rot, 90)
+        self.assertFalse(wants_back_copper(rows[0]))
+        self.assertTrue(wants_back_copper(rows[1]))
+
+    def test_section5b_face_column_maps_top_and_bottom_only(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_placement_markdown, wants_back_copper
+
+        table = """
+| ref | u | s | rot | courtyard wu × ws | face | notes |
+|---|---:|---:|---:|---|---|---|
+| U1 | 10.00 | 32.35 | 90 | 16.50 × 11.50 | top | packing centre |
+| C6 | 3.70 | 20.20 | 0 | 2.96 × 1.46 | bottom | B.Cu under ADS |
+| C7 | 13.58 | 3.88 | 0 | 2.96 × 1.46 | pocket | region, not a copper side |
+"""
+        rows = parse_placement_markdown(table)
+        self.assertEqual([r.side for r in rows], ["top", "bottom", "top"])
+        self.assertEqual([wants_back_copper(r) for r in rows], [False, True, False])
+
+
 if __name__ == "__main__":
     unittest.main()

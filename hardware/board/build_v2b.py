@@ -21,6 +21,7 @@ import pcbnew  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from maze_route import maze_route, add_via  # noqa: E402
+from placement_table import PlacementRow, parse_placement_markdown, wants_back_copper  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 BOARD_DIR = ROOT / "hardware" / "board"
@@ -396,6 +397,20 @@ def place_fp(board, ref: str, lib_id: str, x: float, y: float, rot: float, value
             fp.SetExcludedFromPosFiles(True)
     board.Add(fp)
     return fp
+
+
+def apply_placement_row(fp, row: PlacementRow) -> None:
+    """Pin a footprint from a packing row. Bottom-side uses KiCad Flip.
+
+    Set (u, s) and rotation first. Then Flip about that point with
+    ``aFlipLeftRight=False`` so a ``side=bottom`` row lands on B.Cu without a
+    left-right courtyard mirror. That is the same convention as the leftover
+    B.Cu pass in ``build()``.
+    """
+    fp.SetPosition(v2(row.u, row.s))
+    fp.SetOrientationDegrees(row.rot)
+    if wants_back_copper(row) != bool(fp.IsFlipped()):
+        fp.Flip(fp.GetPosition(), False)
 
 
 def back_sites_by_kind() -> dict[str, list[tuple[float, float, float]]]:

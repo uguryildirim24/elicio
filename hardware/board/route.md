@@ -117,3 +117,61 @@ USB_DP / USB_DN were not routed. The rule that would apply on a clean land:
 nRF52840 USB is Full Speed; keep the pair on the tongue, same layer, length
 delta ≤ 1.0 mm (USB 2.0 FS intra-pair skew is tens of ns; 1 mm is the
 layout budget this flex can hold).
+
+## 6. Freerouting 2.4.1 headless proof (WP12d-prep)
+
+Jar: `/tmp/wp12d/freerouting-2.4.1.jar` from
+https://github.com/freerouting/freerouting/releases/tag/v2.4.1 (Q46: free;
+Rolf may veto). Manifest Build-Date 2026-09-03, Main-Class
+`app.freerouting.Freerouting`, class file version 69 (Java 25).
+
+`kicad-cli pcb export` still has no `specctra` subcommand. DSN for this run
+is pcbnew `ExportSpecctraDSN` → `/tmp/wp12d/elicio-v2.dsn` (58492 bytes).
+
+Java 21.0.12.1 (`/opt/homebrew/opt/openjdk@21/bin/java`) **does not load**
+the 2.4.1 jar:
+
+```text
+Error: LinkageError occurred while loading main class app.freerouting.Freerouting
+	java.lang.UnsupportedClassVersionError: app/freerouting/Freerouting has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 65.0
+```
+
+Java 25.0.4.1 (Homebrew `openjdk@25`, keg-only,
+`/opt/homebrew/opt/openjdk@25/bin/java`) does. L8 §3 flags, pass count
+bounded to 5:
+
+```text
+/opt/homebrew/opt/openjdk@25/bin/java -jar /tmp/wp12d/freerouting-2.4.1.jar \
+  --gui.enabled=false \
+  -de /tmp/wp12d/elicio-v2.dsn \
+  -do /tmp/wp12d/elicio-v2.ses \
+  -mp 5 \
+  -mt 4 \
+  --router.job_timeout=00:08:00
+```
+
+| Item | Result |
+|---|---|
+| Version | Freerouting v2.4.1 (build-date: 2026-09-03) |
+| Wall time | 39.52 s (`time` real; job elapsed 37.21 s) |
+| SES | **yes** `/tmp/wp12d/elicio-v2.ses` |
+| SES size | 14531 bytes |
+| Track count | 60 `(wire` / 60 `(path`; 19 `(via` |
+| Unrouted after 5 passes | 80 nets, 148 violations (placement still collides) |
+| stderr / log | Polyline warnings; then `Successfully saved output file` |
+| Import | **not done** (evidence only) |
+
+The committed `elicio-v2.kicad_pcb` is unchanged.
+
+## 7. WP12d plan (Q79, Q80)
+
+1. Place from packing §5c; parser already reads `ref u s rot side` (`top`/`bottom`).
+2. R1, R2, R3 sit on the island at the tab roots (Q79 variant A).
+3. Each 2.5 mm tab carries one Contact trace and nothing else.
+4. Keep netclass Contact 1.0 mm; no DRC exception.
+5. J1 USB-C stays on the hook-end face (Q80, plan v2 §5.4).
+6. J4 TC2030 sits on the leftover; its keep-out is a board no-part zone.
+7. J3 pads are Ø1.5 mm.
+8. Export DSN with pcbnew (`kicad-cli` has no specctra).
+9. Run Freerouting 2.4.1 on OpenJDK 25 with `--gui.enabled=false -de -do -mp -mt`.
+10. Import the SES only after §5c is pinned; then DRC and hand-fix residue.
