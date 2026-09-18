@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-17T20:53:43-04:00",
+ "generated": "2026-09-17T21:14:05-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
   "id": "w1B",
   "label": "elicio",
-  "tabs": 7
+  "tabs": 8
  },
  "coordinator": {
   "pane_id": "w1B:p1",
@@ -47,7 +47,7 @@
    ],
    "name": "w2",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pB",
    "tab_id": "w1B:tB",
    "tab_label": "w2",
@@ -130,6 +130,28 @@
     "parent": "w1B:p1"
    },
    "title": "Lane W9 Instructions"
+  },
+  {
+   "start_args": [
+    "--model",
+    "claude-opus-5",
+    "--effort",
+    "high",
+    "--dangerously-skip-permissions"
+   ],
+   "name": "rev5",
+   "kind": "claude",
+   "status": "idle",
+   "pane_id": "w1B:pQ",
+   "tab_id": "w1B:tQ",
+   "tab_label": "review",
+   "pane_label": null,
+   "cwd": "/Users/rolfie/projects/elicio/.worktrees/review",
+   "session_id": "348fc19f-a4a9-415c-8002-0779e3166fdf",
+   "tokens": {
+    "parent": "w1B:p1"
+   },
+   "title": "Claude Code"
   }
  ],
  "unlinked_agents": [],
@@ -149,21 +171,28 @@
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "5d23c54 docs(tasks): review brief for round 5 (WP10, WP11, WP12, WP13, WP16, WP17)",
+   "9b97bbb HANDOFF: WP12 first turn landed; second turn (interface II) expected before the review",
    "1bad8c6 Q56: WP11's 109 MB of drawings; squash-merge and prune in review r5",
    "ffb5b10 Q54, Q55: Raytac sourcing route, the 501015 cell as a G1 gate; HANDOFF after WP17 landed",
    "343a336 HANDOFF: w5 restarted with its flags after the herdr restart dropped them; trap recorded",
-   "ae4b6b3 Q52, Q53: Arduino confirmed for the firmware, WP13's tool installs; HANDOFF after WP13 landed",
-   "c1bdb1d HANDOFF: WP11 complete on lane/w1 (864 runs; only interface II closes)",
-   "c1df29b HANDOFF: WP16 landed on lane/w9"
+   "ae4b6b3 Q52, Q53: Arduino confirmed for the firmware, WP13's tool installs; HANDOFF after WP13 landed"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "1bad8c6",
-    "subject": "Q56: WP11's 109 MB of drawings; squash-merge and prune in review r5",
+    "head": "5d23c54",
+    "subject": "docs(tasks): review brief for round 5 (WP10, WP11, WP12, WP13, WP16, WP17)",
     "dirty": 1
+   },
+   {
+    "path": "/Users/rolfie/projects/elicio/.worktrees/review",
+    "branch": "review/r5",
+    "head": "5d23c54",
+    "subject": "docs(tasks): review brief for round 5 (WP10, WP11, WP12, WP13, WP16, WP17)",
+    "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
@@ -175,8 +204,8 @@
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "9fa31d2",
-    "subject": "board(v2): schematic, release job, G2/G4 records",
+    "head": "a4080c2",
+    "subject": "board(v2): flex layout for interface II from WP11 winner",
     "dirty": 0
    },
    {
@@ -202,8 +231,9 @@
    }
   ],
   "branches": [
-   "lane/w2",
    "main",
+   "review/r5",
+   "lane/w2",
    "lane/w5",
    "lane/w4",
    "lane/w1",
@@ -217,6 +247,7 @@
  },
  "files": {
   "briefs": [
+   "tasks/review-r5.md",
    "tasks/WP17-research-v3.md",
    "tasks/WP16-record.md",
    "tasks/WP13-firmware.md",
@@ -227,8 +258,7 @@
    "tasks/WP9b-record.md",
    "tasks/WP8-prep-stageb.md",
    "tasks/L-r3-sources.md",
-   "tasks/review-r3.md",
-   "tasks/WP5b-drawings.md"
+   "tasks/review-r3.md"
   ],
   "verdicts": [
    "tasks/reviews/code-r4.md",
