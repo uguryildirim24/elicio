@@ -178,34 +178,37 @@ def load_stl(path: Path) -> tuple[np.ndarray, np.ndarray]:
 
 
 def titanium_heads(manifest: dict[str, Any]) -> list[tuple[np.ndarray, np.ndarray, np.ndarray]]:
-    """Bought ISO 7380 heads at the three contact sites, body frame.
+    """Bought ISO 7380 heads at the three EMG sites and the two wall pads.
 
     Review r7: the shell STL carries holes, not printed domes (plan §4:
     only the gauge prints domes). The views draw the titanium heads as
-    hardware so the medial face reads as it will be worn.
+    hardware so the medial face and the posterior wall read as worn.
     """
     cad = load_cad()
     params = manifest["parameters"]
     path = cad.make_path(float(params["BODY_ARC"]), float(params["CREASE_BOW"]))
-    s5d = cad.load_s5d_folded()
+    s5e = cad.load_s5e_shell()
     meshes = []
-    for u, s in (s5d.p1, s5d.p2, s5d.p3):
+    for u, s in (s5e.p1, s5e.p2, s5e.p3):
         cap = cad._cap_solid(path, float(u), float(s))
         pts, tris = cap.tessellate(0.02, 0.2)
         verts = np.array([[p.X, p.Y, p.Z] for p in pts], dtype=np.float64)
         faces = np.array(tris, dtype=np.int64)
         meshes.append((verts, faces, COLOR_TITANIUM))
-    # P4/P5 ring copper at the bottom of the open Ø5 holes (Q86), drawn so the
-    # holes read as pads rather than as see-through openings.
+    width = float(params["BODY_WIDTH"])
     charge = next(c for c in manifest["checks"] if c["name"] == "V2_CHARGE_pads")["numbers"]
-    for name, (u, s) in (("P4", s5d.p4), ("P5", s5d.p5)):
-        origin = cad._vec(path, float(u), float(s), 0.0)
+    for name, site in (("P4", s5e.p4), ("P5", s5e.p5)):
+        u, s = site
         pad_y = float(charge[f"{name}_y"])
-        disc = cad._y_cylinder(origin.X, pad_y, origin.Z, cad.CHARGE_PAD_D / 2.0, 0.05)
-        pts, tris = disc.tessellate(0.02, 0.2)
-        verts = np.array([[p.X, p.Y, p.Z] for p in pts], dtype=np.float64)
-        faces = np.array(tris, dtype=np.int64)
-        meshes.append((verts, faces, COLOR_ENIG))
+        head = cad._u_button_head(path, width, float(s), pad_y)
+        ring = cad._u_cylinder(
+            path, float(u), float(s), pad_y, cad.CHARGE_PAD_D / 2.0, 0.08, into_bay=True
+        )
+        for solid, color in ((head, COLOR_TITANIUM), (ring, COLOR_ENIG)):
+            pts, tris = solid.tessellate(0.02, 0.2)
+            verts = np.array([[p.X, p.Y, p.Z] for p in pts], dtype=np.float64)
+            faces = np.array(tris, dtype=np.int64)
+            meshes.append((verts, faces, color))
     return meshes
 
 
@@ -536,6 +539,7 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
     top = bottom = 0.0
     labels: list[tuple[float, str]] = []
     medial_place: tuple[View, float] | None = None
+    posterior_place: tuple[View, float] | None = None
     for name, color, label in bodies:
         verts, faces = load_stl(out_dir / f"{name}.stl")
         verts = to_body_frame(verts, theta)
@@ -552,6 +556,8 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
             dx = cursor - ext[0]
             if view is medial and medial_place is None:
                 medial_place = (view, dx)
+            if view is posterior:
+                posterior_place = (view, dx)
             place_image(ax, img, ext, ppm, dx)
             top = max(top, ext[3])
             bottom = min(bottom, ext[2])
@@ -593,32 +599,34 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
             arrowprops={"arrowstyle": "->", "lw": 0.7},
             zorder=8,
         )
-        s5c = cad.load_s5d_folded()
-        for label, site, dy in (
-            ("P4 charging pad, VBUS (Q86)", s5c.p4, -5.0),
-            ("P5 charging pad, GND (Q86)", s5c.p5, -9.0),
-        ):
-            xyz = np.array(cad.p_xyz(path, site[0], site[1], -0.4))
-            xyz = to_body_frame(xyz.reshape(1, 3), theta)[0]
-            q = view.project(xyz)
-            ax.annotate(
-                label,
-                xy=(q[0] + dx, q[1]),
-                xytext=(q[0] + dx - 22.0, q[1] + dy),
-                ha="right",
-                fontsize=8,
-                arrowprops={"arrowstyle": "->", "lw": 0.7},
-                zorder=8,
-            )
+        if posterior_place is not None:
+            view_p, dx_p = posterior_place
+            s5e = cad.load_s5e_shell()
+            width = float(manifest["parameters"]["BODY_WIDTH"])
+            for label, site, pad_y, dxy in (
+                ("P4 CHARGE_VBUS, posterior wall (Q90)", s5e.p4, s5e.p4_y, (8.0, 10.0)),
+                ("P5 CHARGE_GND, posterior wall (Q90)", s5e.p5, s5e.p5_y, (8.0, -8.0)),
+            ):
+                xyz = np.array(cad.p_xyz(path, width + 0.4, site[1], pad_y))
+                xyz = to_body_frame(xyz.reshape(1, 3), theta)[0]
+                q = view_p.project(xyz)
+                ax.annotate(
+                    label,
+                    xy=(q[0] + dx_p, q[1]),
+                    xytext=(q[0] + dx_p + dxy[0], q[1] + dxy[1]),
+                    fontsize=8,
+                    arrowprops={"arrowstyle": "->", "lw": 0.7},
+                    zorder=8,
+                )
     ax.set_xlim(-2.0, cursor - 8.0)
     ax.set_ylim(bottom - 9.0, top + (16.0 if manifest.get("stage") == "shell" else 13.0))
     ax.set_aspect("equal")
     ax.set_axis_off()
     scale_bar(ax, 0.0, bottom - 3.5)
     caption = (
-        "Medial (skin side): three titanium ISO 7380 heads (bought, drawn dark; the print has Ø2.7 holes),\n"
-        "two open Ø5 holes over the P4/P5 ring copper (drawn gold, 1.5 below the skin face), screw well, hook.\n"
-        "Same scale throughout. "
+        "Medial (skin side): three titanium ISO 7380 EMG heads (bought, drawn dark; the print has Ø2.7 holes),\n"
+        "concealed M2.5 well on the tail. No charging pads on the skin (Q90). Posterior edge-on: P4/P5 clamped\n"
+        "button-heads through the far side wall. Same scale throughout. "
         "Faint facet shading on curved edges is the STL mesh (0.02 mm chord), not geometry."
         if manifest.get("stage") == "shell"
         else
@@ -989,6 +997,23 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
     lid_top = pt("posterior", cad.p_xyz(path, float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]), thick))
     ax_views.annotate("", xy=(crown[0], crown[1]), xytext=(lid_top[0], crown[1]), arrowprops={"arrowstyle": "<->", "lw": 0.6, "color": red, "shrinkA": 0, "shrinkB": 0}, zorder=8)
     ax_views.text(lid_top[0] + 1.5, crown[1], f"M3 {span_row['M3']:.1f}\nvs SPAN {span_row['span']:.2f}\n= BODY_THICK\n{thick:.1f} + crown\n1.35", fontsize=6.2, color=red, va="center", ha="left", zorder=8)
+    if manifest.get("stage") == "shell":
+        s5e = cad.load_s5e_shell()
+        width = float(params["BODY_WIDTH"])
+        note(
+            "posterior",
+            cad.p_xyz(path, width + 0.2, s5e.p4[1], s5e.p4_y),
+            (6.0, 8.0),
+            f"P4 wall ({s5e.p4[0]:.2f}, {s5e.p4[1]:.2f}, y {s5e.p4_y:.2f})\nclamped +u, Ø2.7 (Q90)",
+            red,
+        )
+        note(
+            "posterior",
+            cad.p_xyz(path, width + 0.2, s5e.p5[1], s5e.p5_y),
+            (6.0, -10.0),
+            f"P5 wall ({s5e.p5[0]:.2f}, {s5e.p5[1]:.2f}, y {s5e.p5_y:.2f})\nclamped +u, Ø2.7 (Q90)",
+            red,
+        )
 
     ax_views.set_xlim(-6.0, cursor + 22.0)
     ax_views.set_ylim(bottom - 7.0, top + 5.0)
@@ -1057,8 +1082,9 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
             "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
             "Closure: Q89 hinge lip plus concealed medial-tail M2.5×8 into a lid boss. S4 pull/drop qualitative.",
             "Head in the well at y 1.55; lid boss drops 3.2 mm; ≥ 3 mm of thread in the lid (V2_CLOSURE).",
-            "Contacts: titanium ISO 7380 heads through Ø2.7 holes (bought, not printed). P4/P5: open Ø5 holes.",
-            "Q81: no USB receptacle at M1 52. P4/P5 charging pads, hook end (Q86). No text on the outside. Q59 slot stays.",
+            "Contacts: titanium ISO 7380 heads through Ø2.7 holes (bought, not printed).",
+            "Q90: P4/P5 clamped button-heads in the posterior wall (third view). Skin face: P1–P3 and the well only.",
+            "Q81: no USB receptacle at M1 52. Q89 lid boss / M2.5×8. No text on the outside. Q59 slot stays.",
             *("  " + row for row in fillet_summary(manifest)),
             "Rolf approves the two renders before any shell order. Nothing is ordered here.",
         ]
