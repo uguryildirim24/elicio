@@ -161,7 +161,7 @@ def pair_key(r: dict) -> tuple:
 
 def pair_sort_key(r: dict) -> tuple:
     # P4 CHARGE stub first (east, low s).
-    p4 = 0 if r["net"] == "VBUS" and max(r["ax"], r["bx"]) > 30 else 1
+    p4 = 0 if r["net"] == "VBUS" and max(r["ax"], r["bx"]) > 22 else 1
     return (p4, -(max(r["ax"], r["bx"])))
 
 

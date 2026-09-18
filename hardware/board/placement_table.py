@@ -35,6 +35,17 @@ class KeepoutZone:
     layers: str
 
 
+@dataclass(frozen=True)
+class ChannelBox:
+    """Q98 routing channel as a rectangle in packing (u, s)."""
+
+    name: str
+    u0: float
+    s0: float
+    u1: float
+    s1: float
+
+
 def normalize_side(raw: str) -> str:
     value = raw.strip().lower()
     if value not in SIDES:
@@ -170,9 +181,9 @@ def parse_pin_table_v2(text: str) -> list[PlacementRow]:
     """Flat-coordinate pin table. Skip the folded shell-site table."""
     rows: list[PlacementRow] = []
     for heading, header, data in iter_markdown_tables(text):
-        if _is_folded_table(heading, header) or _is_keepout_table(heading, header):
-            continue
         if not _is_pin_table(header):
+            continue
+        if _is_folded_table(heading, header):
             continue
         for cells in data:
             rec = {key: cells[i] if i < len(cells) else "" for i, key in enumerate(header)}
@@ -191,6 +202,8 @@ def parse_j4_keepouts(text: str) -> list[KeepoutZone]:
         if not _is_keepout_table(heading, header):
             continue
         keys = set(header)
+        if "ref" in keys and "hole" not in keys:
+            continue
         for cells in data:
             rec = {key: cells[i] if i < len(cells) else "" for i, key in enumerate(header)}
             name = (rec.get("name") or rec.get("hole") or rec.get("keepout") or rec.get("ref") or "j4_holes").strip()
@@ -269,10 +282,29 @@ def parse_pin_table_v3(text: str) -> list[PlacementRow]:
     return rows
 
 
-def parse_channel_keepouts(text: str) -> list[KeepoutZone]:
+def _channel_box_from_rec(rec: dict[str, str], keys: set[str]) -> tuple[float, float, float, float] | None:
+    for u0k, s0k, u1k, s1k in (
+        ("u0", "s0", "u1", "s1"),
+        ("u_min", "s_min", "u_max", "s_max"),
+    ):
+        if {u0k, s0k, u1k, s1k} <= keys:
+            u0, s0, u1, s1 = (float(rec[k]) for k in (u0k, s0k, u1k, s1k))
+            return (min(u0, u1), min(s0, s1), max(u0, u1), max(s0, s1))
+    u_raw = _coord(rec, "u", "x")
+    s_raw = _coord(rec, "s", "y")
+    if not u_raw or not s_raw:
+        return None
+    if rec.get("width") and rec.get("height"):
+        w, h = float(rec["width"]), float(rec["height"])
+        u, s = float(u_raw), float(s_raw)
+        return (u - w / 2.0, s - h / 2.0, u + w / 2.0, s + h / 2.0)
+    return None
+
+
+def parse_channel_keepouts(text: str) -> list[ChannelBox]:
     """Q98 channel rows in §5e: heading contains channel or Q98."""
     section = extract_section5e(text) or text
-    zones: list[KeepoutZone] = []
+    zones: list[ChannelBox] = []
     for heading, header, data in iter_markdown_tables(section):
         blob = heading + " " + " ".join(header)
         if "channel" not in blob and "q98" not in blob:
@@ -283,40 +315,14 @@ def parse_channel_keepouts(text: str) -> list[KeepoutZone]:
             name = (rec.get("name") or rec.get("channel") or rec.get("keepout") or rec.get("ref") or "").strip()
             if not name or name.lower() in {"name", "channel", "keepout", "ref"}:
                 continue
-            layers = (rec.get("layers") or rec.get("sides") or rec.get("side") or "both").strip().lower()
-            if {"u0", "s0", "u1", "s1"} <= keys:
-                u0, s0, u1, s1 = (float(rec[k]) for k in ("u0", "s0", "u1", "s1"))
-                zones.append(
-                    KeepoutZone(
-                        name=name,
-                        u=(u0 + u1) / 2,
-                        s=(s0 + s1) / 2,
-                        radius=max(abs(u1 - u0), abs(s1 - s0)) / 2,
-                        layers=layers,
-                    )
-                )
+            box = _channel_box_from_rec(rec, keys)
+            if box is None:
                 continue
-            u_raw = _coord(rec, "u", "x")
-            s_raw = _coord(rec, "s", "y")
-            if not u_raw or not s_raw:
-                continue
-            if rec.get("keep"):
-                radius = float(rec["keep"]) / 2.0
-            elif rec.get("width") and rec.get("height"):
-                radius = max(float(rec["width"]), float(rec["height"])) / 2.0
-            elif rec.get("radius"):
-                radius = float(rec["radius"])
-            else:
-                diameter = float(rec.get("diameter") or rec.get("drill") or 0.0)
-                clearance = float(rec.get("clearance") or 0.0)
-                radius = diameter / 2.0 + clearance
-            zones.append(
-                KeepoutZone(name=name, u=float(u_raw), s=float(s_raw), radius=radius, layers=layers)
-            )
+            zones.append(ChannelBox(name=name, u0=box[0], s0=box[1], u1=box[2], s1=box[3]))
     return zones
 
 
-def vendor_pin_table(packing_doc: str, dest: Path) -> bool:
+def vendor_pin_table(packing_doc: str, dest: Path, source_sha: str = "") -> bool:
     """Write packing_v2_flat.md from §5e when that section exists. Return True if written."""
     section = extract_section5e(packing_doc)
     if section is None:
@@ -324,7 +330,15 @@ def vendor_pin_table(packing_doc: str, dest: Path) -> bool:
     rows = parse_pin_table_v3(packing_doc)
     if len(rows) < 66:
         raise ValueError(f"pin table v3 has {len(rows)} rows, need 66")
-    dest.write_text(section.strip() + "\n", encoding="utf-8")
+    header = (
+        "# Pin table v3 — flat PCB coordinates (WP12i)\n\n"
+        "Copied from packing-v2.md §5e"
+        + (f" at `{source_sha}`" if source_sha else "")
+        + ".\n"
+        "Board pins this table. The folded-site table is the shell's and is not copied.\n"
+        "§5d in packing-v2.md is the frozen v2.1 table. §5e is live.\n\n"
+    )
+    dest.write_text(header + section.strip() + "\n", encoding="utf-8")
     return True
 
 
