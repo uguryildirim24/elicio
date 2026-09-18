@@ -155,6 +155,7 @@ class ReceiverV2Tests(unittest.TestCase):
             summary = json.loads(text)
             self.assertEqual(summary["sample_count"], 4)
             self.assertTrue(summary["ok"])
+            self.assertNotIn("S2 continues (Q75)", text)
 
     def test_cli_simulate_live(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -167,17 +168,36 @@ class ReceiverV2Tests(unittest.TestCase):
             self.assertGreater(summary["sample_count"], 0)
             self.assertGreaterEqual(summary["losses"], 1)
 
-    def test_receive_check_fails_on_dropout(self) -> None:
+    def test_receive_check_dropout_only_is_exit_3_and_s2_continues(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "drop"
             receive_packets(case_packets("dropout"), out, "bench", "drop")
             summary = check_session(out)
-            self.assertGreater(summary["dropout_stretches"], 0)
-            self.assertFalse(summary["ok"])
+            self.assertGreater(summary["dropout_count"], 0)
             self.assertEqual(summary["same_criterion_failed"], [])
-            code, _text = _run(["receive-check", str(out)])
-            # Line 3.4 is "revised" in montage §8: its own exit code, not 1.
+            self.assertEqual(summary["exit_code"], EXIT_DROPOUT_3_4)
+            code, text = _run(["receive-check", str(out)])
             self.assertEqual(code, EXIT_DROPOUT_3_4)
+            self.assertIn("S2 continues (Q75); dropout count goes in the session note", text)
+            self.assertIn(f"dropout count: {summary['dropout_count']}", text)
+            self.assertIn("longest run:", text)
+            self.assertIn("sample intervals", text)
+            self.assertIn("beginning at acq_index", text)
+            sidecar = json.loads((out / "sidecar.json").read_text(encoding="utf-8"))
+            self.assertEqual(sidecar["dropout_count"], summary["dropout_count"])
+
+    def test_receive_check_same_criterion_with_dropout_is_exit_1(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "both"
+            receive_packets(case_packets("dropout"), out, "bench", "both")
+            sidecar_path = out / "sidecar.json"
+            sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+            sidecar["same_criterion"]["3.7"] = "fail"
+            sidecar_path.write_text(json.dumps(sidecar) + "\n", encoding="utf-8")
+            code, text = _run(["receive-check", str(out)])
+            self.assertEqual(code, EXIT_SAME_CRITERION_FAILED)
+            self.assertIn("dropout count:", text)
+            self.assertNotIn("S2 continues (Q75)", text)
 
     def test_dropout_threshold_is_more_than_200_intervals(self) -> None:
         for count, stretches in ((DROPOUT_INTERVALS + 1, 0), (DROPOUT_INTERVALS + 2, 2)):  # both channels
