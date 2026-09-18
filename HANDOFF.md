@@ -125,6 +125,7 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
 | r7 | WP12c–WP12f board (no receptacle, two sides, flat pattern, Q84 rule areas, zero-track DRC 0, DSN classes, `routed: false`) at `fbd56e6` | MERGE-AFTER-DECISION | `facb0c1` | `tasks/reviews/code-r7.md` |
 | r7 | decisions Q89–Q97 | coordinator | `5cef436` | `docs/fab/open-questions.md` |
 | r8 | briefs WP11g, WP14f, WP13d | coordinator | `9354834` | `tasks/WP11g-flat-pattern-v3.md`, `tasks/WP14f-shell-v2f.md`, `tasks/WP13d-montage-scoring.md` |
+| r8 | Q98 routing channels as packing constraints; WP12i brief | coordinator | `27b7991` | `docs/fab/open-questions.md`, `tasks/WP12i-board-v3.md` |
 
 Round 7 gates at merge (`tasks/reviews/code-r7.md`, final `1be01ff`): 251
 tests OK none skipped with the cad and ble extras, order 1 byte-identical,
@@ -161,11 +162,14 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   as clamped button heads in that wall beside the cell (Q90, Q93); J2
   inside the cavity and J3 on a break-off tab (Q91, Q92); R9/R10 out
   (Q95); a cavity test for every courtyard and hang; flat pattern v3 and
-  pin table v3 in §5e with the shell's wall-site table. Waits for
-  nothing from me. Report (expected)
-  `.worktrees/w3/.reports/WP11g-report.md` (expected) → `DONE WP11g`;
-  then I send w1 the line "flat pattern v3" plus the sha, and w2 gets
-  WP12i after WP12h.
+  pin table v3 in §5e with the shell's wall-site table. Addendum sent
+  10:05 (queues as its next turn, so expect a second DONE): the Q98
+  routing channels (H1/H2 apart, a via slot beside J4, the east 0402
+  row clear, 0.6 mm around U2, U3, J4) as §5e rows with a test. Waits
+  for nothing from me. Report (expected)
+  `.worktrees/w3/.reports/WP11g-report.md` (expected) → `DONE WP11g`
+  (the second one carries the channels); then I send w1 the line "flat
+  pattern v3" plus the sha and w2 the line "pin table v3" plus the sha.
 - **w1 → WP14f shell v2f** (`tasks/WP14f-shell-v2f.md`, main `9354834`):
   RUNNING since 09:05 on `lane/w1-r6` at `facb0c1`: step 1 is Q89 (a lid
   boss into a tail pocket, ≥ 3 mm of thread, the screw length stated,
@@ -181,18 +185,26 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   tests OK with 28 named CAD skips): one sentence each in
   `docs/fab/receiver-v2.md` and `docs/fab/montage.md` §8 (Q96). w4 idle.
 - **w2 → WP12h hand-route** (`tasks/WP12h-route-by-hand.md`, main
-  `fea34f8`): RUNNING since 08:10 on `lane/w2` on top of `8348e62`
-  (WP12g: 421 tracks, 33 vias, DRC 0 errors, 0 shorts, 63 unconnected,
-  Q87 closed; it merged main itself, so it carries the round 7 merge):
-  keep that copper, hand-route the 63 rats by script (VBUS P4 → island,
-  J4 SWD, J3 Contact, U2 escapes with the smallest §12 via if needed,
-  stitches), Freerouting only for the remainder with hand routes locked,
-  DRC 0 and 0 unconnected, `release.py --routed`; or name each
-  unroutable pad with its geometry. After it comes WP12i (expected) at
-  `tasks/WP12i-board-v3.md` (expected): re-pin on pin table v3 (J2
-  inside, P4/P5 in the wall, R9/R10 DNP), the Q94 stiffeners, the Q97
-  envelope, route again with the WP12h scripts. Report (expected)
-  `.worktrees/w2/.reports/WP12h-report.md` (expected) → `DONE WP12h`.
+  `fea34f8`): LANDED UN-ROUTED, `DONE WP12h` at `c9c750d` on `lane/w2`
+  (tree clean, report `.worktrees/w2/.reports/WP12h-report.md` present,
+  board tests 18 OK, ERC 0, DRC 0 errors / 63 unconnected / 0 shorts,
+  WP12g copper untouched). `hardware/board/hand_route.py` closed
+  nothing; `route.md` §12 names every rat with its two coppers and
+  millimetres (H1/H2 gap 1.20 with two traces in it, J4 walled by the
+  SIG2 run, R16 on B.Cu by a J4 hole, J3 vs Contact clearance, U2 pads
+  at 0.20 gap, U3 DSBGA 0.40 pitch); JLC's extreme via 0.10/0.30 tried
+  on a copy (56 unconnected, 63 via-rule errors, not imported). → Q98.
+- **w2 → WP12i board v3** (`tasks/WP12i-board-v3.md`, main `27b7991`):
+  RUNNING since 10:05 on `lane/w2` on top of `c9c750d` (told to `git
+  merge main` first): U2/U3 footprints against datasheets (U3 swap to a
+  larger package if its ball cannot escape, a stated BOM change), R9/R10
+  DNP (Q95), stiffener zones (Q94), Q97 envelope tests, the §5e parser;
+  then it STOPS with `WAITING WP12i pin table v3` unless I have sent
+  that line plus w3's sha; then re-pin on v3 with the Q98 channels,
+  lock Contact routes, hand-route then Freerouting, DRC 0 and 0
+  unconnected, `release.py --routed`; or name the pads and stop.
+  Report (expected) `.worktrees/w2/.reports/WP12i-report.md` (expected)
+  → `DONE WP12i`.
 - **w5** (agy, `lane/w5` at `facb0c1`): idle since WP17c landed; no
   research package open. **w9** (cursor, `lane/w9` at `facb0c1`): idle
   since WP15 (round 6); a WP15b sheets refill waits until the pads, the
@@ -244,13 +256,14 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP11g` (w3), `DONE WP14f` or `WAITING WP14f flat
-  pattern v3` (w1), `DONE WP12h` (w2), or
-  BLOCKED/GONE for any (a DONE is checked: report present, tree clean;
-  then read); on `DONE WP11g` send w1 the line "flat pattern v3" plus
-  the sha and brief w2's WP12i when WP12h has landed; when WP11g, WP14f
-  and WP12i have landed (WP13d already has), open review r8 the way r7 was opened
-  (merge order w3, w1-r6, w4, w2; w5 and w9 only if they ran).
+- Idle until `DONE WP11g` (w3; the second DONE carries the Q98
+  channels), `DONE WP14f` or `WAITING WP14f flat pattern v3` (w1),
+  `DONE WP12i` or `WAITING WP12i pin table v3` (w2), or BLOCKED/GONE for
+  any (a DONE is checked: report present, tree clean; then read); on
+  w3's final DONE send w1 "flat pattern v3" plus the sha and w2 "pin
+  table v3" plus the sha; when WP11g, WP14f and WP12i have landed
+  (WP13d has), open review r8 the way r7 was opened (merge order w3,
+  w1-r6, w4, w2).
 
 ## Traps
 
