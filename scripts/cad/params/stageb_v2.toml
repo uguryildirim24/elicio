@@ -1,0 +1,26 @@
+# WP11 Stage B overlay for a packing-v2 winner. Not an order. Build into a
+# temp --out (the script refuses docs/fab/cad/v1/ and v2/). Construction is
+# the order-1 path with packing C (width 20, arc 48.4); WP11 measures the
+# winner layout on that solid. PACKING = "v2" selects the WP11 checks.
+# Smallest closer that the order-1 Stage B path will build: A 501015 series,
+# interface II, standoff 3.0, BODY_WIDTH 20, LID_Y 8.0. LID_Y 7.0 packing-closes
+# but CELL_envelope pre-CAD uses foam 0.5 and fails (clear_y -0.2).
+
+PACKING = "v2"
+V2_ARCH = "A"
+V2_CELL = "501015"
+V2_LAYOUT = "series"
+V2_WIDTH = 20.0
+V2_LID_Y = 8.0
+V2_ARC_PLUS = 0.0
+V2_IFACE = "II"
+V2_STANDOFF = 3.0
+MOCK_CONTACTS = false
+CLOSURE_PASSED = false
+TAB_HEIGHT = 2.0
+CABLE_EXIT_S = 35.0
+CONTACT_SOURCE = "interface II flex tabs under standoffs (WP11 turn 07)"
+CONTACT_1_U = 5.9
+CONTACT_1_S = 22.0
+CONTACT_REF_U = 8.5
+CONTACT_REF_S = 43.0
