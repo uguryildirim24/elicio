@@ -80,7 +80,7 @@ def paste_dsn_rules(path: Path) -> None:
     text = path.read_text()
     for line in text.splitlines():
         s = line.strip()
-        if s.startswith("(class ") or s.startswith("(width ") or s.startswith("(clearance 1") or s.startswith("(via "):
+        if s.startswith("(class ") or s.startswith("(width ") or s.startswith("(clearance ") or s.startswith("(via "):
             print("DSN", s)
 
 
@@ -94,9 +94,39 @@ def export_dsn(dsn: Path) -> None:
     sanitize_dsn(dsn)
 
 
+def write_fr_home(home: Path) -> None:
+    home.mkdir(parents=True, exist_ok=True)
+    cfg = home / "freerouting.json"
+    cfg.write_text(
+        """{
+  "gui": {"enabled": false, "exitWhenFinished": true},
+  "router": {
+    "automaticNeckdown": false,
+    "strictDrc": true,
+    "neckWidthUm": 100.0,
+    "copperToEdgeClearanceUm": 300.0,
+    "holeClearanceUm": 200.0,
+    "maxPasses": 12,
+    "viasAllowed": true,
+    "fanout": {
+      "enabled": true,
+      "maxPasses": 40,
+      "ripupAllowed": true
+    }
+  },
+  "logging": {
+    "console": {"enabled": true, "level": "INFO"},
+    "file": {"enabled": true, "level": "INFO"}
+  }
+}
+""",
+        encoding="utf-8",
+    )
+
+
 def freeroute(dsn: Path, ses: Path) -> None:
     home = dsn.parent / "fr-home"
-    home.mkdir(parents=True, exist_ok=True)
+    write_fr_home(home)
     cmd = [
         str(JAVA),
         "-Djava.awt.headless=true",

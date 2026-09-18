@@ -113,8 +113,8 @@ class BoardReleaseTests(unittest.TestCase):
             self.assertIs(summary["routed_requested"], True)
             self.assertTrue(summary["refused"])
             self.assertGreater(summary["refused"].get("drc_errors", 0), 0)
-            # WP12c: the shorting bus is gone; copper stays dropped.
-            self.assertEqual(summary["pcb_tracks"], 0)
+            # WP12f: locked tab stubs are present; nets are not finished.
+            self.assertGreater(summary["pcb_tracks"], 0)
 
 
 class PackingAgreementTests(unittest.TestCase):
@@ -158,7 +158,7 @@ class PackingAgreementTests(unittest.TestCase):
 
 class Wp12cRoutedAssertionTests(unittest.TestCase):
     def test_order_release_stays_unrouted(self) -> None:
-        """WP12c: DRC 0 was not reached. Copper stays dropped."""
+        """WP12f: tab stubs exist; DRC 0 with 0 unconnected was not reached."""
         if shutil.which("kicad-cli") is None:
             self.fail(kicad_missing_message())
         with tempfile.TemporaryDirectory() as tmp:
@@ -172,10 +172,36 @@ class Wp12cRoutedAssertionTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 1, proc.stdout[-2000:])
             self.assertIn("routed release refused", proc.stderr)
             summary = json.loads((out / "summary.json").read_text(encoding="utf-8"))
-            self.assertEqual(summary["pcb_tracks"], 0)
+            self.assertGreater(summary["pcb_tracks"], 0)
             self.assertGreater(summary["drc_errors"], 0)
             self.assertGreater(summary["unconnected_items"], 0)
             self.assertEqual(summary["pcb_pads_without_net"], 0)
+
+
+class FlexDsnClassTests(unittest.TestCase):
+    def test_check_dsn_classes_accepts_section_12_blocks(self) -> None:
+        sys.path.insert(0, str(ROOT / "scripts" / "board"))
+        import route_v2
+
+        text = """
+    (class kicad_default GND
+      (rule
+        (width 100)
+        (clearance 100)
+      )
+    )
+    (class Contact REF SIG1 SIG2
+      (rule
+        (width 150)
+        (clearance 200)
+      )
+    )
+    (via "Via[0-1]_700:300_um")
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "elicio-v2.dsn"
+            path.write_text(text, encoding="utf-8")
+            self.assertEqual(route_v2.check_dsn_classes(path), [])
 
 
 class SideColumnTests(unittest.TestCase):
