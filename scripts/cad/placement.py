@@ -2090,6 +2090,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run WP11b 501015-pack and 501012-pack series under interface II (L7 §7)",
     )
+    parser.add_argument(
+        "--layout-v2",
+        action="store_true",
+        help="run WP11c real-courtyard layout on the 501012 w20 y8 body (and the 17 mm +1.5 case)",
+    )
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
     if args.packing_doc:
@@ -2149,6 +2154,13 @@ def main(argv: list[str] | None = None) -> int:
                 f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
                 f"outer={row.outer_at_lid:.1f} first={row.first_conflict or '—'}"
             )
+        return 0
+    if args.layout_v2:
+        v2 = _v2()
+        for lay in (v2.layout_v2_501012(), v2.layout_v2_501015_arc()):
+            print(f"{lay.name} parts={len(lay.parts)} blocking={lay.first_blocking or '—'}")
+            for name, ok, why in lay.rules:
+                print(f"  {'OK' if ok else 'NO'} {name}: {why}")
         return 0
     if args.all or args.kept_drawings or args.all_drawings:
         v2 = _v2()

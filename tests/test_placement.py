@@ -764,5 +764,75 @@ class PlacementWP11bTests(unittest.TestCase):
         self.assertIn("## 1e. 501015 pack and 501012 pack under interface II (WP11b note 3, L7 §7)", doc.read_text(encoding="utf-8"))
 
 
+class PlacementWP11cTests(unittest.TestCase):
+    """WP11c: real F.CrtYd from 845bac7 and a courtyard-true layout search."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.fps = cls.v2.parse_kicad_pcb(cls.v2.load_wp12b_pcb())
+        cls.lay12 = cls.v2.layout_v2_501012()
+        cls.lay15 = cls.v2.layout_v2_501015_arc()
+
+    def test_kicad_courtyards_match_wp12b_file(self) -> None:
+        self.assertEqual(len(self.fps), 66)
+        table = self.v2.kicad_part_table(self.fps)
+        for fp in self.fps:
+            with self.subTest(ref=fp.ref):
+                want = self.v2.KICAD_COURTYARD[fp.footprint]
+                self.assertLessEqual(abs(fp.cr_w - want[0]), 0.05)
+                self.assertLessEqual(abs(fp.cr_h - want[1]), 0.05)
+                row = table[fp.ref]
+                self.assertLessEqual(abs(row["cr_w"] - fp.cr_w), 0.05)
+                self.assertLessEqual(abs(row["cr_h"] - fp.cr_h), 0.05)
+                self.assertLessEqual(abs(row["pad_w"] - fp.pad_w), 0.05)
+                self.assertLessEqual(abs(row["pad_h"] - fp.pad_h), 0.05)
+
+    def test_contact_netclass_is_1_0_mm(self) -> None:
+        self.assertAlmostEqual(self.v2.contact_netclass_clearance(), 1.0)
+        self.assertAlmostEqual(self.v2.CONTACT_NETCLASS_CLEARANCE, 1.0)
+        zones = self.v2.parse_kicad_keepouts(self.v2.load_wp12b_pcb())
+        self.assertIn("RF_NO_COPPER", zones)
+        self.assertIn("RF_FEED_NOTCH", zones)
+        self.assertIn("J4_USB_C_keepout", zones)
+
+    def test_layout_v2_501012_blocks_on_jlc_assembly_edge(self) -> None:
+        lay = self.lay12
+        self.assertTrue(lay.first_blocking.startswith("JLC FPC assembly edge 2.5 mm"))
+        self.assertEqual(lay.contacts_moved_mm, {"SIG1": 0.0, "SIG2": 0.0, "REF": 0.0})
+        self.assertTrue(any(p.ref == "U1" for p in lay.parts))
+        self.assertTrue(any(p.ref == "SW1" for p in lay.parts))
+        by_ref = {p.ref: p for p in lay.parts}
+        self.assertAlmostEqual(by_ref["P1"].u, 5.9)
+        self.assertAlmostEqual(by_ref["P1"].s, 22.0)
+        self.assertAlmostEqual(by_ref["P2"].u, 10.4)
+        self.assertAlmostEqual(by_ref["P2"].s, 33.1)
+        self.assertAlmostEqual(by_ref["P3"].u, 8.5)
+        self.assertAlmostEqual(by_ref["P3"].s, 43.0)
+
+    def test_layout_v2_501015_arc_blocks_on_m1(self) -> None:
+        lay = self.lay15
+        self.assertTrue(lay.first_blocking.startswith("M1 ≥ TOTAL_CHORD + 3"))
+        self.assertAlmostEqual(self.v2.body_geom(lay.spec)["total_chord"], 49.4157, places=3)
+
+    def test_packing_doc_has_section_5b(self) -> None:
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("## 5b. Layout for the board lane, v2 (WP11c)", text)
+        self.assertIn("Variant A:", text)
+        self.assertIn("Variant B:", text)
+        self.assertIn("845bac7", text)
+        rows = getattr(PlacementV2Tests, "rows", None)
+        generated = self.v2.packing_markdown(
+            rows if rows is not None else self.v2.run_matrix(include_arc=False)
+        )
+        self.assertEqual(text, generated)
+        committed = {p.name for p in self.v2.V2_DRAW_DIR.glob("placement_v2_*.svg")}
+        kept = {s.filename for s in self.v2.kept_drawing_specs(
+            rows if rows is not None else self.v2.run_matrix(include_arc=False)
+        )}
+        self.assertEqual(committed, kept)
+
+
 if __name__ == "__main__":
     unittest.main()
