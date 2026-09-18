@@ -599,6 +599,13 @@ in series under interface II. WP11b runs those longer cases either way,
 so the decision has numbers. The charger in D-4 stands. Rolf sees the
 length trade in the renders.
 
+### Round 5 and round 6 decisions
+
+Decisions 57 to 68 (round 5) are recorded in `docs/fab/open-questions.md`
+Q57 to Q68 and argued in `tasks/reviews/code-r5.md`. Round 6's open
+decisions start at 69 in `tasks/reviews/code-r6.md`; 69 is the cell
+purchase route, which is Rolf's. This file does not restate them.
+
 ## Open questions
 
 1. ~~Does the owner's voluntary auricular control include each ear
