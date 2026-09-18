@@ -8,6 +8,25 @@
 
 ---
 
+## Review r7 re-read (2026-09-18)
+
+The round 7 reviewer re-read the pages this note cites. Only what was
+found on the page stands; the rest is tagged `UNVERIFIED` below.
+
+| Claim | Page read | Result |
+|---|---|---|
+| Copper to outline ≥ 0.3 mm | jlcpcb.com/capabilities/flex-pcb-capabilities | Found: "Copper to board edge ≥ 0.3mm" |
+| 5 mm process edges | same page; jlcpcb.com/blog/design-guidelines-flex-pcb-panels | Found: "Handling edges of width 5 mm required on all four sides"; "Panel Borders (Process Edges): 5 mm on all sides". Supports the Q78 reading |
+| ~1.0 mm tabs at stiffeners | flex-panels blog | Found, worded "For stiffener-reinforced areas, use ~1.0 mm tabs" |
+| "pads at least 0.2 mm … carbonization" | flex capabilities page | Not on the page: `UNVERIFIED` |
+| "V-cut … 0.6 mm or greater" | flex-panels blog | Not on the page: `UNVERIFIED` |
+| Flex fixture fee $23.57 | flex capabilities page | Not on the page: `UNVERIFIED` |
+| Stiffener fee thresholds and quotes (§2.3) | jlcpcb.com/help/article/fpc-stiffener-design-guide | Page did not render: `UNVERIFIED` |
+| Double-sided flex assembly | flex capabilities page | Not stated on the page: `UNVERIFIED` |
+| 1up Racing price | pick1up.com/products/pro-duty-titanium-screws | HTTP 404: `UNVERIFIED` |
+| The Thomas RC price | thethomasrc.com | Link is the homepage, no product page: `UNVERIFIED` |
+| Freerouting 2.4.1 runtime | github.com/freerouting/freerouting/releases/tag/v2.4.1 | The release says "Fully upgraded to Java 25". The jar is class file 69 and needs OpenJDK 25, not 21. The release asset is `freerouting-2.4.1.jar`, not `-exec.jar` |
+
 ## 1. JLCPCB Assembly Edge Rule (Q78)
 
 Investigation of the JLCPCB SMT assembly edge clearance rule (whether $\ge 2.5\text{ mm}$ applies to the board outline or panel rail edge), process rails, depaneling, and flex tab strip assembly.
@@ -42,14 +61,14 @@ Investigation of the JLCPCB SMT assembly edge clearance rule (whether $\ge 2.5\t
     *   Source: JLCPCB Design Guidelines for Flex PCB Panels ([jlcpcb.com/blog/design-guidelines-flex-pcb-panels](https://jlcpcb.com/blog/design-guidelines-flex-pcb-panels), read 2026-09-18).
     *   Verbatim quote: "Unlike rigid boards, FPC panels rely on bridge (tab) connections rather than mouse bites or V-cuts for depanelization."
     *   Verbatim quote: "Connecting Tabs (Bridges): 0.7–1.0 mm wide. For areas reinforced with stiffeners, use ~1.0 mm tabs and increase the quantity to maintain stability during SMT reflow."
-    *   Verbatim quote: "V-cut is only supported for board thicknesses of 0.6 mm or greater." (FPC 0.11 mm cannot use V-cut).
+    *   `UNVERIFIED` (not on the page at review r7): "V-cut is only supported for board thicknesses of 0.6 mm or greater." (FPC 0.11 mm cannot use V-cut).
 *   **Laser Depaneling & Clearance Cost:**
     *   Source: JLCPCB Flexible PCB Capabilities ([jlcpcb.com/capabilities/flex-pcb-capabilities](https://jlcpcb.com/capabilities/flex-pcb-capabilities), read 2026-09-18).
     *   Depaneling method: JLCPCB cuts and depanels FPCs using **high-precision UV laser cutting** (positional tolerance $\pm 10\text{ }\mu\text{m}$, outline tolerance $\pm 0.10\text{ mm}$).
-    *   Verbatim quote: "Ensure pads are at least 0.2 mm away from the board outline to prevent carbonization (which can cause shorts) during laser cutting."
+    *   `UNVERIFIED` (not on the page at review r7): "Ensure pads are at least 0.2 mm away from the board outline to prevent carbonization (which can cause shorts) during laser cutting."
     *   Verbatim quote: "Copper to outline ≥ 0.30 mm."
 *   **Flex SMT Carrier / Fixture:**
-    *   FPC assembly requires mounting the flex panel onto a rigid carrier pallet (jig) with a 5 mm outer process border. JLCPCB charges a flex fixture fee of **$23.57 per fixture**.
+    *   FPC assembly requires mounting the flex panel onto a rigid carrier pallet (jig) with a 5 mm outer process border. JLCPCB charges a flex fixture fee of **$23.57 per fixture** (`UNVERIFIED`: not on the cited page at review r7).
 
 ### 1.4 Tab Strip Assembly Evaluation (2.5 mm Strip with Ø5.0 mm Pad)
 
@@ -91,7 +110,7 @@ Investigation of double-sided SMT assembly on 2-layer polyimide flex, physical p
 
 ### 2.3 Stiffener Rules for Double-Sided FPC Assembly
 
-*   **Source:** JLCPCB FPC Stiffener Design Guide ([jlcpcb.com/help/article/fpc-stiffener-design-guide](https://jlcpcb.com/help/article/fpc-stiffener-design-guide), read 2026-09-18).
+*   **Source:** JLCPCB FPC Stiffener Design Guide ([jlcpcb.com/help/article/fpc-stiffener-design-guide](https://jlcpcb.com/help/article/fpc-stiffener-design-guide), read 2026-09-18). `UNVERIFIED`: the page did not render at review r7, so every quote in §2.3 is unconfirmed.
 *   **Extra-Fee Thresholds:**
     *   *Prototype Orders:* "An extra fee is required if there are 4 or more stiffeners on the board."
     *   *Small Batch / Production:* "Extra costs apply if there are 4 or more stiffeners on the board, OR if the total stiffener area on both sides is ≥90% of the board area."
@@ -107,15 +126,16 @@ Investigation of double-sided SMT assembly on 2-layer polyimide flex, physical p
 
 ## 3. A Router That Writes a File on This Mac
 
-Investigation of Freerouting releases, macOS Apple Silicon compatibility with Java 21, exact CLI flags, the 2.1.0 headless bug, and alternative free autorouters with KiCad paths.
+Investigation of Freerouting releases, macOS Apple Silicon compatibility (the lane wrote Java 21; the release needs Java 25), exact CLI flags, the 2.1.0 headless bug, and alternative free autorouters with KiCad paths.
 
-### 3.1 Freerouting Newest Release (v2.4.x) and macOS / Java 21 Headless Status
+### 3.1 Freerouting Newest Release (v2.4.x) and macOS Headless Status (Java 25)
 
 *   **Latest Release:** **Freerouting v2.4.1** (GitHub: [github.com/freerouting/freerouting/releases/tag/v2.4.1](https://github.com/freerouting/freerouting/releases/tag/v2.4.1), read 2026-09-18).
-*   **Headless Mode on macOS with Java 21:**
+*   **Runtime (review r7):** the v2.4.1 release notes say "Fully upgraded to Java 25"; `freerouting-2.4.1.jar` is class file 69, so it needs OpenJDK 25. Java 21 cannot load it.
+*   **Headless Mode on macOS:**
     *   **YES, headless mode successfully writes a `.ses` file.**
     *   In v2.4.0+, the algorithmic routing engine was refactored and decoupled from the Swing/AWT desktop GUI classes.
-    *   When executed via CLI with `--gui.enabled=false`, Freerouting runs entirely in non-interactive batch mode, executes the specified routing passes, and writes the resulting Specctra Session (`.ses`) file directly to disk on macOS under OpenJDK 21+.
+    *   When executed via CLI with `--gui.enabled=false`, Freerouting runs entirely in non-interactive batch mode, executes the specified routing passes, and writes the resulting Specctra Session (`.ses`) file directly to disk on macOS under OpenJDK 25.
 
 ### 3.2 Exact CLI Flags for Headless Operation
 
@@ -133,7 +153,7 @@ Source: Freerouting Command Line Arguments Documentation ([github.com/freeroutin
 
 **Exact Headless Terminal Invocation Command:**
 ```bash
-java -jar freerouting-2.4.1-exec.jar \
+java -jar freerouting-2.4.1.jar \
   --gui.enabled=false \
   -de hardware/board/elicio-v2.dsn \
   -do hardware/board/elicio-v2.ses \
@@ -174,8 +194,8 @@ Investigation across McMaster-Carr, Bolt Depot, Amazon, and RC/bicycle specialty
 
 | Retailer / Supplier | Part / Listing Description | Thread Length | Head Style & Drive | Material Grade | Unit / Pack Price | Availability & Direct URL |
 | :--- | :--- | :---: | :---: | :---: | :---: | :--- |
-| **The Thomas RC (KDRC)** | KDRC M2.5 Grade 5 Titanium Screws | **4 mm**, **6 mm** | Button Head, Hex Socket | **Grade 5 (Ti-6Al-4V)** | **$1.60 USD / each** | In stock (sold individually in ones).<br>[thethomasrc.com](https://thethomasrc.com) |
-| **1up Racing** | Pro Duty Titanium M2.5 Screws | **5 mm**, **6 mm** | LowPro Button Head, Hex | **Grade 5 (Ti-6Al-4V)** | **$8.49 – $8.99 USD** (5-pack)<br>**$13.99 – $14.99 USD** (10-pack) | In stock.<br>[pick1up.com](https://pick1up.com/products/pro-duty-titanium-screws) |
+| **The Thomas RC (KDRC)** | KDRC M2.5 Grade 5 Titanium Screws | **4 mm**, **6 mm** | Button Head, Hex Socket | **Grade 5 (Ti-6Al-4V)** | **$1.60 USD / each** (`UNVERIFIED`: cited link is the homepage) | In stock (sold individually in ones).<br>[thethomasrc.com](https://thethomasrc.com) |
+| **1up Racing** | Pro Duty Titanium M2.5 Screws | **5 mm**, **6 mm** | LowPro Button Head, Hex | **Grade 5 (Ti-6Al-4V)** | **$8.49 – $8.99 USD** (5-pack)<br>**$13.99 – $14.99 USD** (10-pack) (`UNVERIFIED`: page 404 at review r7) | In stock.<br>[pick1up.com](https://pick1up.com/products/pro-duty-titanium-screws) |
 | **TiConnector** | M2.5 × 0.45 Titanium Screws | **5 mm** | Flat / Low Button, T-8 Torx | **Grade 5 (6AL4V)** | **$2.50 – $3.50 USD / each** | In stock.<br>[ticonnector.com](https://ticonnector.com) |
 | **Amazon** | ISO 7380 M2.5 Titanium Button Screws | **4 mm**, **5 mm**, **6 mm** | Button Head (ISO 7380), Hex | **Grade 5 (TC4)** or **Grade 2 (TA2)** | **$2.00 – $4.00 USD** (5-pack) | In stock.<br>[amazon.com](https://www.amazon.com) |
 | **McMaster-Carr** | Metric Titanium Screws | N/A | Socket / Pan | Grade 2 / Grade 5 | `UNVERIFIED` / **DOES NOT STOCK** | McMaster stocks M2.5 only in steel/stainless; titanium starts at M3.<br>[mcmaster.com](https://www.mcmaster.com) |
@@ -207,11 +227,11 @@ Investigation across McMaster-Carr, Bolt Depot, Amazon, and RC/bicycle specialty
 | Question / Topic | Result / Determination | Primary Source / Reference |
 | :--- | :--- | :--- |
 | **JLC $\ge 2.5\text{ mm}$ Edge Rule** | Measured to **panel rail edge**, NOT board outline. Once 5 mm rails exist, outline copper clearance is $\ge 0.30\text{ mm}$. | JLC Assembly Terms §Notes on DFM; Help Article "How to Add Edge Rails" |
-| **Automatic Edge Rails** | **YES.** JLC adds 5 mm process rails by default for standard PCBA < 70×70 mm, and on FPC panels via carrier fixtures ($23.57). | JLC PCBA Capabilities & Flex SMT Guides |
+| **Automatic Edge Rails** | **YES.** JLC adds 5 mm process rails by default for standard PCBA < 70×70 mm, and on FPC panels via carrier fixtures ($23.57, `UNVERIFIED`). | JLC PCBA Capabilities & Flex SMT Guides |
 | **FPC Depaneling** | **Laser cutting** with 0.7–1.0 mm bridge tabs. No V-cuts. Minimum pad-to-outline clearance is 0.20 mm. | JLC Flex Panel Design Guidelines |
 | **2.5 mm Tab Strip with Pad** | **NO PROBLEM.** Rule applies to SMT component bodies; tab strip carries only bare copper traces and ring pad. | JLC Assembly Terms |
 | **FPC Assembly Sides** | **Both sides supported.** Configured via "Both sides" selector with SMT carrier pallet. | JLCPCB SMT order portal |
 | **Flex Stiffener Extra Fee** | Extra fee triggers at **$\ge 4$ stiffeners** (prototype) or $\ge 90\%$ area / stacked stiffeners. | JLC FPC Stiffener Design Guide |
-| **Freerouting on macOS / Java 21**| **YES, writes `.ses` in headless mode.** Issue #522 infinite loop fixed in PR #541; v2.4.1 decouples GUI via `--gui.enabled=false`. | Freerouting GitHub repository & Issue #522 |
-| **M2.5 Titanium Tail Screw** | Available in ones from **The Thomas RC ($1.60/ea)** or 1up Racing ($8.49/5-pk). McMaster/Bolt Depot do not stock. | The Thomas RC / 1up Racing |
+| **Freerouting on macOS / Java 25**| **YES, writes `.ses` in headless mode.** Issue #522 infinite loop fixed in PR #541; v2.4.1 decouples GUI via `--gui.enabled=false`. | Freerouting GitHub repository & Issue #522 |
+| **M2.5 Titanium Tail Screw** | Available in ones from **The Thomas RC ($1.60/ea)** or 1up Racing ($8.49/5-pk). McMaster/Bolt Depot do not stock. Both prices `UNVERIFIED` at review r7. | The Thomas RC / 1up Racing |
 | **M2.5 MJF PA12 Pilot Hole** | **CAD $\varnothing 2.10\text{–}2.15\text{ mm}$** (yields $\varnothing 2.00\text{–}2.05\text{ mm}$ printed after shrinkage); boss $\varnothing \ge 5.0\text{ mm}$. | HP MJF Design Guide / JLC3DP |
