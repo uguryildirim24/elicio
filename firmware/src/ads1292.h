@@ -29,15 +29,19 @@ extern "C" {
    TI example "WREG CONFIG2 A0h" for internal reference. */
 #define ADS1292_CONFIG2_INTREF 0xa0u
 #define ADS1292_LOFF_DEFAULT 0x10u
-/* CH1SET/CH2SET: GAIN=110 (12), MUX=0000 normal electrode. */
+/* CH1SET: GAIN=110 (12), MUX=0000 normal electrode. */
 #define ADS1292_CHnSET_GAIN12 0x60u
+/* CH2SET: channel 2 is unused (IN2P/IN2N tied to AVDD on the board), so
+   PD2=1 with MUX2=0001 input short, as Table 22 note (1) requires. */
+#define ADS1292_CH2SET_OFF 0x81u
 /* RLD_SENS: PDB_RLD=1, RLD1P+RLD1N connected. */
 #define ADS1292_RLD_SENS_ON 0x23u
 #define ADS1292_LOFF_SENS_OFF 0x00u
 /* RESP1 must be 02h on non-R ADS1292 (datasheet §8.6.1.10). */
 #define ADS1292_RESP1_NONR 0x02u
-/* RESP2 reset: RLDREF_INT=1. */
-#define ADS1292_RESP2_RLDREF_INT 0x02u
+/* RESP2 (§8.6.1.11): bit 2 RESP_FREQ must be written 1 on the ADS1292,
+   bit 1 RLDREF_INT=1 (internal (AVDD-AVSS)/2), bit 0 must be 1. */
+#define ADS1292_RESP2_RLDREF_INT 0x07u
 
 #define ADS1292_CMD_WAKEUP 0x02u
 #define ADS1292_CMD_STANDBY 0x04u

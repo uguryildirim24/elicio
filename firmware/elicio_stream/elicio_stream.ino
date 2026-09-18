@@ -27,6 +27,9 @@ static uint8_t sent_stop;
 static uint8_t pending_restart;
 static UvMachine uv;
 static uint32_t last_battery_ms;
+static uint16_t next_acq;
+static uint8_t have_next_acq;
+static uint8_t afe_safe;
 
 static void ads_select(int asserted) {
     digitalWrite(ELICIO_PIN_ADS_CS, asserted ? LOW : HIGH);
@@ -151,7 +154,43 @@ static void send_stream(const FrameV2StreamMeta *meta, const uint8_t *samples) {
     frame_seq = (uint16_t)(frame_seq + 1u);
 }
 
+/*
+ * With VBUS present the board switches the AFE rail off (Q2 turns the P-FET
+ * off, board-v2.md §4). An output left high into the unpowered ADS1292
+ * would feed its rail through the input clamps, so the control and SPI
+ * pins go high-impedance until VBUS is gone (review r5).
+ */
+static void afe_pins_safe(void) {
+    if (afe_safe) {
+        return;
+    }
+    SPI.endTransaction();
+    SPI.end();
+    pinMode(PIN_SPI_SCK, INPUT);
+    pinMode(PIN_SPI_MOSI, INPUT);
+    pinMode(ELICIO_PIN_ADS_CS, INPUT);
+    pinMode(ELICIO_PIN_ADS_PWDN, INPUT);
+    pinMode(ELICIO_PIN_ADS_START, INPUT);
+    afe_safe = 1;
+}
+
+static void afe_pins_active(void) {
+    pinMode(ELICIO_PIN_ADS_CS, OUTPUT);
+    pinMode(ELICIO_PIN_ADS_PWDN, OUTPUT);
+    pinMode(ELICIO_PIN_ADS_START, OUTPUT);
+    digitalWrite(ELICIO_PIN_ADS_CS, HIGH);
+    digitalWrite(ELICIO_PIN_ADS_PWDN, HIGH);
+    digitalWrite(ELICIO_PIN_ADS_START, LOW);
+    SPI.begin();
+    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+    afe_safe = 0;
+}
+
 static void start_acquisition(void) {
+    if (afe_safe) {
+        afe_pins_active();
+    }
+    have_next_acq = 0;
     ring_w = 0;
     ring_r = 0;
     overrun_sticky = 0;
@@ -184,18 +223,10 @@ static void connect_cb(uint16_t handle) {
 }
 
 void setup() {
-    pinMode(ELICIO_PIN_ADS_CS, OUTPUT);
     pinMode(ELICIO_PIN_ADS_DRDY, INPUT);
-    pinMode(ELICIO_PIN_ADS_PWDN, OUTPUT);
-    pinMode(ELICIO_PIN_ADS_START, OUTPUT);
     pinMode(ELICIO_PIN_LED_STREAM, OUTPUT);
-    digitalWrite(ELICIO_PIN_ADS_CS, HIGH);
-    digitalWrite(ELICIO_PIN_ADS_PWDN, HIGH);
-    digitalWrite(ELICIO_PIN_ADS_START, LOW);
     digitalWrite(ELICIO_PIN_LED_STREAM, LOW);
-
-    SPI.begin();
-    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+    afe_pins_active();
 
     uv_init(&uv);
     analogReadResolution(12);
@@ -213,7 +244,9 @@ void setup() {
     Bluefruit.Advertising.start(0);
 
     last_battery_ms = millis();
-    if (!vbus_present()) {
+    if (vbus_present()) {
+        afe_pins_safe();
+    } else {
         start_acquisition();
     }
 }
@@ -225,8 +258,12 @@ void loop() {
 
     if (uv.flags & FRAME_V2_FLAG_VBUS) {
         if (streaming) {
-            stop_acquisition();
+            /* The AFE rail is already off: no SPI to it, pins high-Z. */
+            detachInterrupt(digitalPinToInterrupt(ELICIO_PIN_ADS_DRDY));
+            streaming = 0;
+            digitalWrite(ELICIO_PIN_LED_STREAM, LOW);
         }
+        afe_pins_safe();
         if (Bluefruit.connected() && !sent_stop) {
             FrameV2StreamMeta meta;
             memset(&meta, 0, sizeof(meta));
@@ -280,11 +317,21 @@ void loop() {
             noInterrupts();
             uint8_t over = overrun_sticky;
             overrun_sticky = 0;
-            for (uint16_t i = 0; i < n; i++) {
-                memcpy(payload + i * ADS1292_SAMPLE_BYTES, ring_samples[ring_r], ADS1292_SAMPLE_BYTES);
+            /* A frame's samples are consecutive DRDYs from acq_index
+               (frame-v2.md): stop at the first gap the ring overrun left. */
+            uint16_t k = 0;
+            while (k < n && ring_r != ring_w && ring_acq[ring_r] == (uint16_t)(first + k)) {
+                memcpy(payload + k * ADS1292_SAMPLE_BYTES, ring_samples[ring_r], ADS1292_SAMPLE_BYTES);
                 ring_r = (uint16_t)((ring_r + 1u) % RING_LEN);
+                k++;
             }
             interrupts();
+            n = k;
+            if (have_next_acq && first != next_acq) {
+                over = 1;
+            }
+            next_acq = (uint16_t)(first + n);
+            have_next_acq = 1;
             FrameV2StreamMeta meta;
             memset(&meta, 0, sizeof(meta));
             meta.session_id = session_id;

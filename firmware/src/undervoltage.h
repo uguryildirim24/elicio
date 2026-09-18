@@ -8,19 +8,17 @@ extern "C" {
 #endif
 
 /*
- * V_STOP and V_START are from WP12.
- * Plan v2 §5.5: inhibit acquisition when the monitored voltage falls to
- * V_STOP, chosen so AVDD stays valid (ADS1292 AVDD min 2.7 V, TI SBAS502C
- * 2026-09-17 read of the public datasheet). Resume only above V_START > V_STOP
- * after rail and reference settling. WP12 has not published the computed
- * millivolt values (LDO dropout, sense error, radio transients). These
- * placeholders let the state machine compile; they are not measured.
+ * Pack-voltage thresholds from WP12, docs/fab/board-v2.md §6 (V_STOP_V 3.00,
+ * V_START_V 3.20). Plan v2 §5.5: inhibit acquisition at V_STOP so AVDD
+ * stays above the ADS1292's 2.7 V minimum through the TLV71330's dropout
+ * (150 mV bound), sense error and radio transients; resume only above
+ * V_START after rail and reference settling. Computed, not measured.
  */
 #ifndef V_STOP_MV
-#define V_STOP_MV 2700u /* from WP12 */
+#define V_STOP_MV 3000u
 #endif
 #ifndef V_START_MV
-#define V_START_MV 2800u /* from WP12 */
+#define V_START_MV 3200u
 #endif
 
 typedef enum {

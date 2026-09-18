@@ -282,11 +282,16 @@ class FrameV2ContractTests(unittest.TestCase):
         self.assertEqual(native_logical, logical)
 
     def test_undervoltage_machine_in_c(self) -> None:
-        stop = native(bytes([5]) + _write_u16(2700) + bytes([0]))
+        # board-v2.md §6: V_STOP 3.00 V, V_START 3.20 V.
+        run = native(bytes([5]) + _write_u16(3001) + bytes([0]))
+        self.assertEqual(run[0], 0)
+        stop = native(bytes([5]) + _write_u16(3000) + bytes([0]))
         self.assertEqual(stop[0], 1)
         self.assertTrue(stop[1] & Flag.STOPPED)
         self.assertEqual(stop[2], StopReason.UNDERVOLTAGE)
-        resume = native(bytes([5]) + _write_u16(2700) + bytes([0]) + _write_u16(2800) + bytes([0]))
+        held = native(bytes([5]) + _write_u16(3000) + bytes([0]) + _write_u16(3199) + bytes([0]))
+        self.assertEqual(held[3], 1)
+        resume = native(bytes([5]) + _write_u16(3000) + bytes([0]) + _write_u16(3200) + bytes([0]))
         self.assertEqual(resume[3], 0)
         self.assertTrue(resume[4] & Flag.RESTART)
         vbus = native(bytes([5]) + _write_u16(4000) + bytes([1]))
@@ -299,11 +304,12 @@ class FrameV2ContractTests(unittest.TestCase):
         regs = {dump[1 + 2 * i]: dump[2 + 2 * i] for i in range(count)}
         self.assertEqual(regs[0x01], 0x04)
         self.assertEqual(regs[0x02], 0xA0)
-        self.assertEqual(regs[0x04], 0x60)
-        self.assertEqual(regs[0x05], 0x60)
+        self.assertEqual(regs[0x04], 0x60)  # gain 12, normal input
+        self.assertEqual(regs[0x05], 0x81)  # unused channel 2 powered down, input short
         self.assertEqual(regs[0x06], 0x23)
         self.assertEqual(regs[0x07], 0x00)
         self.assertEqual(regs[0x09], 0x02)
+        self.assertEqual(regs[0x0A], 0x07)  # RESP_FREQ and bit 0 must be 1 (SBAS502C 8.6.1.11)
 
     def test_samples_for_nus_prefers_one_fragment(self) -> None:
         self.assertEqual(samples_for_nus(20), 1)
