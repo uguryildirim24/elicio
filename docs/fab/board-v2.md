@@ -275,13 +275,17 @@ A board that uses B is a different placement, not a stuffing option on this land
 
 The whole board is a 2-layer polyimide flex with FR4 stiffeners under the parts. Three flex tabs each end in a ring pad Ø5.0 mm with a Ø2.7 mm hole. The ring is ENIG on both copper layers. The brass standoff bottom face is the contact. An ISO 7380 M2.5×4 screw from outside passes the 1.5 floor and the ring into the standoff's female thread and clamps the ring between floor and standoff. No nut (plan v2 §5.3). Stack: floor 1.5 + ring 0.31 (PI 0.11 + FR4 0.2) + standoff 3.0 = y 4.81 in packing and the shell. Review r6: this Gerber draws no ring FR4 (§12), so as drawn the ring is 0.11, the standoff top lands at 4.61 and the island hangs 0.2 above it; either three FR4 0.2 ring pieces (count 5, over JLC's extra-fee threshold of 4) or a shell 0.2 lower closes it (decision 72 in `tasks/reviews/code-r6.md`). With the 0.31 ring, where the board island rests on the standoff tops; the screw projects 2.5 past the floor and ends 0.81 below the standoff top (`packing-v2.md` §5, Stage B `V2_CONTACT_STACK`). The lane's DIN 439 nut stack (2.50) was v1's.
 
-| Pad | Net | Folded site (packing) | Packing attach | Unfolded ring (this Gerber) |
-|---|---|---|---|---|
-| P1 | SIG1 | (5.90, 22.00) | (5.90, 29.00) | (−4.75, 22.00) |
-| P2 | SIG2 | (10.40, 33.10) | (10.40, 26.10) | (24.75, 33.10) |
-| P3 | REF | (8.50, 43.00) | (8.50, 36.80) | (8.50, 43.00) |
+Review r7: the table below is the flat pattern this Gerber carries (packing §5d pin table v2.1, Q83 neck-end fold, Q85, Q86). The round 6 table (left/right edge strips of 7.0, unfolded rings at (−4.75, 22.00) and (24.75, 33.10)) described the WP12b outline and is gone.
 
-SIG1 and SIG2 packing XY sit under the parts island. A flat Gerber cannot place a ring and the module in the same XY. Those two tabs leave the left and right board edges with packing strip length 7.0 mm. REF already leaves the tail; its Gerber matches packing (`along_floor`). WP11b found no in-cavity REF route; WP14 cuts `REF_end_wall_slot`. Assembly folds SIG1 and SIG2 onto the packing sites before the cell goes in. WP14 owns the fold.
+| Pad | Net | Folded site (shell, y 1.50) | Flat ring centre (this Gerber) | Route to the island |
+|---|---|---|---|---|
+| P1 | SIG1 | (5.90, 22.00) | (5.90, 5.29) | neck-end strip 10.71 flat (6.00 + R 1.5 arc 4.71), root at island s 16.00 |
+| P2 | SIG2 | (10.40, 33.10) | (10.40, −5.81) | neck-end strip 21.81 flat (17.10 + 4.71), root at island s 16.00 |
+| P3 | REF | (8.50, 43.00) | (8.50, 43.00) | straight off the tail end through `REF_end_wall_slot` |
+| P4 | CHARGE_VBUS (net VBUS) | (14.70, 4.30) | (37.47, 2.80) | CHARGE tab through the rib slot, Z-fold (Q86) |
+| P5 | CHARGE_GND (net GND) | (17.70, 11.72) | (30.05, 5.80) | same tab |
+
+SIG1 and SIG2 leave the island's neck end (s 16.00) toward −s and fold 180° at R 1.5 under the island to their seats (Q83). REF leaves the tail flat. The CHARGE rectangle carries P4 and P5 flat beside the J2 hang; it folds through the rib slot and drops 3.31 to the hook-end floor (packing §5d). Review r7 finding: the rectangle's root meets the board only through the J2 hang at u 25.8, s 7.4–8.6, outside the body, while §5d's prose puts it at the leftover s 16.00 (decision in `tasks/reviews/code-r7.md`).
 
 Tab strip width 2.5 mm. Outline cap radius 3.0 mm around the Ø5.0 pad (JLC copper-to-edge ≥ 0.3 mm). Strain relief: 4 mm of flex at each tab root has no via, no part, and no stiffener. Neck s 12.0–18.6 is the drop from the board island (underside y 4.81) to the pocket; same rule.
 
@@ -289,9 +293,7 @@ Bend radius: packing R ≥ 1.0 mm. JLC 2-layer static bend ≥ 10 × finished th
 
 Each ring has a 7.0 × 7.0 mm other-net keep-out (1.0 mm beyond the Ø5.0 land). Pads themselves are allowed.
 
-There are no separate M2.5 boss holes. The ring holes are the fasteners. Review r6: the shell still carries two printed bosses with pilots at (14.85, 21.50) and (14.85, 28.10), under J3 and under U1; nothing on this board can screw into them, and P3 (s 43.00) is past the island's end (s 37.60), so the island rests on two standoffs. Retention of the island is decision 73.
-
-Fold (review r6): SIG1 and SIG2 leave the island edges on 7.0 mm strips and fold 180° at R 1.5 to reach the packing sites. A 180° fold at R 1.5 stands about 1.6 mm outside the edge, and the island edge is 0.75 mm from the cavity wall; the flat length from the edge to the ring centre is about 8.5, not 7.0. P1's packing attach (5.90, 29.00) is inside the antenna keep-out. Decision 74.
+Two Ø2.7 island holes H1 (13.45, 17.70) and H2 (17.95, 17.70) sit at the Q82 sites over the shell's printed bosses (pilot Ø2.10). The ring holes are the contact fasteners. The round 6 notes on the old boss sites and the edge-strip fold (decisions 73, 74) are closed by Q82 and Q83.
 
 G7 joint inputs (this board):
 
@@ -334,11 +336,11 @@ Source: https://jlcpcb.com/capabilities/flex-pcb-capabilities read 2026-09-17. S
 | Bend | 2-layer ≥ 10 × thickness (static) | 1.1 mm at 0.11; this board uses 1.5 mm |
 | Passives | 0402 minimum | Plan |
 | Stiffener at parts | FR4 0.4 mm on Eco1.User (packing: 0.11 + 0.4 = 0.51, review r5) | JLC FR4 list is 0.1 / 0.2 / 0.4, no 0.3 |
-| Stiffener at tabs | none drawn (Q58 clamp; Q60 merge). Packing, the shell and §11's stack take FR4 0.2 at the rings; decision 72 | JLC FR4 0.2 mm exists; Eco2.User unused |
+| Stiffener at tabs | none drawn (Q58 clamp; Q60 merge). Packing, the shell and §11's stack take FR4 0.2 at the rings; decision 72. Review r7: still not drawn on this Gerber | JLC FR4 0.2 mm exists; Eco2.User unused |
 
 PI stiffener catalogue: 0.1 / 0.15 / 0.20 / 0.225 / 0.25 mm. Stainless 0.1 / 0.2 / 0.3 mm. FR4 0.1 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.2 / 1.6 mm. WP11's 0.3 mm FR4 is **not** on that list; review r5 took 0.4 and moved the packing numbers with it. No request was sent.
 
-Stiffener drawings: Eco1.User = two FR4 0.4 pieces (parts island + leftover/pocket). Eco2.User is unused (no tab FR4: Q58 clamp). Cmts.User = neck-end bend window (Q83). Count = **2** (under JLC's extra-fee threshold of 4). JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
+Stiffener drawings: Eco1.User = two FR4 0.4 pieces (parts island + leftover/pocket). Eco2.User is unused (no tab FR4: Q58 clamp). Cmts.User = neck-end bend window (Q83). Count = **2** (under JLC's extra-fee threshold of 4). Review r7: both Eco1.User pieces (u 2.55–19.45 × s 16.3–37.3 and u 12.2–19.55 × s 1.55–15.8) cover parts on both faces; a stiffener cannot sit over the lands on its own side, so the two-sided island needs a decision (`tasks/reviews/code-r7.md`). The three ring FR4 0.2 pieces the stack assumes are still undrawn, which makes the count 5 when drawn. JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
 
 Two-sided assembly: packing `side=bottom` rows (Q1–Q5, C6–C9, C13–C15, R4–R30) sit on B.Cu. JLC FPC assembly is two-sided when both copper layers carry parts. Copper-to-edge 0.30 everywhere.
 
@@ -413,14 +415,14 @@ Blanked / corrected lines from the same day's pages:
 | D1 | PESD5V0L1UL | C24109 | — | VBUS ESD (pad-fed VBUS) |
 | D2 | 0402 LED | C72043 | — | Firmware LED on LED_EN |
 | J1 | — | — | — | Out (Q81); charge is P4/P5 |
-| P4, P5 | RING_PAD_D5_H2.7 | — | — | Tail charge pads; not in BOM |
+| P4, P5 | RING_PAD_D5_H2.7 | — | — | Hook-end floor charge pads (Q86); P4 = VBUS, P5 = GND; not in BOM |
 | J2 | SM02B-SRSS-TB | C160402 | Extended | 2P SH. Was C160404 4P. |
 | J3 | 1×03 RA 2.54 | C49257 | — | Bench |
 | SW1 | TS-1187A | C318884 | — | 4.5 × 4.5 × 1.6 |
 | L1 | 10 µH 0603 | C1045 | — | nRF DCCH |
 | R9, R10 | 5.1 kΩ | C25905 | Basic | CC. Page: 5.1 kΩ 0402. |
 
-Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.com qty-1 seen today: U2 C89288 $6.50 (70); U4 C2863702 from $0.23 (190). Not in BOM: J4 TC2030-NL, P1–P5 ring pads, R29–R30 DNP 10 MΩ (LCSC C26082 for the 10 MΩ land, not stuffed), Q5 DNP, power flags. R9/R10 5.1 kΩ CC resistors stay on the sheet with no receptacle.
+Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.com qty-1 seen today: U2 C89288 $6.50 (70); U4 C2863702 from $0.23 (190). Not in BOM: J4 TC2030-NL, P1–P5 ring pads, R29–R30 DNP 10 MΩ (LCSC C26082 for the 10 MΩ land, not stuffed), Q5 DNP, power flags. R9/R10 5.1 kΩ CC resistors stay on the sheet with no receptacle; review r7: pad 1 of each is unconnected (`unconnected-(R9-Pad1)`), so they do nothing and are placed and bought; removing them or marking them DNP is a decision (`tasks/reviews/code-r7.md`).
 
 ## 14. Reference-circuit check (each choice)
 
