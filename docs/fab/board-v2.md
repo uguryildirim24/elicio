@@ -8,19 +8,19 @@ Interface: **II** (plan v2 §5.3 fallback). Packing §5c no-receptacle cell, wid
 Project: `hardware/board/elicio-v2.kicad_pro`.
 The schematic drops J1 (USB-C) and U5 (USBLC6). Two RING_PAD tail pads P4 (VBUS) and P5 (GND) feed the existing P-FET inhibit and charger path. D1 PESD5V0L1UL stays on VBUS. The land is a 2-layer flex with two FR4 0.4 stiffeners and five ring pads (three EMG, two charge).
 
-Packing (u, s) = PCB (x, y). Named centres follow `hardware/board/packing_5c_norec.md` (copied from packing-v2.md §5c at `e1f1d6f`; re-pin on `§5c final <sha>`). R1–R3 sit on the island at the tab roots (Q79). J4 TC2030 sits on the leftover (Q80). Island holes at (13.45, 17.70) and (17.95, 17.70) (Q82). Neck-end strips SIG1 10.71 mm, SIG2 21.81 mm (Q83). Two-sided assembly: packing `side=bottom` rows are flipped to B.Cu.
+Packing (u, s) = PCB (x, y). Named centres follow `hardware/board/packing_5c_norec.md` (copied from packing-v2.md §5c at `c6bd2fe`). R1–R3 sit on the island at the tab roots (Q79). J4 TC2030 sits on the leftover (Q80). Island holes at (13.45, 17.70) and (17.95, 17.70) (Q82). Neck-end strips SIG1 10.71 mm, SIG2 21.81 mm (Q83). Two-sided assembly: packing `side=bottom` rows are flipped to B.Cu.
 
 | Item | PCB centre (u, s) | §5c pin table | Size / note |
 |---|---|---|---|
 | Board zone | u 2.25–19.75, s 16.00–37.60 | same | PI 0.11 + FR4 0.4 at parts. Rings are PI 0.11 + FR4 0.2 in packing; this Gerber has no ring FR4 (§12) |
 | Module U1 | (8.00, 29.35) rot 0° | (8.00, 29.35) | 10.50 × 15.50 × 2.3, length along s; process pose |
 | Antenna keep-out | u 2.25–14.20, s 33.80–37.60 | 12.4 × 3.8 at high-s | no extra copper; module pads allowed |
-| ADS1292 U2 | (14.73, 10.28) | (14.73, 10.28) | leftover/pocket |
+| ADS1292 U2 | (15.13, 10.28) | (15.13, 10.28) | leftover/pocket |
 | BQ25100 U3 | (15.68, 30.85) | (15.68, 30.85) | island |
 | TLV71330 U4 | (16.65, 34.80) | (16.65, 34.80) | island |
-| SW1 | (15.85, 4.45) | (15.85, 4.45) | lid, pocket island |
+| SW1 | (16.25, 4.45) | (16.25, 4.45) | lid, pocket island |
 | J3 bench | (26.11, 20.31) | (26.11, 20.31) | hang; pads Ø1.5 |
-| PESD D1 | (3.55, 16.75) | (3.55, 16.75) | VBUS TVS (already on the sheet) |
+| PESD D1 | (3.95, 16.75) | (3.95, 16.75) | VBUS TVS (already on the sheet) |
 | JST-SH J2 | (22.40, 10.93) | (22.40, 10.93) | pocket hang |
 | USB-C J1 | — | absent | Q81 until M1 ≥ 58.3 |
 | USBLC6 U5 | — | absent | Q81 with J1 |
@@ -30,7 +30,7 @@ Packing (u, s) = PCB (x, y). Named centres follow `hardware/board/packing_5c_nor
 | H1 / H2 | (13.45, 17.70), (17.95, 17.70) | Q82 | Ø2.7, keep 3.30 |
 | R1–R3 220 kΩ | island tab roots | table | Q79 variant A |
 
-Second-side (B.Cu) parts are the packing rows with `side=bottom` (Q1–Q5, C9, C11–C15, R4–R30).
+Second-side (B.Cu) parts are the packing rows with `side=bottom` (Q1–Q5, C6–C9, C13–C15, R4–R30).
 
 ## 1. Block diagram
 
@@ -337,7 +337,7 @@ PI stiffener catalogue: 0.1 / 0.15 / 0.20 / 0.225 / 0.25 mm. Stainless 0.1 / 0.2
 
 Stiffener drawings: Eco1.User = two FR4 0.4 pieces (parts island + leftover/pocket). Eco2.User is unused (no tab FR4: Q58 clamp). Cmts.User = neck-end bend window (Q83). Count = **2** (under JLC's extra-fee threshold of 4). JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
 
-Two-sided assembly: packing `side=bottom` rows (Q1–Q5, C9, C11–C15, R4–R30) sit on B.Cu. JLC FPC assembly is two-sided when both copper layers carry parts. Copper-to-edge 0.30 everywhere.
+Two-sided assembly: packing `side=bottom` rows (Q1–Q5, C6–C9, C13–C15, R4–R30) sit on B.Cu. JLC FPC assembly is two-sided when both copper layers carry parts. Copper-to-edge 0.30 everywhere.
 
 Encoded in the board design settings and in `elicio-v2.kicad_pro`.
 
@@ -430,26 +430,26 @@ Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.c
 
 Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md`.
 
-WP12d placed from packing §5c no-receptacle width-22 two-sided (`e1f1d6f`). **0 tracks, 0 vias.** Routing waits on `§5c final <sha>`. **Order release is not green. `routed`: false.**
+WP12d placed from packing §5c no-receptacle width-22 two-sided (`c6bd2fe`). **0 tracks, 0 vias.** Freerouting 2.4.1 on OpenJDK 25 wrote a SES; import on a copy raised DRC from 56 to 374. The SES was discarded. **Order release is not green. `routed`: false.**
 
 Zero-track DRC on this land (`kicad-cli pcb drc --format json`, 2026-09-18):
 
 | Item | Result |
 |---|---|
-| DRC errors | 59 |
+| DRC errors | 56 |
 | DRC warnings | 0 |
 | Unconnected items | 146 |
 | Pads without a net | 0 |
 | pcb_tracks | 0 |
 | Vias | 0 |
 
-Error counts: 25 clearance (netclass Contact 1.0 mm vs 0402 pad gap on R1–R3 and vs J3 2.54 mm), 14 solder_mask_bridge, 11 shorting_items (all P2 SIG2 ring at (10.40, 33.10) vs U1 pads — the SIG2 site sits under the module), 7 hole_clearance (J4 NPTH vs B.Cu 0402), 2 copper_edge_clearance (D2 0.285 mm vs 0.300 mm; J3 pad 3 on the hang).
+Error counts: 23 clearance (netclass Contact 1.0 mm vs 0402 pad gap on R1–R3, and vs U1 pads around P2), 15 solder_mask_bridge, 11 shorting_items (all P2 SIG2 ring at (10.40, 33.10) vs U1 pads — the SIG2 site sits under the module), 7 hole_clearance (J4 NPTH vs B.Cu 0402). Copper-to-edge 0 after a hang-outline nudge (J3 pad 3).
 
-The copper-to-edge misses are the w3 nudge turn. P2-under-U1 is a packing collision on this table. Contact 1.0 mm cannot sit on an 0402. Do not route until `§5c final <sha>`.
+**First structural reason DRC 0 cannot land:** P2 RING_PAD PTH at (10.40, 33.10) overlaps U1 pads on F.Cu. A router cannot separate stacked pads. Second: Contact 1.0 mm cannot sit on an 0402 (pad gap 0.48 mm). Third: J4 NPTH vs leftover B.Cu 0402.
 
-WP12d-prep (2026-09-18): Freerouting **v2.4.1** on OpenJDK 25 writes a SES. Jar kept at `~/.local/opt/freerouting/freerouting-2.4.1.jar`. Not imported.
+Freerouting **v2.4.1** on OpenJDK 25 (`~/.local/opt/freerouting/freerouting-2.4.1.jar`): 8 auto-route passes, 75.86 s, SES 22813 bytes, 81 unrouted / 50 router violations. Copy import: 275 tracks, 17 vias, 374 DRC errors. Owned PCB stays un-shorted.
 
-`release.py --routed` still fails closed on DRC errors, unconnected items, and no tracks (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
+`release.py --routed` fails closed on DRC errors, unconnected items, and no tracks (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
 
 ## 16. ERC
 
@@ -500,13 +500,13 @@ Q67 Raytac routes. L7 §3.3–§3.4 quotes (pages named there, 2026-09-17). The 
 
 LCSC C5118826 is the part this BOM names. Nothing was ordered.
 
-Packing SW1 centre is now (10.10, 24.20). The old 0.3 mm-to-outline conflict was the pre-r5 site (4.80, 21.15). The new site is inward of the left edge.
+Packing SW1 centre is (16.25, 4.45) on the pocket island.
 
 ## 19. Needs a decision
 
 1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Cell is **501015** with a 100 ± 3 mm harness (**NOT_MEASURED**).
 2. **SIG1/SIG2 unfold** — Gerber rings are off the island; packing XY is the folded site. WP14 must fold them before the cell is fitted.
-3. **Order route** — `--routed` is still fail-closed: bus copper shorts and GND zone islands remain. A human or a working autorouter must finish the 2-layer flex before G3.
+3. **Order route** — `--routed` is fail-closed: P2 sits under U1 on this §5c table; Contact 1.0 mm vs 0402; J4 NPTH vs B.Cu. Packing must move P2 off the module courtyard before a router can reach DRC 0.
 4. **3.3 V probe vs 1.8 V first-load** — Q64: this board cannot set REGOUT0 through a 3.3 V probe. WP17b kit.
 5. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
 6. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.

@@ -176,25 +176,89 @@ The committed `elicio-v2.kicad_pcb` is unchanged.
 9. Run Freerouting 2.4.1 on OpenJDK 25 with `--gui.enabled=false -de -do -mp -mt`.
 10. Import the SES only after `§5c final <sha>`; then DRC and hand-fix residue.
 
-## 8. WP12d place (waiting §5c final)
+## 8. WP12d place and route (`c6bd2fe`)
 
-Pinned from `hardware/board/packing_5c_norec.md` (`e1f1d6f` on lane/w3). Width 22 island u 2.25–19.75, s 16.00–37.60. 66 table parts plus H1/H2. 38 footprints flipped to B.Cu. R1–R3 on the island. P4/P5 RING_PAD. J1/U5 absent. Tracks 0.
+Pinned from `hardware/board/packing_5c_norec.md` (`c6bd2fe` on lane/w3, second §5c table: smallest all-64, no receptacle, width 22, chord 47.90, two sides, fold neck). Width 22 island u 2.25–19.75, s 16.00–37.60. 66 table parts plus H1/H2. 38 footprints flipped to B.Cu. R1–R3 on the island. P4/P5 RING_PAD at (0.75, 44.00) and (21.25, 44.00). J1/U5 absent. Holes (13.45, 17.70) and (17.95, 17.70). Neck-end strips SIG1 10.71 mm, SIG2 21.81 mm. Tracks 0.
 
-Jar: `~/.local/opt/freerouting/freerouting-2.4.1.jar`. OpenJDK 25. Route not started.
+Jar: `~/.local/opt/freerouting/freerouting-2.4.1.jar`. OpenJDK 25.0.4.1.
 
-Zero-track DRC (`kicad-cli pcb drc --format json`, 2026-09-18):
+### Outline nudges (copper-to-edge)
+
+Packing claims copper-to-edge ≥ 0.30 on courtyards. KiCad DRC uses pad copper. Two hang-outline steps, no part moved:
+
+| Change | From | To | Why |
+|---|---|---|---|
+| `HANG_U1` | 32.50 | 33.20 | J3 hang length |
+| Pocket SW1 u | 19.75 | 20.40 | SW1 courtyard at (16.25, 4.45) |
+| `HANG_S1` | 24.80 | 26.70 | J3 pad 3 at (26.11, 25.39), Ø1.5, plus 0.30 |
+
+After those, copper-edge errors are 0.
+
+### Zero-track DRC (owned PCB)
 
 ```text
-Found 59 violations
+kicad-cli pcb drc --format json -o /tmp/wp12d/drc-pin3.json hardware/board/elicio-v2.kicad_pcb
+Found 56 violations
 Found 146 unconnected items
-errors 59 warnings 0
-  25 clearance
-  14 solder_mask_bridge
+errors 56 warnings 0 unconnected 146
+  23 clearance
+  15 solder_mask_bridge
   11 shorting_items
    7 hole_clearance
-   2 copper_edge_clearance
 ```
 
-Shorts: P2 at (10.40, 33.10) vs U1 pads. Copper-to-edge: D2 0.285 mm; J3 pad 3 on the hang. Contact 1.0 mm vs R1–R3 0402. J4 NPTH vs B.Cu 0402.
+Shorts (all pad-to-pad, unique pairs):
 
-Stop here until the coordinator sends `§5c final <sha>`. Then re-pin and route.
+```text
+PTH pad 1 [SIG2] of P2 | Pad 27 [unconnected-(U1-P0.11-Pad27)] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 29 [unconnected-(U1-P0.12-Pad29)] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 35 [unconnected-(U1-D+-Pad35)] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 36 [unconnected-(U1-P0.14-Pad36)] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 37 [AFE_CS] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 38 [unconnected-(U1-P0.16-Pad38)] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 39 [AFE_MISO] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 40 [nRESET] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 41 [AFE_DRDY] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 42 [unconnected-(U1-P0.19-Pad42)] of U1 on F.Cu
+PTH pad 1 [SIG2] of P2 | Pad 43 [unconnected-(U1-P0.21-Pad43)] of U1 on F.Cu
+```
+
+Hole clearance: J4 NPTH vs R5, R6, R18, R19, R21, R22 on B.Cu.
+
+Contact 1.0 mm vs R1/R2/R3 0402 pad gap 0.48 mm (kept; no DRC exception).
+
+### Freerouting 2.4.1 run (OpenJDK 25)
+
+DSN: pcbnew `ExportSpecctraDSN` → `/tmp/wp12d/elicio-v2.dsn` (56640 bytes).
+
+```text
+/opt/homebrew/opt/openjdk@25/bin/java -Djava.awt.headless=true \
+  -jar ~/.local/opt/freerouting/freerouting-2.4.1.jar \
+  --gui.enabled=false \
+  --user_data_path=/tmp/wp12d/fr-home \
+  -de /tmp/wp12d/elicio-v2.dsn \
+  -do /tmp/wp12d/elicio-v2.ses \
+  -mp 8 \
+  -mt 4 \
+  --router.job_timeout=00:08:00
+```
+
+| Item | Result |
+|---|---|
+| Version | Freerouting v2.4.1 (build-date: 2026-09-03) |
+| Wall time | 75.86 s (`time` real; job elapsed 1 m 13.58 s) |
+| Fanout | 95/230 SMD pins escaped (41.3%) |
+| Auto-route | 8 passes; final 79 unrouted, 50 violations (optimizer: 81 unrouted, 50 violations) |
+| SES | **yes** `/tmp/wp12d/elicio-v2.ses` 22813 bytes |
+| Copy import | 275 tracks, 17 vias |
+| Copy DRC | **374** errors, 79 unconnected (was 56 / 146 un-routed) |
+| Owned PCB | SES **not** written back |
+
+Copy DRC types: 199 track_width, 122 clearance, 15 solder_mask_bridge, 11 shorting_items (same P2 vs U1 pairs), 9 copper_edge, 8 hole_clearance.
+
+### First structural reason
+
+P2 RING_PAD at (10.40, 33.10) is inside U1's courtyard (U1 at (8.00, 29.35), 11.50 × 16.50). The PTH copper shorts U1 F.Cu pads. Routing cannot clear pad-to-pad shorts. Step 5: stop **un-shorted**, `routed: false`.
+
+Contact class 1.0 mm and J4 NPTH vs B.Cu remain after any route of this land.
+
