@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-18T00:32:37-04:00",
+ "generated": "2026-09-18T00:39:14-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
   "id": "w1B",
   "label": "elicio",
-  "tabs": 9
+  "tabs": 8
  },
  "coordinator": {
   "pane_id": "w1B:p1",
@@ -26,7 +26,7 @@
    ],
    "name": "w1",
    "kind": "cursor",
-   "status": "done",
+   "status": "working",
    "pane_id": "w1B:pA",
    "tab_id": "w1B:tA",
    "tab_label": "w1",
@@ -152,30 +152,6 @@
     "parent": "w1B:p1"
    },
    "title": "New Package Brief"
-  },
-  {
-   "start_args": [
-    "--model",
-    "claude-opus-5",
-    "--effort",
-    "high",
-    "--dangerously-skip-permissions"
-   ],
-   "name": "rev6",
-   "kind": "claude",
-   "status": "working",
-   "pane_id": "w1B:pS",
-   "tab_id": "w1B:tS",
-   "tab_label": "review",
-   "pane_label": null,
-   "cwd": "/Users/rolfie/projects/elicio/.worktrees/review",
-   "session_id": "42f60552-fa09-49cb-9bc4-c72a5afbeb97",
-   "tokens": {
-    "done": "1",
-    "lane": "review-r6",
-    "parent": "w1B:p1"
-   },
-   "title": "Review round 6"
   }
  ],
  "unlinked_agents": [],
@@ -200,34 +176,27 @@
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
-   "58ae5b8 Round 6: record the reviewer's decisions 69 to 76 and the coordinator's Q77 (footprint collisions) with the readings the build follows; WP14b brief",
-   "e2c7f09 docs(tasks): WP11c brief, pack with the real footprint courtyards",
-   "7d5443c review-r6: merge lane/w2 at e3e085b (queued BOM note landed after the pin); handoff notes it",
-   "d4b5a93 handoff: round 6 review running (rev6 on review/r6), WP12c routing in parallel on lane/w2",
-   "b710ed1 docs(tasks): round 6 review brief (review-r6) and WP12c routing brief",
-   "9aa2934 handoff: answer sheet v5 asks the battery route"
+   "110a79b Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
+   "f407b12 review(r6): decision numbers follow open-questions Q69 to Q77",
+   "231e2d1 handoff: In flight and Next after the round 6 verdict (rev6 second turn, WP12c landed un-routed, WP11c running, WP14b brief waits for the merge)",
+   "f9e4144 review(r6): coordinator note 2: re-pack with real courtyards is decision 70; zero-track DRC confirmed",
+   "59c7945 review(WP12b): release job and its test read and write UTF-8 explicitly",
+   "fdac6b2 handoff: round 6 verdict in (c7c4e5a), rev6 on a second turn for the footprint collisions; WP12c landed un-routed (Q77), WP11c running on w3, WP14b brief waits for the merge"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "58ae5b8",
-    "subject": "Round 6: record the reviewer's decisions 69 to 76 and the coordinator's Q77 (footprint collisions) with the readings the build follows; WP14b brief",
-    "dirty": 0
-   },
-   {
-    "path": "/Users/rolfie/projects/elicio/.worktrees/review",
-    "branch": "review/r6",
-    "head": "c7c4e5a",
-    "subject": "review(r6): verdict MERGE-AFTER-DECISION, gates, defects, \u00a77 look, decisions 69\u201376",
-    "dirty": 14
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
+    "dirty": 1
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
     "branch": "lane/w1-r6",
-    "head": "c3c11d8",
-    "subject": "shell(v2): cut REF_end_wall_slot from packing-v2 \u00a75",
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
     "dirty": 0
    },
    {
@@ -242,39 +211,39 @@
     "branch": "lane/w3",
     "head": "bcecc83",
     "subject": "packing(v2b): L7 pack tables in packing-v2",
-    "dirty": 0
+    "dirty": 2
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
-    "head": "e7c366a",
-    "subject": "receiver(v2): record and check a stream on the Mac",
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w5",
     "branch": "lane/w5",
-    "head": "ba45071",
-    "subject": "research(v4b): cells under 16 mm",
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
     "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w9",
     "branch": "lane/w9",
-    "head": "018ac58",
-    "subject": "sheets(v2): measure, three checkouts, assemble, first load",
+    "head": "110a79b",
+    "subject": "Merge review/r6 at f407b12: round 6 (WP11b packing follow-ups, WP14 shell v2, WP17b research v4, WP13b receiver v2, WP15 Rolf's sheets v2, WP12b board place) after the reviewer's fixes; verdict MERGE-AFTER-DECISION, decisions Q69 to Q77",
     "dirty": 0
    }
   ],
   "branches": [
-   "main",
-   "lane/w2",
-   "review/r6",
-   "lane/w3",
    "lane/w1-r6",
-   "lane/w5",
    "lane/w4",
+   "lane/w5",
    "lane/w9",
+   "main",
+   "review/r6",
+   "lane/w2",
+   "lane/w3",
    "review/r5",
    "lane/w1",
    "review/r4",
@@ -300,6 +269,7 @@
    "tasks/WP17-research-v3.md"
   ],
   "verdicts": [
+   "tasks/reviews/code-r6.md",
    "tasks/reviews/code-r5.md",
    "tasks/reviews/code-r4.md",
    "tasks/reviews/code-r3.md",
