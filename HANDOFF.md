@@ -114,7 +114,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w1, w3, w4), three idle, no reviewer yet. Every lane sits on its own branch in
+working (w1, w3), WP13c landed on w4, three idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -148,13 +148,14 @@ fast-forwarded to `110a79b`.
   Freerouting 2.4.1 or its own router to DRC 0, R1–R3 on the island, J3
   pads Ø1.5, one net per tab.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
-  RUNNING since 00:58 on `lane/w4` at `0293d48`; prompt: read the brief
-  in full and do it. Q75: a montage line 3.4 dropout is reported and
-  counted, S2 continues; exit 3 stays the distinct code, exits 1 and 2
-  stay stops; `docs/fab/receiver-v2.md` and one sentence in
-  `docs/fab/assemble.md` follow; `docs/fab/montage.md` untouched. Waits
-  for nothing from me. Report (expected) `.worktrees/w4/.reports/WP13c-report.md`
-  → `DONE WP13c`; merges in round 7's review.
+  LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
+  report `.worktrees/w4/.reports/WP13c-report.md` present, 207 tests OK
+  with 26 skips, host only). Exit 3 stays the report code and prints the
+  dropout count, the longest run and its start plus the line "S2
+  continues (Q75)"; exit 1 wins over a dropout; `sidecar.json` carries the
+  three dropout fields; `docs/fab/receiver-v2.md` table and one sentence
+  in `docs/fab/assemble.md` follow; montage, plan and open-questions
+  untouched. Nothing for a decision. w4 idles; merges in round 7's review.
 - **w5** (agy): idle on `lane/w5` at `110a79b`. Next: WP17c only if a lane
   needs a page read (Freerouting 2.4.1 headless on macOS, the M2.5
   titanium screw source for Q71); nothing queued.
@@ -204,9 +205,9 @@ Outside those:
 
 - Idle until `DONE WP11c` (w3) or `DONE WP14b` (w1), or BLOCKED/GONE for
   either (a DONE is checked: report present, tree clean; then read);
-  or `DONE WP13c` (w4); after `DONE WP11c` brief WP12d for w2 and
-  WP14b's second turn for w1; when WP11c, WP14b, WP12d and WP13c have
-  landed, open review r7 (fresh Opus 5 high pane,
+  after `DONE WP11c` brief WP12d for w2 and WP14b's second turn for w1;
+  when WP11c, WP14b and WP12d have landed (WP13c already has), open
+  review r7 (fresh Opus 5 high pane,
   `tasks/review-r7.md` (expected) from `tasks/review-code-template.md`).
 
 ## Traps
