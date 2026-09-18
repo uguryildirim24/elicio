@@ -1,7 +1,6 @@
 # How this board was routed (WP12c)
 
-The copper on `elicio-v2.kicad_pcb` is still empty of tracks. DRC 0 was not
-reached. This file is the redo recipe and the hang log.
+The copper on `elicio-v2.kicad_pcb` has seven locked tab stubs and no SES import. DRC 0 with 0 unconnected was not reached. This file is the redo recipe and the hang log.
 
 ## 1. Specctra DSN (KiCad 10.0.6)
 
@@ -327,5 +326,74 @@ Copy DRC types: 199 track_width, 103 clearance, 9 copper_edge_clearance, 3 hole_
 ### First structural reason
 
 R24 pad 2 [GND] on B.Cu occupies J4 NPTH at (17.266, 22.06). The 0.1 mm pin cannot separate them (0.46 mm required). Step 5: stop **un-shorted**, `routed: false`.
+
+## 10. WP12f route (Q87, DSN classes, locked stubs)
+
+Repeat: `.venv/bin/python scripts/board/route_v2.py --dsn-check` then `--route`.
+Jar: `~/.local/opt/freerouting/freerouting-2.4.1.jar`. OpenJDK 25.0.4.1.
+KiCad python for DSN/SES. Copy import copies `elicio-v2.kicad_pro` and `.kicad_dru` beside the copy PCB so Default stays 0.10/0.10.
+
+### Q87 deviations from pin table v2 (packing folds these back)
+
+| Ref | From table (u, s) | To (u, s) | Why |
+|---|---|---|---|
+| R23 | (18.28, 21.17) | (18.37, 21.17) | J4 NPTH hole clearance 0.20 |
+| R26 | (14.22, 21.63) | (14.17, 21.63) | J4 NPTH hole clearance 0.20 |
+| R24 | (18.28, 22.37) | (18.75, 22.37) | J4 NPTH (17.266, 22.06); +0.47 mm u, past the 0.1 mm pin |
+
+Zero-track DRC after R24: **0 errors**, 146 unconnected, 0 shorts.
+
+### DSN class blocks (unit um)
+
+```text
+(via "Via[0-1]_700:300_um")
+(rule (width 100) (clearance 100))
+(class kicad_default … (width 100) (clearance 100))
+(class Contact REF SIG1 SIG2 (width 150) (clearance 200))
+```
+
+WP12e 199 `track_width` (min 0.2000, actual 0.1000): SES import leaked Contact onto Default / board min width. The DSN already had 100 um. `sanitize_dsn` drops `(clearance 25 (type smd_smd))`. `import_ses` restores §12 and floors track width at 0.10 mm. `--router.automatic_neckdown=false --router.neck_width_um=100 --router.strict_drc=true`.
+
+Locked wires in the DSN (`type fix`): SIG1/SIG2/REF 150 um along strip centres to s=15.50 / 37.95; VBUS/GND 100 um along the CHARGE tab to u=26.27. Island manhattan to R1–R3 was not locked: it shorts J2, crosses SIG2/REF, and still intersects `tabs`.
+
+### Freerouting 2.4.1 run (OpenJDK 25)
+
+```text
+/opt/homebrew/opt/openjdk@25/bin/java -Djava.awt.headless=true \
+  -jar ~/.local/opt/freerouting/freerouting-2.4.1.jar \
+  --gui.enabled=false \
+  --user_data_path=/tmp/wp12f/fr-home \
+  -de /tmp/wp12f/elicio-v2.dsn \
+  -do /tmp/wp12f/elicio-v2.ses \
+  -mp 12 -mt 4 \
+  --router.job_timeout=00:10:00 \
+  --router.automatic_neckdown=false \
+  --router.strict_drc=true \
+  --router.neck_width_um=100 \
+  --router.copper_to_edge_clearance_um=300 \
+  --router.hole_clearance_um=200 \
+  --router.fanout.enabled=true \
+  --router.fanout.max_passes=40 \
+  --router.fanout.ripup_allowed=true
+```
+
+| Item | Result |
+|---|---|
+| Version | Freerouting v2.4.1 (build-date: 2026-09-03) |
+| Wall time | 1 m 48.19 s |
+| Fanout | 126/230 SMD pins escaped (**54.8 %**), 40 passes |
+| Auto-route | 12 passes; final 60 unrouted, 25 violations |
+| SES | **yes** `/tmp/wp12f/elicio-v2.ses` 33305 bytes |
+| Copy import (with `.kicad_pro`) | 444 tracks, 37 vias, clamped 17 necks to 0.10 mm |
+| Copy DRC | **12** errors, 60 unconnected (was 0 / 146 zero-track) |
+| Copy DRC without `.kicad_pro` | 204 errors (192 clearance at 0.20) |
+| Foreign nets in strips | 0 |
+| Owned PCB | SES **not** written back |
+
+Copy DRC types (with project file): 6 via_dangling, 5 track_dangling (the locked stubs), 1 clearance (GND vs U1 pad 12, 0.0916 mm). Shorts 0.
+
+### First structural reason
+
+Q84 1.0 mm on `tabs` versus parts at the attach line: L1 pad 1 is 0.70 mm from SIG1 attach, D2 pad 2 is 0.60 mm from SIG2 attach, U1 pad 26 is 0.90 mm from REF attach. No copper can leave a strip onto the island without Contact-to-part clearance under 1.0 mm. Freerouting joined R1–R3 to J3 on the island and left the ring stubs dangling. Step 5: stop **un-shorted**, `routed: false`.
 
 

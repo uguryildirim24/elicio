@@ -94,39 +94,9 @@ def export_dsn(dsn: Path) -> None:
     sanitize_dsn(dsn)
 
 
-def write_fr_home(home: Path) -> None:
-    home.mkdir(parents=True, exist_ok=True)
-    cfg = home / "freerouting.json"
-    cfg.write_text(
-        """{
-  "gui": {"enabled": false, "exitWhenFinished": true},
-  "router": {
-    "automaticNeckdown": false,
-    "strictDrc": true,
-    "neckWidthUm": 100.0,
-    "copperToEdgeClearanceUm": 300.0,
-    "holeClearanceUm": 200.0,
-    "maxPasses": 12,
-    "viasAllowed": true,
-    "fanout": {
-      "enabled": true,
-      "maxPasses": 40,
-      "ripupAllowed": true
-    }
-  },
-  "logging": {
-    "console": {"enabled": true, "level": "INFO"},
-    "file": {"enabled": true, "level": "INFO"}
-  }
-}
-""",
-        encoding="utf-8",
-    )
-
-
 def freeroute(dsn: Path, ses: Path) -> None:
     home = dsn.parent / "fr-home"
-    write_fr_home(home)
+    home.mkdir(parents=True, exist_ok=True)
     cmd = [
         str(JAVA),
         "-Djava.awt.headless=true",
@@ -170,6 +140,12 @@ def main() -> int:
         freeroute(dsn, ses)
         copy = work / "elicio-v2-copy.kicad_pcb"
         shutil.copy2(PCB, copy)
+        pro = PCB.with_suffix(".kicad_pro")
+        dru = PCB.with_suffix(".kicad_dru")
+        if pro.is_file():
+            shutil.copy2(pro, copy.with_suffix(".kicad_pro"))
+        if dru.is_file():
+            shutil.copy2(dru, copy.with_suffix(".kicad_dru"))
         proc = run([str(KICAD_PY), str(BUILD), "--import-ses", str(ses), str(copy)])
         sys.stdout.write(proc.stdout)
         if proc.returncode:
