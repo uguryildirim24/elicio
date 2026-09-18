@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-17T22:19:24-04:00",
+ "generated": "2026-09-17T23:37:59-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
   "id": "w1B",
   "label": "elicio",
-  "tabs": 8
+  "tabs": 9
  },
  "coordinator": {
   "pane_id": "w1B:p1",
@@ -26,7 +26,7 @@
    ],
    "name": "w1",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pA",
    "tab_id": "w1B:tA",
    "tab_label": "w1",
@@ -35,7 +35,7 @@
    "session_id": "791832d5-f944-40f4-80ec-82deb5c4efca",
    "tokens": {
     "done": "1",
-    "lane": "WP11",
+    "lane": "WP14",
     "parent": "w1B:p1"
    },
    "title": "Lane W1 Instructions"
@@ -56,7 +56,7 @@
    "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
    "tokens": {
     "done": "1",
-    "lane": "WP12",
+    "lane": "WP12b",
     "parent": "w1B:p1"
    },
    "title": "Lane W2 Instructions"
@@ -68,7 +68,7 @@
    ],
    "name": "w4",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pC",
    "tab_id": "w1B:tC",
    "tab_label": "w4",
@@ -77,7 +77,7 @@
    "session_id": "3f977624-113c-48fa-b55e-666aa970b9a3",
    "tokens": {
     "done": "1",
-    "lane": "WP13",
+    "lane": "WP13b",
     "parent": "w1B:p1"
    },
    "title": "Lane W4 Instructions"
@@ -96,7 +96,7 @@
    ],
    "name": "w5",
    "kind": "agy",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pD",
    "tab_id": "w1B:tD",
    "tab_label": "w5",
@@ -105,7 +105,7 @@
    "session_id": "18235bfb-f5b8-4365-9383-d66c69251f4b",
    "tokens": {
     "done": "1",
-    "lane": "WP17",
+    "lane": "WP17b",
     "parent": "w1B:p1"
    },
    "title": null
@@ -117,7 +117,7 @@
    ],
    "name": "w9",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pE",
    "tab_id": "w1B:tE",
    "tab_label": "w9",
@@ -126,7 +126,7 @@
    "session_id": "ea20ccc0-04da-408f-a016-57766846ee99",
    "tokens": {
     "done": "1",
-    "lane": "WP16",
+    "lane": "WP15",
     "parent": "w1B:p1"
    },
    "title": "Lane W9 Instructions"
@@ -139,7 +139,7 @@
    ],
    "name": "w3",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pR",
    "tab_id": "w1B:tR",
    "tab_label": "w3",
@@ -147,9 +147,33 @@
    "cwd": "/home/user/projects/elicio/.worktrees/w3",
    "session_id": "7ea81196-3c3e-42a4-8503-b481d90776cf",
    "tokens": {
+    "done": "1",
+    "lane": "WP11b",
     "parent": "w1B:p1"
    },
    "title": "New Package Brief"
+  },
+  {
+   "start_args": [
+    "--model",
+    "claude-opus-5",
+    "--effort",
+    "high",
+    "--dangerously-skip-permissions"
+   ],
+   "name": "rev6",
+   "kind": "claude",
+   "status": "working",
+   "pane_id": "w1B:pS",
+   "tab_id": "w1B:tS",
+   "tab_label": "review",
+   "pane_label": null,
+   "cwd": "/home/user/projects/elicio/.worktrees/review",
+   "session_id": "42f60552-fa09-49cb-9bc4-c72a5afbeb97",
+   "tokens": {
+    "parent": "w1B:p1"
+   },
+   "title": "Review round 6"
   }
  ],
  "unlinked_agents": [],
@@ -174,73 +198,81 @@
   "repo": "/home/user/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
-   "dbe39ff docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4",
-   "0195b66 Merge review/r5: round 5 (WP10, WP11, WP12, WP13, WP16, WP17), 36 review fixes, MERGE-AFTER-DECISION",
-   "f306532 Round 5: record the reviewer's decisions 57 to 68 as Q57 to Q68 with the readings the build follows",
-   "30ab0ac review(r5): code-r5.md \u2014 gates, 36 defects, decisions 57-68",
-   "c5f87cb review(WP12): Q54 Raytac routes in \u00a78 and the BOM; LCSC C5118826 vs C5142646 UNVERIFIED; G4 probe limits from the page",
-   "e1a8639 review(WP17): eight spot-checks; misquotes replaced with page text; 3.63 V, 70x70, fee, 0x20007F7C retagged UNVERIFIED; DigiKey 5.50 vs drawing 5.00 A/F; E73 sheet unreachable"
+   "b710ed1 docs(tasks): round 6 review brief (review-r6) and WP12c routing brief",
+   "9aa2934 handoff: answer sheet v5 asks the battery route",
+   "cb3bff2 handoff: WP11b fourth DONE at bcecc83 (winner fails with the real 501015 pack; 501012 closes)",
+   "d3e5159 handoff: WP14 second DONE at c3c11d8 (REF slot cut, Q59 checks pass on the shell)",
+   "ed727ea handoff: WP17b second DONE at ba45071 (501015 pack is 17 mm with PCM); rerun to w3",
+   "dd684dd handoff: answer sheet v4 carries the shell renders"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/home/user/projects/elicio",
     "branch": "main",
-    "head": "dbe39ff",
-    "subject": "docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4",
+    "head": "b710ed1",
+    "subject": "docs(tasks): round 6 review brief (review-r6) and WP12c routing brief",
+    "dirty": 0
+   },
+   {
+    "path": "/home/user/projects/elicio/.worktrees/review",
+    "branch": "review/r6",
+    "head": "a01eb53",
+    "subject": "merge lane/w1-r6 (WP14) into review/r6",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w1",
     "branch": "lane/w1-r6",
-    "head": "dbe39ff",
-    "subject": "docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4",
+    "head": "c3c11d8",
+    "subject": "shell(v2): cut REF_end_wall_slot from packing-v2 \u00a75",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "dbe39ff",
-    "subject": "docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4",
+    "head": "480e355",
+    "subject": "board(v2b): placed from the packing, routed, released",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w3",
     "branch": "lane/w3",
-    "head": "dbe39ff",
-    "subject": "docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4",
+    "head": "bcecc83",
+    "subject": "packing(v2b): L7 pack tables in packing-v2",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
-    "head": "dbe39ff",
-    "subject": "docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4",
+    "head": "e7c366a",
+    "subject": "receiver(v2): record and check a stream on the Mac",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w5",
     "branch": "lane/w5",
-    "head": "dbe39ff",
-    "subject": "docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4",
+    "head": "ba45071",
+    "subject": "research(v4b): cells under 16 mm",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w9",
     "branch": "lane/w9",
-    "head": "dbe39ff",
-    "subject": "docs(tasks): round 6 briefs WP14 shell v2, WP11b packing follow-ups, WP12b board route, WP13b receiver, WP15 sheets v2, WP17b research v4",
+    "head": "018ac58",
+    "subject": "sheets(v2): measure, three checkouts, assemble, first load",
     "dirty": 0
    }
   ],
   "branches": [
-   "lane/w1-r6",
+   "review/r6",
+   "main",
    "lane/w2",
    "lane/w3",
-   "lane/w4",
+   "lane/w1-r6",
    "lane/w5",
+   "lane/w4",
    "lane/w9",
-   "main",
    "review/r5",
    "lane/w1",
    "review/r4",
@@ -252,6 +284,8 @@
  },
  "files": {
   "briefs": [
+   "tasks/review-r6.md",
+   "tasks/WP12c-route.md",
    "tasks/WP17b-research-v4.md",
    "tasks/WP15-sheets-v2.md",
    "tasks/WP13b-receiver.md",
@@ -261,9 +295,7 @@
    "tasks/review-r5.md",
    "tasks/WP17-research-v3.md",
    "tasks/WP16-record.md",
-   "tasks/WP13-firmware.md",
-   "tasks/WP12-board.md",
-   "tasks/WP11-packing-v2.md"
+   "tasks/WP13-firmware.md"
   ],
   "verdicts": [
    "tasks/reviews/code-r5.md",
