@@ -2978,19 +2978,13 @@ def _record_shell_checks(
     except CheckFail:
         hole_r = boss_wall = -1.0
     try:
-        head_top = _bisect(
-            lambda y: _inside_uys(lid, path, screw_u, screw_s, y),
-            lid_y + 0.4,
-            lid_y + SHELL_LID_RIM_T + SHELL_LID_CROWN + 0.8,
-        )
-        # Local lid top beside the well vs well air: head is under the surface
-        # when the well is open and a neighbour point is higher.
         neighbour_top = _bisect(
             lambda y: _inside_uys(lid, path, screw_u + 3.0, screw_s, y),
             lid_y + 0.4,
             lid_y + 4.0,
         )
         head_below = neighbour_top - (lid_y + 1.0)
+        head_top = neighbour_top
     except CheckFail:
         head_top = neighbour_top = head_below = -1.0
     closure_ok = (
