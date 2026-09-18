@@ -247,14 +247,13 @@ fast-forwarded to `110a79b`.
   line (trap recorded); the reviewer notes it. BOM 57. 14 CAD test
   failures in its venv (pins), as before.
 - **w2 → WP12e route v2** (`tasks/WP12e-route-v2.md`, main `aea2345`):
-  RUNNING since 03:20 on `lane/w2` on top of `1e055de` (told to `git
-  merge main` first): the Q84 Contact rule as DRC rule areas (1.0 mm on
-  strips, ring pads and tail pads; board default on the island) with a
-  test, the parser for pin table v2 (flat coordinates, J4 both-side
-  keep-out); then it STOPS with `WAITING WP12e pin table v2` unless I
-  have sent the line "pin table v2" plus the sha (after `DONE WP11e`);
-  then re-pin on the flat pattern, route on OpenJDK 25 to DRC 0, or stop
-  un-shorted with a truthful commit message. Report
+  started 03:20 on `lane/w2`; WAITING since 03:50: it pushed `WAITING
+  WP12e pin table v2` with steps 1 and 2 committed at `2b4808d` (Q84
+  Contact rule areas, the pin-table-v2 parser, main merged, tree
+  clean). It waits for my prompt with the line "pin table v2" plus the
+  sha of w3's WP11e commit; then it re-pins on the flat pattern, routes
+  on OpenJDK 25 to DRC 0, or stops un-shorted with a truthful commit
+  message. Report
   `.worktrees/w2/.reports/WP12e-report.md` (expected) → `DONE WP12e`.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
