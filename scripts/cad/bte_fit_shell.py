@@ -3597,15 +3597,25 @@ def _apply_shell_features(
 
     # Lofted lid replaces the 1.0 plate plus the Ø19 blister.
     lid = _lofted_shell_lid(path, params)
+    # Lip stays under the 0.30 shelf (y 7.70–8.00). A strap in the cavity
+    # joins the lip to the lid so they are one solid without filling the shelf.
     lip = maker(
         SHELL_HINGE_U[0] + 0.15,
         SHELL_HINGE_U[1] - 0.15,
         SHELL_HINGE_S[0] + 0.08,
-        SHELL_HINGE_S[1] - 0.08,
+        1.52,
         SHELL_HINGE_Y0 + 0.05,
+        SHELL_HINGE_Y1 - 0.05,
+    )
+    strap = maker(
+        SHELL_HINGE_U[0] + 0.15,
+        SHELL_HINGE_U[1] - 0.15,
+        1.50,
+        1.90,
+        SHELL_HINGE_Y1 - 0.08,
         lid_y + 0.08,
     )
-    lid = lid.fuse(lip)
+    lid = lid.fuse(lip).fuse(strap)
     bearing = 1.0
     boss_r = SHELL_SCREW_WELL_D / 2.0 + SHELL_SCREW_BOSS_WALL
     boss_h = bearing + SHELL_SCREW_WELL_H + 0.2
