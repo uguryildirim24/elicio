@@ -93,7 +93,8 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
 | r6 | WP15 Rolf's sheets v2 (`docs/fab/measure.md`, `docs/fab/template.pdf`, `docs/fab/sheets/`, `docs/fab/order-board.md`, `docs/fab/order-shell.md`, `docs/fab/order-parts.md`, `docs/fab/assemble.md`) | MERGE-AFTER-DECISION | `110a79b` | `tasks/reviews/code-r6.md` |
 | r6 | WP12b board placed from packing §5 (`hardware/board/build_v2b.py`, `docs/fab/board-v2.md` §9 GPIO map, BOM from L7): not routed, release refused with `--routed`, footprint collisions (Q77) | MERGE-AFTER-DECISION | `110a79b` | `tasks/reviews/code-r6.md` |
 | r6 | decisions Q69–Q77 | coordinator | `58ae5b8` | `docs/fab/open-questions.md` |
-| r7 | briefs WP11c, WP14b | coordinator | `e2c7f09`, `58ae5b8` | `tasks/WP11c-courtyards.md`, `tasks/WP14b-shell-v2b.md` |
+| r7 | briefs WP11c, WP14b, WP13c, WP11d, WP17c | coordinator | `e2c7f09`, `58ae5b8`, `0293d48`, `7983847` | `tasks/WP11c-courtyards.md` and siblings |
+| r7 | decisions Q78–Q80 (edge rule and board area, Contact variant A, USB-C vs TC2030) | coordinator | `7983847` | `docs/fab/open-questions.md` |
 
 Round 6 gates at merge (`tasks/reviews/code-r6.md`, final `f407b12`): 206
 tests OK none skipped with the cad and ble extras (34 named skips on the
@@ -114,7 +115,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w1, w3), WP13c landed on w4, three idle, no reviewer yet. Every lane sits on its own branch in
+working (w1 WP14b, w3 WP11d, w5 WP17c), WP11c and WP13c landed, w2 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -128,18 +129,28 @@ fast-forwarded to `110a79b`.
   from me. Report (expected) `.worktrees/w1/.reports/WP14b-report.md` →
   `DONE WP14b`; then a second turn once WP11c publishes §5b (USB wall,
   tab fold pockets, island bosses); merges in round 7's review.
-- **w3 → WP11c courtyards** (`tasks/WP11c-courtyards.md`, main
-  `e2c7f09`): RUNNING on `lane/w3` on top of `bcecc83` (not
-  fast-forwarded; it merges main itself if it needs the reviewer's §5
-  cell record), prompted after the verdict with the decisions 70–74
-  amendment: re-pack with the real KiCad courtyards, the JLC assembly
-  edge and copper-to-edge 0.30, the USB receptacle body and hook root as
-  occupants (Q70), three FR4 ring pieces (Q72), two Ø2.7 island holes at
-  the boss sites (Q73), the tab fold at R 1.5 with both variants (Q74),
-  the Contact rule per the verdict's "To WP12c" note; publishes
-  `docs/fab/packing-v2.md` §5b. Waits for nothing from me. Report
-  (expected) `.worktrees/w3/.reports/WP11c-report.md` → `DONE WP11c`;
-  then WP12d (w2) and WP14b's second turn (w1) run on §5b.
+- **w3 → WP11c courtyards** (`tasks/WP11c-courtyards.md`): LANDED, `DONE
+  WP11c` at `1897df0` on `lane/w3` (two commits on top of `bcecc83`, tree
+  clean, report `.worktrees/w3/.reports/WP11c-report.md` present, 187
+  tests OK). `scripts/cad/placement_v2.py` reads the 66 real courtyards
+  from the WP12b board (test pins them within 0.05); §5b published: on the
+  w20 × y8 body with the 501012 pack 42 of 66 footprints place, the first
+  rule that cannot be met is "JLC assembly edge 2.5 mm" read as body to
+  the board's own outline (U1 sits at 0.00 from the island edge; U5,
+  Q1–Q5, R13–R30 unplaced; search single-sided); the 17.0 pack fails the
+  M1 gate first. Five decisions asked → Q78 (edge rule and area), Q79
+  (Contact variant A), Q80 (USB-C keeps the hook end, TC2030 to the
+  leftover), recorded at `7983847`; the 17 mm pack stays under Q69.
+- **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`, main
+  `7983847`): RUNNING since 01:25 on `lane/w3` on top of `1897df0` (told
+  to `git merge main` first); the 16-cell grid: edge rule as process edge
+  vs board outline, width 20 and 22, chord 47.90 and 49.00, top only vs
+  two sides with the clearance under the board measured from the stack;
+  501012 pack only, Q79 and Q80 fixed, Q72–Q74 occupants; publishes §5c
+  with the placement table if a cell places all 66. Waits for nothing
+  from me. Report (expected) `.worktrees/w3/.reports/WP11d-report.md` →
+  `DONE WP11d`; then WP12d (w2) pins §5c and WP14b's second turn (w1)
+  cuts the USB wall and pockets.
 - **w2**: idle on `lane/w2` at `f4376ca`, which holds WP12c (bus dropped,
   `routed: false`, `hardware/board/route.md` (absent on main) with the
   zero-track DRC diagnosis; recorded as Q77) on top of the merged
@@ -156,9 +167,15 @@ fast-forwarded to `110a79b`.
   three dropout fields; `docs/fab/receiver-v2.md` table and one sentence
   in `docs/fab/assemble.md` follow; montage, plan and open-questions
   untouched. Nothing for a decision. w4 idles; merges in round 7's review.
-- **w5** (agy): idle on `lane/w5` at `110a79b`. Next: WP17c only if a lane
-  needs a page read (Freerouting 2.4.1 headless on macOS, the M2.5
-  titanium screw source for Q71); nothing queued.
+- **w5 → WP17c research v5** (`tasks/WP17c-research-v5.md`, main
+  `7983847`): RUNNING since 01:25 on `lane/w5` at `7983847` (agy,
+  prompted by `herdr pane run w1B:pD` plus enter): the JLC edge rule from
+  the pages (board outline or panel rail, rails added by JLC, FPC
+  depaneling), FPC assembly sides, a router that writes a file on this
+  Mac, the M2.5 titanium tail screw and the MJF pilot hole; delivers
+  `docs/fab/L8-research-v5.md` (absent on main). Waits for nothing from
+  me. Report (expected) `.worktrees/w5/.reports/WP17c-report.md` →
+  `DONE WP17c`; its item 1 decides Q78 with WP11d's grid.
 - **w9**: idle on `lane/w9` at `110a79b`. Next: WP15b, the sheets refilled
   after WP14b and WP12d settle the shell and board numbers; nothing
   queued.
@@ -203,12 +220,13 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP11c` (w3) or `DONE WP14b` (w1), or BLOCKED/GONE for
-  either (a DONE is checked: report present, tree clean; then read);
-  after `DONE WP11c` brief WP12d for w2 and WP14b's second turn for w1;
-  when WP11c, WP14b and WP12d have landed (WP13c already has), open
-  review r7 (fresh Opus 5 high pane,
-  `tasks/review-r7.md` (expected) from `tasks/review-code-template.md`).
+- Idle until `DONE WP11d` (w3), `DONE WP17c` (w5) or `DONE WP14b` (w1), or
+  BLOCKED/GONE for any (a DONE is checked: report present, tree clean;
+  then read); with WP11d's grid and WP17c's item 1 settle Q78 (the edge
+  reading, width 20 or 22) in open-questions, then brief WP12d for w2 on
+  §5c and WP14b's second turn for w1; when WP14b, WP11d, WP17c and WP12d
+  have landed (WP11c and WP13c already have), open review r7
+  (`tasks/review-r7.md` (expected) from `tasks/review-code-template.md`).
 
 ## Traps
 
