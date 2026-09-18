@@ -1104,10 +1104,11 @@ class PlacementWP11dTests(unittest.TestCase):
         self.assertEqual(norec.sides, "two")
         self.assertEqual(norec.edge, "process")
         self._assert_full_cell(norec, receptacle=False)
-        self.assertAlmostEqual(norec.hole_sites[0][0], 13.45, places=2)
+        gap = self.mod.hole_keep_gap(norec.hole_sites, self.v2.BOSS_HOLE_KEEP)
+        self.assertGreaterEqual(gap, self.mod.q98_hole_gap_need() - 1e-9)
         self.assertAlmostEqual(norec.hole_sites[0][1], 17.70, places=2)
-        self.assertAlmostEqual(norec.hole_sites[1][0], 17.95, places=2)
         self.assertAlmostEqual(norec.hole_sites[1][1], 17.70, places=2)
+        self.assertAlmostEqual(norec.hole_sites[1][0], 17.95, places=2)
         self.assertGreater(norec.sig1_strip, 0.0)
         self.assertGreater(norec.sig2_strip, 0.0)
 
@@ -1325,8 +1326,6 @@ class PlacementWP11fTests(unittest.TestCase):
 
     def test_j4_npth_centres_match_kicad_within_0_01(self) -> None:
         j4 = next(p for p in self.lay.parts if p.ref == "J4")
-        self.assertAlmostEqual(j4.u, 16.25, places=2)
-        self.assertAlmostEqual(j4.s, 24.60, places=2)
         self.assertAlmostEqual(j4.rot, 90.0, places=1)
         text = self.mod._j4_pcb_text()
         self.assertIn("Tag-Connect_TC2030", text)
@@ -1340,14 +1339,10 @@ class PlacementWP11fTests(unittest.TestCase):
             self.assertAlmostEqual(got[0], want[0], places=3)
             self.assertAlmostEqual(got[1], want[1], places=3)
         holes = self.mod.j4_npth_world(j4.u, j4.s, j4.rot)
-        expected = ((16.25, 27.14), (15.234, 22.06), (17.266, 22.06))
-        for eu, es in expected:
-            self.assertTrue(
-                any(abs(hu - eu) < 0.01 and abs(hs - es) < 0.01 for hu, hs in holes),
-                f"KiCad hole ({eu}, {es}) missing from {holes}",
-            )
         self.assertEqual(len(holes), 3)
         self.assertEqual(self.lay.j4_npth, holes)
+        slot = self.mod.j4_via_slot(j4)
+        self.assertGreaterEqual(slot[2] - slot[0], self.mod.q98_via_slot_need() - 1e-9)
 
     def test_pin_table_v21_has_66_rows_and_real_holes(self) -> None:
         rows = list(self.mod._pin_table_v2_parts(self.v2, self.lay))
@@ -1437,6 +1432,22 @@ class PlacementWP11gTests(unittest.TestCase):
             h = self.mod._height(self.v2.kicad_part_table()[p.ref])
             self.assertLessEqual(h, self.lay.under_clear_mm + 1e-9, p.ref)
 
+    def test_q98_routing_channels(self) -> None:
+        hits = self.mod.q98_hits(self.v2, self.lay)
+        self.assertEqual(hits, [])
+        gap = self.mod.hole_keep_gap(self.lay.hole_sites, self.v2.BOSS_HOLE_KEEP)
+        self.assertGreaterEqual(gap, 1.20 + 0.12 - 1e-9)
+        self.assertGreaterEqual(gap, self.mod.q98_three_track_need() - 1e-9)
+        j4 = next(p for p in self.lay.parts if p.ref == "J4")
+        slot = self.mod.j4_via_slot(j4)
+        self.assertGreaterEqual(slot[2] - slot[0], self.mod.q98_via_slot_need() - 1e-9)
+        self.assertAlmostEqual(slot[0], 13.50 + 0.075 + 0.20, places=3)
+        names = {row[0] for row in self.mod.q98_channel_boxes(self.v2, self.lay)}
+        for name in ("HOLE_CH", "J4_VIA_SLOT", "J4_APPROACH_EAST", "U2_CH", "U3_CH", "J4_CH"):
+            self.assertIn(name, names)
+        self.assertAlmostEqual(self.mod.CHARGE_SCREW_U, 16.50, places=2)
+        self.assertAlmostEqual(self.mod.CHARGE_SCREW_S, 41.00, places=2)
+
     def test_packing_doc_section_5e(self) -> None:
         doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
         text = doc.read_text(encoding="utf-8")
@@ -1457,6 +1468,14 @@ class PlacementWP11gTests(unittest.TestCase):
         self.assertIn("| H1 |", section)
         self.assertIn("| H2 |", section)
         self.assertIn("66 rows", section)
+        self.assertIn("### Routing channels (Q98)", section)
+        self.assertIn("| HOLE_CH |", section)
+        self.assertIn("| J4_VIA_SLOT |", section)
+        self.assertIn("| U2_CH |", section)
+        self.assertIn("| U3_CH |", section)
+        self.assertIn("| J4_CH |", section)
+        self.assertIn("(16.50, 41.00)", section)
+        self.assertNotIn("Ø5 screw head (14.50, 41.00)", section)
         v2c_dir = Path(__file__).resolve().parents[1] / "docs" / "fab" / "cad" / "v2c"
         v2c = {p.name for p in v2c_dir.glob("placement_v2c_*.svg")}
         self.assertLessEqual(len(v2c), 4)

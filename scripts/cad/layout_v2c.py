@@ -36,8 +36,10 @@ CHARGE_SCREW_HEAD_R = 2.50  # ISO 7380 head ~Ø5 well
 # Shell V2_CHARGE_pads: nylon between pads ≥ 3.0, edge-to-edge to REF/screw ≥ 2.0.
 CHARGE_NYLON = 3.0
 CHARGE_CLEAR = 2.0
-CHARGE_SCREW_U = 14.50
+CHARGE_SCREW_U = 16.50  # WP14f: well moved from 14.50 to clear the REF pocket
 CHARGE_SCREW_S = 41.00
+CHARGE_SCREW_LEN = "M2.5×8"
+CHARGE_TAIL_BOSS_OD = 9.94
 CHARGE_STANDOFF = 3.0  # interface II winner; underside = FLOOR_Y + TAB_T + this
 CHARGE_WALL_AROUND = 1.5  # remaining wall around each through-wall seat (Q93)
 CHARGE_HOLE_D = 2.7
@@ -56,6 +58,25 @@ J3_BREAK_NECK = 2.5  # Q91: break-off tab neck, cut before closing
 J3_ASSEMBLY_STEP = (
     "Remove the J3 break-off tab after programming and before closing the shell"
 )
+# Q98: routing channels as packing constraints (WP12h named the millimetres).
+DEFAULT_TRACK_W = 0.10
+DEFAULT_CLEAR = 0.10
+CONTACT_TRACK_W = 0.15
+CONTACT_CLEAR = 0.20
+VIA_PAD_D = 0.55  # board Default via 0.55/0.30
+Q98_TRACKS = 3
+Q98_GAP_WAS = 1.20  # keep-to-keep on pin table v2.1 (H1 13.45, H2 17.95, keep 3.30)
+Q98_GAP_EXTRA = 0.12  # three Default tracks need 0.12 more than that gap
+Q98_GAP_MARGIN = 0.10
+Q98_CHANNEL = 0.6  # free on both sides around U2, U3, J4
+SIG2_RUN_U = 13.50  # locked SIG2 Contact run (route.md §12)
+SIG2_RUN_S = (19.50, 28.20)
+Q98_HOLE_S = 17.70
+Q98_H2_U = 17.95  # do not move H2 east: east neck is already 0.15 to the outline
+EAST_0402_ROW = frozenset(
+    {"R13", "R14", "R15", "R16", "R22", "R23", "R24", "R25", "R26"}
+)
+Q98_STACK_SKIP = frozenset({("U2", "SW1"), ("SW1", "U2")})
 NOREC_SKIP_REFS = frozenset({"J1", "U5", "R9", "R10"})
 CAVITY_EXTERIOR_REFS = frozenset({"J3"})  # break-off tab of the flat pattern
 # WP12d pin table: these five sit inward so copper-to-edge is ≥ 0.30.
@@ -836,10 +857,12 @@ def find_hole_sites(
     y1: float,
     prefer: tuple[float, float, float, float] | None = None,
     step: float = 0.5,
+    min_sep: float | None = None,
 ) -> list[tuple[float, float]]:
     """Q82: two Ø2.7 holes (keep 3.30) where courtyards allow. Prefer not leftover."""
     bu0, bu1, bs0, bs1 = island
     ku = v2.BOSS_HOLE_KEEP
+    sep = ku + 1.0 if min_sep is None else min_sep
     found: list[tuple[float, float]] = []
 
     def try_region(r: tuple[float, float, float, float]) -> None:
@@ -855,7 +878,7 @@ def find_hole_sites(
                 if any(str(other.name) == "U1" and v2._overlap(cand, other, 0.0) for other in occupied):
                     ss += step
                     continue
-                if all(math.hypot(uu - hu, ss - hs) >= ku + 1.0 for hu, hs in found):
+                if all(math.hypot(uu - hu, ss - hs) >= sep for hu, hs in found):
                     found.append((uu, ss))
                 ss += step
             uu += step
@@ -864,6 +887,253 @@ def find_hole_sites(
         try_region(prefer)
     try_region(island)
     return found
+
+
+def q98_three_track_need() -> float:
+    """n Default tracks between two keep-outs: n×width + (n+1)×clearance."""
+    return Q98_TRACKS * DEFAULT_TRACK_W + (Q98_TRACKS + 1) * DEFAULT_CLEAR
+
+
+def q98_hole_gap_need() -> float:
+    """Keep-to-keep gap: 0.12 more than the 1.20 mm WP12h gap, plus margin."""
+    return Q98_GAP_WAS + Q98_GAP_EXTRA + Q98_GAP_MARGIN
+
+
+def q98_via_slot_need() -> float:
+    """Via pad plus Default clearance on both sides."""
+    return VIA_PAD_D + 2.0 * DEFAULT_CLEAR
+
+
+def hole_keep_gap(sites: tuple[tuple[float, float], ...] | list[tuple[float, float]], keep: float) -> float:
+    if len(sites) < 2:
+        return 0.0
+    (u0, s0), (u1, s1) = sites[0], sites[1]
+    c2c = math.hypot(u1 - u0, s1 - s0)
+    return c2c - keep
+
+
+def pin_q98_hole_sites(
+    v2: Any,
+    leftover: tuple[float, float, float, float],
+    occupied: list[Any],
+    *,
+    y0: float,
+    y1: float,
+) -> list[tuple[float, float]]:
+    """H1 west of H2 so the keep-out gap takes three Default tracks (Q98). H2 stays put."""
+    ku = v2.BOSS_HOLE_KEEP
+    gap = q98_hole_gap_need()
+    c2c = ku + gap
+    s = Q98_HOLE_S
+    skip = ("RING_", "FLAT", "Q97", "TABROOT")
+    blockers = [b for b in occupied if not str(b.name).startswith(skip)]
+    u2 = min(Q98_H2_U, leftover[1] - ku / 2.0)
+    u1 = u2 - c2c
+    if u1 - ku / 2.0 < leftover[0] - 1e-9:
+        u1 = leftover[0] + ku / 2.0
+        u2 = u1 + c2c
+
+    def clear(uu: float) -> bool:
+        if uu - ku / 2.0 < leftover[0] - 1e-9 or uu + ku / 2.0 > leftover[1] + 1e-9:
+            return False
+        cand = v2.Box("HOLE", uu, s, ku, ku, y0, y1, "floor")
+        return not any(v2._overlap(cand, other, 0.0) for other in blockers)
+
+    if not clear(u1) or not clear(u2):
+        for du in (i * 0.05 for i in range(0, 40)):
+            a = u1 - du
+            b = a + c2c
+            if clear(a) and clear(b):
+                u1, u2 = a, b
+                break
+            a = u1 + du
+            b = a + c2c
+            if clear(a) and clear(b):
+                u1, u2 = a, b
+                break
+        else:
+            return []
+    return [(u1, s), (u2, s)]
+
+
+def hole_channel_box(
+    v2: Any, sites: list[tuple[float, float]] | tuple[tuple[float, float], ...]
+) -> tuple[float, float, float, float] | None:
+    if len(sites) < 2:
+        return None
+    keep = v2.BOSS_HOLE_KEEP if v2 is not None else 3.30
+    k = keep / 2.0
+    (u0, s0), (u1, s1) = sites[0], sites[1]
+    if u1 < u0:
+        u0, s0, u1, s1 = u1, s1, u0, s0
+    return (u0 + k, min(s0, s1) - k, u1 - k, max(s0, s1) + k)
+
+
+def j4_via_slot(j4: Any) -> tuple[float, float, float, float]:
+    """Empty via bay beside J4, east of the SIG2 run (the west face of J4)."""
+    u0 = SIG2_RUN_U + CONTACT_TRACK_W / 2.0 + CONTACT_CLEAR
+    u1 = j4.u - j4.wu / 2.0
+    s0 = max(SIG2_RUN_S[0], j4.s - j4.ws / 2.0)
+    s1 = min(SIG2_RUN_S[1], j4.s + j4.ws / 2.0)
+    return (u0, s0, u1, s1)
+
+
+def _aabb_channel_gap(
+    au: float, as_: float, awu: float, aws: float,
+    bu: float, bs: float, bwu: float, bws: float,
+) -> float:
+    du = abs(au - bu) - (awu + bwu) / 2.0
+    ds = abs(as_ - bs) - (aws + bws) / 2.0
+    if du < 0.0 and ds < 0.0:
+        return min(du, ds)
+    if du < 0.0:
+        return ds
+    if ds < 0.0:
+        return du
+    return math.hypot(du, ds)
+
+
+def _xy_boxes_overlap(
+    u0: float, s0: float, u1: float, s1: float,
+    cu: float, cs: float, wu: float, ws: float,
+) -> bool:
+    a0, a1 = cu - wu / 2.0, cu + wu / 2.0
+    b0, b1 = cs - ws / 2.0, cs + ws / 2.0
+    return a0 < u1 - 1e-9 and a1 > u0 + 1e-9 and b0 < s1 - 1e-9 and b1 > s0 + 1e-9
+
+
+def q98_channel_boxes(v2: Any, lay: LayoutV2c) -> list[tuple[str, float, float, float, float, str]]:
+    """Keep-out list for the board: (name, u0, s0, u1, s1, note)."""
+    out: list[tuple[str, float, float, float, float, str]] = []
+    hole_box = hole_channel_box(v2, lay.hole_sites)
+    if hole_box is not None:
+        u0, s0, u1, s1 = hole_box
+        out.append(
+            (
+                "HOLE_CH",
+                u0, s0, u1, s1,
+                f"three Default tracks between H1/H2 keep-outs; gap {u1 - u0:.2f} mm "
+                f"(need {q98_hole_gap_need():.2f}; {Q98_TRACKS}×{DEFAULT_TRACK_W:.2f}+"
+                f"{Q98_TRACKS + 1}×{DEFAULT_CLEAR:.2f}={q98_three_track_need():.2f})",
+            )
+        )
+    by = {p.ref: p for p in lay.parts}
+    extra = Q98_CHANNEL
+    for ref, note in (
+        ("U2", "0.6 mm around U2 (B.Cu escape)"),
+        ("U3", "0.6 mm around U3 (F.Cu escape)"),
+        ("J4", "0.6 mm around J4, both sides"),
+    ):
+        p = by.get(ref)
+        if p is None:
+            continue
+        out.append(
+            (
+                f"{ref}_CH",
+                p.u - p.wu / 2.0 - extra,
+                p.s - p.ws / 2.0 - extra,
+                p.u + p.wu / 2.0 + extra,
+                p.s + p.ws / 2.0 + extra,
+                note,
+            )
+        )
+    j4 = by.get("J4")
+    if j4 is not None:
+        u0, s0, u1, s1 = j4_via_slot(j4)
+        out.append(
+            (
+                "J4_VIA_SLOT",
+                u0, s0, u1, s1,
+                "via slot beside J4, east of the SIG2 run at u 13.50 (west face of J4); "
+                f"width {u1 - u0:.2f} mm, need {q98_via_slot_need():.2f}",
+            )
+        )
+        out.append(
+            (
+                "J4_APPROACH_EAST",
+                j4.u + j4.wu / 2.0,
+                j4.s - j4.ws / 2.0 - extra,
+                j4.u + j4.wu / 2.0 + 2.50,
+                j4.s + j4.ws / 2.0 + extra,
+                "east 0402 row stays out of the J4 approach (R16 and neighbours)",
+            )
+        )
+    return out
+
+
+def q98_hits(v2: Any, lay: LayoutV2c) -> list[str]:
+    """Courtyards inside a Q98 channel, a thin hole gap, or the J4 via slot."""
+    hits: list[str] = []
+    by = {p.ref: p for p in lay.parts}
+    keep = v2.BOSS_HOLE_KEEP
+    gap = hole_keep_gap(lay.hole_sites, keep)
+    if len(lay.hole_sites) < 2:
+        hits.append("H1/H2 missing")
+    elif gap + 1e-9 < q98_hole_gap_need():
+        hits.append(f"H1/H2 keep-out gap {gap:.3f} < {q98_hole_gap_need():.2f}")
+    elif gap + 1e-9 < q98_three_track_need():
+        hits.append(f"H1/H2 keep-out gap {gap:.3f} < three Default tracks {q98_three_track_need():.2f}")
+    j4 = by.get("J4")
+    if j4 is None:
+        hits.append("J4 missing")
+    else:
+        u0, s0, u1, s1 = j4_via_slot(j4)
+        width = u1 - u0
+        if width + 1e-9 < q98_via_slot_need():
+            hits.append(f"J4 via slot {width:.3f} < {q98_via_slot_need():.2f}")
+        keep_r = j4_npth_keep_r()
+        for p in lay.parts:
+            if p.ref == "J4" or p.face in {"floor", "wall", "hook"}:
+                continue
+            small = p.wu <= 2.0 and p.ws <= 2.0
+            if p.ref in EAST_0402_ROW or (small and p.face == "bottom"):
+                if _xy_boxes_overlap(u0, s0, u1, s1, p.u, p.s, p.wu, p.ws):
+                    hits.append(f"{p.ref} in J4_VIA_SLOT")
+                east0 = j4.u + j4.wu / 2.0
+                if _xy_boxes_overlap(
+                    east0,
+                    j4.s - j4.ws / 2.0 - Q98_CHANNEL,
+                    east0 + 2.50,
+                    j4.s + j4.ws / 2.0 + Q98_CHANNEL,
+                    p.u, p.s, p.wu, p.ws,
+                ):
+                    hits.append(f"{p.ref} in J4_APPROACH_EAST")
+            if p.face == "bottom" and _pad_hits_j4_npth(
+                v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, lay.j4_npth, keep_r
+            ):
+                hits.append(f"{p.ref} on a J4 hole")
+        for p in lay.parts:
+            if p.ref in {"J4", "U1"} or p.face != "top":
+                continue
+            g = _aabb_channel_gap(j4.u, j4.s, j4.wu, j4.ws, p.u, p.s, p.wu, p.ws)
+            if g + 1e-9 < Q98_CHANNEL:
+                hits.append(f"{p.ref} {g:.3f} mm from J4 (need {Q98_CHANNEL:.1f})")
+    for ref in ("U2", "U3"):
+        p = by.get(ref)
+        if p is None:
+            hits.append(f"{ref} missing")
+            continue
+        for other in lay.parts:
+            if other.ref == ref or other.face in {"floor", "wall", "hook"}:
+                continue
+            if (ref, other.ref) in Q98_STACK_SKIP:
+                continue
+            if ref == "U2" and other.face != "bottom":
+                continue
+            if ref == "U3" and other.face != "top":
+                continue
+            g = _aabb_channel_gap(p.u, p.s, p.wu, p.ws, other.u, other.s, other.wu, other.ws)
+            if g + 1e-9 < Q98_CHANNEL:
+                hits.append(f"{other.ref} {g:.3f} mm from {ref} (need {Q98_CHANNEL:.1f})")
+    hole_box = hole_channel_box(v2, lay.hole_sites)
+    if hole_box is not None:
+        u0, s0, u1, s1 = hole_box
+        for p in lay.parts:
+            if p.ref in {"P1", "P2", "P3", "P4", "P5"} or p.face in {"floor", "wall", "hook"}:
+                continue
+            if _xy_boxes_overlap(u0, s0, u1, s1, p.u, p.s, p.wu, p.ws):
+                hits.append(f"{p.ref} in HOLE_CH")
+    return hits
 
 
 def _nudge_one(
@@ -1088,7 +1358,6 @@ def _nudge_off_j4_npth(
     """Smallest move off the real J4 holes from pin table v2 (Q87)."""
     if not holes:
         return
-    _restore_pin_table_v2_j4_cluster(v2, parts, occupied)
     keep_r = j4_npth_keep_r()
     need = v2.COPPER_TO_EDGE
     by = {p.ref: i for i, p in enumerate(parts)}
@@ -1288,12 +1557,12 @@ def search_layout_v2c(
     copper_island = island if edge == "process" else None
     copper_pocket = pocket if edge == "process" else None
 
-    def try_top(ref: str, regions: list, near=None, notes="", step: float = 0.4) -> bool:
+    def try_top(ref: str, regions: list, near=None, notes="", step: float = 0.4, margin: float = 0.10) -> bool:
         row = table[ref]
         h = _height(row)
         found = _v2c_find(
             v2, ref, sizes_for(ref), h, y_top, "top", regions, occupied, near=near,
-            step=step,
+            step=step, margin=margin,
             pad=(row["pad_w"], row["pad_h"]), island=copper_island, pocket=copper_pocket,
         )
         if found is None:
@@ -1302,7 +1571,7 @@ def search_layout_v2c(
         add(v2._make_part(ref, table, placed.u, placed.s, rot, "top", notes), y_top, h)
         return True
 
-    def try_bottom(ref: str, notes="", step: float = 0.4) -> bool:
+    def try_bottom(ref: str, notes="", step: float = 0.4, margin: float = 0.10, regions=None) -> bool:
         if not two_sides:
             return False
         row = table[ref]
@@ -1311,7 +1580,8 @@ def search_layout_v2c(
             return False
         y0 = y_und - h
         found = _v2c_find(
-            v2, ref, sizes_for(ref), h, y0, "bottom", [bot_region], occupied, step=step,
+            v2, ref, sizes_for(ref), h, y0, "bottom", regions or [bot_region], occupied, step=step,
+            margin=margin,
             pad=(row["pad_w"], row["pad_h"]), island=copper_island, pocket=copper_pocket,
         )
         if found is None:
@@ -1377,25 +1647,98 @@ def search_layout_v2c(
     prefer = leftover_i if not sw1_on_left else side_i
     if prefer[1] - prefer[0] <= v2.BOSS_HOLE_KEEP or prefer[3] - prefer[2] <= v2.BOSS_HOLE_KEEP:
         prefer = side_i if not sw1_on_left else leftover_i
-    hole_sites = find_hole_sites(
-        v2, island, hole_blockers, y0=y_air0, y1=y_top + 8.0, prefer=prefer
-    )
+    if not receptacle:
+        hole_sites = pin_q98_hole_sites(
+            v2, leftover, hole_blockers, y0=y_air0, y1=y_top + 8.0
+        )
+        if len(hole_sites) < 2:
+            hole_sites = find_hole_sites(
+                v2, island, hole_blockers, y0=y_air0, y1=y_top + 8.0, prefer=prefer,
+                min_sep=v2.BOSS_HOLE_KEEP + q98_hole_gap_need(),
+            )
+    else:
+        hole_sites = find_hole_sites(
+            v2, island, hole_blockers, y0=y_air0, y1=y_top + 8.0, prefer=prefer
+        )
     for i, (hu, hs) in enumerate(hole_sites, 1):
         occupied.append(
             v2.Box(f"HOLE_M{i}", hu, hs, v2.BOSS_HOLE_KEEP, v2.BOSS_HOLE_KEEP, y_air0, y_top + 8.0, "floor")
         )
+    if not receptacle:
+        hole_ch = hole_channel_box(v2, hole_sites)
+        if hole_ch is not None:
+            cu0, cs0, cu1, cs1 = hole_ch
+            occupied.append(
+                v2.Box(
+                    "HOLE_CH",
+                    (cu0 + cu1) / 2.0,
+                    (cs0 + cs1) / 2.0,
+                    max(0.2, cu1 - cu0),
+                    max(0.2, cs1 - cs0),
+                    -1.0,
+                    20.0,
+                    "floor",
+                )
+            )
 
     j4_npth: tuple[tuple[float, float], ...] = ()
     j4_note = (
-        "TC2030 leftover; NPTH keep-out both sides (Q85)"
+        "TC2030 leftover; via slot west of J4; NPTH keep-out both sides (Q85, Q98)"
         if not receptacle
         else "TC2030 leftover; keep-out is a board no-part zone"
     )
-    if try_top("J4", [leftover_i, side_i], near=(bu1 - 3.5, (leftover[2] + leftover[3]) / 2.0), notes=j4_note):
+    j4_near = (bu1 - 3.5, (leftover[2] + leftover[3]) / 2.0)
+    j4_margin = 0.10
+    if not receptacle:
+        u1p = next((p for p in parts if p.ref == "U1"), None)
+        j4_wu = table["J4"]["cr_h"]  # rot 90: 4.00 × 7.00
+        u_lo = (u1p.u + u1p.wu / 2.0 + Q98_CHANNEL + j4_wu / 2.0) if u1p is not None else 16.80
+        via_u0 = SIG2_RUN_U + CONTACT_TRACK_W / 2.0 + CONTACT_CLEAR
+        u_lo = max(u_lo, via_u0 + q98_via_slot_need() + j4_wu / 2.0)
+        j4_near = (u_lo, 24.60)
+        j4_margin = Q98_CHANNEL
+    if try_top(
+        "J4",
+        [side_i, leftover_i],
+        near=j4_near,
+        notes=j4_note,
+        step=0.2 if not receptacle else 0.4,
+        margin=j4_margin,
+    ):
         j4p = next(p for p in parts if p.ref == "J4")
-        occupied.append(v2.Box("J4_keepout", j4p.u, j4p.s, j4p.wu + 1.0, j4p.ws + 1.0, y_top, y_top + 8.0, "top"))
+        ch = 2.0 * Q98_CHANNEL
+        occupied.append(
+            v2.Box("J4_CH", j4p.u, j4p.s, j4p.wu + ch, j4p.ws + ch, y_top, y_top + 8.0, "top")
+        )
         j4_npth = j4_npth_world(j4p.u, j4p.s, j4p.rot)
         if not receptacle:
+            su0, ss0, su1, ss1 = j4_via_slot(j4p)
+            if su1 > su0 and ss1 > ss0:
+                occupied.append(
+                    v2.Box(
+                        "J4_VIA_SLOT",
+                        (su0 + su1) / 2.0,
+                        (ss0 + ss1) / 2.0,
+                        su1 - su0,
+                        ss1 - ss0,
+                        -1.0,
+                        20.0,
+                        "top",
+                    )
+                )
+            east0 = j4p.u + j4p.wu / 2.0
+            occupied.append(
+                v2.Box(
+                    "J4_APPROACH_EAST",
+                    east0 + 1.25,
+                    j4p.s,
+                    2.50,
+                    j4p.ws + 2.0 * Q98_CHANNEL,
+                    -1.0,
+                    20.0,
+                    "top",
+                )
+            )
             keep = j4_npth_keep()
             for i, (hu, hs) in enumerate(j4_npth, 1):
                 occupied.append(v2.Box(f"J4_NPTH{i}", hu, hs, keep, keep, -1.0, 20.0, "top"))
@@ -1465,10 +1808,38 @@ def search_layout_v2c(
                     add(v2._make_part("U2", table, u, s, 0.0, "bottom", "ADS1292 under SW1, second side"), y0, h)
                     second_side.append("U2")
                     u2_pinned = True
+                    occupied.append(
+                        v2.Box(
+                            "U2_CH",
+                            u,
+                            s,
+                            wu + 2.0 * Q98_CHANNEL,
+                            ws + 2.0 * Q98_CHANNEL,
+                            y_air0,
+                            y_und,
+                            "bottom",
+                        )
+                    )
         if not u2_pinned:
-            if not try_top("U2", [pocket_i, leftover_i, side_i], notes="ADS1292"):
-                if not try_bottom("U2", "ADS1292"):
+            if not try_top("U2", [pocket_i, leftover_i, side_i], notes="ADS1292", margin=Q98_CHANNEL if not receptacle else 0.10):
+                if not try_bottom("U2", "ADS1292", margin=Q98_CHANNEL if not receptacle else 0.10):
                     missing.append("U2")
+            u2p = next((p for p in parts if p.ref == "U2"), None)
+            if u2p is not None and not receptacle:
+                y0 = y_und - _height(table["U2"]) if u2p.face == "bottom" else y_top
+                y1 = y_und if u2p.face == "bottom" else y_top + _height(table["U2"])
+                occupied.append(
+                    v2.Box(
+                        "U2_CH",
+                        u2p.u,
+                        u2p.s,
+                        u2p.wu + 2.0 * Q98_CHANNEL,
+                        u2p.ws + 2.0 * Q98_CHANNEL,
+                        y0,
+                        y1,
+                        u2p.face,
+                    )
+                )
 
     named = [
         ("U3", "BQ25100"),
@@ -1485,6 +1856,26 @@ def search_layout_v2c(
         named.append((q, "SOT-23"))
     for ref, note in named:
         if ref in {p.ref for p in parts}:
+            continue
+        if ref == "U3" and not receptacle:
+            if try_top(ref, top_regions, notes=note, margin=Q98_CHANNEL, step=0.2):
+                u3p = next(p for p in parts if p.ref == "U3")
+                occupied.append(
+                    v2.Box(
+                        "U3_CH",
+                        u3p.u,
+                        u3p.s,
+                        u3p.wu + 2.0 * Q98_CHANNEL,
+                        u3p.ws + 2.0 * Q98_CHANNEL,
+                        y_top,
+                        y_top + _height(table["U3"]),
+                        "top",
+                    )
+                )
+                continue
+            if try_bottom(ref, note, margin=Q98_CHANNEL, step=0.2):
+                continue
+            missing.append(ref)
             continue
         if ref == "J3":
             j3_note = (
@@ -1517,18 +1908,19 @@ def search_layout_v2c(
 
     rest = [r for r in table if r not in {p.ref for p in parts} and r[0] in "CR" and r not in skip_refs]
     rest.sort(key=lambda r: (r[0], int("".join(ch for ch in r if ch.isdigit()) or "0")))
+    bot_regions = [bot_region, pocket_i] if (not receptacle and two_sides) else [bot_region]
     for ref in rest:
         if not try_top(ref, top_regions, notes="passive"):
-            if not try_bottom(ref, "passive, second side"):
+            if not try_bottom(ref, "passive, second side", step=0.2, regions=bot_regions):
                 missing.append(ref)
 
     still = list(missing)
     for ref in still:
         if ref in {"U1", "J1", "P1", "P2", "P3"} or ref in skip_refs:
             continue
-        if try_top(ref, top_regions, notes="last-chance top", step=0.2):
+        if try_top(ref, top_regions, notes="last-chance top", step=0.1):
             missing.remove(ref)
-        elif try_bottom(ref, "last-chance second side", step=0.2):
+        elif try_bottom(ref, "last-chance second side", step=0.1, regions=bot_regions):
             missing.remove(ref)
 
     if edge == "process":
@@ -1783,7 +2175,7 @@ def search_layout_v2c(
                 sw1_on_hole = True
     rules.append(
         (
-            "two Ø2.7 island holes where courtyards allow, keep 3.30 (Q82)",
+            "two Ø2.7 island holes where courtyards allow, keep 3.30 (Q82, Q98)",
             hole_ok and not sw1_on_hole,
             (
                 "; ".join(f"({hu:.2f}, {hs:.2f})" for hu, hs in hole_sites)
@@ -1840,6 +2232,7 @@ def search_layout_v2c(
         placed=0, missing=[], second_side=[], first_blocking="", parts=parts,
         sig1_strip=float(fold_nums["SIG1_strip"]), sig2_strip=float(fold_nums["SIG2_strip"]),
         j4_npth=j4_npth, receptacle=receptacle,
+        hole_sites=tuple(hole_sites),
         j3_cut_u=(bu1 + J3_BREAK_NECK) if by_ref.get("J3") is not None else 0.0,
         j3_neck_s=(by_ref["J3"].s if "J3" in by_ref else 0.0),
     )
@@ -1875,6 +2268,19 @@ def search_layout_v2c(
                 "Q97 7 × 7 zones empty of other courtyards",
                 not z_hits,
                 "no other courtyard in a land 7×7" if not z_hits else "; ".join(z_hits[:8]),
+            )
+        )
+        q_hits = q98_hits(v2, scratch)
+        rules.append(
+            (
+                "Q98 routing channels: H1/H2 gap, J4 via slot, 0.6 mm around U2/U3/J4",
+                not q_hits,
+                (
+                    f"H1/H2 keep-out gap {hole_keep_gap(hole_sites, v2.BOSS_HOLE_KEEP):.2f} mm; "
+                    "via slot west of J4; 0.6 mm around U2, U3 and J4; east 0402 row clear"
+                    if not q_hits
+                    else "; ".join(q_hits[:8])
+                ),
             )
         )
     placed_bom = sum(1 for p in parts if p.ref in required)
@@ -2191,7 +2597,7 @@ def section_5c(v2: Any) -> list[str]:
             "Q81 is settled: the build carries this cell. J1 and U5 are absent. "
             "P4 and P5 are clamped button-heads in the posterior side wall with RING_PAD_D5_H2.7 courtyards. "
             "Every rule this table is checked against is met, including copper-to-edge ≥ 0.30. "
-            f"Hole sites (Q82, keep 3.30, not under U1; SW1 stays in the lid recess): {holes}. "
+            f"Hole sites (Q82, Q98, keep 3.30, not under U1; SW1 stays in the lid recess): {holes}. "
             f"Neck-end strips (Q83): SIG1 {norec.sig1_strip:.2f} mm, SIG2 {norec.sig2_strip:.2f} mm. "
             "Contact variant A: R1–R3 on the island. Contact sites are unchanged. "
             "The board lane pins this table within 0.1 mm"
@@ -2260,7 +2666,7 @@ def section_5e(v2: Any, rows: list[LayoutV2c]) -> list[str]:
     """WP11g: flat pattern v3, pin table v3, posterior-wall P4/P5, J2 inside, J3 break-off."""
     lines: list[str] = []
     lay = smallest_full(rows, "process", receptacle=False)
-    lines.append("## 5e. Flat pattern v3 and pin table v3 (WP11g, Q90–Q95, Q97)")
+    lines.append("## 5e. Flat pattern v3 and pin table v3 (WP11g, Q90–Q95, Q97, Q98)")
     lines.append("")
     if lay is None:
         lines.append(
@@ -2405,7 +2811,8 @@ def section_5e(v2: Any, rows: list[LayoutV2c]) -> list[str]:
     lines.append(
         f"{n_rows} rows (64 parts including P4/P5, plus H1 and H2). R9 and R10 are DNP without "
         "the receptacle (Q95); they return with the USB-C variant (Q81). Side column as in §5c. "
-        "Pad-to-outline ≥ 0.30. Holes at the Q82 sites, keep 3.30. SW1 in the lid recess. "
+        "Pad-to-outline ≥ 0.30. Holes at the Q82/Q98 sites, keep 3.30; the keep-out gap "
+        "takes three Default tracks. SW1 in the lid recess. "
         "Contact variant A. P1, P2, P4 and P5 are the FLAT ring centres (not the folded sites). "
         "P4 and P5 keep RING_PAD_D5_H2.7 courtyards. Second-side height ≤ "
         f"{lay.under_clear_mm:.2f} mm. Q97: no other courtyard inside a land 7 × 7 zone"
@@ -2461,6 +2868,9 @@ def section_5e(v2: Any, rows: list[LayoutV2c]) -> list[str]:
         f"height {CHARGE_RIB_H:.2f} mm: unused; leave it. "
         f"Drop channel at leftover s={bs0:.2f}: unused; leave it. "
         "REF_end_wall_slot is unchanged. "
+        f"Medial M2.5 well (WP14f): head at ({CHARGE_SCREW_U:.2f}, {CHARGE_SCREW_S:.2f}), "
+        f"screw {CHARGE_SCREW_LEN}, tail boss OD {CHARGE_TAIL_BOSS_OD:.2f} mm "
+        "(moved from 14.50, 41.00 to clear the REF pocket). "
         f"J3 break-off cut at u = {lay.j3_cut_u:.2f}. {J3_ASSEMBLY_STEP}."
     )
     lines.append("")
@@ -2474,8 +2884,7 @@ def section_5e(v2: Any, rows: list[LayoutV2c]) -> list[str]:
         f"{len(_pads)} NPTH, drill {drill:.4f} mm. "
         f"`elicio-v2.kicad_pro` min_hole_clearance {clr:.2f} mm. "
         f"Keep-out diameter = drill + 2 × clearance = {keep:.2f} mm. "
-        "KiCad canvas Y increases down; at the pinned (16.25, 24.60) rot 90 the map is "
-        "(u + py, s − px). "
+        "KiCad canvas Y increases down; at rot 90 the map is (u + py, s − px). "
         "No B.Cu pad may enter that zone. Same-face courtyard keep-out on F.Cu stands."
     )
     lines.append("")
@@ -2486,6 +2895,29 @@ def section_5e(v2: Any, rows: list[LayoutV2c]) -> list[str]:
             lines.append(
                 f"| J4-NPTH{i} | {hu:.3f} | {hs:.3f} | {drill:.4f} | {keep:.2f} | F.Cu and B.Cu |"
             )
+    lines.append("")
+    lines.append("### Routing channels (Q98)")
+    lines.append("")
+    gap = hole_keep_gap(lay.hole_sites, v2.BOSS_HOLE_KEEP)
+    lines.append(
+        "WP12h could not close 63 rats on the island and named the millimetres in "
+        "route.md §12. Those channels are packing constraints. Default track 0.10 + "
+        f"2 × 0.10 clearance = 0.30 mm per track; three tracks between keep-outs need "
+        f"{q98_three_track_need():.2f} mm. The H1/H2 keep-out gap was 1.20 mm; it is now "
+        f"{gap:.2f} mm (0.12 more plus {Q98_GAP_MARGIN:.2f} mm margin). The shell's bosses "
+        "follow H1/H2. The J4 via slot sits beside J4 on the west face, east of the locked "
+        "SIG2 run at u 13.50 (west of that run is U1 copper). The east 0402 row (R16 and "
+        "neighbours) stays out of that approach and out of the J4 holes. A 0.6 mm channel "
+        "stays free on both sides around U2, U3 and J4 (U2/SW1 may share XY on opposite "
+        "faces). The board tests this table."
+    )
+    lines.append("")
+    lines.append("| name | u_min | s_min | u_max | s_max | note |")
+    lines.append("|---|---:|---:|---:|---:|---|")
+    for name, u0, s0, u1, s1, note in q98_channel_boxes(v2, lay):
+        lines.append(
+            f"| {name} | {u0:.3f} | {s0:.3f} | {u1:.3f} | {s1:.3f} | {note} |"
+        )
     lines.append("")
     lines.append("")
     return lines
@@ -2512,7 +2944,7 @@ def _pin_table_v2_parts(v2: Any, lay: LayoutV2c):
             0.0,
             v2.BOSS_HOLE_KEEP,
             v2.BOSS_HOLE_KEEP,
-            "Ø2.7 island hole (Q82); keep 3.30; both sides",
+            "Ø2.7 island hole (Q82, Q98); keep 3.30; both sides; shell bosses follow",
         )
 
 
@@ -2671,6 +3103,10 @@ def _svg_for(lay: LayoutV2c) -> str:
         )
     for hu, hs in lay.hole_sites:
         parts.append(rect(hu, hs, 3.30, 3.30, "#f7f4ef", "#b33"))
+    if not lay.receptacle:
+        for name, u0, s0, u1, s1, _note in q98_channel_boxes(None, lay):
+            cu, cs = (u0 + u1) / 2.0, (s0 + s1) / 2.0
+            parts.append(rect(cu, cs, max(0.2, u1 - u0), max(0.2, s1 - s0), "none", "#2a6f97"))
     for i, (hu, hs) in enumerate(lay.j4_npth, 1):
         parts.append(rect(hu, hs, j4_npth_keep(), j4_npth_keep(), "none", "#b33"))
     if lay.j3_cut_u > 0.0 and "J3" in by:
