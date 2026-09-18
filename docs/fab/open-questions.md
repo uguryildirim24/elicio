@@ -167,6 +167,10 @@ WP11e's fourth pass (`408a476`) gave P4/P5 flat centres (37.47, 2.80) and (30.05
 
 WP11f (`e4b857c` on `lane/w3`) reads J4's three NPTH from the KiCad footprint (pair at s 22.06, single at 27.14) and publishes pin table v2.1: R23 (18.32, 21.10), R24 (18.49, 22.57) rot 90, R26 (14.21, 21.63); the board's own R24 move (+0.47 u at rot 0) differs by 0.32 mm and the reviewer reconciles under Q87. WP12f (`fbd56e6` on `lane/w2`) reached zero-track DRC 0, proved the DSN carries the §12 flex classes (Default 0.10/0.10, Contact 0.15/0.20, via 0.70/0.30), locked seven strip and charge-tab stubs, and ran Freerouting to 54.8 % fanout and 444 tracks on a copy (12 DRC, 60 unconnected, 0 shorts); it stopped un-routed because Q84's `tabs` area at the strip roots leaves no legal path onto the island (Q88). Round 7 closes here for review; WP12g (w2) routes under Q88 as round 8's first package, on top of `fbd56e6`, while review r7 merges `lane/w2` at that sha.
 
+## Round 8 (in progress, review r7 running in parallel)
+
+WP12g (`8348e62` on `lane/w2`, on top of `fbd56e6`): Q88 applied as three 7 × 7 lands around P1–P3 and two around P4–P5, strips at the class clearance with a foreign-net keep-out; R24 at pin table v2.1's (18.49, 22.57) rot 90 is copper-clean, so the Q87 deviation closes; Contact routes ring → strip → R1–R3 locked; Freerouting with via 0.55/0.30 and 20 passes; the owned PCB has 421 tracks, 33 vias, DRC 0 errors, 0 shorts and 63 unconnected (U2's QFN escapes, J4 SWD, VBUS P4 → island, J3's Contact pads, stitches); a GND pour attempt shorted SIG1/SIG2 and was discarded; `routed: false`, truthful commit. No new decision: WP12h hand-routes the rest rat by rat on that copper and names any pad that cannot be routed with its geometry, so a packing move, if one is needed, rests on facts.
+
 ## For Rolf
 
 Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
