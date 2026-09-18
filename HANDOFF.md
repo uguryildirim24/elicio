@@ -108,9 +108,12 @@ brief in full and do it", nothing owed from me until their pushes.
   tab route stays inside the cavity, so `REF_end_wall_slot` (2.50 wide,
   1.05 through, 0.31 high at u 7.25–9.75, s 38.20–39.25) is published in
   `docs/fab/packing-v2.md` §5 on `lane/w3` for WP14 to cut; the winner
-  is unchanged. Note sent 23:05 to w1 to cut that slot. A second DONE is
-  expected from w3: the 22:58 note adds the Jauch LP501218JH cell as a
-  third packing case.
+  is unchanged. Note sent 23:05 to w1 to cut that slot. Second `DONE
+  WP11b` at `90d6d0a` (Jauch LP501218JH as a third cell: 0 of 72 runs
+  close, packed height 5.9, so no buyable cell closes inside the brief's
+  box). Third turn sent 23:12: extend the search for the two buyable
+  cells to LID_Y 9.5–10.5 and widths 20–22, so Q55 has a price in
+  millimetres; a third DONE is expected.
 - **w2 → WP12b board route** (`tasks/WP12b-board-route.md`), branch
   `lane/w2`. Re-place from packing-v2 §5, sync, route, `release.py
   --routed` exit 0, stiffeners ≤ 3 (Q60), decoupling (Q68), standby load
