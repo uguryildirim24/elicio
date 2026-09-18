@@ -30,7 +30,10 @@ WIDTHS = (18.0, 19.0, 20.0)
 LID_YS = (6.0, 6.5, 7.0, 8.0, 8.5, 9.0)
 ARC_STEPS = (0.0, 1.5, 3.0)
 IFACES = ("I", "II")
-STANDOFFS = (3.0, 3.5)
+STANDOFFS = (3.0, 3.5, 4.0)
+RECESSES = (0.0, 0.5)
+LID_THICK = 1.0  # default.toml; outer = LID_Y + 1.0
+CELL_RECESS = 0.5  # floor pocket under the cell; remaining web 1.0 (C15)
 
 WALL = 1.5
 SIDE_CLEAR = 0.75
@@ -78,8 +81,10 @@ BOARD_AT_TABS = 0.2
 BOARD_RIGID = 1.0  # Interface I: FR4 4-layer, plan v2 §5.2
 FOAM = 0.3
 
-# Interface I landing (turn 07; coordinator note 3). Heights are above the
-# inner floor. Board underside = FLOOR_Y + standoff. Bosses 0.5 lower.
+# Interface I landing (turn 07/09). Heights are above the inner floor.
+# Board underside (rigid) = FLOOR_Y + standoff. Bosses 0.5 lower; the board
+# bends down over them. Cell under the board needs positive nominal
+# clearance and must carry no load after that bend.
 STANDOFF_AF = 5.0  # across flats, M2.5 hex
 STANDOFF_CIRCUMR = 2.9  # coordinator: 5/√3 ≈ 2.887, stated 2.9
 PAD_XY = 8.0
@@ -157,6 +162,7 @@ class V2Spec:
     arc_plus: float = 0.0
     iface: str = "I"
     standoff: float = 3.5
+    recess: float = 0.0
 
     def __post_init__(self) -> None:
         if self.arch not in ARCHES:
@@ -174,7 +180,9 @@ class V2Spec:
         if self.iface not in IFACES:
             raise ValueError(f"iface must be I|II, got {self.iface!r}")
         if self.standoff not in STANDOFFS:
-            raise ValueError(f"standoff must be 3.0|3.5, got {self.standoff!r}")
+            raise ValueError(f"standoff must be 3.0|3.5|4.0, got {self.standoff!r}")
+        if self.recess not in RECESSES:
+            raise ValueError(f"recess must be 0|0.5, got {self.recess!r}")
 
     @property
     def tag(self) -> str:
@@ -182,6 +190,8 @@ class V2Spec:
         y = f"{self.lid_y:g}"
         s = f"{self.standoff:g}"
         base = f"{self.arch}_{self.cell}_{self.layout}_w{w}_y{y}_i{self.iface}_s{s}"
+        if self.recess:
+            base = f"{base}_r{self.recess:g}"
         if self.arc_plus:
             return f"{base}_a{self.arc_plus:g}"
         return base
@@ -259,6 +269,14 @@ class V2Result:
     board_thick: float = BOARD_RIGID
     standoff_top_y: float = 5.0
     boss_top_y: float = 4.5
+    cell_y0: float = FLOOR_Y
+    nominal_clearance: float = 0.0
+    deformed_clearance: float = 0.0
+    floor_web: float = FLOOR_Y
+    stack_over_module: float = 0.0
+    outer_zero: float = 0.0
+    outer_at_lid: float = 0.0
+    module_lid_clearance: float = 0.0
     conflicts: list[str] = field(default_factory=list)
 
     @property
@@ -319,8 +337,49 @@ def body_geom(spec: V2Spec) -> dict[str, Any]:
         "board_thick": board_top - board_underside,
         "standoff_top_y": FLOOR_Y + spec.standoff,
         "boss_top_y": FLOOR_Y + spec.standoff - BOSS_DROP,
+        "cell_y0": FLOOR_Y - spec.recess,
         "total_chord": float(chord),
         "m1_gate": float(chord) + 3.0,
+    }
+
+
+def cell_clearance(spec: V2Spec) -> dict[str, float]:
+    """Nominal and deformed under-board cell clearance (turn 09).
+
+    Nominal: rigid board underside at the standoff top, cell top = packed
+    height above the cell floor (inner floor minus recess).
+    Deformed: board underside at the boss tops (0.5 below the standoff).
+    """
+    pack = CELL[spec.cell]["t"] + FOAM
+    cell_above_inner = pack - spec.recess
+    nominal = spec.standoff - cell_above_inner
+    deformed = spec.standoff - BOSS_DROP - cell_above_inner
+    cell_y0 = FLOOR_Y - spec.recess
+    return {
+        "pack": pack,
+        "cell_y0": cell_y0,
+        "cell_y1": cell_y0 + pack,
+        "floor_web": cell_y0,
+        "cell_above_inner": cell_above_inner,
+        "nominal": nominal,
+        "deformed": deformed,
+    }
+
+
+def module_stack(spec: V2Spec) -> dict[str, float]:
+    """Standoff + board 1.0 + module, then outer height."""
+    h = MODULE[spec.arch]["h"]
+    stack = spec.standoff + BOARD_RIGID + h
+    outer_zero = FLOOR_Y + stack + LID_THICK
+    outer_lid = spec.lid_y + LID_THICK
+    module_top = FLOOR_Y + spec.standoff + BOARD_RIGID + h
+    return {
+        "module_h": h,
+        "stack": stack,
+        "outer_zero": outer_zero,
+        "outer_lid": outer_lid,
+        "module_top": module_top,
+        "module_lid_clearance": spec.lid_y - module_top,
     }
 
 
@@ -421,7 +480,8 @@ def _place_cell(spec: V2Spec, geom: dict[str, Any], module: Box | None) -> Box:
     cell = CELL[spec.cell]
     cu = geom["cavity_u"]
     mid_u = (cu[0] + cu[1]) / 2.0
-    y0, y1 = FLOOR_Y, FLOOR_Y + cell["t"] + FOAM
+    y0 = geom.get("cell_y0", FLOOR_Y - spec.recess)
+    y1 = y0 + cell["t"] + FOAM
     if spec.iface == "I" or spec.layout == "series":
         s0 = geom["cavity_s"][0]
         u = geom["cavity_u"][0] + cell["w"] / 2.0 + 0.3
@@ -911,6 +971,8 @@ def run_spec(spec: V2Spec) -> V2Result:
     passives = _place_0402s(spec, geom, occupied, antenna)
     for p in passives:
         parts[p.name] = p
+    clr = cell_clearance(spec)
+    stk = module_stack(spec)
     result = V2Result(
         spec=spec,
         body_arc=geom["body_arc"],
@@ -933,6 +995,14 @@ def run_spec(spec: V2Spec) -> V2Result:
         board_thick=geom["board_thick"],
         standoff_top_y=geom["standoff_top_y"],
         boss_top_y=geom["boss_top_y"],
+        cell_y0=geom["cell_y0"],
+        nominal_clearance=clr["nominal"],
+        deformed_clearance=clr["deformed"],
+        floor_web=clr["floor_web"],
+        stack_over_module=stk["stack"],
+        outer_zero=stk["outer_zero"],
+        outer_at_lid=stk["outer_lid"],
+        module_lid_clearance=spec.lid_y - parts["module"].y1,
     )
     result.conflicts = list_conflicts(result)
     return result
@@ -968,11 +1038,24 @@ def list_conflicts(r: V2Result) -> list[str]:
         )
 
     if spec.iface == "I":
-        need = cell["t"] + FOAM
-        if spec.standoff + 1e-9 < need:
+        clr = cell_clearance(spec)
+        if clr["nominal"] <= 1e-9:
             out.append(
-                f"cell {cell['t']:.1f}+{FOAM:g}={need:.1f} does not fit under standoff {spec.standoff:g} "
-                f"(board underside y {r.board_underside:.2f})"
+                f"nominal cell clearance {clr['nominal']:+.1f} is not positive "
+                f"(cell {clr['pack']:.1f} under standoff {spec.standoff:g}"
+                f"{f' recess {spec.recess:g}' if spec.recess else ''})"
+            )
+        if clr["deformed"] <= 1e-9:
+            out.append(
+                f"cell would carry board load (deformed clearance {clr['deformed']:+.1f}; "
+                f"bosses {BOSS_DROP:g} below standoff tops)"
+            )
+        stk = module_stack(spec)
+        if stk["outer_zero"] > 9.0 + 1e-9:
+            out.append(
+                f"outer height {stk['outer_zero']:.1f} > 9.0 at zero added clearance "
+                f"(standoff {spec.standoff:g}+board {BOARD_RIGID:g}+module {stk['module_h']:g}"
+                f"+floor {FLOOR_Y:g}+lid {LID_THICK:g})"
             )
         cellb = r.parts.get("cell")
         if cellb is not None:
@@ -992,7 +1075,8 @@ def list_conflicts(r: V2Result) -> list[str]:
             continue
         if box.y1 > spec.lid_y + 1e-9:
             out.append(f"{name} top {box.y1:.2f} > LID_Y {spec.lid_y:g}")
-        if box.y0 < FLOOR_Y - 1e-9:
+        floor_min = (FLOOR_Y - spec.recess) if name == "cell" else FLOOR_Y
+        if box.y0 < floor_min - 1e-9:
             out.append(f"{name} below the floor ({box.y0:.2f})")
 
     stacked_need = BOARD_AT_PARTS + m["h"] + cell["t"] + FOAM
@@ -1146,9 +1230,15 @@ def all_specs(*, include_arc: bool = False) -> list[V2Spec]:
                 for w in WIDTHS:
                     for y in LID_YS:
                         for iface in IFACES:
-                            stands = STANDOFFS if iface == "I" else (3.0,)
-                            for st in stands:
-                                specs.append(V2Spec(a, c, lay, w, y, 0.0, iface, st))
+                            if iface == "I":
+                                combos = [(st, 0.0) for st in STANDOFFS]
+                                combos += [(st, CELL_RECESS) for st in (3.5, 4.0)]
+                            else:
+                                combos = [(3.0, 0.0)]
+                            for st, rec in combos:
+                                specs.append(
+                                    V2Spec(a, c, lay, w, y, 0.0, iface, st, rec)
+                                )
     if include_arc:
         extra = []
         for spec in list(specs):
@@ -1163,6 +1253,7 @@ def all_specs(*, include_arc: bool = False) -> list[V2Spec]:
                         ds,
                         spec.iface,
                         spec.standoff,
+                        spec.recess,
                     )
                 )
         specs.extend(extra)
@@ -1339,7 +1430,10 @@ def render_svg(spec: V2Spec, result: V2Result | None = None) -> bytes:
         f"chord {r.total_chord:.2f}  M1 gate {r.m1_gate:.2f}",
         f"free {r.free_mm2:.1f} mm²  0402 {r.n_0402}/{N_0402}",
         f"board y {r.board_underside:.2f}–{r.board_top:.2f}  thick {r.board_thick:.2f}",
-        f"standoff top y {r.standoff_top_y:.2f}  boss top y {r.boss_top_y:.2f}",
+        f"standoff top y {r.standoff_top_y:.2f}  boss top y {r.boss_top_y:.2f}  recess {spec.recess:g}",
+        f"cell clr nom {r.nominal_clearance:+.1f}  def {r.deformed_clearance:+.1f}  web {r.floor_web:.1f}",
+        f"stack {r.stack_over_module:.1f} (standoff+1.0+mod)  outer0 {r.outer_zero:.1f}  outer@lid {r.outer_at_lid:.1f}",
+        f"module-to-lid {r.module_lid_clearance:+.2f}",
         f"adjust ±{r.adjustment_mm:.2f} (4.0−2.9−{PLACEMENT_TOL:g})",
         f"USB wall: {r.usb_wall or 'none'}  recess {USB_RECESS:g}  lig {USB_LIGAMENT:g}",
         "result: closes" if r.closes else "result: DOES NOT CLOSE",
@@ -1414,6 +1508,7 @@ def cad_overrides(result: V2Result) -> dict[str, Any]:
         "V2_ARC_PLUS": spec.arc_plus,
         "V2_IFACE": spec.iface,
         "V2_STANDOFF": spec.standoff,
+        "V2_RECESS": spec.recess,
         "MOCK_CONTACTS": False,
         "CONTACT_SOURCE": (
             "interface I gold pads on standoff tops (WP11 turn 07)"
@@ -1435,39 +1530,87 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append("# Packing v2 — which architectures close")
     lines.append("")
     lines.append("WP11 analysis. The plan is not changed. Nothing is ordered.")
-    lines.append("Architecture C is out (plan v2 turn 02). Interface I is turn 07:")
+    lines.append("Architecture C is out (plan v2 turn 02). Interface I is turn 07/09:")
     lines.append("no springs, no pins; board underside on three brass standoff tops;")
     lines.append("8 × 8 gold pad per site; bosses 0.5 lower than the standoff tops;")
-    lines.append("cell under the board on the floor. Interface II is the flex-tab fallback.")
+    lines.append("cell under the board only with positive nominal clearance and no load")
+    lines.append("after the board bends onto the bosses. Standoffs 3.0, 3.5 and 4.0.")
+    lines.append("A 0.5-deep floor recess (web 1.0 remaining) is run at 3.5 and 4.0.")
+    lines.append("Interface II is the flex-tab fallback.")
     lines.append("Arc-plus was not run: layouts already close at BODY_ARC 48.4.")
     lines.append("")
     lines.append("## 1. Every run at BODY_ARC 48.4")
     lines.append("")
     lines.append(
-        "| arch | iface | standoff | cell | layout | width | lid | closes | first conflict | free mm² | TOTAL_CHORD | M1 gate |"
+        "| arch | iface | standoff | recess | cell | layout | width | lid | closes | first conflict | "
+        "nom clr | def clr | stack | outer0 | outer@lid | free mm² | TOTAL_CHORD | M1 gate |"
     )
-    lines.append("|---|---|---:|---|---|---:|---:|---|---|---:|---:|---:|")
+    lines.append(
+        "|---|---|---:|---:|---|---|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|"
+    )
     for r in rows:
         spec = r.spec
         first = "—" if r.closes else _md_cell(r.first_conflict)
         lines.append(
-            f"| {spec.arch} | {spec.iface} | {spec.standoff:g} | {spec.cell} | {spec.layout} | "
-            f"{spec.width:g} | {spec.lid_y:g} | {'yes' if r.closes else 'no'} | {first} | "
-            f"{r.free_mm2:.1f} | {r.total_chord:.2f} | {r.m1_gate:.2f} |"
+            f"| {spec.arch} | {spec.iface} | {spec.standoff:g} | {spec.recess:g} | {spec.cell} | "
+            f"{spec.layout} | {spec.width:g} | {spec.lid_y:g} | {'yes' if r.closes else 'no'} | {first} | "
+            f"{r.nominal_clearance:+.1f} | {r.deformed_clearance:+.1f} | {r.stack_over_module:.1f} | "
+            f"{r.outer_zero:.1f} | {r.outer_at_lid:.1f} | {r.free_mm2:.1f} | {r.total_chord:.2f} | {r.m1_gate:.2f} |"
         )
     lines.append("")
-    lines.append("## 2. First-conflict families")
+    n_i = sum(1 for r in rows if r.spec.iface == "I")
+    n_ii = sum(1 for r in rows if r.spec.iface == "II")
+    lines.append("## 2. Clearance, stack, and first-conflict families")
     lines.append("")
-    lines.append("Interface I (288 runs): none close.")
+    lines.append("Cell packed height = body + foam. DTP 3.2+0.3=3.5. 501015 5.2+0.3=5.5.")
+    lines.append("Nominal clearance = standoff − (packed − recess). The board underside is at the standoff top (rigid).")
+    lines.append("Deformed clearance = (standoff − 0.5) − (packed − recess). The board bends down onto the bosses.")
+    lines.append("The cell may lie under the board only with positive nominal clearance. The cell must carry no load (deformed clearance must be positive). C15 for a 0.5 recess (web 1.0) is NOT_MEASURED.")
     lines.append("")
-    lines.append("- DTP301120 + standoff 3.0 (72): cell 3.2+0.3=3.5 does not fit under standoff 3.0 (board underside y 4.50).")
-    lines.append("- DTP301120 + standoff 3.5 (72): cell hits SIG1 standoff (circumradius 2.9). The 22.0 mm cell on the floor reaches s of SIG1 at 22.0.")
-    lines.append("- 501015 + standoff 3.0 (72): cell 5.2+0.3=5.5 does not fit under standoff 3.0.")
-    lines.append("- 501015 + standoff 3.5 (72): cell 5.2+0.3=5.5 does not fit under standoff 3.5 (board underside y 5.00). The cell fits a 3.5 standoff only when its packed height is ≤ 3.5; 501015 is 5.5.")
+    lines.append("| cell | standoff | recess | nom | def | under-board? | load? |")
+    lines.append("|---|---:|---:|---:|---:|---|---|")
+    for cell_name, st, rec in (
+        ("dtp", 3.0, 0.0),
+        ("dtp", 3.5, 0.0),
+        ("dtp", 4.0, 0.0),
+        ("dtp", 3.5, 0.5),
+        ("dtp", 4.0, 0.5),
+        ("dtp", 3.0, 0.5),
+        ("501015", 3.0, 0.0),
+        ("501015", 3.5, 0.0),
+        ("501015", 4.0, 0.0),
+        ("501015", 3.5, 0.5),
+        ("501015", 4.0, 0.5),
+    ):
+        dummy = V2Spec("A", cell_name, "series", 20.0, 8.0, 0.0, "I", st, rec)
+        clr = cell_clearance(dummy)
+        under = "yes" if clr["nominal"] > 1e-9 else "no"
+        load = "no load" if clr["deformed"] > 1e-9 else "carries load"
+        lines.append(
+            f"| {cell_name} | {st:g} | {rec:g} | {clr['nominal']:+.1f} | {clr['deformed']:+.1f} | {under} | {load} |"
+        )
+    lines.append("")
+    lines.append("Turn 09 numbers: 4.0 with no recess, deformed clearance 0.0. 3.5 with no recess, deformed clearance −0.5.")
+    lines.append("4.0 with no recess or 3.5 with a 0.5 recess: nominal +0.5. 3.0 with that recess: nominal 0.0.")
+    lines.append("Only DTP + standoff 4.0 + recess 0.5 has positive deformed clearance (+0.5). It still hits SIG1 (cell 22 mm from s 1.5).")
+    lines.append("")
+    lines.append("Module stack = standoff + board 1.0 + module (A 2.3, B 2.0). Outer at zero added clearance = 1.5 floor + stack + 1.0 lid.")
+    lines.append("")
+    lines.append("| arch | standoff | stack | outer0 |")
+    lines.append("|---|---:|---:|---:|")
+    for arch, st in (("A", 3.0), ("A", 3.5), ("A", 4.0), ("B", 3.0), ("B", 3.5), ("B", 4.0)):
+        dummy = V2Spec(arch, "dtp", "series", 20.0, 8.0, 0.0, "I", st, 0.0)
+        stk = module_stack(dummy)
+        lines.append(f"| {arch} | {st:g} | {stk['stack']:.1f} | {stk['outer_zero']:.1f} |")
+    lines.append("")
+    lines.append("A at 3.5 and 4.0 exceeds outer 9.0 at zero added clearance (9.3 and 9.8). B at 4.0 is 9.5. B at 3.5 is 9.0. A at 3.0 is 8.8. B at 3.0 is 8.5.")
+    lines.append("outer@lid in the run table is LID_Y + 1.0 (the candidate body at that lid). module-to-lid is packing, not a solid probe.")
+    lines.append("")
+    lines.append(f"Interface I ({n_i} runs): none close. First conflicts are the clearance or load rule, outer height, or the 22 mm DTP hitting SIG1.")
+    lines.append("")
+    lines.append(f"Interface II ({n_ii} runs): four close, all A 501015 series width 20.")
     lines.append("")
     lines.append("Adjustment region per site (Interface I, formula only): 4.0 − 2.9 − 0.3 = ±0.8 mm. NOT_MEASURED on the solid.")
-    lines.append("")
-    lines.append("Interface II (144 runs): four close, all A 501015 series width 20.")
     lines.append("")
     lines.append("## 3. Plan v2 §4 rule, line by line")
     lines.append("")
@@ -1571,8 +1714,9 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append("| Foam under a cell | 0.3 | brief; plan v2 §3 |")
     lines.append("| Interface I board | FR4 1.0, 4-layer | plan v2 turn 07 |")
     lines.append("| Interface I pad | 8 × 8 ENIG, half-size 4.0 | turn 07 |")
-    lines.append("| Standoff | M2.5 hex 5 AF, circumradius 2.9, heights 3.0 and 3.5 | turn 07; coordinator note 3 |")
-    lines.append("| Boss drop | 0.5 | turn 07 |")
+    lines.append("| Standoff | M2.5 hex 5 AF, circumradius 2.9, heights 3.0, 3.5 and 4.0 | turn 09; C14 3.0 Spacer Express, 4.0 Harwin R25-1000402; no 3.5 page |")
+    lines.append("| Boss drop | 0.5 | turn 07/09 |")
+    lines.append("| Cell floor recess | 0.5, remaining web 1.0 | turn 09; C15 NOT_MEASURED |")
     lines.append("| Placement tolerance | 0.3 | JLC floor ±0.3, turn 07 G7 |")
     lines.append("| Adjustment region | ±0.8 | 4.0 − 2.9 − 0.3 |")
     lines.append("| Flex + stiffener | 0.11 + 0.3 = 0.4 at parts, 0.2 at tabs | brief |")
@@ -1601,6 +1745,9 @@ def packing_markdown(rows: list[V2Result]) -> str:
     lines.append("- V2_USB_medial: the order-1 solid has no medial USB cut.")
     lines.append("- V2_HARNESS: 100 ± 3 mm is a routed length.")
     lines.append("- V2_BOSS: printed bosses 0.5 below the standoff top are not on the order-1 solid.")
+    lines.append("- V2_RECESS / C15: the 0.5 floor recess and 1.0 residual web are not on the order-1 solid.")
+    lines.append("- V2_CELL_CLEARANCE: nominal and deformed numbers are packing arithmetic, not a solid probe. G5/G7 remain open.")
+    lines.append("- Deformed board envelope: NOT_MEASURED on the order-1 solid.")
     lines.append("- E73 antenna sheet: unreachable; v1 12.4 × 3.8 used.")
     lines.append("- M1 on Rolf (Q34): default 52 used for the gate.")
     lines.append("")

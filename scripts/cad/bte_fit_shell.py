@@ -238,6 +238,7 @@ OVERRIDABLE_KEYS = frozenset(
         "V2_ARC_PLUS",
         "V2_IFACE",
         "V2_STANDOFF",
+        "V2_RECESS",
         *REFERENCE_M_KEYS,
     }
 )
@@ -260,6 +261,7 @@ STAGE_B_ONLY_KEYS = frozenset(
         "V2_ARC_PLUS",
         "V2_IFACE",
         "V2_STANDOFF",
+        "V2_RECESS",
         "TAIL_DS",
         "TAIL_S0",
         "CAVITY_U",
@@ -293,6 +295,7 @@ STAGE_B_OVERLAY_KEYS = frozenset(
         "V2_ARC_PLUS",
         "V2_IFACE",
         "V2_STANDOFF",
+        "V2_RECESS",
     }
 )
 PLACEMENT_CONTACT_TOL = 0.05  # placement.py rounds CONTACT_2 to (10.4, 33.1)
@@ -667,6 +670,7 @@ def _apply_v2_packing(p: dict[str, Any]) -> None:
         float(p.get("V2_ARC_PLUS", 0.0)),
         str(p.get("V2_IFACE", "I")),
         float(p.get("V2_STANDOFF", 3.5)),
+        float(p.get("V2_RECESS", 0.0)),
     )
     result = v2.run_spec(spec)
     # Order-1 construction path: packing C at 20 mm, packing A at 17 mm.
@@ -682,6 +686,7 @@ def _apply_v2_packing(p: dict[str, Any]) -> None:
     p["V2_ARC_PLUS"] = spec.arc_plus
     p["V2_IFACE"] = spec.iface
     p["V2_STANDOFF"] = spec.standoff
+    p["V2_RECESS"] = spec.recess
     p["V2_TAG"] = spec.tag
     p["BODY_WIDTH"] = spec.width
     p["BODY_ARC"] = float(result.body_arc)
@@ -2043,6 +2048,7 @@ def run_stage_b_solid_checks(
             float(params.get("V2_ARC_PLUS", 0.0)),
             str(params.get("V2_IFACE", "I")),
             float(params.get("V2_STANDOFF", 3.5)),
+            float(params.get("V2_RECESS", 0.0)),
         )
         layout_v2 = v2.run_spec(spec)
         if spec.iface == "I" or "REF" not in layout_v2.tabs:
@@ -2307,6 +2313,7 @@ def _record_v2_packing_checks(
         float(params.get("V2_ARC_PLUS", 0.0)),
         str(params.get("V2_IFACE", "I")),
         float(params.get("V2_STANDOFF", 3.5)),
+        float(params.get("V2_RECESS", 0.0)),
     )
     layout = v2.run_spec(spec)
     maker = path_solid_for(path, params)
@@ -2540,6 +2547,39 @@ def _record_v2_packing_checks(
         "NOT_MEASURED: printed bosses 0.5 below the standoff top are not on the order-1 solid",
         boss_top_y=round(layout.boss_top_y, 4),
         drop=v2.BOSS_DROP,
+    )
+    record(
+        "V2_CELL_CLEARANCE",
+        False,
+        (
+            f"NOT_MEASURED on the solid: nominal {layout.nominal_clearance:+.2f} "
+            f"deformed {layout.deformed_clearance:+.2f} "
+            f"(standoff {spec.standoff:g}, recess {spec.recess:g}, boss drop {v2.BOSS_DROP:g})"
+        ),
+        nominal=round(layout.nominal_clearance, 4),
+        deformed=round(layout.deformed_clearance, 4),
+        recess=round(spec.recess, 4),
+        floor_web=round(layout.floor_web, 4),
+    )
+    record(
+        "V2_STACK",
+        False,
+        (
+            f"NOT_MEASURED as a solid stack: standoff+board 1.0+module = {layout.stack_over_module:.2f}; "
+            f"outer zero-clearance {layout.outer_zero:.2f}; outer at LID_Y {layout.outer_at_lid:.2f}; "
+            f"module-to-lid packing {layout.module_lid_clearance:+.2f}"
+        ),
+        stack=round(layout.stack_over_module, 4),
+        outer_zero=round(layout.outer_zero, 4),
+        outer_lid=round(layout.outer_at_lid, 4),
+        module_lid=round(layout.module_lid_clearance, 4),
+    )
+    record(
+        "V2_RECESS",
+        False,
+        "NOT_MEASURED: 0.5 floor recess and 1.0 residual web (C15) are not on the order-1 solid",
+        recess=round(spec.recess, 4),
+        floor_web=round(layout.floor_web, 4),
     )
 
 

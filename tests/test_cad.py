@@ -830,6 +830,9 @@ class CadStageBV2BuildTests(unittest.TestCase):
             "V2_USB_medial",
             "V2_HARNESS",
             "V2_BOSS",
+            "V2_CELL_CLEARANCE",
+            "V2_STACK",
+            "V2_RECESS",
         ):
             self.assertIn(name, rows)
             self.assertFalse(

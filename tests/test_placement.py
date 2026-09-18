@@ -296,6 +296,7 @@ class PlacementV2Tests(unittest.TestCase):
             arc_plus=0.0,
             iface="II",
             standoff=3.0,
+            recess=0.0,
         )
         base.update(kwargs)
         return v2.V2Spec(
@@ -307,6 +308,7 @@ class PlacementV2Tests(unittest.TestCase):
             base["arc_plus"],
             base["iface"],
             base["standoff"],
+            base["recess"],
         )
 
     def test_cli_requires_the_v2_flags_together(self) -> None:
@@ -326,14 +328,52 @@ class PlacementV2Tests(unittest.TestCase):
         self.assertFalse(result.closes)
         self.assertIn("cell top 9.70 > LID_Y 8", result.first_conflict)
 
+    def test_interface_i_clearances_turn09(self) -> None:
+        v2 = self.v2
+        cases = (
+            ("dtp", 3.0, 0.0, -0.5, -1.0),
+            ("dtp", 3.5, 0.0, 0.0, -0.5),
+            ("dtp", 4.0, 0.0, 0.5, 0.0),
+            ("dtp", 3.5, 0.5, 0.5, 0.0),
+            ("dtp", 4.0, 0.5, 1.0, 0.5),
+            ("501015", 3.5, 0.0, -2.0, -2.5),
+            ("501015", 4.0, 0.5, -1.0, -1.5),
+        )
+        for cell, st, rec, nom, defm in cases:
+            with self.subTest(cell=cell, standoff=st, recess=rec):
+                spec = self.spec(iface="I", cell=cell, standoff=st, recess=rec, lid_y=8.0)
+                clr = v2.cell_clearance(spec)
+                self.assertAlmostEqual(clr["nominal"], nom)
+                self.assertAlmostEqual(clr["deformed"], defm)
+                result = v2.run_spec(spec)
+                self.assertFalse(result.closes)
+                self.assertAlmostEqual(result.nominal_clearance, nom)
+                self.assertAlmostEqual(result.deformed_clearance, defm)
+
+    def test_module_stack_outer_heights(self) -> None:
+        v2 = self.v2
+        a4 = v2.module_stack(self.spec(iface="I", standoff=4.0, lid_y=8.0))
+        self.assertAlmostEqual(a4["stack"], 4.0 + 1.0 + 2.3)
+        self.assertAlmostEqual(a4["outer_zero"], 1.5 + 7.3 + 1.0)
+        b3 = v2.module_stack(self.spec(arch="B", iface="I", standoff=3.0, lid_y=8.0))
+        self.assertAlmostEqual(b3["stack"], 3.0 + 1.0 + 2.0)
+        self.assertAlmostEqual(b3["outer_zero"], 8.5)
+
     def test_interface_i_does_not_close(self) -> None:
         thick = self.v2.run_spec(self.spec(iface="I", standoff=3.5, lid_y=8.0))
         self.assertFalse(thick.closes)
-        self.assertIn("does not fit under standoff 3.5", thick.first_conflict)
+        self.assertIn("nominal cell clearance", thick.first_conflict)
         dtp = self.v2.run_spec(self.spec(iface="I", standoff=3.5, cell="dtp", lid_y=8.0))
         self.assertFalse(dtp.closes)
-        self.assertIn("cell hits SIG1 standoff", dtp.first_conflict)
+        self.assertIn("nominal cell clearance", dtp.first_conflict)
         self.assertAlmostEqual(dtp.adjustment_mm, 0.8)
+        loaded = self.v2.run_spec(self.spec(iface="I", standoff=4.0, cell="dtp", recess=0.0, lid_y=9.0))
+        self.assertFalse(loaded.closes)
+        self.assertTrue(any("carry board load" in c for c in loaded.conflicts))
+        recessed = self.v2.run_spec(self.spec(iface="I", standoff=4.0, cell="dtp", recess=0.5, lid_y=9.0))
+        self.assertFalse(recessed.closes)
+        self.assertGreater(recessed.deformed_clearance, 0.0)
+        self.assertTrue(any("SIG1" in c for c in recessed.conflicts))
 
     def test_a_501015_series_w20_y7_interface_ii_closes(self) -> None:
         result = self.v2.run_spec(self.spec())
@@ -350,7 +390,7 @@ class PlacementV2Tests(unittest.TestCase):
 
     def test_matrix_closes_only_a_interface_ii_501015_series_w20(self) -> None:
         rows = self.v2.run_matrix(include_arc=False)
-        self.assertEqual(len(rows), 432)
+        self.assertEqual(len(rows), 864)
         closed = [r for r in rows if r.closes]
         self.assertEqual(
             [r.spec.tag for r in closed],
@@ -388,7 +428,7 @@ class PlacementV2Tests(unittest.TestCase):
 
     def test_every_committed_v2_svg_matches_a_fresh_render(self) -> None:
         rows = self.v2.run_matrix(include_arc=False)
-        self.assertEqual(len(rows), 432)
+        self.assertEqual(len(rows), 864)
         for result in rows:
             path = self.v2.drawing_path(result.spec)
             with self.subTest(tag=result.spec.tag):

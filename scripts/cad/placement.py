@@ -2056,6 +2056,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--arc-plus", type=float, default=0.0)
     parser.add_argument("--iface", choices=("I", "II"), default=None)
     parser.add_argument("--standoff", type=float, default=None)
+    parser.add_argument("--recess", type=float, default=None)
     parser.add_argument("--all", action="store_true", help="write every v2 packing SVG")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
@@ -2089,6 +2090,7 @@ def main(argv: list[str] | None = None) -> int:
             args.arc_plus,
             args.iface or "I",
             3.5 if args.standoff is None else args.standoff,
+            0.0 if args.recess is None else args.recess,
         )
         result = v2.run_spec(spec)
         out = args.out if args.out is not None else v2.drawing_path(spec)
