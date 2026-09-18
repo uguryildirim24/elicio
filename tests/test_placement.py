@@ -801,7 +801,8 @@ class PlacementWP11cTests(unittest.TestCase):
         self.assertTrue(lay.first_blocking.startswith("JLC FPC assembly edge 2.5 mm"))
         self.assertEqual(lay.contacts_moved_mm, {"SIG1": 0.0, "SIG2": 0.0, "REF": 0.0})
         self.assertTrue(any(p.ref == "U1" for p in lay.parts))
-        self.assertTrue(any(p.ref == "SW1" for p in lay.parts))
+        # Decision 73 hole at (14.85, 21.50) occupies the leftover SW1 site.
+        self.assertFalse(any(p.ref == "SW1" for p in lay.parts))
         by_ref = {p.ref: p for p in lay.parts}
         self.assertAlmostEqual(by_ref["P1"].u, 5.9)
         self.assertAlmostEqual(by_ref["P1"].s, 22.0)
@@ -832,6 +833,68 @@ class PlacementWP11cTests(unittest.TestCase):
             rows if rows is not None else self.v2.run_matrix(include_arc=False)
         )}
         self.assertEqual(committed, kept)
+
+    def test_r6_decision_70_usb_body_nothing_closes(self) -> None:
+        o = self.v2.usb_c_close_options(self.lay12.spec)
+        self.assertAlmostEqual(o["wu"], 10.64, places=2)
+        self.assertAlmostEqual(o["ws"], 9.42, places=2)
+        self.assertAlmostEqual(o["h"], 3.2, places=1)
+        self.assertAlmostEqual(o["packing_hang_mm"], 4.80, places=2)
+        self.assertGreater(o["hang_mm"], 4.80)
+        self.assertAlmostEqual(o["opening_u0"], 5.50, places=2)
+        self.assertAlmostEqual(o["hook_u_max"], 6.39, places=2)
+        self.assertAlmostEqual(o["hook_shift_mm"], 2.40, places=2)
+        self.assertFalse(o["longer_closes"])
+        self.assertFalse(o["hook_only_closes"])
+        self.assertEqual(o["what_closes"], "nothing")
+        names = [n for n, _ok, _why in self.lay12.rules]
+        self.assertTrue(any("code-r6.md decision 70" in n for n in names))
+        usb_rule = next(r for r in self.lay12.rules if "decision 70" in r[0])
+        self.assertFalse(usb_rule[1])
+        self.assertIn("What closes it: nothing", usb_rule[2])
+
+    def test_r6_decision_72_three_ring_stiffeners(self) -> None:
+        self.assertEqual(self.v2.RING_FR4_PIECES, 3)
+        self.assertAlmostEqual(self.v2.TAB_T, 0.31, places=2)
+        self.assertAlmostEqual(self.v2.STIFFENER_TAB, 0.2, places=2)
+        rule = next(r for r in self.lay12.rules if "decision 72" in r[0])
+        self.assertTrue(rule[1])
+        self.assertIn("3 pieces", rule[2])
+        self.assertIn("0.31", rule[2])
+
+    def test_r6_decision_73_boss_holes(self) -> None:
+        self.assertEqual(self.v2.BOSS_HOLE_SITES, ((14.85, 21.50), (14.85, 28.10)))
+        self.assertAlmostEqual(self.v2.BOSS_HOLE_DIA, 2.7)
+        hits = self.v2.boss_hole_hits(self.lay12.parts)
+        self.assertTrue(any("28.10" in h for h in hits))
+        rule = next(r for r in self.lay12.rules if "decision 73" in r[0])
+        self.assertFalse(rule[1])
+        names = {k[0] for k in self.lay12.keepouts}
+        self.assertIn("HOLE_M1", names)
+        self.assertIn("HOLE_M2", names)
+
+    def test_r6_decision_74_fold_variants_shared_numbers(self) -> None:
+        f = self.v2.tab_fold_variants(self.lay12.spec)
+        self.assertAlmostEqual(f["R"], 1.5, places=1)
+        self.assertAlmostEqual(f["neck"]["SIG1_strip"], 10.71, places=2)
+        self.assertAlmostEqual(f["neck"]["SIG2_strip"], 21.81, places=2)
+        self.assertAlmostEqual(f["side"]["SIG1_strip"], 8.36, places=2)
+        self.assertAlmostEqual(f["side"]["SIG2_strip"], 12.06, places=2)
+        self.assertAlmostEqual(f["side"]["pocket"][0], 0.85, places=2)
+        rule = next(r for r in self.lay12.rules if "decision 74" in r[0])
+        self.assertTrue(rule[1])
+        self.assertIn("10.71", rule[2])
+        self.assertIn("8.36", rule[2])
+        self.assertIn("Same numbers for PCB, packing table and shell", rule[2])
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("tasks/reviews/code-r6.md decision 70", text)
+        self.assertIn("tasks/reviews/code-r6.md decision 72", text)
+        self.assertIn("tasks/reviews/code-r6.md decision 73", text)
+        self.assertIn("tasks/reviews/code-r6.md decision 74", text)
+        self.assertIn("What closes it: nothing", text)
+        self.assertIn("| 501012 BODY_ARC | neck-end | 10.71 | 21.81 |", text)
+        self.assertIn("| 501012 BODY_ARC | side-wall pockets | 8.36 | 12.06 |", text)
 
 
 if __name__ == "__main__":
