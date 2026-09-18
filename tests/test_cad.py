@@ -955,6 +955,8 @@ class CadShellV2BuildTests(unittest.TestCase):
         rows = {c.name: c for c in checks}
         self.assertTrue(rows["V2_TAB_envelope"].passed, rows["V2_TAB_envelope"].detail)
         self.assertTrue(rows["REF_WIRE_envelope"].passed, rows["REF_WIRE_envelope"].detail)
+        self.assertLessEqual(rows["V2_TAB_envelope"].numbers["REF_body_mm3"], 0.005)
+        self.assertLessEqual(rows["REF_WIRE_envelope"].numbers["body_mm3"], 0.005)
         for name in (
             "V2_BOSS",
             "V2_RING_seat",
@@ -967,8 +969,14 @@ class CadShellV2BuildTests(unittest.TestCase):
             self.assertIn(name, rows)
             self.assertTrue(rows[name].passed, f"{name}: {rows[name].detail} {rows[name].numbers}")
             self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
+        wall = rows["V2_WALL_minima"].numbers
+        self.assertGreaterEqual(wall["slot_wall_s_left"], 1.0)
+        self.assertGreaterEqual(wall["slot_wall_s_right"], 1.0)
+        self.assertGreaterEqual(wall["slot_floor_y"], 1.0)
+        self.assertGreaterEqual(wall["slot_clear_u"], 0.15)
         self.assertIn("q59", self.notes)
-        self.assertIn("end wall", self.notes["q59"])
+        self.assertIn("REF_end_wall_slot", self.notes["q59"])
+        self.assertIn("packing-v2.md", self.notes["q59"])
 
     def test_two_consecutive_shell_runs_are_identical(self) -> None:
         cmd = [

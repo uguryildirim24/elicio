@@ -361,6 +361,19 @@ SHELL_HOOK_BLEND = 1.5
 SHELL_LID_CROWN = 0.5
 SHELL_SWITCH_RECESS = 0.5
 SHELL_USB_CORNER_R = 0.6
+# packing-v2.md §5 on lane/w3 at 284ec05, table REF_end_wall_slot.
+# Cavity ends at s 38.20; Ø7.5 tail pocket starts at s 39.25; 1.05 mm of
+# nylon between them. Every REF route crosses that wall (Q59).
+REF_SLOT_U = (7.25, 9.75)
+REF_SLOT_S = (38.20, 39.25)
+REF_SLOT_Y = (1.50, 1.81)
+REF_SLOT_PACK_VOL = 0.814
+# Flex 2.50 × 0.31 in that box. JLC PA12 ±0.3 under 100 mm; FPC outline
+# ±0.10 (board-v2.md §12). Clearance is extra on the packing box, not a
+# substitute for it. Floor y=1.50 is not cut.
+REF_SLOT_CLEAR_U = 0.20  # per side
+REF_SLOT_CLEAR_S = 0.20  # into the cavity and the pocket
+REF_SLOT_CLEAR_Y = 0.15  # above the 0.31 tab
 
 
 class CheckFail(Exception):
@@ -2885,30 +2898,96 @@ def _record_shell_checks(
     )
 
     # Snap catch is 0.4 into the 1.5 side wall (residual 1.1). USB ligaments
-    # 1.5. Q59 slot is a hole in the cavity end; nylon remains beside it.
-    slot_u, _slot_s = contact_ref_us(params)
-    _cu0, _cu1 = cavity_u(params)
-    _cs0, cs1 = cavity_s(params)
-    slot_open = not _inside_uys(body, path, slot_u, cs1 + 0.2, floor_y + 0.15)
-    slot_side = _inside_uys(body, path, slot_u + 2.4, cs1 + 0.2, floor_y + 0.2)
+    # 1.5. Q59 REF_end_wall_slot (packing-v2.md §5 on lane/w3): remaining
+    # nylon beside the slot is the 1.05 mm end wall, still ≥ 1.0.
+    slot_u = (REF_SLOT_U[0] + REF_SLOT_U[1]) / 2.0
+    slot_s = (REF_SLOT_S[0] + REF_SLOT_S[1]) / 2.0
+    slot_y = (REF_SLOT_Y[0] + REF_SLOT_Y[1]) / 2.0
+    cut_u0 = REF_SLOT_U[0] - REF_SLOT_CLEAR_U
+    cut_u1 = REF_SLOT_U[1] + REF_SLOT_CLEAR_U
+    slot_open = not _inside_uys(body, path, slot_u, slot_s, slot_y)
     usb_open_u0 = 10.0 - v2.USB_OPENING[0] / 2.0
     lig_ant = usb_open_u0 - float(params.get("HOOK_ROOT_X", 4.0))
     snap_residual = wall - SHELL_SNAP_CATCH
+    wall_nums: dict[str, float] = {
+        "usb_ligament_hook": round(lig_ant, 4),
+        "snap_residual": round(snap_residual, 4),
+        "WALL_MEDIAL": wall,
+        "slot_open": 1.0 if slot_open else 0.0,
+        "slot_clear_u_cad": REF_SLOT_CLEAR_U,
+        "slot_clear_s_cad": REF_SLOT_CLEAR_S,
+        "slot_clear_y_cad": REF_SLOT_CLEAR_Y,
+        "slot_pack_vol_mm3": REF_SLOT_PACK_VOL,
+    }
     minima_ok = (
         slot_open
-        and slot_side
         and lig_ant >= v2.USB_LIGAMENT - 0.05
         and snap_residual >= 1.0 - 0.05
     )
+    try:
+        mid_s = (layout.board_s[0] + layout.board_s[1]) / 2.0
+        probe_y = (floor_y + lid_y) / 2.0
+
+        def in_side(u: float) -> bool:
+            return _inside_uys(body, path, u, mid_s, probe_y)
+
+        outer_u0 = _bisect(in_side, -0.5, 0.75)
+        inner_u0 = _bisect(in_side, 0.75, 3.0)
+        inner_u1 = _bisect(in_side, width - 3.0, width - 0.75)
+        outer_u1 = _bisect(in_side, width - 0.75, width + 0.5)
+        ant, post = inner_u0 - outer_u0, outer_u1 - inner_u1
+        wall_nums["anterior_wall"] = round(ant, 4)
+        wall_nums["posterior_wall"] = round(post, 4)
+        minima_ok = minima_ok and min(ant, post) >= wall - 0.05
+    except CheckFail:
+        minima_ok = False
+        wall_nums["anterior_wall"] = -1.0
+        wall_nums["posterior_wall"] = -1.0
+    try:
+        wall_left = _end_wall_s_thick(body, path, cut_u0 - 0.40, slot_y)
+        wall_right = _end_wall_s_thick(body, path, cut_u1 + 0.40, slot_y)
+        wall_nums["slot_wall_s_left"] = round(wall_left, 4)
+        wall_nums["slot_wall_s_right"] = round(wall_right, 4)
+        minima_ok = minima_ok and min(wall_left, wall_right) >= 1.0 - 0.05
+    except CheckFail:
+        minima_ok = False
+        wall_nums["slot_wall_s_left"] = -1.0
+        wall_nums["slot_wall_s_right"] = -1.0
+    try:
+        floor_outer = _bisect(
+            lambda y: _inside_uys(body, path, slot_u, slot_s, y), -0.4, 0.7
+        )
+        floor_inner = _bisect(
+            lambda y: _inside_uys(body, path, slot_u, slot_s, y), 0.7, slot_y
+        )
+        floor_t = floor_inner - floor_outer
+        wall_nums["slot_floor_y"] = round(floor_t, 4)
+        minima_ok = minima_ok and floor_t >= 1.0 - 0.05
+    except CheckFail:
+        minima_ok = False
+        wall_nums["slot_floor_y"] = -1.0
+    try:
+        u_left = _bisect(
+            lambda u: _inside_uys(body, path, u, slot_s, slot_y), 5.0, slot_u
+        )
+        u_right = _bisect(
+            lambda u: _inside_uys(body, path, u, slot_s, slot_y), slot_u, 12.0
+        )
+        slot_width = u_right - u_left
+        clear_u = (slot_width - (REF_SLOT_U[1] - REF_SLOT_U[0])) / 2.0
+        wall_nums["slot_width"] = round(slot_width, 4)
+        wall_nums["slot_clear_u"] = round(clear_u, 4)
+        minima_ok = minima_ok and clear_u >= REF_SLOT_CLEAR_U - 0.05
+    except CheckFail:
+        minima_ok = False
+        wall_nums["slot_width"] = -1.0
+        wall_nums["slot_clear_u"] = -1.0
     record(
         "V2_WALL_minima",
         minima_ok,
-        "side-wall snap residual, USB ligament and Q59 end-wall: ≥ 1.0 at those cuts, ≥ 1.5 elsewhere",
-        slot_open=1.0 if slot_open else 0.0,
-        slot_side_nylon=1.0 if slot_side else 0.0,
-        usb_ligament_hook=round(lig_ant, 4),
-        snap_residual=round(snap_residual, 4),
-        WALL_MEDIAL=wall,
+        "side walls 1.5; Q59 slot open with remaining end wall and floor ≥ 1.0 beside it; "
+        f"flex clearance {REF_SLOT_CLEAR_U:g} mm per side in u on REF_end_wall_slot",
+        **wall_nums,
     )
 
     record(
@@ -2996,6 +3075,30 @@ def _tab_channel(path: PathGeom, params: Mapping[str, Any], tab: Any, y0: float,
     return shape
 
 
+def _ref_end_wall_slot(path: PathGeom, params: Mapping[str, Any]) -> Shape:
+    """packing-v2.md §5 REF_end_wall_slot plus the stated flex clearance."""
+    maker = path_solid_for(path, params)
+    return maker(
+        REF_SLOT_U[0] - REF_SLOT_CLEAR_U,
+        REF_SLOT_U[1] + REF_SLOT_CLEAR_U,
+        REF_SLOT_S[0] - REF_SLOT_CLEAR_S,
+        REF_SLOT_S[1] + REF_SLOT_CLEAR_S,
+        REF_SLOT_Y[0],
+        REF_SLOT_Y[1] + REF_SLOT_CLEAR_Y,
+    )
+
+
+def _end_wall_s_thick(body: Solid, path: PathGeom, u: float, y: float) -> float:
+    """Remaining nylon in s at (u, y) between the cavity and the tail pocket."""
+
+    def in_body(s: float) -> bool:
+        return _inside_uys(body, path, u, s, y)
+
+    inner = _bisect(in_body, 37.4, 38.7)
+    outer = _bisect(in_body, 38.7, 40.6)
+    return outer - inner
+
+
 def _apply_shell_features(
     body: Shape,
     lid: Shape,
@@ -3022,19 +3125,37 @@ def _apply_shell_features(
         ("SIG2", (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))),
         ("REF", contact_ref_us(params)),
     )
-    measure: dict[str, Any] = {"q59_slot": "end wall", "wp11b_route": "absent"}
+    measure: dict[str, Any] = {
+        "q59_slot": "REF_end_wall_slot",
+        "wp11b_route": "none in cavity",
+        "q59_clear_u": REF_SLOT_CLEAR_U,
+        "q59_clear_s": REF_SLOT_CLEAR_S,
+        "q59_clear_y": REF_SLOT_CLEAR_Y,
+        "q59_pack_vol_mm3": REF_SLOT_PACK_VOL,
+    }
 
-    # Q59: slot the cavity end wall for the floor-level REF tab.
+    # Q59: packing-v2.md §5 on lane/w3 at 284ec05. No in-cavity REF route.
+    # Cut REF_end_wall_slot (u 7.25–9.75, s 38.20–39.25, y 1.50–1.81) plus
+    # the stated flex clearance. Stage B without STAGE=shell is not slotted.
     if spec.iface == "II" and "REF" in layout.tabs:
-        slot = _tab_channel(
-            path, params, layout.tabs["REF"], floor_y + ENVELOPE_LIFT, floor_y + v2.TAB_T + 0.25
+        pack = maker(
+            REF_SLOT_U[0],
+            REF_SLOT_U[1],
+            REF_SLOT_S[0],
+            REF_SLOT_S[1],
+            REF_SLOT_Y[0],
+            REF_SLOT_Y[1],
         )
-        if slot is not None:
-            measure["q59_removed_mm3"] = round(_overlap_volume(body, slot), 4)
-            body = body.cut(slot)
+        slot = _ref_end_wall_slot(path, params)
+        measure["q59_pack_overlap_mm3"] = round(_overlap_volume(body, pack), 4)
+        measure["q59_removed_mm3"] = round(_overlap_volume(body, slot), 4)
+        body = body.cut(slot)
         notes["q59"] = (
-            "WP11b on lane/w3 has not published a cavity-only REF tab; "
-            "the shell slots the cavity end wall at s 38.2–39.25"
+            "packing-v2.md §5 on lane/w3 at 284ec05 (git show 284ec05): "
+            "no in-cavity REF tab route; REF_end_wall_slot u 7.25–9.75, "
+            "s 38.20–39.25, y 1.50–1.81, width 2.50, through 1.05, height "
+            f"0.31, 0.814 mm³, plus flex clearance {REF_SLOT_CLEAR_U:g} mm "
+            f"per side in u, {REF_SLOT_CLEAR_S:g} mm in s, {REF_SLOT_CLEAR_Y:g} mm in y"
         )
 
     for name, (u, s) in sites:
@@ -3068,12 +3189,16 @@ def _apply_shell_features(
         body = body.cut(hole)
 
     if spec.iface == "II":
-        for tab in layout.tabs.values():
-            channel = _tab_channel(
-                path, params, tab, floor_y + ENVELOPE_LIFT, floor_y + v2.TAB_T + 0.25
-            )
-            if channel is not None:
-                body = body.cut(channel)
+        for name, tab in layout.tabs.items():
+            # REF uses REF_end_wall_slot plus the exact packing boxes, not
+            # the 0.4 floor-channel pad (that pad would widen the slot past
+            # the stated clearance).
+            if name != "REF":
+                channel = _tab_channel(
+                    path, params, tab, floor_y + ENVELOPE_LIFT, floor_y + v2.TAB_T + 0.25
+                )
+                if channel is not None:
+                    body = body.cut(channel)
             for box in v2._tab_boxes(tab, v2.FLOOR_Y, v2.FLOOR_Y + v2.TAB_T):
                 body = body.cut(
                     maker(box.u0, box.u1, box.s0, box.s1, box.y0, box.y1)

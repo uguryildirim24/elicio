@@ -913,7 +913,7 @@ def draw_page(out_dir: Path, *, cad, manifest: dict[str, Any], commit: str, date
             f"solids commit {commit}   date {date}",
             "General tolerance: ±0.3 mm under 100 mm, JLC MJF PA12",
             "Closure: hinge lip in the tail plus two cantilever snaps (see shell-v2.md).",
-            "USB-C on the hook-end end face. No text on the outside. Q59: REF tab slot in the end wall.",
+            "USB-C on the hook-end end face. No text on the outside. Q59: packing-v2.md §5 REF_end_wall_slot.",
             *("  " + row for row in fillet_summary(manifest)),
             "Rolf approves the two renders before any shell order. Nothing is ordered here.",
         ]

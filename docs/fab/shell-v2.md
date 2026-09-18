@@ -9,11 +9,17 @@ wearable cuts; it is not a fork). Overlay:
 `scripts/cad/params/shell_v2.toml`. Solids and views:
 `docs/fab/cad/v2/`.
 
-WP11b on `lane/w3` had not published a cavity-only REF tab when this
-shell was cut (`git show lane/w3:docs/fab/packing-v2.md` was still
-`dbe39ff`). The shell slots the cavity end wall at s 38.2–39.25 for the
-floor-level REF tab (Q59). Stage B v2 (`stageb_v2.toml`, no
-`STAGE=shell`) still builds without that slot.
+WP11b on `lane/w3` at `284ec05` (`packing-v2.md` §5, table REF tab
+route): no REF tab route stays inside the cavity. The cavity ends at
+s 38.20, the Ø7.5 tail pocket starts at s 39.25, and 1.05 mm of nylon
+sits between them. Every searched path crosses that wall. Q59 is the
+slot `REF_end_wall_slot`: u 7.25–9.75 (centre 8.50), s 38.20–39.25,
+y 1.50–1.81, width 2.50, through 1.05, height 0.31, rectangular volume
+0.814 mm³, containing the straight floor tab (8.50, 43.00) → (8.50,
+36.80). This shell cuts that box plus 0.20 mm flex clearance per side
+in u, 0.20 mm in s, and 0.15 mm in y (JLC PA12 ±0.3; FPC outline ±0.10
+in `board-v2.md` §12). Stage B v2 (`stageb_v2.toml`, no `STAGE=shell`)
+still builds without that slot. This branch does not merge `lane/w3`.
 
 Rebuild:
 
@@ -95,7 +101,7 @@ Pocket, seat, hole:
 | Ring pad | Ø5.0, hole Ø2.7 | ENIG, both copper layers |
 | Screw | ISO 7380 M2.5 × 4, Grade 5 titanium | Head Ø4.6, h 1.5 (v1 dome) |
 | Through-hole in the 1.5 wall | Ø2.7 | Dome on the outside |
-| Tab strip | 2.5 × 0.31 | Channel in the floor from each ring to the board; REF also slots the end wall |
+| Tab strip | 2.5 × 0.31 | Channel in the floor from each ring to the board; REF uses `REF_end_wall_slot` (`packing-v2.md` §5 on lane/w3) plus 0.20 mm clearance per side in u |
 | Print tolerance | ±0.3 mm under 100 mm | JLC PA12-HP page, plan v2 §12 (2026-07-30) |
 | Placement on the printed floor | ±0.3 | `packing-v2.md` |
 
@@ -121,7 +127,9 @@ board package.
 | Tail blended, REF dome | Order-1 tail loft; REF dome on the tail (Q17 provisional) | Q17 |
 | Colour | NOT_MEASURED. Grey or dyed black is Q30 | Q30 |
 | USB ligaments ≥ 1.5 | 1.5 to the hook root | `V2_USB_end` ligament_hook 1.5 |
-| Wall ≥ 1.0 at slot and ligaments, ≥ 1.5 elsewhere | Snap residual 1.1; USB ligament 1.5; Q59 slot open with nylon beside it | `V2_WALL_minima` |
+| Wall ≥ 1.0 at slot and ligaments, ≥ 1.5 elsewhere | Snap residual 1.1; USB ligament 1.5; side walls 1.5; remaining end wall beside the slot 1.827 / 1.879; floor under the slot 1.50; measured flex clearance 0.20 mm per side in u (slot width 2.90) | `V2_WALL_minima` |
+| `V2_TAB_envelope` | Pass. REF_body_mm3 0, SIG1 0, SIG2 0 | `V2_TAB_envelope` |
+| `REF_WIRE_envelope` | Pass. body_mm3 0, lid_mm3 0 | `REF_WIRE_envelope` |
 
 Matte / vapour smoothing is a finish on the order, not this solid.
 
@@ -162,7 +170,8 @@ is no copper, not air; the check reports it and does not fail.
    a PA12 coupon exists.
 5. Colour, grey or dyed black (Q30).
 6. Q17 REF dome on the tail, still provisional.
-7. Whether WP11b later publishes a cavity-only REF route. This shell
-   already slots the end wall.
+7. Q59 is closed as the slot: `packing-v2.md` §5 on lane/w3 at `284ec05`
+   found no in-cavity REF route. This shell cuts `REF_end_wall_slot`
+   plus the stated flex clearance. No further packing search.
 8. Standoff 3.0 vs Harwin 4.0. This file keeps 3.0. A 4.0 swap is a
    parameter change, not a construction fork.

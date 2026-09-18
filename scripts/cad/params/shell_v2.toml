@@ -15,8 +15,9 @@
 #   plus a cantilever snap; see docs/fab/shell-v2.md.
 # - M1 (default.toml 52): Q34.
 # - CONTACT_*: WP7a / Stage S2 contact sites.
-# - Q59: WP11b on lane/w3 has not published a cavity-only REF tab;
-#   this shell slots the cavity end wall.
+# - Q59: packing-v2.md §5 on lane/w3 at 284ec05: no in-cavity REF route.
+#   This shell cuts REF_end_wall_slot (u 7.25–9.75, s 38.20–39.25,
+#   y 1.50–1.81) plus 0.20 mm flex clearance per side in u.
 # - Q17: reference dome on the tail, provisional.
 
 PACKING = "v2"
