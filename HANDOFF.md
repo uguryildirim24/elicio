@@ -104,6 +104,8 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
 | r7 | decisions Q81–Q83 (no receptacle until M1 is measured, bosses follow the island holes, neck-end strips) | coordinator, Q81 Rolf's | `a3960d6` | `docs/fab/open-questions.md` |
 | r7 | Q78 settled at width 22, Q81–Q83 with §5c's numbers; briefs WP14d, WP12d | coordinator | `d67e534` | `docs/fab/open-questions.md`, `tasks/WP14d-shell-v2d.md`, `tasks/WP12d-board-v2d.md` |
 | r7 | decisions Q84 (Contact rule by area), Q85 (flat pattern); briefs WP11e, WP12e | coordinator | `aea2345` | `docs/fab/open-questions.md`, `tasks/WP11e-flat-pattern.md`, `tasks/WP12e-route-v2.md` |
+| r7 | Q86 charging pad site (hook-end medial floor); WP14e brief | coordinator | `690c88e`, `77d310d` | `docs/fab/open-questions.md`, `tasks/WP14e-shell-v2e.md` |
+| r7 | Q87 board deviation where the table's hole is wrong; briefs WP12f, WP11f | coordinator | `5b836a2` | `docs/fab/open-questions.md`, `tasks/WP12f-route-v2.md`, `tasks/WP11f-j4-holes.md` |
 
 Round 6 gates at merge (`tasks/reviews/code-r6.md`, final `f407b12`): 206
 tests OK none skipped with the cad and ble extras (34 named skips on the
@@ -124,7 +126,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11e, w2 WP12e), WP14d landed, WP12d landed un-routed, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w2 WP12f routing, w3 WP11f, w1 WP14e), WP12e landed un-routed at 30ca79d, WP11e landed at 408a476, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -179,7 +181,15 @@ fast-forwarded to `110a79b`.
   silhouette because §5c put them at u 0.75 and 21.25, inside the 1.5 mm
   side walls (the report says so); WP11e was told to move them inside the
   cavity range, then w1 gets a WP14e to follow the v2 folded sites. w1
-  idle on `lane/w1-r6`.
+  then got WP14e.
+- **w1 → WP14e shell v2e** (`tasks/WP14e-shell-v2e.md`, main `77d310d`):
+  RUNNING since 05:10 on `lane/w1-r6` on top of `ecfff54` (told to `git
+  merge main` first): P4/P5 at §5d's hook-end floor sites with Ø5 floor
+  holes, the tail-corner pads removed, the rib slot and the drop
+  channel for the charge tab, `V2_CHARGE_pads` and every check
+  re-measured, renders regenerated with stamp = solids commit,
+  `shell-v2.md` updated. Waits for nothing from me. Report
+  `.worktrees/w1/.reports/WP14e-report.md` (expected) → `DONE WP14e`.
 - **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): LANDED, `DONE
   WP11d` four times on `lane/w3`, final `c6bd2fe` (tree clean, report
   `.worktrees/w3/.reports/WP11d-report.md` present, tests OK).
@@ -208,19 +218,25 @@ fast-forwarded to `110a79b`.
   folded-site table for the shell (unchanged contact sites), J4's
   THREE NPTH (drill 0.99, keep Ø1.39) as a both-side keep-out with no
   B.Cu part inside. Second turn `bf9f3f6` put P4/P5 at s 49.50, off
-  the 47.90 body (my prompt caught it). Third turn LANDED at `303be75`
-  (tree clean, report updated, tests green): the tail cannot take two
-  Ø5 pads (end-wall slot, REF dome, screw well, loft from s 45.5;
-  largest tail pair Ø2.1), so P4/P5 sit on the hook-end medial floor
-  beside the cell at (14.70, 4.30) and (17.70, 11.72), Ø5 holes through
-  the floor, recorded as Q86 (`690c88e`). Still open: their flex path
-  has no flat coordinates (table says flat = folded while SW1/U2 share
-  that XY on the pocket island). Fourth turn RUNNING since 04:45: the
-  fold for P4/P5 (drop along the cell's side or a floor tab through a
-  rib slot at s 14.90–15.70), flat centres in the pin table, non-overlap
-  proven, the shell's additions listed. Its DONE brings the final v2
-  sha; only then do I send w2 "pin table v2" plus that sha and brief
-  w1's WP14e on the folded sites and the floor holes.
+  the 47.90 body; third turn `303be75` proved the tail cannot take two
+  Ø5 pads and put P4/P5 on the hook-end medial floor beside the cell at
+  (14.70, 4.30) and (17.70, 11.72) (Q86); fourth turn LANDED, final
+  `DONE WP11e` at `408a476` (tree clean, 231 tests OK, doc
+  byte-identical, drawings 4): P4/P5 get flat centres (37.47, 2.80) and
+  (30.05, 5.80) through a floor tab from the leftover at s 16.00 through
+  a rib slot (s 14.90–15.70, u 11.90–20.50, h 0.31) with two 90° bends
+  at R 1.5 dropping 3.31; CHARGE rectangle centre (33.02, 4.30) 14.50 ×
+  8.60 in the flat outline; no self-overlap, nothing over a courtyard
+  on either side. Sent to w2 as "pin table v2 408a476" at 05:10; w1
+  briefed on the same sites. Then WP12e found the table's J4 hole sites
+  mirrored → WP11f.
+- **w3 → WP11f J4 holes** (`tasks/WP11f-j4-holes.md`, main `5b836a2`):
+  RUNNING since 05:55 on `lane/w3` on top of `408a476` (told to `git
+  merge main` first): J4's three NPTH centres from the KiCad footprint
+  at the pinned rot 90 with a test, the build cell re-run with the
+  corrected both-side keep-out, R24's move folded back, pin table v2.1
+  in §5d with the same 68 rows. Waits for nothing from me. Report
+  `.worktrees/w3/.reports/WP11f-report.md` (expected) → `DONE WP11f`.
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
   WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
   package commit, tree clean, report
@@ -261,13 +277,30 @@ fast-forwarded to `110a79b`.
   line (trap recorded); the reviewer notes it. BOM 57. 14 CAD test
   failures in its venv (pins), as before.
 - **w2 → WP12e route v2** (`tasks/WP12e-route-v2.md`, main `aea2345`):
-  started 03:20 on `lane/w2`; WAITING since 03:50: it pushed `WAITING
-  WP12e pin table v2` with steps 1 and 2 committed at `2b4808d` (Q84
-  Contact rule areas, the pin-table-v2 parser, main merged, tree
-  clean). It waits for my prompt with the line "pin table v2" plus the
-  sha of w3's WP11e commit; then it re-pins on the flat pattern, routes
-  on OpenJDK 25 to DRC 0, or stops un-shorted with a truthful commit
-  message. Report
+  started 03:20 on `lane/w2`; LANDED UN-ROUTED, `DONE WP12e` at
+  `30ca79d` (tree clean, report `.worktrees/w2/.reports/WP12e-report.md`
+  present, board tests 14 OK, ERC 0). Built: Q84 rule areas (`2b4808d`),
+  pin table v2 copied to `hardware/board/packing_v2_flat.md` (absent on
+  main), `packing_5c_norec.md` deleted, 68 footprints on the flat
+  pattern (strips, REF tab, charge tab in Edge.Cuts), P1–P5 at the flat
+  centres, R23/R26 nudged inside 0.1, zero-track DRC 2 errors (R24 pad
+  on B.Cu against a real J4 NPTH: the table's hole sites are mirrored
+  against the footprint at rot 90; 0.46 mm needed), Freerouting 2.4.1
+  on OpenJDK 25 wrote a SES (75 s) whose import has 317 errors (199
+  track_width, 103 clearance, 9 copper_edge, 3 hole, 2 npth_inside_
+  courtyard), fanout 49 %, 75 unrouted; SES not written back; `routed:
+  false`; last commit message truthful ("placed on the flat pattern,
+  not routed"). Same 14 CAD test failures in its venv (pins).
+- **w2 → WP12f route v2** (`tasks/WP12f-route-v2.md`, main `5b836a2`):
+  RUNNING since 05:55 on `lane/w2` on top of `30ca79d` (told to `git
+  merge main` first): R24 off the real hole by the minimum (Q87,
+  deviation recorded), netclasses at the §12 flex limits proven in the
+  DSN's class blocks, SIG1/SIG2/REF and the charge nets pre-routed by
+  script and locked, Freerouting with fanout well above 49 %, import,
+  hand-fix, DRC 0 / 0 unconnected, `release.py --routed`, a repeatable
+  script under `scripts/board/`; or stop un-shorted truthfully. Waits
+  for nothing from me. Report (expected)
+  `.worktrees/w2/.reports/WP12f-report.md` (expected) → `DONE WP12f`. Report
   `.worktrees/w2/.reports/WP12e-report.md` (expected) → `DONE WP12e`.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
@@ -349,7 +382,7 @@ Outside those:
    (Pro amendment, Rolf's call); WP14c's screw well on the medial tail
    vs the REF contact and skin (Q17), and whether a well against skin
    collects sweat (the tail-end-face variant is the alternative).
-   Round 7 additions: the charging pads moved three times in WP11e (walls → off-body tail → hook-end floor, Q86), check the shell, board and §5d agree on the final sites. WP14d built the P4/P5 charging domes inside the
+   Round 7 additions: §5d's J4 hole sites were mirrored against the KiCad footprint (WP11f fixes; R24 moved on the board under Q87; check both agree within 0.1); the charging pads moved three times in WP11e (walls → off-body tail → hook-end floor, Q86), check the shell, board and §5d agree on the final sites. WP14d built the P4/P5 charging domes inside the
    1.5 mm side walls at §5c's sites (u 0.75 / 21.25), protruding past
    the silhouette (WP11e moves them, WP14e follows); its render stamp is
    the solids commit `f52afc5` while HEAD `ecfff54` is a one-line read
@@ -362,14 +395,13 @@ Outside those:
 
 ## Next
 
-- Idle until `DONE WP11e` (w3), `DONE WP12e` or `WAITING WP12e pin table
-  v2` (w2), or BLOCKED/GONE for any (a DONE is checked: report present,
-  tree clean; then read); on `DONE WP11e` send w2 the line "pin table
-  v2" plus the sha and brief w1 a WP14e (expected) at
-  `tasks/WP14e-shell-v2e.md` (expected) to follow the v2 folded sites
-  (P4/P5 move inside the cavity range at least); when WP11e, WP12e and
-  WP14e have landed, open review r7: a review worktree (expected) at
-  `.worktrees/review` (expected) on a round 7 review branch cut from
+- Idle until `DONE WP12f` (w2), `DONE WP11f` (w3) and `DONE WP14e` (w1),
+  or BLOCKED/GONE for any (a DONE is checked: report present, tree
+  clean; then read; WP14e's renders viewed and the sheet refreshed to
+  version 11 with the hook-end pads and a Q86 question); when all three
+  have landed (WP12f routed or stopped with a structural reason that is
+  not the board's to fix), open review r7: a review worktree (expected)
+  at `.worktrees/review` (expected) on a round 7 review branch cut from
   main, a fresh Opus 5 high pane, brief (expected) at `tasks/review-r7.md`
   (expected) from `tasks/review-code-template.md` with the seams in Open
   item 6 and every report pasted; merge order w3, w1-r6, w5, w4, w2.
