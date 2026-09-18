@@ -2843,6 +2843,15 @@ def packing_markdown(rows: list[V2Result]) -> str:
         )
         lines.append("")
         lines.append("- " + box_line(f"Cell {CELL[spec.cell]['name']} + foam {FOAM:g}", "cell") + ".")
+        if spec.cell == "501015":
+            # Review r6: the record's cell is the 501012 pack in this pocket.
+            lines.append(
+                "  Cell record (review r6): the pocket is the bare-cell envelope. The cell the record "
+                "carries is the 501012 pack, 13.0 × 10.1 × 5.1 as listed (L7 §7.7.3; PCM inferred, not quoted; packed 5.6 ≤ 5.7), "
+                "which closes on this body (§1e, `A_pack501012_series_w20_y8_iII_s3`) and leaves 2.6 of "
+                "the pocket's 15.6 along s for foam (Q57); J2 beside the pocket takes its leads unchanged. The 17.0 501015 pack does not close here (§1e). "
+                "The purchase route is Rolf's (decision 69 in `tasks/reviews/code-r6.md`)."
+            )
         mod = MODULE[spec.arch]
         m = p["module"]
         axis = "u" if m.wu >= m.ws else "s"
