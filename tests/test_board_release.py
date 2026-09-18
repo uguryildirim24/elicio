@@ -94,7 +94,7 @@ class BoardReleaseTests(unittest.TestCase):
             )
             summary_path = out / "summary.json"
             self.assertTrue(summary_path.is_file())
-            summary = json.loads(summary_path.read_text())
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
             self.assertEqual(summary["erc_errors"], 0)
             self.assertTrue((out / "bom.csv").is_file())
             self.assertTrue((out / "cpl.csv").is_file())
@@ -138,7 +138,7 @@ class BoardReleaseTests(unittest.TestCase):
             )
             self.assertEqual(proc.returncode, 1, proc.stdout[-2000:])
             self.assertIn("routed release refused", proc.stderr)
-            summary = json.loads((out / "summary.json").read_text())
+            summary = json.loads((out / "summary.json").read_text(encoding="utf-8"))
             # Review r6: a refused release never reports routed: true.
             self.assertIs(summary["routed"], False)
             self.assertIs(summary["routed_requested"], True)
@@ -149,7 +149,7 @@ class BoardReleaseTests(unittest.TestCase):
 
 class PackingAgreementTests(unittest.TestCase):
     def test_named_smt_centres_match_packing_v2_within_0_1_mm(self) -> None:
-        text = PCB.read_text()
+        text = PCB.read_text(encoding="utf-8")
         found: dict[str, tuple[float, float]] = {}
         for chunk in text.split("(footprint ")[1:]:
             at = re.search(r"\(at ([+-]?\d+(?:\.\d+)?) ([+-]?\d+(?:\.\d+)?)", chunk)
