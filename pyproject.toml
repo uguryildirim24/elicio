@@ -24,6 +24,9 @@ cad = [
   "matplotlib>=3.9",
   "pypdf>=5",
 ]
+ble = [
+  "bleak>=0.22",
+]
 
 [project.scripts]
 elicio = "elicio.cli:main"
