@@ -41,6 +41,11 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
      The first shell pictures are on the sheet (version 6) with the
      reviewer's findings: the size is right, the closure and the USB end
      fail as drawn and are being redone (WP14b).
+  1a. Q81 with Q34: the USB-C receptacle needs M1 ≥ 58.5 (a body 7.3
+     longer); until he measures, the build carries two charging contacts
+     on the tail and a magnetic cable, and USB-C returns if M1 allows.
+     Reading: contacts; his M1 decides. A plan v2 §5.4 amendment turn
+     with Pro if he confirms.
   1b. Q69 the battery route (sheet question 2b): the marketplace 501012
      pack (13.0 × 10.1 × 5.1 with PCM, 40 mAh, no drawing) or a factory
      sample of the real 17.0 mm 501015 pack with M1 ≥ 52.5 and a body 1.5
@@ -95,6 +100,7 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
 | r6 | decisions Q69–Q77 | coordinator | `58ae5b8` | `docs/fab/open-questions.md` |
 | r7 | briefs WP11c, WP14b, WP13c, WP11d, WP17c, WP14c, WP12d-prep | coordinator | `e2c7f09`, `58ae5b8`, `0293d48`, `7983847`, `7b23eb5` | `tasks/WP11c-courtyards.md` and siblings |
 | r7 | decisions Q78–Q80 (edge rule and board area, Contact variant A, USB-C vs TC2030) | coordinator | `7983847` | `docs/fab/open-questions.md` |
+| r7 | decisions Q81–Q83 (no receptacle until M1 is measured, bosses follow the island holes, neck-end strips) | coordinator, Q81 Rolf's | `a3960d6` | `docs/fab/open-questions.md` |
 
 Round 6 gates at merge (`tasks/reviews/code-r6.md`, final `f407b12`): 206
 tests OK none skipped with the cad and ble extras (34 named skips on the
@@ -136,7 +142,7 @@ fast-forwarded to `110a79b`.
   tab fold pockets, island bosses), merges in round 7's review. The new
   renders go on the answer sheet (version 7).
 - **w1 → WP14c shell v2c** (`tasks/WP14c-shell-v2c.md`, main `7b23eb5`):
-  RUNNING since 01:50 on `lane/w1-r6` on top of `bb0c788` (told to `git
+  RUNNING since 01:15 on `lane/w1-r6` on top of `bb0c788` (told to `git
   merge main` first): the screw well moved off the lateral surface (tail
   end face or medial tail) with a measured `V2_LATERAL_unbroken`, Ø2.10
   pilots and OD ≥ 5.0 bosses at the tail and the two island boss sites
@@ -156,18 +162,35 @@ fast-forwarded to `110a79b`.
   M1 gate first. Five decisions asked → Q78 (edge rule and area), Q79
   (Contact variant A), Q80 (USB-C keeps the hook end, TC2030 to the
   leftover), recorded at `7983847`; the 17 mm pack stays under Q69.
+- **w3 → WP11c amendment** (the round 6 note "decisions 70–74", queued
+  behind WP11c): LANDED, `DONE WP11c` at `5f864bf` on `lane/w3` (report
+  `.worktrees/w3/.reports/WP11c-report.md` rewritten, 191 tests OK).
+  Numbers: USB-C J1 (10.64 × 9.42 × 3.2) hangs 5.86 past the hook-end
+  face, a 2.4 hook-root move clears the opening only, seating it needs
+  +7.32 arc (chord 55.29, M1 ≥ 58.29): nothing closes at M1 52 → Q81
+  (no receptacle, two tail charging contacts and a magnetic cable until
+  M1 is measured; USB-C returns at M1 ≥ 58.5); U1 covers boss site
+  (14.85, 28.10) and HOLE_M1 takes SW1's site → Q82 (bosses follow the
+  holes); side-wall fold pockets leave a 0.65 wall → Q83 (neck-end
+  strips, 501012 body SIG1 10.71 / SIG2 21.81); three FR4 ring pieces
+  fine (count 5). Recorded at `a3960d6`.
 - **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`, main
-  `7983847`): RUNNING since 01:25 on `lane/w3` on top of `1897df0` (told
-  to `git merge main` first); the 16-cell grid: edge rule as process edge
-  vs board outline, width 20 and 22, chord 47.90 and 49.00, top only vs
-  two sides with the clearance under the board measured from the stack;
-  501012 pack only, Q79 and Q80 fixed, Q72–Q74 occupants; publishes §5c
-  with the placement table if a cell places all 66. Waits for nothing
-  from me. Report (expected) `.worktrees/w3/.reports/WP11d-report.md` →
-  `DONE WP11d`; then WP12d (w2) pins §5c and WP14b's second turn (w1)
-  cuts the USB wall and pockets.
+  `7983847`): RUNNING since 01:05 on `lane/w3` (merged main at
+  `57c03ad`, on top of `5f864bf`): the 16-cell grid: edge rule as
+  process edge vs board outline, width 20 and 22, chord 47.90 and 49.00,
+  top only vs two sides with the clearance under the board measured from
+  the stack; 501012 pack only, Q79 and Q80 fixed, Q72–Q74 occupants;
+  publishes §5c with the placement table if a cell places all 66. An
+  addendum is queued behind this turn (01:25): no-receptacle cells (Q81),
+  island holes where the courtyards allow with the sites published (Q82),
+  neck-end strips as the default fold (Q83); it runs as a second turn
+  and pushes a second `DONE WP11d`. Waits for nothing from me. Report
+  (expected) `.worktrees/w3/.reports/WP11d-report.md` → `DONE WP11d`
+  (twice); then WP12d (w2) pins §5c and WP14d (w1) cuts the USB wall or
+  the contact pads, the pockets or the neck strips, and moves the
+  bosses.
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`, main `7b23eb5`):
-  RUNNING since 01:50 on `lane/w2` on top of `f4376ca` (told to `git merge
+  RUNNING since 01:15 on `lane/w2` on top of `f4376ca` (told to `git merge
   main` first; the branch holds WP12c, `hardware/board/route.md` (absent
   on main), not yet merged): prove Freerouting 2.4.1 headless writes a
   SES on this Mac (evidence only, not imported), `build_v2b.py` accepts a
