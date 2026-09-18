@@ -1,8 +1,8 @@
-# WP14d wearable shell. Overlay on stageb_v2.toml. Not an order. Writes
+# WP14e wearable shell. Overlay on stageb_v2.toml. Not an order. Writes
 # docs/fab/cad/v2/ with --stage shell.
 #
-# Winner: A_pack501012_series_w22_y8_iII_s3 (packing-v2.md §5c on lane/w3
-# at e1f1d6facf37526d358569dace7ebf75ee4e160f). Width 22, height 9.0,
+# Winner: A_pack501012_series_w22_y8_iII_s3 (packing-v2.md §5d on lane/w3
+# at 408a4765ec953d6cc84210fd3e5632185ff95cbb). Width 22, height 9.0,
 # 501012 pack (Q69), island u 2.25–19.75 × s 16.00–37.60. Standoff 3.0 mm
 # (Q43, Q58). The 4.0 mm Harwin R25-1000402 stays a listed alternate.
 # M1 = 52 from default.toml (Q34 blank); provisional: true.
@@ -21,9 +21,12 @@
 # - Q59: packing-v2.md §5 on lane/w3 at 284ec05: no in-cavity REF route.
 #   This shell cuts REF_end_wall_slot (u 7.25–9.75, s 38.20–39.25,
 #   y 1.50–1.81) plus 0.20 mm flex clearance per side in u.
-# - Q81: no USB receptacle at M1 52. Two charging contacts at §5c P4/P5.
+# - Q81: no USB receptacle at M1 52.
 # - Q82: island bosses at §5c hole sites (13.45, 17.70) and (17.95, 17.70).
 # - Q83: neck-end tab strips, no side-wall pockets.
+# - Q86: P4/P5 on the hook-end medial floor at §5d folded sites
+#   (14.70, 4.30) and (17.70, 11.72). Rib slot and drop channel.
+# - Q84: 1.0 mm creepage nylon under the floor pads.
 # - Q17: reference dome on the tail, provisional.
 
 PACKING = "v2"

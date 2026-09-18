@@ -913,20 +913,36 @@ class CadShellV2Tests(unittest.TestCase):
         self.assertAlmostEqual(params["BOARD_ZONE_S"][0], 16.0)
         self.assertAlmostEqual(params["RIB_S"][0], 14.9, places=1)
         header = SHELL_FILE.read_text(encoding="utf-8")
-        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0", "Q71", "Q76", "Q81", "Q82", "Q83"):
+        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0", "Q71", "Q76", "Q81", "Q82", "Q83", "Q86"):
             self.assertIn(token, header)
 
     def test_s5c_reader_uses_the_table(self) -> None:
         s5c = CAD.load_s5c_no_receptacle()
-        self.assertEqual(s5c.packing_sha, CAD.S5C_PACKING_SHA)
+        self.assertEqual(s5c.packing_sha, CAD.S5D_PACKING_SHA)
         self.assertEqual(s5c.holes, ((13.45, 17.70), (17.95, 17.70)))
-        self.assertEqual(s5c.p4, (0.75, 44.0))
-        self.assertEqual(s5c.p5, (21.25, 44.0))
+        self.assertEqual(s5c.p1, (5.90, 22.00))
+        self.assertEqual(s5c.p2, (10.40, 33.10))
+        self.assertEqual(s5c.p3, (8.50, 43.00))
+        self.assertEqual(s5c.p4, (14.70, 4.30))
+        self.assertEqual(s5c.p5, (17.70, 11.72))
+        self.assertAlmostEqual(s5c.p4_y, 1.50)
+        self.assertAlmostEqual(s5c.p5_y, 1.50)
         self.assertAlmostEqual(s5c.sig1_strip, 10.71, places=2)
         self.assertAlmostEqual(s5c.sig2_strip, 21.81, places=2)
         self.assertEqual(s5c.island_u, (2.25, 19.75))
         self.assertEqual(s5c.island_s, (16.00, 37.60))
+        self.assertEqual(s5c.rib_slot_u, (11.90, 20.50))
+        self.assertEqual(s5c.rib_slot_s, (14.90, 15.70))
+        self.assertAlmostEqual(s5c.rib_slot_h, 0.31)
+        self.assertAlmostEqual(s5c.drop_s0, 16.00)
+        self.assertEqual(s5c.drop_u, (11.90, 20.50))
+        self.assertAlmostEqual(s5c.drop_r, 1.5)
+        self.assertAlmostEqual(s5c.drop_h, 3.31)
+        self.assertAlmostEqual(s5c.drop_flex, 0.31)
         self.assertTrue(any(row[0] == "P4" for row in s5c.courtyards))
+        folded = CAD.load_s5d_folded()
+        self.assertEqual(folded.p4, s5c.p4)
+        self.assertEqual(folded.p5, s5c.p5)
         inactive = CAD.Check("V2_USB_end", False, "NOT_APPLICABLE: Q81: no receptacle at M1 52")
         self.assertEqual(
             CAD.stage_b_failing({"full": {"V2_USB_end": inactive}}, skip_not_measured=True),
@@ -955,7 +971,7 @@ class CadShellV2Tests(unittest.TestCase):
 
 @unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadShellV2BuildTests(unittest.TestCase):
-    """Wearable body on the §5c width-22 winner. Same construction path as Stage B v2."""
+    """Wearable body on the §5d width-22 winner. Same construction path as Stage B v2."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1031,7 +1047,17 @@ class CadShellV2BuildTests(unittest.TestCase):
         self.assertTrue(rows["V2_CHARGE_pads"].passed, rows["V2_CHARGE_pads"].numbers)
         self.assertEqual(rows["V2_CHARGE_pads"].numbers["flush_pads"], 1.0)
         self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["nylon_between"], 3.0)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P4_u"], 14.70, places=2)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P4_s"], 4.30, places=2)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P5_u"], 17.70, places=2)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P5_s"], 11.72, places=2)
+        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P4_floor_t"], 1.0)
+        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P5_floor_t"], 1.0)
+        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P4_cell_gap"], 0.0)
+        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P5_cell_gap"], 0.0)
         self.assertEqual(rows["V2_TAB_envelope"].numbers["side_pocket"], 0.0)
+        self.assertEqual(rows["V2_TAB_envelope"].numbers["rib_slot_air"], 1.0)
+        self.assertEqual(rows["V2_TAB_envelope"].numbers["drop_channel_air"], 1.0)
         self.assertAlmostEqual(rows["V2_TAB_envelope"].numbers["SIG1_strip"], 10.71, places=2)
         self.assertAlmostEqual(rows["V2_TAB_envelope"].numbers["SIG2_strip"], 21.81, places=2)
         self.assertAlmostEqual(self.params["BODY_WIDTH"], 22.0)
