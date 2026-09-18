@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-18T07:19:18-04:00",
+ "generated": "2026-09-18T08:18:26-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
   "id": "w1B",
   "label": "elicio",
-  "tabs": 8
+  "tabs": 5
  },
  "coordinator": {
   "pane_id": "w1B:p1",
@@ -26,7 +26,7 @@
    ],
    "name": "w1",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pA",
    "tab_id": "w1B:tA",
    "tab_label": "w1",
@@ -35,8 +35,9 @@
    "session_id": "791832d5-f944-40f4-80ec-82deb5c4efca",
    "tokens": {
     "done": "1",
-    "lane": "WP14e",
-    "parent": "w1B:p1"
+    "lane": "WP14f",
+    "parent": "w1B:p1",
+    "waiting": "flat pattern v3"
    },
    "title": "Lane W1 Instructions"
   },
@@ -47,7 +48,7 @@
    ],
    "name": "w2",
    "kind": "cursor",
-   "status": "working",
+   "status": "done",
    "pane_id": "w1B:pB",
    "tab_id": "w1B:tB",
    "tab_label": "w2",
@@ -56,81 +57,11 @@
    "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
    "tokens": {
     "done": "1",
-    "lane": "WP12g",
+    "lane": "WP12i",
     "parent": "w1B:p1",
-    "waiting": "pin table v2"
+    "waiting": "pin table v3"
    },
    "title": "Lane W2 Instructions"
-  },
-  {
-   "start_args": [
-    "--resume",
-    "3f977624-113c-48fa-b55e-666aa970b9a3"
-   ],
-   "name": "w4",
-   "kind": "cursor",
-   "status": "working",
-   "pane_id": "w1B:pC",
-   "tab_id": "w1B:tC",
-   "tab_label": "w4",
-   "pane_label": null,
-   "cwd": "/home/user/projects/elicio/.worktrees/w4",
-   "session_id": "3f977624-113c-48fa-b55e-666aa970b9a3",
-   "tokens": {
-    "done": "1",
-    "lane": "WP13c",
-    "parent": "w1B:p1"
-   },
-   "title": "Lane W4 Instructions"
-  },
-  {
-   "start_args": [
-    "--conversation",
-    "18235bfb-f5b8-4365-9383-d66c69251f4b",
-    "--dangerously-skip-permissions",
-    "--add-dir",
-    "/home/user/projects/elicio",
-    "--effort",
-    "high",
-    "--model",
-    "gemini-3.8-flash-high"
-   ],
-   "name": "w5",
-   "kind": "agy",
-   "status": "done",
-   "pane_id": "w1B:pD",
-   "tab_id": "w1B:tD",
-   "tab_label": "w5",
-   "pane_label": null,
-   "cwd": "/home/user/projects/elicio/.worktrees/w5",
-   "session_id": "18235bfb-f5b8-4365-9383-d66c69251f4b",
-   "tokens": {
-    "done": "1",
-    "lane": "WP17c",
-    "parent": "w1B:p1"
-   },
-   "title": null
-  },
-  {
-   "start_args": [
-    "--resume",
-    "ea20ccc0-04da-408f-a016-57766846ee99"
-   ],
-   "name": "w9",
-   "kind": "cursor",
-   "status": "done",
-   "pane_id": "w1B:pE",
-   "tab_id": "w1B:tE",
-   "tab_label": "w9",
-   "pane_label": null,
-   "cwd": "/home/user/projects/elicio/.worktrees/w9",
-   "session_id": "ea20ccc0-04da-408f-a016-57766846ee99",
-   "tokens": {
-    "done": "1",
-    "lane": "WP15",
-    "parent": "w1B:p1"
-   },
-   "title": "Lane W9 Instructions"
   },
   {
    "start_args": [
@@ -163,11 +94,6 @@
    "status": "done"
   },
   {
-   "workspace_id": "w1D",
-   "label": "ablirated",
-   "status": "idle"
-  },
-  {
    "workspace_id": "w1E",
    "label": "jevtest",
    "status": "idle"
@@ -177,48 +103,48 @@
   "repo": "/home/user/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
-   "9354834 Round 8: briefs WP11g (flat pattern v3, pads in the far side wall, J2 inside, J3 break-off, R9/R10 out), WP14f (lid boss and long screw, then wall pads), WP13d (Q96 sentences)",
-   "facb0c1 Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89\u2013Q97 recorded",
-   "5cef436 Round 7 verdict: Q89\u2013Q97 recorded with readings (lid boss and longer screw, charging pads off the skin face, J2 inside, break-off J3, flat pattern v3, stiffeners, R9/R10 DNP, montage scoring, contact envelope)",
-   "1be01ff review: code-r7 verdict MERGE-AFTER-DECISION; gates, defects, \u00a77 look, Q88 ruling, decisions 89\u201397",
-   "3696f5c review(WP11): undo the R24 packing move; the board moves to v2.1 in WP12g (Q87 closed)",
-   "210804d review(WP12): board-v2 \u00a711\u2013\u00a713 describe the Gerber this round carries"
+   "4f82c6b handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected",
+   "a74fbca handoff: r8 seams gain the moved well and tail boss, U2 pitch and U3 swap, the Q98 channel rows",
+   "7dbe1b9 handoff: WP14f first half at 89279c2 (Q89 built, V2_CLOSURE passes, well at u 16.50), w1 WAITING for flat pattern v3; Round 8 note; r8 seam on the tail boss",
+   "bd9d688 handoff: WP12h landed un-routed at c9c750d with every rat named; Q98; WP12i on w2 (board items then WAITING for pin table v3); WP11g addendum for the channels",
+   "27b7991 Round 8: WP12h recorded (63 rats named with geometry) \u2192 Q98 routing channels as packing constraints; WP12i brief",
+   "379e886 handoff: WP13d landed at dbeeafa; round 7 filed in the vault (a3826dd); sheet at version 12"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/home/user/projects/elicio",
     "branch": "main",
-    "head": "9354834",
-    "subject": "Round 8: briefs WP11g (flat pattern v3, pads in the far side wall, J2 inside, J3 break-off, R9/R10 out), WP14f (lid boss and long screw, then wall pads), WP13d (Q96 sentences)",
+    "head": "4f82c6b",
+    "subject": "handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w1",
     "branch": "lane/w1-r6",
-    "head": "facb0c1",
-    "subject": "Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89\u2013Q97 recorded",
+    "head": "89279c2",
+    "subject": "shell(v2f): stamp the Q89 lid-boss solids on the views",
     "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "795d154",
-    "subject": "Merge remote-tracking branch 'origin/main' into lane/w2",
-    "dirty": 1
+    "head": "03f031c",
+    "subject": "board(v3): RSM land, R9/R10 DNP, Q94 stiffeners, Q97 tests; wait for pin table v3",
+    "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w3",
     "branch": "lane/w3",
-    "head": "facb0c1",
-    "subject": "Merge review/r7: round 7 (packing v2.1 and the flat pattern, shell v2e, L8 v5, dropout rule, board placed on the flat pattern) with the reviewer's fixes; verdict MERGE-AFTER-DECISION, Q89\u2013Q97 recorded",
-    "dirty": 0
+    "head": "4f82c6b",
+    "subject": "handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected",
+    "dirty": 8
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w4",
     "branch": "lane/w4",
-    "head": "9354834",
-    "subject": "Round 8: briefs WP11g (flat pattern v3, pads in the far side wall, J2 inside, J3 break-off, R9/R10 out), WP14f (lid boss and long screw, then wall pads), WP13d (Q96 sentences)",
+    "head": "dbeeafa",
+    "subject": "receiver(v2): montage 3.1\u20133.3 scored by the pipeline, not receive-check (Q96)",
     "dirty": 0
    },
    {
@@ -237,14 +163,14 @@
    }
   ],
   "branches": [
-   "lane/w4",
-   "main",
-   "lane/w1-r6",
    "lane/w3",
+   "main",
+   "lane/w2",
+   "lane/w1-r6",
+   "lane/w4",
    "lane/w5",
    "lane/w9",
    "review/r7",
-   "lane/w2",
    "review/r6",
    "review/r5",
    "lane/w1",
@@ -257,6 +183,7 @@
  },
  "files": {
   "briefs": [
+   "tasks/WP12i-board-v3.md",
    "tasks/WP13d-montage-scoring.md",
    "tasks/WP14f-shell-v2f.md",
    "tasks/WP11g-flat-pattern-v3.md",
@@ -267,8 +194,7 @@
    "tasks/WP12f-route-v2.md",
    "tasks/WP14e-shell-v2e.md",
    "tasks/WP12e-route-v2.md",
-   "tasks/WP11e-flat-pattern.md",
-   "tasks/WP12d-board-v2d.md"
+   "tasks/WP11e-flat-pattern.md"
   ],
   "verdicts": [
    "tasks/reviews/code-r7.md",
