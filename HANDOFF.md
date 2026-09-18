@@ -254,7 +254,12 @@ Outside those:
    `V2_CLOSURE` measured in the lid (Q89); L8's UNVERIFIED prices; the
    Q84/Q88 rows still attribute 1.0 mm to plan v2 §5.3 (Q97 corrects it
    in its own row; the rows are not edited); Rolf's Q90 alternative (a
-   cover plus a switch) untouched unless he picks it.
+   cover plus a switch) untouched unless he picks it; WP14f moved the
+   medial well to (16.50, 41.00) and the tail boss measures OD 9.94
+   beside the Ø7.5 REF pocket at (8.50, 43.00): the nylon between pilot
+   and pocket and the +u outer wall at the Ø5 well; U2's footprint pitch
+   against the ADS1292R datasheet and any U3 package swap (WP12i, a
+   stated BOM change); the Q98 channel rows in §5e against the copper.
 
 ## Next
 
