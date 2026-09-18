@@ -1,40 +1,58 @@
-# Measure the ear (order 1)
+# Measure the ear (v2)
 
 Phone sheet. Digital caliper and a non-stretch string. About ten minutes.
 One step, one number. Write millimetres. Do not order anything from this
 sheet.
 
-Defaults are the reference-ear build in `docs/fab/plan.md` §3.3. A key you
-leave blank takes that default and the build is marked REF. Measure M1
-first. If you measure nothing else, that is the REF gauge.
+I wrote this from `docs/fab/plan-v2.md` §8 and from the Stage B winner
+in `docs/fab/packing-v2.md` §5–§6. The v1 measurement names M1 to M8
+stay. The shell this sheet checks is one geometry:
+`A_501015_series_w20_y8_iII_s3`.
 
-Ear (write `right` or `left`): ________
-If this line is blank, the build is the right ear.
+Print `docs/fab/template.pdf` at 100 %. Do not fit to page. Measure the
+50 mm bar before you trust the template. If the bar is not 50 mm, throw
+the print away.
 
-**Defaults, if you measure M1 only.** M2 = 58, M3 = 11, M4 = 6.0, M5 = 2.5,
-M6 = 15, M7 = 22, M8 = 11. CREASE_BOW stays 3.0 mm, so the gate is 50.91 mm.
-SIDE stays right unless you wrote `left`. The CAD run is marked REF.
+Ear: right (Q28, `docs/fab/open-questions.md`). Write `right` unless
+you later tell me to flip the template.
 
-**How the bow is set.** The script computes CREASE_BOW from M1 and M2 only
-when you give it both. If M2 is blank, the bow stays 3.0 mm.
+**M1 gates everything.** If M1 is below 50.90 mm, stop. Do not measure
+M2 to M8. Do not cut the template. Do not order. That gate is
+`V2_M1_gate` in `packing-v2.md` §6 at bow 3 (TOTAL_CHORD 47.90 mm plus
+3 mm).
+
+Defaults if a later line is blank are the v1 reference ear
+(`scripts/cad/params/default.toml`): M2 = 58, M3 = 11, M4 = 6.0,
+M5 = 2.5, M6 = 15, M7 = 22, M8 = 11. A blank does not resize this
+winner. It only fills the copy line.
 
 ---
 
 ## M1 — ear root length (do this first)
 
-**Gate.** The shell chord is TOTAL_CHORD. The CAD script rejects the build
-if M1 is below TOTAL_CHORD + 3 mm. TOTAL_CHORD depends on the bow, and the
-bow comes from M1 and M2, so the gate is read after M2.
+![M1](sheets/m1.svg)
 
-**Formula** (plan §3.2–§3.3). BODY_ARC is 48.4 mm. CREASE_BOW is `b` mm.
-TOTAL_CHORD is the chord `C` of that arc:
+**Tool.** Digital caliper, outside jaws. No string.
 
-- `R = C² / (8b) + b / 2`
-- `BODY_ARC = 4R · atan(2b / C) = 48.4`
-- gate = TOTAL_CHORD + 3
+**Landmark.** The two points where the ear joins the skull: the top of
+the crease (helix root) and the bottom of the crease.
 
-The script's gate at the three reference bows, and the smallest caliper
-reading (0.01 mm) that passes:
+**Picture.** Stand side-on to a mirror, or take a side photo. Behind the
+ear is a groove (the crease) from the top attachment down to the bottom
+attachment. Open the caliper. Put one jaw on the top attachment. Put the
+other jaw on the bottom attachment. The line is straight, through the
+air, not along the groove.
+
+**Typical range.** 45–58 mm.
+
+**Gate.** The shell chord is TOTAL_CHORD 47.90 mm (`packing-v2.md` §6
+`V2_TOTAL_CHORD`). The CAD script rejects the build if M1 is below
+TOTAL_CHORD + 3 mm. At the winner's bow 3.0 mm the gate is 50.90 mm
+(`V2_M1_gate`). Q1 reads that as M1 ≥ the gate.
+
+The v1 formula (plan v1 §3.2–§3.3) still names how TOTAL_CHORD comes
+from BODY_ARC 48.4 mm and bow `b`. This winner is frozen at bow 3. The
+table is the same definition as v1, for the three reference bows:
 
 | CREASE_BOW (mm) | 1 | 3 | 8 |
 |---|---:|---:|---:|
@@ -42,74 +60,36 @@ reading (0.01 mm) that passes:
 | Script gate (mm) | 51.345 | 50.901 | 47.673 |
 | M1 must be at least (mm) | 51.35 | 50.91 | 47.68 |
 
-**Stop rule, after M1.**
-
-- M1 is 51.35 or more: you pass at every bow. Go on to M2.
-- M1 is below 47.68: stop. Do not measure M2–M8. This release does not
-  build a shorter shell (plan §10, Open for Rolf item 1, and interface
-  item 4).
-- M1 is between: measure M2 next, then read the gate in the M2 step.
-
-**Tool.** Digital caliper, outside jaws. No string.
-
-**Landmark.** The two points where the ear joins the skull: the top of the
-crease (helix root) and the bottom of the crease.
-
-**Picture.** Stand side-on to a mirror, or take a side photo. Behind the
-ear is a groove (the crease) from the top attachment down to the bottom
-attachment. Open the caliper. Put one jaw on the top attachment. Put the
-other jaw on the bottom attachment. The line is straight, through the air,
-not along the groove.
-
-**Typical range.** 45–58 mm.
+This sheet uses the bow-3 row. Q34: nothing prints before M1.
 
 **Write M1.** ________ mm
-
-If M1 is below 47.68 mm, stop here.
 
 ---
 
 ## M2 — crease arc
+
+![M2](sheets/m2.svg)
 
 **Tool.** Non-stretch string, then the caliper.
 
 **Landmark.** The same two attachment points as M1, along the crease.
 
 **Picture.** The crease is the groove where the back of the ear meets the
-skull. Lay the string in that groove from the top attachment to the bottom
-attachment. Mark the two points on the string. Straighten the string.
-Measure the marked length with the caliper.
+skull. Lay the string in that groove from the top attachment to the
+bottom attachment. Mark the two points on the string. Straighten the
+string. Measure the marked length with the caliper.
 
 **Typical range.** 50–65 mm.
 
-**Feeds.** CREASE_BOW (with M1), clamped 1–8 mm.
+**Feeds.** Recorded. This winner does not recompute CREASE_BOW from M2.
 
 **Write M2.** ________ mm
-
-**Gate, if M1 was below 51.35.** Subtract: M2 − M1 = ________ mm. Find the
-largest row not above your difference. If M1 is below that row's number,
-stop: this release does not build for your ear.
-
-| M2 − M1 (mm) | Bow the script uses (mm) | M1 must be at least (mm) |
-|---:|---:|---:|
-| M2 not measured | 3.0 | 50.91 |
-| 0 or less | 1.0 | 51.35 |
-| 0.25 | 2.1 | 51.16 |
-| 0.5 | 3.0 | 50.91 |
-| 1.0 | 4.2 | 50.40 |
-| 1.5 | 5.2 | 49.88 |
-| 2.0 | 6.0 | 49.35 |
-| 2.5 | 6.7 | 48.80 |
-| 3.0 | 7.4 | 48.25 |
-| 3.5 or more | 8.0 | 47.68 |
-
-The rows are computed at M1 = 47.7, which gives the highest gate for each
-difference, so the table never passes an ear the script rejects. The
-script's own check decides.
 
 ---
 
 ## M3 — sulcus clearance
+
+![M3](sheets/m3.svg)
 
 **Tool.** Digital caliper, depth rod.
 
@@ -118,19 +98,22 @@ rim.
 
 **Picture.** At mid-height of the ear, the rim of the ear stands off the
 head. Hold the caliper behind the ear, pointing at the head. Rest the end
-of the beam on the edge of the rim. Open the caliper so the depth rod slides
-past the rim into the groove until it touches the head. Read the caliper.
-Do not press the ear flat.
+of the beam on the edge of the rim. Open the caliper so the depth rod
+slides past the rim into the groove until it touches the head. Read the
+caliper. Do not press the ear flat.
 
 **Typical range.** 8–14 mm.
 
-**Feeds.** Span report only (BODY_THICK + 1.35 mm crown versus M3).
+**Feeds.** Span report only. Winner BODY_THICK is 9 mm (`packing-v2.md`
+§5).
 
 **Write M3.** ________ mm
 
 ---
 
 ## M4 — helix root thickness
+
+![M4](sheets/m4.svg)
 
 **Tool.** Digital caliper, outside jaws.
 
@@ -145,13 +128,16 @@ front to back. Close until the jaws touch. Do not squeeze.
 
 **Typical range.** 4.5–7.5 mm.
 
-**Feeds.** HOOK_ROOT Y (half of M4).
+**Feeds.** HOOK_ROOT Y (half of M4) on a later CAD run. This winner does
+not wait on it.
 
 **Write M4.** ________ mm
 
 ---
 
 ## M5 — glasses temple thickness
+
+![M5](sheets/m5.svg)
 
 **Tool.** Digital caliper, outside jaws.
 
@@ -165,13 +151,15 @@ flat.
 
 **Typical range.** 1.8–3.2 mm, or 0.
 
-**Feeds.** GLASSES_FLAT (0.8 mm cut if M5 > 0).
+**Feeds.** GLASSES_FLAT (0.8 mm cut if M5 > 0) on a later CAD run.
 
 **Write M5.** ________ mm
 
 ---
 
 ## M6 — mastoid offset
+
+![M6](sheets/m6.svg)
 
 **Tool.** Digital caliper, outside jaws.
 
@@ -183,13 +171,30 @@ the bump. The line is straight, roughly backward.
 
 **Typical range.** 12–18 mm.
 
-**Feeds.** Recorded for WP7a. Not a CAD driver in this release.
+**Feeds.** Recorded. Not a CAD driver in this release.
 
 **Write M6.** ________ mm
+
+### On-bone check for REF (Q17)
+
+The paper template at the reference site is the on-bone check, not a
+printed gauge (Q17, `docs/fab/open-questions.md`; plan v2 §7).
+
+Cut the outline from `template.pdf` after the 50 mm bar checks. Hold it
+behind the right ear, hook at the top, printed face to the skin. The REF
+mark is at (u, s) = (8.5, 43.0) mm (`packing-v2.md` §5). Write whether
+that mark sits on bone.
+
+Q28 recorded "on bone" as a preference before any fit check. This line
+is the check.
+
+**Write REF on bone.** ________ (yes / no / offset mm)
 
 ---
 
 ## M7 — crease top to mid-concha
+
+![M7](sheets/m7.svg)
 
 **Tool.** Non-stretch string, then the caliper.
 
@@ -203,7 +208,7 @@ that point. Measure the string.
 
 **Typical range.** 18–26 mm.
 
-**Feeds.** Recorded for WP7a. Not a CAD driver in this release.
+**Feeds.** Recorded. Not a CAD driver in this release.
 
 **Write M7.** ________ mm
 
@@ -211,39 +216,41 @@ that point. Measure the string.
 
 ## M8 — helix rise
 
+![M8](sheets/m8.svg)
+
 **Tool.** Digital caliper, outside jaws, vertical.
 
 **Landmark.** Top attachment, up to the highest point of the ear rim.
 
 **Picture.** The highest point of the ear rim is the top of the helix,
-above the attachment. One jaw on the top attachment. The other jaw on that
-highest rim point. The line is straight up.
+above the attachment. One jaw on the top attachment. The other jaw on
+that highest rim point. The line is straight up.
 
 **Typical range.** 8–14 mm.
 
-**Feeds.** HOOK_RADIUS = M8 + 2.5 mm (13.5 at the default 11).
+**Feeds.** HOOK_RADIUS from M8 (plan v1 §3.3, Q2). This winner's hook is
+WP14's.
 
 **Write M8.** ________ mm
 
 ---
 
-## Copy line
+## Write back
 
-Give this block to the CAD run (`scripts/cad/params/rolf.toml`). Blank
-keys take the reference values above and mark REF. The bow is computed only
-if both M1 and M2 are filled in.
+Give this block to me. Blank keys take the reference values above. The
+winner's outline does not change.
 
 ```
-SIDE    ________     (right or left; blank = right)
-M1      ________ mm
+SIDE    ________     (right unless you wrote left)
+M1      ________ mm  (gate 50.90 mm at bow 3; packing-v2.md §6)
 M2      ________ mm
 M3      ________ mm
 M4      ________ mm
 M5      ________ mm
 M6      ________ mm
+REF on bone  ________  (Q17; paper template)
 M7      ________ mm
 M8      ________ mm
+bar was 50 mm on paper  ________  (yes / no)
+date    ________
 ```
-
-The 100 g hook test is not an ear measurement. Do it on the printed
-`body_full_p15` after the parcel arrives. Steps are in `order1.md`.

@@ -277,6 +277,8 @@ def validate(payload: Any, *, path: str = "manifest") -> None:
         _validate_views(payload, path)
     if payload.get("stage") == "B":
         _validate_stage_b(payload, path)
+    elif payload.get("stage") == "shell":
+        _validate_shell(payload, path)
 
 
 STAGE_B_CHECKS = (
@@ -315,7 +317,18 @@ STAGE_B_V2_CHECKS = (
 )
 
 
-def _validate_stage_b(payload: dict[str, Any], path: str) -> None:
+# WP14 shell-v2 rows (measured on the wearable body).
+SHELL_CHECKS = (
+    "V2_BOSS",
+    "V2_CLOSURE",
+    "V2_EDGE_radii",
+    "V2_RING_seat",
+    "V2_SWITCH_reach",
+    "V2_USB_end",
+)
+
+
+def _validate_stage_b(payload: dict[str, Any], path: str, *, shell: bool = False) -> None:
     if payload.get("provisional") is not True:
         _fail(f"{path}.provisional", "Stage B manifest must set provisional true")
     packing = payload.get("packing")
@@ -355,11 +368,28 @@ def _validate_stage_b(payload: dict[str, Any], path: str) -> None:
         for name in not_measured:
             if stage_b[name]["passed"]:
                 _fail(f"{path}.stage_b.{name}.passed", "a NOT_MEASURED check cannot pass")
-    failing = sorted(name for name, row in stage_b.items() if not row["passed"])
+    failing = sorted(
+        name
+        for name, row in stage_b.items()
+        if not row["passed"]
+        and not (shell and str(row["detail"]).startswith("NOT_MEASURED"))
+    )
     if payload.get("stage_b_failing") != failing:
         _fail(f"{path}.stage_b_failing", f"must list the failing checks {failing}")
     if payload.get("stage_b_passed") is not (not failing):
-        _fail(f"{path}.stage_b_passed", "must be true exactly when no Stage B check failed")
+        _fail(f"{path}.stage_b_passed", "must be true exactly when no measured Stage B check failed")
+
+
+def _validate_shell(payload: dict[str, Any], path: str) -> None:
+    _validate_stage_b(payload, path, shell=True)
+    for key in ("winner", "params_file", "params_sha256"):
+        if not isinstance(payload.get(key), str) or not str(payload[key]).strip():
+            _fail(f"{path}.{key}", "a shell manifest must set this string")
+    if not HEX64.match(payload["params_sha256"]):
+        _fail(f"{path}.params_sha256", "must be 64 lowercase hex characters")
+    for name in SHELL_CHECKS:
+        if name not in payload["stage_b"]:
+            _fail(f"{path}.stage_b", f"missing shell check {name!r}")
 
 
 def _validate_views(payload: dict[str, Any], path: str) -> None:

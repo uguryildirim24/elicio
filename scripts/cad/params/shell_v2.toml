@@ -1,0 +1,41 @@
+# WP14 wearable shell. Overlay on stageb_v2.toml (same packing-C
+# construction, PACKING = "v2" checks). Not an order. Writes
+# docs/fab/cad/v2/ with --stage shell.
+#
+# Winner: A_501015_series_w20_y8_iII_s3 (packing-v2.md §5–§6).
+# Standoff in this file is 3.0 mm (Q43, Q58, WP11 closer). The 4.0 mm
+# Harwin R25-1000402 stays a listed alternate; do not switch it here.
+# M1 = 52 from default.toml (Q34 blank); provisional: true.
+#
+# Each value below is provisional and waits on:
+# - V2_* layout: Rolf's pick among the closers (packing-v2.md §3).
+# - TAB_HEIGHT: Q22 (v1 TE 31428; v2 tabs: V2_TAB_envelope).
+# - CABLE_EXIT_S: review r4 decision 24.
+# - CLOSURE_PASSED: false (E1 dropped, Q28). Shell uses a hinge lip
+#   plus a cantilever snap; see docs/fab/shell-v2.md.
+# - M1 (default.toml 52): Q34.
+# - CONTACT_*: WP7a / Stage S2 contact sites.
+# - Q59: packing-v2.md §5 on lane/w3 at 284ec05: no in-cavity REF route.
+#   This shell cuts REF_end_wall_slot (u 7.25–9.75, s 38.20–39.25,
+#   y 1.50–1.81) plus 0.20 mm flex clearance per side in u.
+# - Q17: reference dome on the tail, provisional.
+
+PACKING = "v2"
+STAGE = "shell"
+V2_ARCH = "A"
+V2_CELL = "501015"
+V2_LAYOUT = "series"
+V2_WIDTH = 20.0
+V2_LID_Y = 8.0
+V2_ARC_PLUS = 0.0
+V2_IFACE = "II"
+V2_STANDOFF = 3.0
+MOCK_CONTACTS = false
+CLOSURE_PASSED = false
+TAB_HEIGHT = 2.0
+CABLE_EXIT_S = 35.0
+CONTACT_SOURCE = "interface II flex tabs under standoffs (WP11 turn 07)"
+CONTACT_1_U = 5.9
+CONTACT_1_S = 22.0
+CONTACT_REF_U = 8.5
+CONTACT_REF_S = 43.0
