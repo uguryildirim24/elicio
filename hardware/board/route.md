@@ -165,13 +165,36 @@ The committed `elicio-v2.kicad_pcb` is unchanged.
 
 ## 7. WP12d plan (Q79, Q80)
 
-1. Place from packing §5c; parser already reads `ref u s rot side` (`top`/`bottom`).
+1. Place from packing §5c no-receptacle table (`hardware/board/packing_5c_norec.md`).
 2. R1, R2, R3 sit on the island at the tab roots (Q79 variant A).
 3. Each 2.5 mm tab carries one Contact trace and nothing else.
 4. Keep netclass Contact 1.0 mm; no DRC exception.
-5. J1 USB-C stays on the hook-end face (Q80, plan v2 §5.4).
-6. J4 TC2030 sits on the leftover; its keep-out is a board no-part zone.
-7. J3 pads are Ø1.5 mm.
+5. J1 and U5 are out (Q81). P4/P5 are RING_PAD charge pads. D1 stays on VBUS.
+6. J4 TC2030 sits on the leftover; its keep-out is a board no-part zone (Q80).
+7. J3 pads are Ø1.5 mm. Island holes at (13.45, 17.70) and (17.95, 17.70).
 8. Export DSN with pcbnew (`kicad-cli` has no specctra).
 9. Run Freerouting 2.4.1 on OpenJDK 25 with `--gui.enabled=false -de -do -mp -mt`.
-10. Import the SES only after §5c is pinned; then DRC and hand-fix residue.
+10. Import the SES only after `§5c final <sha>`; then DRC and hand-fix residue.
+
+## 8. WP12d place (waiting §5c final)
+
+Pinned from `hardware/board/packing_5c_norec.md` (`e1f1d6f` on lane/w3). Width 22 island u 2.25–19.75, s 16.00–37.60. 66 table parts plus H1/H2. 38 footprints flipped to B.Cu. R1–R3 on the island. P4/P5 RING_PAD. J1/U5 absent. Tracks 0.
+
+Jar: `~/.local/opt/freerouting/freerouting-2.4.1.jar`. OpenJDK 25. Route not started.
+
+Zero-track DRC (`kicad-cli pcb drc --format json`, 2026-09-18):
+
+```text
+Found 59 violations
+Found 146 unconnected items
+errors 59 warnings 0
+  25 clearance
+  14 solder_mask_bridge
+  11 shorting_items
+   7 hole_clearance
+   2 copper_edge_clearance
+```
+
+Shorts: P2 at (10.40, 33.10) vs U1 pads. Copper-to-edge: D2 0.285 mm; J3 pad 3 on the hang. Contact 1.0 mm vs R1–R3 0402. J4 NPTH vs B.Cu 0402.
+
+Stop here until the coordinator sends `§5c final <sha>`. Then re-pin and route.

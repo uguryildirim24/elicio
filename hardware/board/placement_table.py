@@ -1,10 +1,9 @@
 """Parse a packing placement table with a copper side column.
 
-§5b on lane/w3 uses columns ``ref | u | s | rot | courtyard | face | notes``.
-§5c is not published yet. This parser takes a ``side`` column of ``top`` or
-``bottom`` so WP12d can pin two-sided rows. ``face`` is accepted as an alias
-only when its cell is ``top`` or ``bottom`` (pocket/floor are regions, not
-copper sides).
+§5c uses columns ``ref | side | u | s | rot | courtyard | notes``.
+This parser takes a ``side`` column of ``top`` or ``bottom`` so WP12d can pin
+two-sided rows. ``face`` is accepted as an alias only when its cell is
+``top`` or ``bottom`` (pocket/floor are regions, not copper sides).
 """
 from __future__ import annotations
 
@@ -13,7 +12,7 @@ from dataclasses import dataclass
 SIDES = frozenset({"top", "bottom"})
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class PlacementRow:
     ref: str
     u: float

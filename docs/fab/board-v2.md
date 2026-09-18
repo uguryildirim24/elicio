@@ -1,48 +1,49 @@
 # Board v2 — schematic, G2/G4 records, release job
 
-Status: design record for WP12b. Not for order, quote or upload.
-Date: 2026-09-17.
+Status: design record for WP12d. Not for order, quote or upload.
+Date: 2026-09-18.
 KiCad: 10.0.6 (`kicad-cli`).
-Interface: **II** (plan v2 §5.3 fallback). WP11 packing winner `A_501015_series_w20_y8_iII_s3` (`packing-v2.md` §5). USB-C sits on the hook-end end face (plan v2 §5.4 fallback). LID_Y 8.0. Standoff 3.0 mm on a 0.31 ring: board underside y 4.81, top y 5.32. Cell 501015 in series, foam 0.5. Board width 20 mm body, board zone u 2.25–17.75, s 18.60–37.60.
+Interface: **II** (plan v2 §5.3 fallback). Packing §5c no-receptacle cell, width 22, chord 47.90, two sides, neck-end tabs (Q81–Q83). LID_Y 8.0. Standoff 3.0 mm on a 0.31 ring: board underside y 4.81, top y 5.32. Cell 501012 pack in series. Board width 22 mm body, island u 2.25–19.75, s 16.00–37.60.
 
 Project: `hardware/board/elicio-v2.kicad_pro`.
-The schematic contract is the review-r5 sheet plus WP12b Q68 (10 µF + 0.1 µF on AVDD and on DVDD). The land is a 2-layer flex with two FR4 0.4 stiffeners and three ring-pad tabs.
+The schematic drops J1 (USB-C) and U5 (USBLC6). Two RING_PAD tail pads P4 (VBUS) and P5 (GND) feed the existing P-FET inhibit and charger path. D1 PESD5V0L1UL stays on VBUS. The land is a 2-layer flex with two FR4 0.4 stiffeners and five ring pads (three EMG, two charge).
 
-Packing (u, s) = PCB (x, y). Named SMT centres follow `packing-v2.md` §5 (within 0.1 mm; `tests/test_board_release.py`). SIG1/SIG2 rings are unfolded off the island so the Gerber is flat. WP11b `lane/w3` §5 REF tab search (Q59) left the packing tab unchanged (`along_floor` (8.50, 43.00) → (8.50, 36.80)). This board uses that path. SMT centres match merged `packing-v2.md` §5. Review r6 decision 77: that placement cannot be built. At `845bac7` with zero tracks, DRC reports 128 errors and 132 unconnected, because footprint courtyards collide (the packing envelopes are smaller than the footprints). Re-pack from the real courtyards (WP11c) before routing.
+Packing (u, s) = PCB (x, y). Named centres follow `hardware/board/packing_5c_norec.md` (copied from packing-v2.md §5c at `e1f1d6f`; re-pin on `§5c final <sha>`). R1–R3 sit on the island at the tab roots (Q79). J4 TC2030 sits on the leftover (Q80). Island holes at (13.45, 17.70) and (17.95, 17.70) (Q82). Neck-end strips SIG1 10.71 mm, SIG2 21.81 mm (Q83). Two-sided assembly: packing `side=bottom` rows are flipped to B.Cu.
 
-| Item | PCB centre (u, s) | `packing-v2.md` §5 centre | Size / note |
+| Item | PCB centre (u, s) | §5c pin table | Size / note |
 |---|---|---|---|
-| Board zone | u 2.25–17.75, s 18.60–37.60 | same | PI 0.11 + FR4 0.4 at parts. Packing and the shell take the rings as PI 0.11 + FR4 0.2 = 0.31; this Gerber has no ring FR4 (§12), so its rings are 0.11. Review r6 decision 72 |
-| Module U1 | (10.00, 32.35) rot 90° | (10.00, 32.35) | 15.50 × 10.50 × 2.3, length along u; 0 pads in the RF box |
-| Antenna keep-out | u 2.25–6.05, s 26.15–38.55 | same | no extra copper; module pads allowed |
-| ADS1292 U2 | (4.90, 21.25) | (4.90, 21.25) | VQFN-32 4×4 courtyard in a 5×5 packing box |
-| BQ25100 U3 | (3.45, 24.85) | (3.45, 24.85) | YFP-6 |
-| TLV71330 U4 | (9.45, 20.20) | (9.45, 20.20) | SOT-23-5 |
-| SW1 | (10.10, 24.20) | (10.10, 24.20) | 4.5 × 4.5 × 1.6 |
-| J3 bench | (14.05, 22.60) | (14.05, 22.60) | 2.5 × 7.6 × 2.5 |
-| USBLC6 U5 | (14.05, 3.10) | (14.05, 3.10) | pocket |
-| PESD D1 | (13.50, 5.30) | (13.50, 5.30) | pocket |
-| JST-SH J2 | (14.40, 9.15) | (14.40, 9.15) | pocket |
-| USB-C J1 | (10.00, −2.15) | (10.00, −2.15) | hook-end end face |
-| TC2030 J4 | (15.10, 5.40) rot 90° | SWD proxies were 1.0 mm pads | real Tag-Connect land on the pocket/neck, not the 1 mm packing dots |
-| Cell 501015 | (7.00, 9.30) | (7.00, 9.30) | not on the flex |
-| R1 220 kΩ | tab midpoint SIG1 | — | past the 4 mm strain-relief window |
-| R2 220 kΩ | tab midpoint SIG2 | — | same |
-| R3 220 kΩ | tab midpoint REF | — | same |
+| Board zone | u 2.25–19.75, s 16.00–37.60 | same | PI 0.11 + FR4 0.4 at parts. Rings are PI 0.11 + FR4 0.2 in packing; this Gerber has no ring FR4 (§12) |
+| Module U1 | (8.00, 29.35) rot 0° | (8.00, 29.35) | 10.50 × 15.50 × 2.3, length along s; process pose |
+| Antenna keep-out | u 2.25–14.20, s 33.80–37.60 | 12.4 × 3.8 at high-s | no extra copper; module pads allowed |
+| ADS1292 U2 | (14.73, 10.28) | (14.73, 10.28) | leftover/pocket |
+| BQ25100 U3 | (15.68, 30.85) | (15.68, 30.85) | island |
+| TLV71330 U4 | (16.65, 34.80) | (16.65, 34.80) | island |
+| SW1 | (15.85, 4.45) | (15.85, 4.45) | lid, pocket island |
+| J3 bench | (26.11, 20.31) | (26.11, 20.31) | hang; pads Ø1.5 |
+| PESD D1 | (3.55, 16.75) | (3.55, 16.75) | VBUS TVS (already on the sheet) |
+| JST-SH J2 | (22.40, 10.93) | (22.40, 10.93) | pocket hang |
+| USB-C J1 | — | absent | Q81 until M1 ≥ 58.3 |
+| USBLC6 U5 | — | absent | Q81 with J1 |
+| Charge P4 | (0.75, 44.00) | (0.75, 44.00) | RING_PAD CHARGE_VBUS |
+| Charge P5 | (21.25, 44.00) | (21.25, 44.00) | RING_PAD CHARGE_GND |
+| TC2030 J4 | (16.25, 24.60) rot 90° | (16.25, 24.60) | leftover; keep-out is a board no-part zone |
+| H1 / H2 | (13.45, 17.70), (17.95, 17.70) | Q82 | Ø2.7, keep 3.30 |
+| R1–R3 220 kΩ | island tab roots | table | Q79 variant A |
 
-Leftover 0402/0603/SOT parts sit on B.Cu under the module and under the USB tongue so the front island matches the packing. Q68 0603 caps C6/C7/C8/C15 sit on B.Cu under the ADS.
+Second-side (B.Cu) parts are the packing rows with `side=bottom` (Q1–Q5, C9, C11–C15, R4–R30).
 
 ## 1. Block diagram
 
 ```text
-USB-C 16P --5.1k CC-- ESD(D+/D-/VBUS) -- VBUS
-                                      |
-                                      +--> nRF VBUS, VBUS_DET divider (P0.24)
-                                      +--> BQ25100YFPR IN
-                                      +--> Q2 (VBUS present) --|  hardware
-                                                                |  inhibit
-JST-SH BAT+ --> VBAT --> BQ25100 OUT, nRF VDDH, Q1 source      |
-                 |                                              v
+P4 RING_PAD -- D1 PESD5V0L1UL -- VBUS
+                                |
+                                +--> nRF VBUS, VBUS_DET divider (P0.24)
+                                +--> BQ25100YFPR IN
+                                +--> Q2 (VBUS present) --|  hardware
+                                                          |  inhibit
+P5 RING_PAD --> GND
+JST-SH BAT+ --> VBAT --> BQ25100 OUT, nRF VDDH, Q1 source
+                 |
                  +--> P-FET Q1 -- AFE_VIN --> TLV71330PDBVR --> +3V0 --> ADS1292
                  +--> 1M/1M divider to GND (always on) --> VBAT_SENSE (P0.02 AIN0)
 
@@ -54,6 +55,7 @@ bench header J3 is behind the 220 kΩ (same nets as the pads)
 
 Tag-Connect TC2030-NL: 1 +VDD sense, 2 SWDIO, 3 GND, 4 SWDCLK, 5 GND, 6 nRESET
 SW1: nRESET to GND. R26 10k nRESET to +VDD.
+nRF USB D+/D−: no-connect (unused USB). First-load is SWD (J4). Charge is P4/P5.
 ```
 
 The Raytac MDBT50Q-1MV2 is placed. The E73-2G4M08S1C footprint is in `hardware/board/lib/elicio.pretty` and is not placed.
@@ -96,8 +98,8 @@ Default hardware with an uncooperative MCU: R15 pulls Q3's gate up, Q3 pulls Q1'
 | Uncooperative MCU, no VBUS | VBAT, +VDD; AFE may be on (R15/Q3) | On | GPIO Hi-Z; AFE PWDN/START low | R26 | 220 kΩ | Idle | AFE stays in reset if PWDN is low |
 | Uncooperative MCU, VBUS present | VBAT, VBUS, +VDD; AFE_VIN off | **Off** (Q2) | GPIO may still be 3 V | R26 | 220 kΩ | 10 kΩ series from nRF into unpowered ADS pins (SCLK, MOSI, CS, MISO, DRDY, START, PWDN). Bound ≈ (3.0 − 0.4) / 10 kΩ ≈ 260 µA per line. **This is residual exposure, not isolation.** | AFE rail discharges through the LDO and load |
 | Fault (short on +3V0) | LDO current-limit | Q1 may still be on | — | — | 220 kΩ | — | UNVERIFIED thermal |
-| VBUS present, MCU cooperative | AFE_VIN off | Off | Firmware puts SCK, MOSI, CS, PWDN and START in high-Z (`elicio_stream.ino`, review r5) | R26 | 220 kΩ; leakage test is an off-body G2 check | Same 10 kΩ bound if firmware fails | Charge path is BQ25100; AFE off |
-| Bench (gel, battery, no USB) | Same as powered, no VBUS | On | Acquisition | R26 | J3 is behind the 220 kΩ; same bound as the pads | USB disconnected | Same start-up |
+| VBUS present, MCU cooperative | AFE_VIN off | Off | Firmware puts SCK, MOSI, CS, PWDN and START in high-Z (`elicio_stream.ino`, review r5) | R26 | 220 kΩ; leakage test is an off-body G2 check | Same 10 kΩ bound if firmware fails | Charge path is BQ25100 from P4; AFE off |
+| Bench (gel, battery, no charge cable) | Same as powered, no VBUS | On | Acquisition | R26 | J3 is behind the 220 kΩ; same bound as the pads | Charge pads disconnected | Same start-up |
 
 Q1 is P-channel, source = VBAT, drain = AFE_VIN, gate pulled to VBAT (off). Body diode conducts from drain to source, so it does **not** feed VBAT from AFE_VIN. It would conduct from AFE_VIN toward VBAT only if AFE_VIN were higher than VBAT, which this circuit does not create.
 
@@ -106,11 +108,13 @@ Paths that can still reach the electrodes with VBUS present (inhibit credited on
 1. SIG1/SIG2/REF copper → 220 kΩ → ADS inputs/RLD → AVSS/AVDD clamps inside the ADS (unpowered) → residual on +3V0/AFE_VIN.
 2. SPI/control 10 kΩ into ADS ESD diodes → same.
 3. Gel header J3 shares SIG1/SIG2/REF after the 220 kΩ, not before.
-4. USB shell / VBUS ESD to GND; GND is common with the electrode returns.
+4. USB is out (Q81). Charge is P4/P5 to VBUS/GND; D1 PESD5V0L1UL stays on VBUS. GND is common with the electrode returns.
 
 Lead-off: R29 and R30 (10 MΩ IN1x to RLD) are on the schematic as DNP. Firmware lead-off is off when worn (plan §5.5). **Per reference** for “off by default”; the 10 MΩ parts are present as DNP, not stuffed.
 
-ESD actually on this board: the electrode paths have the 220 kΩ series resistors and the ADS1292's own input clamps, nothing else. The only discrete ESD parts are USBLC6-2SC6 (U5) on D+/D− and PESD5V0L1UL (D1) on VBUS, at the USB. There is no BAV199: plan v2 §5.5 names the 220 kΩ, not a diode array. interface.md §6.4 is v1's record and still lists BAV199; `packing-v2.md` reserves the USB parts, not BAV199.
+ESD actually on this board: the electrode paths have the 220 kΩ series resistors and the ADS1292's own input clamps, nothing else. The only discrete ESD part is PESD5V0L1UL (D1) on VBUS at the charge pad. USBLC6-2SC6 (U5) left the BOM with J1 (Q81). There is no BAV199: plan v2 §5.5 names the 220 kΩ, not a diode array. interface.md §6.4 is v1's record and still lists BAV199.
+
+The charging rule is unchanged: a power bank on a desk, now through a magnetic two-pin cable on P4/P5, not a USB-C receptacle.
 
 ## 4. Gate G4 — first-load net map
 
@@ -331,7 +335,9 @@ Source: https://jlcpcb.com/capabilities/flex-pcb-capabilities read 2026-09-17. S
 
 PI stiffener catalogue: 0.1 / 0.15 / 0.20 / 0.225 / 0.25 mm. Stainless 0.1 / 0.2 / 0.3 mm. FR4 0.1 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.2 / 1.6 mm. WP11's 0.3 mm FR4 is **not** on that list; review r5 took 0.4 and moved the packing numbers with it. No request was sent.
 
-Stiffener drawings: Eco1.User = two FR4 0.4 pieces (parts island + USB/pocket). Eco2.User is unused (no tab FR4: Q58 clamp). Cmts.User = neck bend window. Count = **2** (under JLC's extra-fee threshold of 4). JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
+Stiffener drawings: Eco1.User = two FR4 0.4 pieces (parts island + leftover/pocket). Eco2.User is unused (no tab FR4: Q58 clamp). Cmts.User = neck-end bend window (Q83). Count = **2** (under JLC's extra-fee threshold of 4). JLC's "other EDA" note: put stiffener outlines on their own layer and set thickness by hand at order. Gerbers include those layers. Nothing uploaded.
+
+Two-sided assembly: packing `side=bottom` rows (Q1–Q5, C9, C11–C15, R4–R30) sit on B.Cu. JLC FPC assembly is two-sided when both copper layers carry parts. Copper-to-edge 0.30 everywhere.
 
 Encoded in the board design settings and in `elicio-v2.kicad_pro`.
 
@@ -384,19 +390,20 @@ Blanked / corrected lines from the same day's pages:
 | U2 | ADS1292IRSMT | C89288 | Extended | Non-R, VQFN-32. L7 replacements fail the page. |
 | U3 | BQ25100YFPR | C527572 | Extended | |
 | U4 | TLV71330PDBVR | C2863702 | Extended | L7 C132291 is FUSB302. Keep C2863702. |
-| U5 | USBLC6-2SC6 | C7519 | — | USB ESD |
+| U5 | — | — | — | Out with J1 (Q81) |
 | Q1 | AO3401A | C15127 | — | P-FET |
 | Q2–Q4 | 2N7002 | C2128 | Basic typical | Inhibit, LED (Q5 DNP) |
-| D1 | PESD5V0L1UL | C24109 | — | VBUS ESD |
+| D1 | PESD5V0L1UL | C24109 | — | VBUS ESD (pad-fed VBUS) |
 | D2 | 0402 LED | C72043 | — | Firmware LED on LED_EN |
-| J1 | TYPE-C-31-M-14 | C223907 | Extended | 16P USB2 |
+| J1 | — | — | — | Out (Q81); charge is P4/P5 |
+| P4, P5 | RING_PAD_D5_H2.7 | — | — | Tail charge pads; not in BOM |
 | J2 | SM02B-SRSS-TB | C160402 | Extended | 2P SH. Was C160404 4P. |
 | J3 | 1×03 RA 2.54 | C49257 | — | Bench |
 | SW1 | TS-1187A | C318884 | — | 4.5 × 4.5 × 1.6 |
 | L1 | 10 µH 0603 | C1045 | — | nRF DCCH |
 | R9, R10 | 5.1 kΩ | C25905 | Basic | CC. Page: 5.1 kΩ 0402. |
 
-Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.com qty-1 seen today: U2 C89288 $6.50 (70); U4 C2863702 from $0.23 (190). Not in BOM: J4 TC2030-NL, P1–P3 ring pads, R29–R30 DNP 10 MΩ (LCSC C26082 for the 10 MΩ land, not stuffed), Q5 DNP, power flags.
+Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.com qty-1 seen today: U2 C89288 $6.50 (70); U4 C2863702 from $0.23 (190). Not in BOM: J4 TC2030-NL, P1–P5 ring pads, R29–R30 DNP 10 MΩ (LCSC C26082 for the 10 MΩ land, not stuffed), Q5 DNP, power flags. R9/R10 5.1 kΩ CC resistors stay on the sheet with no receptacle.
 
 ## 14. Reference-circuit check (each choice)
 
@@ -414,46 +421,45 @@ Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.c
 | No /CHG LED from a CHG pin | Per BQ25100 pinout; the LED is a firmware output from VBUS (review r5) |
 | TLV713 EN to IN | Per typical “always on” |
 | nRF HV inductor 10 µH | Per Raytac 8.1 |
-| USB CC 5.1 kΩ, 16P, ESD | Per USB-C USB2 device |
+| USB CC 5.1 kΩ | R9/R10 remain on the sheet; no receptacle (Q81) |
 | P-FET inhibit | Plan R7/G2, not a TI typical |
 | Interface II ring pads Ø5.0 / hole Ø2.7, ENIG, clamped under standoff | Plan §5.3 fallback after WP11 I = 0/720 |
 | 8 × 8 mm ENIG pads | Rejected; see §11a |
 
 ## 15. What DRC says
 
-Command: `kicad-cli pcb drc --format json` via `scripts/board/release.py`. Redo steps: `hardware/board/route.md`.
+Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md`.
 
-WP12c dropped the WP12b shorting B.Cu bus. The land has **0 tracks and 0 vias**. Footprints were not moved. Freerouting v2.1.0 still hangs after `Job started` (Java 21.0.12.1, `-mp`, `-dct`, headless; no SES). A clearance-aware maze on a copy routed 23 of 48 nets and raised DRC from 128 errors to 770; that copper was not kept. **Order release is not green. `routed`: false.**
+WP12d placed from packing §5c no-receptacle width-22 two-sided (`e1f1d6f`). **0 tracks, 0 vias.** Routing waits on `§5c final <sha>`. **Order release is not green. `routed`: false.**
 
-Layer use: F.Cu / B.Cu pads and the existing GND zones only. Via count: 0. Longest analog trace: none. Hand-fixed segments: none.
-
-Run 2026-09-18 (un-shorted board; `release.py --routed` to `/tmp/wp12c-release`):
+Zero-track DRC on this land (`kicad-cli pcb drc --format json`, 2026-09-18):
 
 | Item | Result |
 |---|---|
-| DRC errors | 128 (38 mask bridge, 32 pad shorts, 26 Contact 1.0 mm, 18 copper-to-edge, 9 hole, 5 keep-out) |
-| DRC warnings | 21 (isolated copper) |
-| Unconnected items | 132 |
+| DRC errors | 59 |
+| DRC warnings | 0 |
+| Unconnected items | 146 |
 | Pads without a net | 0 |
 | pcb_tracks | 0 |
 | Vias | 0 |
-| Routing | `"routed": true` only when `--routed` is passed; order release still refused |
 
-Blockers that routing cannot clear (placement + `elicio-v2.kicad_pro`, both frozen for this package): Contact 1.0 mm vs the 0402 220 kΩ (pad gap 0.48 mm) and vs J3 2.54 mm pitch; pad shorts J2/J4, C15/C8, J3/SW1; U2 copper-to-edge 0.275 mm vs 0.300 mm; J4 keep-out vs J2 and U5.
+Error counts: 25 clearance (netclass Contact 1.0 mm vs 0402 pad gap on R1–R3 and vs J3 2.54 mm), 14 solder_mask_bridge, 11 shorting_items (all P2 SIG2 ring at (10.40, 33.10) vs U1 pads — the SIG2 site sits under the module), 7 hole_clearance (J4 NPTH vs B.Cu 0402), 2 copper_edge_clearance (D2 0.285 mm vs 0.300 mm; J3 pad 3 on the hang).
+
+The copper-to-edge misses are the w3 nudge turn. P2-under-U1 is a packing collision on this table. Contact 1.0 mm cannot sit on an 0402. Do not route until `§5c final <sha>`.
+
+WP12d-prep (2026-09-18): Freerouting **v2.4.1** on OpenJDK 25 writes a SES. Jar kept at `~/.local/opt/freerouting/freerouting-2.4.1.jar`. Not imported.
 
 `release.py --routed` still fails closed on DRC errors, unconnected items, and no tracks (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
 
-WP12d-prep (2026-09-18): Freerouting **v2.4.1** headless **writes a SES** on this Mac. The official jar is Java 25 (class 69); Java 21 cannot load it. Command (L8 §3 flags, `-mp 5`): OpenJDK 25.0.4.1, `--gui.enabled=false -de <dsn> -do <ses> -mp 5 -mt 4`. Wall 39.52 s. SES 14531 bytes, 60 wires, 19 vias, not imported. Copper on the committed board is still zero. Redo: `hardware/board/route.md` §6–§7.
-
 ## 16. ERC
 
-`kicad-cli sch erc --format json`: **0 errors, 0 warnings** (review r5, still true after Q68 C15).
+`kicad-cli sch erc --format json`: **0 errors, 0 warnings** after Q81 (J1/U5 out, P4/P5 in, nRF USB D+/D− no-connect).
 
 ## 17. Release job
 
 `scripts/board/release.py` runs ERC, DRC, JLC-column BOM, JLC CPL (the BOM's designators, SMD and the THT header J3; review r6), gerbers+drill, STEP, and `release/summary.json`. Non-zero exit on any ERC error, any missing output, or a BOM part without a CPL row; with `--routed`, also on DRC errors, unconnected items, pads without a net, or no tracks.
 
-`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks > 0, and named SMT centres within 0.1 mm of packing §5. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
+`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks == 0, and named SMT centres within 0.1 mm of `packing_5c_norec.md`. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
 
 ## 18. Assembler consequences and C7 (quote only)
 
