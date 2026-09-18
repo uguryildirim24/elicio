@@ -121,9 +121,11 @@ brief in full and do it", nothing owed from me until their pushes.
   box). Third `DONE WP11b` at `9f8136f`: LID_Y 9.5–10.5 and widths
   20–22 do not help either (0 of 108), because the buyable cells fail on
   length along the body (antenna zone, SIG1 standoff), not on height.
-  Only a cell inside the 15.6 × 10.4 × 5.2 envelope packs. w3 idles;
-  nothing queued. Q55 is now the round's open problem: a note went to w5
-  at 23:20 to search for any pouch cell under 16 mm long sold in ones.
+  Only a cell inside the 15.6 × 10.4 × 5.2 envelope packs. Fourth turn
+  sent 23:48: rerun with the real 501015 pack (17.0 × 10.0 × 5.0 with
+  PCM) and the marketplace 501012 pack (13.0 × 10.1 × 5.1) as §1e; a
+  fourth DONE is expected. Q55 is the round's open problem (decision 69
+  in the r6 brief).
 - **w2 → WP12b board route** (`tasks/WP12b-board-route.md`), branch
   `lane/w2`. Re-place from packing-v2 §5, sync, route, `release.py
   --routed` exit 0, stiffeners ≤ 3 (Q60), decoupling (Q68), standby load
@@ -169,9 +171,12 @@ brief in full and do it", nothing owed from me until their pushes.
   JLC3DP colours: natural grey or dyed black (Q30). Notes sent 22:58 to
   w2 (take the BOM codes, fee and datasheet sentences from L7 §3 and §4,
   state the probe limit in board-v2 §4) and to w3 (add the Jauch cell as
-  a third case). Second turn sent 23:20: any pouch cell inside 16.0 ×
-  10.5 × 5.2 with protection, in ones, wider seller list plus a labelled
-  marketplace class, as L7 §7; a second DONE is expected.
+  a third case). Second `DONE WP17b` at `ba45071` (L7 §7, cells under
+  16 mm): no distributor cell under 16 mm at 30 mAh or more; a 501015
+  pack WITH its protection board is 17.0 mm long on the DNK and Benzo
+  sheets, so the plan's 15.6 envelope is a bare cell; only marketplace
+  501012 packs (13.0 × 10.1 × 5.1 with PCM, 40 mAh, eBay/AliExpress) fit.
+  w5 idles; nothing queued.
 - **Reviewer r6**: not started. When all six DONEs are in: `git worktree
   add .worktrees/review -b review/r6 main` (path absent on main, removed
   after r5), brief `tasks/review-r6.md` (expected) from `tasks/review-r5.md`,
