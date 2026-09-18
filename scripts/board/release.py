@@ -79,8 +79,19 @@ def erc_counts(payload: dict) -> tuple[int, int]:
     return errors, warnings
 
 
-def write_jlc_cpl(pos_csv: Path, out_csv: Path) -> int:
-    """Rewrite KiCad pos CSV into JLCPCB CPL columns."""
+def bom_refs(bom_csv: Path) -> set[str]:
+    """Designators on the exported BOM (one row per value, refs comma-joined)."""
+    with bom_csv.open(newline="") as fh:
+        rows = list(csv.reader(fh))
+    return {ref.strip() for row in rows[1:] if row for ref in row[0].split(",") if ref.strip()}
+
+
+def write_jlc_cpl(pos_csv: Path, out_csv: Path, keep: set[str] | None = None) -> int:
+    """Rewrite KiCad pos CSV into JLCPCB CPL columns.
+
+    With keep, only those designators are written (review r6: the CPL is the
+    BOM's parts, so DNP parts the PCB does not flag and THT parts line up).
+    """
     text = pos_csv.read_text()
     # KiCad csv may start with comment lines.
     lines = [ln for ln in text.splitlines() if ln.strip() and not ln.startswith("#")]
@@ -99,6 +110,8 @@ def write_jlc_cpl(pos_csv: Path, out_csv: Path) -> int:
         rot = row.get("Rot") or row.get("Rotation") or "0"
         side = (row.get("Side") or row.get("Layer") or "top").strip().lower()
         layer = "bottom" if side in {"bottom", "back"} else "top"
+        if keep is not None and ref not in keep:
+            continue
         rows.append((ref, val, pkg, x, y, rot, layer))
     with out_csv.open("w", newline="") as fh:
         writer = csv.writer(fh)
@@ -232,7 +245,6 @@ def main() -> int:
             "mm",
             "--side",
             "both",
-            "--smd-only",
             "--exclude-dnp",
             "-o",
             str(pos_csv),
@@ -286,9 +298,19 @@ def main() -> int:
         check=False,
     )
 
+    # Review r6: --smd-only dropped the THT bench header J3 from the CPL, and
+    # the PCB does not carry the schematic's DNP on Q5, R29 and R30, so the
+    # CPL listed three parts the BOM leaves out. The CPL is now filtered to
+    # the BOM's designators and the difference is a blocker.
     cpl_rows = 0
+    bom_set = bom_refs(bom_csv) if bom_csv.is_file() else set()
     if pos_csv.is_file():
-        cpl_rows = write_jlc_cpl(pos_csv, cpl_csv)
+        cpl_rows = write_jlc_cpl(pos_csv, cpl_csv, keep=bom_set)
+    cpl_set: set[str] = set()
+    if cpl_csv.is_file():
+        with cpl_csv.open(newline="") as fh:
+            cpl_set = {row[0] for row in list(csv.reader(fh))[1:] if row}
+    bom_without_cpl = sorted(bom_set - cpl_set)
 
     gerber_files = sorted(p.name for p in gerber_dir.iterdir() if p.is_file()) if gerber_dir.is_dir() else []
     bom_rows = bom_row_count(bom_csv) if bom_csv.is_file() else 0
@@ -308,6 +330,7 @@ def main() -> int:
     blockers = {
         "erc_errors": erc_errors,
         "missing_outputs": len(missing_outputs),
+        "bom_refs_without_cpl": len(bom_without_cpl),
     }
     if args.routed:
         blockers.update(
@@ -334,6 +357,7 @@ def main() -> int:
         "bom_rows": bom_rows,
         "placed_parts": placed_parts,
         "cpl_rows": cpl_rows,
+        "bom_refs_without_cpl": bom_without_cpl,
         "gerber_files": gerber_files,
         "step_missing_models": [Path(m).name for m in step_missing],
         "outputs": outputs,
@@ -354,6 +378,9 @@ def main() -> int:
         return 1
     if missing_outputs:
         sys.stderr.write("missing outputs: " + ", ".join(missing_outputs) + "\n")
+        return 1
+    if bom_without_cpl:
+        sys.stderr.write("BOM parts without a CPL row: " + ", ".join(bom_without_cpl) + "\n")
         return 1
     if args.routed and refused:
         sys.stderr.write("routed release refused: " + json.dumps(refused) + "\n")
