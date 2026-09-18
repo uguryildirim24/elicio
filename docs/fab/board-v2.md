@@ -397,22 +397,27 @@ Displayed stock and unit price: **UNVERIFIED** (not shown on the pages today). N
 
 ## 15. What DRC says
 
-Command: `kicad-cli pcb drc --format json` via `scripts/board/release.py`.
+Command: `kicad-cli pcb drc --format json` via `scripts/board/release.py`. Redo steps: `hardware/board/route.md`.
 
-WP12b placed from packing §5 and assigned every schematic net. Tracks exist. Freerouting v2.1.0 hung in this environment; a B.Cu bus fallback connects leftover nets. That copper still shorts and violates clearance. **Order release is not green.**
+WP12c dropped the WP12b shorting B.Cu bus. The land has **0 tracks and 0 vias**. Footprints were not moved. Freerouting v2.1.0 still hangs after `Job started` (Java 21.0.12.1, `-mp`, `-dct`, headless; no SES). A clearance-aware maze on a copy routed 23 of 48 nets and raised DRC from 128 errors to 770; that copper was not kept. **Order release is not green. `routed`: false.**
 
-Run 2026-09-17 (this lane, after the packing place; `release.py --routed` to `/tmp/wp12b-release`):
+Layer use: F.Cu / B.Cu pads and the existing GND zones only. Via count: 0. Longest analog trace: none. Hand-fixed segments: none.
+
+Run 2026-09-18 (un-shorted board; `release.py --routed` to `/tmp/wp12c-release`):
 
 | Item | Result |
 |---|---|
-| DRC errors | 1290 (clearance, shorting, mask bridge, hole, tracks crossing, copper-to-edge) |
-| DRC warnings | 25 |
-| Unconnected items | 31 (GND pads vs zone fill, including C8 under the ADS) |
+| DRC errors | 128 (38 mask bridge, 32 pad shorts, 26 Contact 1.0 mm, 18 copper-to-edge, 9 hole, 5 keep-out) |
+| DRC warnings | 21 (isolated copper) |
+| Unconnected items | 132 |
 | Pads without a net | 0 |
-| pcb_tracks | 465 |
-| Routing | tracks > 0; `"routed": true` only when `--routed` is passed |
+| pcb_tracks | 0 |
+| Vias | 0 |
+| Routing | `"routed": true` only when `--routed` is passed; order release still refused |
 
-`release.py --routed` still fails closed on DRC errors and unconnected items (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
+Blockers that routing cannot clear (placement + `elicio-v2.kicad_pro`, both frozen for this package): Contact 1.0 mm vs the 0402 220 kΩ (pad gap 0.48 mm) and vs J3 2.54 mm pitch; pad shorts J2/J4, C15/C8, J3/SW1; U2 copper-to-edge 0.275 mm vs 0.300 mm; J4 keep-out vs J2 and U5.
+
+`release.py --routed` still fails closed on DRC errors, unconnected items, and no tracks (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
 
 ## 16. ERC
 
