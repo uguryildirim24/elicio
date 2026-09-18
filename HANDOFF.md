@@ -41,6 +41,12 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
      The first shell pictures are on the sheet (version 6) with the
      reviewer's findings: the size is right, the closure and the USB end
      fail as drawn and are being redone (WP14b).
+  1a. Q81 with Q34: the USB-C receptacle needs M1 ≥ 58.3 (a body 7.3
+     longer); until he measures, the build carries two charging contacts
+     on the tail and a magnetic cable, and USB-C returns if M1 allows.
+     Reading: contacts; his M1 decides. A plan v2 §5.4 amendment turn
+     with Pro if he confirms. With Q78 the body is now 22 wide (the parts
+     fit nowhere at 20, receptacle or not); Q38's approval covers it.
   1b. Q69 the battery route (sheet question 2b): the marketplace 501012
      pack (13.0 × 10.1 × 5.1 with PCM, 40 mAh, no drawing) or a factory
      sample of the real 17.0 mm 501015 pack with M1 ≥ 52.5 and a body 1.5
@@ -93,8 +99,10 @@ get it from china?" (Q36: no, a US route exists at a price; his call).
 | r6 | WP15 Rolf's sheets v2 (`docs/fab/measure.md`, `docs/fab/template.pdf`, `docs/fab/sheets/`, `docs/fab/order-board.md`, `docs/fab/order-shell.md`, `docs/fab/order-parts.md`, `docs/fab/assemble.md`) | MERGE-AFTER-DECISION | `110a79b` | `tasks/reviews/code-r6.md` |
 | r6 | WP12b board placed from packing §5 (`hardware/board/build_v2b.py`, `docs/fab/board-v2.md` §9 GPIO map, BOM from L7): not routed, release refused with `--routed`, footprint collisions (Q77) | MERGE-AFTER-DECISION | `110a79b` | `tasks/reviews/code-r6.md` |
 | r6 | decisions Q69–Q77 | coordinator | `58ae5b8` | `docs/fab/open-questions.md` |
-| r7 | briefs WP11c, WP14b, WP13c, WP11d, WP17c | coordinator | `e2c7f09`, `58ae5b8`, `0293d48`, `7983847` | `tasks/WP11c-courtyards.md` and siblings |
+| r7 | briefs WP11c, WP14b, WP13c, WP11d, WP17c, WP14c, WP12d-prep | coordinator | `e2c7f09`, `58ae5b8`, `0293d48`, `7983847`, `7b23eb5` | `tasks/WP11c-courtyards.md` and siblings |
 | r7 | decisions Q78–Q80 (edge rule and board area, Contact variant A, USB-C vs TC2030) | coordinator | `7983847` | `docs/fab/open-questions.md` |
+| r7 | decisions Q81–Q83 (no receptacle until M1 is measured, bosses follow the island holes, neck-end strips) | coordinator, Q81 Rolf's | `a3960d6` | `docs/fab/open-questions.md` |
+| r7 | Q78 settled at width 22, Q81–Q83 with §5c's numbers; briefs WP14d, WP12d | coordinator | `d67e534` | `docs/fab/open-questions.md`, `tasks/WP14d-shell-v2d.md`, `tasks/WP12d-board-v2d.md` |
 
 Round 6 gates at merge (`tasks/reviews/code-r6.md`, final `f407b12`): 206
 tests OK none skipped with the cad and ble extras (34 named skips on the
@@ -115,7 +123,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11d, w5 WP17c), WP11c, WP13c and WP14b landed, w1, w2 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11d last queued turn, w1 WP14d, w2 WP12d), WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -135,6 +143,32 @@ fast-forwarded to `110a79b`.
   idles; next: the second turn after `DONE WP11d` (USB wall from §5c,
   tab fold pockets, island bosses), merges in round 7's review. The new
   renders go on the answer sheet (version 7).
+- **w1 → WP14c shell v2c** (`tasks/WP14c-shell-v2c.md`): LANDED, `DONE
+  WP14c` at `7d111c6` on `lane/w1-r6` (merged main at `3ca7053`, two
+  package commits, tree clean, report
+  `.worktrees/w1/.reports/WP14c-report.md` present, 207 tests OK with the
+  CAD tests running, order 1 byte-identical, Stage B v2 unchanged, shell
+  identical twice, exit 0). The Q71 head well is on the medial tail (skin
+  hides it), the lateral lid is uncut: `V2_LATERAL_unbroken` passes (18
+  samples, 0 pits); `V2_BOSS_pilot` passes (tail Ø2.10 / wall 1.92 / OD
+  5.94, islands Ø2.10 / 1.45 / 5.00); `V2_CLOSURE` engagement 4.30, boss
+  wall 3.08; renders stamp `manifest.commit` (`ccb6608`), test pins it.
+  USB still NOT_MEASURED (waits for §5c). Its decision list repeats Q34,
+  Q30, Q17, S4, standoff, Q70; nothing new. Seam for the reviewer: the
+  medial-tail well sits on the skin side near the REF site (Q17 REF dome
+  on the tail); the tail-end-face option was not built. w1 idles; next
+  WP14d after `DONE WP11d` (bosses to §5c's hole sites, neck-end strip
+  channels or pockets, the USB wall or the two tail charging pads, Q81).
+- **w1 → WP14d shell v2d** (`tasks/WP14d-shell-v2d.md`, main `d67e534`):
+  RUNNING since 02:10 on `lane/w1-r6` on top of `7d111c6` (told to `git
+  merge main` first): width 22 on §5c (height 9.0 unchanged), the two
+  island bosses at §5c's hole sites with a table-reading check, neck-end
+  strips, two tail charging contacts at §5c's P4/P5 sites measured as
+  `V2_CHARGE_pads`, no USB opening (`V2_USB_end` NOT_APPLICABLE by name,
+  Q81). Reads §5c on `lane/w3` and reports the sha it used; if w3's last
+  nudge turn moves a number it used, a WP14e follows. Waits for nothing
+  from me. Report `.worktrees/w1/.reports/WP14d-report.md` (expected) →
+  `DONE WP14d`.
 - **w3 → WP11c courtyards** (`tasks/WP11c-courtyards.md`): LANDED, `DONE
   WP11c` at `1897df0` on `lane/w3` (two commits on top of `bcecc83`, tree
   clean, report `.worktrees/w3/.reports/WP11c-report.md` present, 187
@@ -147,23 +181,66 @@ fast-forwarded to `110a79b`.
   M1 gate first. Five decisions asked → Q78 (edge rule and area), Q79
   (Contact variant A), Q80 (USB-C keeps the hook end, TC2030 to the
   leftover), recorded at `7983847`; the 17 mm pack stays under Q69.
-- **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`, main
-  `7983847`): RUNNING since 01:25 on `lane/w3` on top of `1897df0` (told
-  to `git merge main` first); the 16-cell grid: edge rule as process edge
-  vs board outline, width 20 and 22, chord 47.90 and 49.00, top only vs
-  two sides with the clearance under the board measured from the stack;
-  501012 pack only, Q79 and Q80 fixed, Q72–Q74 occupants; publishes §5c
-  with the placement table if a cell places all 66. Waits for nothing
-  from me. Report (expected) `.worktrees/w3/.reports/WP11d-report.md` →
-  `DONE WP11d`; then WP12d (w2) pins §5c and WP14b's second turn (w1)
-  cuts the USB wall and pockets.
-- **w2**: idle on `lane/w2` at `f4376ca`, which holds WP12c (bus dropped,
-  `routed: false`, `hardware/board/route.md` (absent on main) with the
-  zero-track DRC diagnosis; recorded as Q77) on top of the merged
-  `e3e085b`. NOT merged and not fast-forwarded (not an ancestor). Next:
-  WP12d after `DONE WP11c`: merge main, place from §5b, route with
-  Freerouting 2.4.1 or its own router to DRC 0, R1–R3 on the island, J3
-  pads Ø1.5, one net per tab.
+- **w3 → WP11c amendment** (the round 6 note "decisions 70–74", queued
+  behind WP11c): LANDED, `DONE WP11c` at `5f864bf` on `lane/w3` (report
+  `.worktrees/w3/.reports/WP11c-report.md` rewritten, 191 tests OK).
+  Numbers: USB-C J1 (10.64 × 9.42 × 3.2) hangs 5.86 past the hook-end
+  face, a 2.4 hook-root move clears the opening only, seating it needs
+  +7.32 arc (chord 55.29, M1 ≥ 58.29): nothing closes at M1 52 → Q81
+  (no receptacle, two tail charging contacts and a magnetic cable until
+  M1 is measured; USB-C returns at M1 ≥ 58.5); U1 covers boss site
+  (14.85, 28.10) and HOLE_M1 takes SW1's site → Q82 (bosses follow the
+  holes); side-wall fold pockets leave a 0.65 wall → Q83 (neck-end
+  strips, 501012 body SIG1 10.71 / SIG2 21.81); three FR4 ring pieces
+  fine (count 5). Recorded at `a3960d6`.
+- **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): first `DONE
+  WP11d` at `e2a0e01`, second at `e1f1d6f` on `lane/w3` (tree clean,
+  report `.worktrees/w3/.reports/WP11d-report.md` present, 221 tests OK).
+  §5c now has 32 cells: with the receptacle, width 20 two-sided 52/66 and
+  width 22 two-sided 66/66; without it (J1, U5 out, tail pads P4/P5 at
+  (0.75, 44.0) and (21.25, 44.0)), width 20 two-sided 58/64 and width 22
+  two-sided 64/64; every body-outline cell fails on J4; island holes for
+  the width-22 closer at (13.45, 17.70) and (17.95, 17.70); neck-end
+  strips on every cell (side wall would be 0.65). Settled in
+  open-questions at `d67e534`: Q78 width 22, Q81 no-receptacle variant,
+  Q82 those hole sites, Q83 neck-end strips. One queued turn remains (the
+  pin-table note: nudge D1, C3, C10, C11, C12 to copper-to-edge 0.30,
+  publish the pin tables for the width-22 closers with and without the
+  receptacle); it pushes a third `DONE WP11d`, after which I send w2
+  the line "§5c final" plus the sha. Waits for nothing from me.
+- **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
+  WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
+  package commit, tree clean, report
+  `.worktrees/w2/.reports/WP12d-prep-report.md` present). Freerouting
+  2.4.1 headless WRITES a SES on this Mac, but the release jar is class
+  file 69 and needs OpenJDK 25 (the lane installed Homebrew `openjdk@25`,
+  keg-only; Q46 lets Rolf veto); Java 21 refuses it, so L8 §3's "Java 21"
+  is wrong (seam for the reviewer). Run: 39.5 s, 5 passes, 60 wires, 19
+  vias, 80 nets unrouted and 148 violations because the placement still
+  collides; SES evidence only under `/tmp/wp12d/` (not imported; the
+  jar lives there too and WP12d must keep it somewhere durable). DSN
+  export is pcbnew's, `kicad-cli` has no specctra subcommand.
+  `hardware/board/placement_table.py` (absent on main) parses a packing
+  table with a `side` column (`face` aliases it) and `build_v2b.py` flips
+  bottom rows; synthetic two-row test green; `route.md` §6 proof table
+  and §7 the ten-line WP12d plan. The board file is unchanged on its
+  branch (still the WP12c zero-track state); `release.py` exit 0 with
+  `routed: false`. Its venv shows 14 CAD test failures (v1 regen hashes,
+  shell identical), the lane's pins as in rounds 5 and 6, not this
+  package's. w2 idles; next WP12d proper on §5c after `DONE WP11d`
+  (place from §5c with sides, R1–R3 on the island, J1/J4 per Q80 or the
+  Q81 no-receptacle variant, route on OpenJDK 25, import, DRC 0).
+- **w2 → WP12d board v2d** (`tasks/WP12d-board-v2d.md`, main `d67e534`):
+  RUNNING since 02:10 on `lane/w2` on top of `edf612f` (told to `git
+  merge main` first): J1 and U5 out, tail pads P4/P5 in, TVS on VBUS if
+  absent, ERC 0; outline and regions from §5c width 22 chord 47.90; place
+  from the no-receptacle two-sided pin table with sides, R1–R3 on the
+  island, holes at the Q82 sites, zero-track DRC 0 apart from
+  unconnected; then it STOPS with `WAITING WP12d §5c final sha` unless I
+  have already sent the line "§5c final" plus the sha (after w3's third `DONE WP11d`);
+  then route on OpenJDK 25 to DRC 0, `release.py --routed` exit 0,
+  Gerbers/BOM/CPL. Waits for that one line from me. Report
+  `.worktrees/w2/.reports/WP12d-report.md` (expected) → `DONE WP12d`.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
   report `.worktrees/w4/.reports/WP13c-report.md` present, 207 tests OK
@@ -173,15 +250,17 @@ fast-forwarded to `110a79b`.
   three dropout fields; `docs/fab/receiver-v2.md` table and one sentence
   in `docs/fab/assemble.md` follow; montage, plan and open-questions
   untouched. Nothing for a decision. w4 idles; merges in round 7's review.
-- **w5 → WP17c research v5** (`tasks/WP17c-research-v5.md`, main
-  `7983847`): RUNNING since 01:25 on `lane/w5` at `7983847` (agy,
-  prompted by `herdr pane run w1B:pD` plus enter): the JLC edge rule from
-  the pages (board outline or panel rail, rails added by JLC, FPC
-  depaneling), FPC assembly sides, a router that writes a file on this
-  Mac, the M2.5 titanium tail screw and the MJF pilot hole; delivers
-  `docs/fab/L8-research-v5.md` (absent on main). Waits for nothing from
-  me. Report (expected) `.worktrees/w5/.reports/WP17c-report.md` →
-  `DONE WP17c`; its item 1 decides Q78 with WP11d's grid.
+- **w5 → WP17c research v5** (`tasks/WP17c-research-v5.md`): LANDED,
+  `DONE WP17c` at `f8b1634` on `lane/w5` (one commit, tree clean, report
+  `.worktrees/w5/.reports/WP17c-report.md` present, 206 tests OK).
+  `docs/fab/L8-research-v5.md` (absent on main): the JLC 2.5 mm is to
+  the panel's process rail, which JLC adds ("Panel by JLCPCB"); with rails
+  the outline keeps copper-to-outline 0.20 pads / 0.30 traces; both sides
+  of a 2-layer flex are assembled; Freerouting 2.4.1 headless writes a
+  SES on macOS with Java 21; M2.5 Grade 5 titanium button heads in ones
+  (The Thomas RC $1.60) or 5-packs (1up Racing); MJF pilot Ø2.10 CAD,
+  boss OD ≥ 5.0. Noted under Q78 in open-questions at `7b23eb5`; the
+  reviewer checks the quotes. w5 idles; nothing queued.
 - **w9**: idle on `lane/w9` at `110a79b`. Next: WP15b, the sheets refilled
   after WP14b and WP12d settle the shell and board numbers; nothing
   queued.
@@ -233,16 +312,27 @@ Outside those:
    WP11c's §5b and WP11d's §5c must agree with WP12d's placement and
    WP14b's USB wall on one set of numbers; WP13c's `sidecar.json` fields
    vs WP15's assemble sheet wording.
+   Also: L8 §3 says Freerouting 2.4.1 runs on Java 21; the jar needs
+   OpenJDK 25 (WP12d-prep measured it); L8 §4's screw prices and L7's
+   quotes stay UNVERIFIED; w2's venv fails 14 CAD tests that pass in
+   w1's and the reviewer's (pins); the Q81 no-receptacle variant, if the
+   grid picks it, touches the BOM (J1, U5 out), the schematic (VBUS from
+   two pads), board-v2 §12, the shell (two tail pads) and plan v2 §5.4
+   (Pro amendment, Rolf's call); WP14c's screw well on the medial tail
+   vs the REF contact and skin (Q17), and whether a well against skin
+   collects sweat (the tail-end-face variant is the alternative).
 
 ## Next
 
-- Idle until `DONE WP11d` (w3) or `DONE WP17c` (w5), or BLOCKED/GONE for
-  either (a DONE is checked: report present, tree clean; then read); with
-  WP11d's grid and WP17c's item 1 settle Q78 (the edge reading, width 20
-  or 22) in open-questions, then brief WP12d for w2 on §5c and WP14b's
-  second turn for w1; when WP11d, WP17c, WP12d and the w1 second turn
-  have landed (WP11c, WP13c, WP14b already have), open review r7
-  (`tasks/review-r7.md` (expected) from `tasks/review-code-template.md`).
+- Idle until the third `DONE WP11d` (w3), `DONE WP14d` (w1), `DONE
+  WP12d` or `WAITING WP12d §5c final sha` (w2), or BLOCKED/GONE for any
+  (a DONE is checked: report present, tree clean; then read); on the
+  third `DONE WP11d` send w2 the line "§5c final" plus the sha (a prompt; if w2 is
+  WAITING it continues, if not the line is queued) and, if a number w1
+  used moved, note a WP14e; when WP11d, WP14d and WP12d have landed
+  (WP11c, WP13c, WP14b, WP14c, WP17c, WP12d-prep already have), open
+  review r7 with a brief (expected) at `tasks/review-r7.md` (expected),
+  from `tasks/review-code-template.md`.
 
 ## Traps
 
