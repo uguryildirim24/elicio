@@ -121,7 +121,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11d, w1 WP14c), WP11c, WP13c, WP14b, WP17c and WP12d-prep landed, w2, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11d with the queued addendum), WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w1, w2, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -141,15 +141,22 @@ fast-forwarded to `110a79b`.
   idles; next: the second turn after `DONE WP11d` (USB wall from §5c,
   tab fold pockets, island bosses), merges in round 7's review. The new
   renders go on the answer sheet (version 7).
-- **w1 → WP14c shell v2c** (`tasks/WP14c-shell-v2c.md`, main `7b23eb5`):
-  RUNNING since 01:15 on `lane/w1-r6` on top of `bb0c788` (told to `git
-  merge main` first): the screw well moved off the lateral surface (tail
-  end face or medial tail) with a measured `V2_LATERAL_unbroken`, Ø2.10
-  pilots and OD ≥ 5.0 bosses at the tail and the two island boss sites
-  (`V2_BOSS_pilot`), `render.py` stamping the commit that built the
-  solids; USB and fold pockets still wait for §5c. Waits for nothing from
-  me. Report (expected) `.worktrees/w1/.reports/WP14c-report.md` →
-  `DONE WP14c`; then the §5c turn (WP14d) after `DONE WP11d`.
+- **w1 → WP14c shell v2c** (`tasks/WP14c-shell-v2c.md`): LANDED, `DONE
+  WP14c` at `7d111c6` on `lane/w1-r6` (merged main at `3ca7053`, two
+  package commits, tree clean, report
+  `.worktrees/w1/.reports/WP14c-report.md` present, 207 tests OK with the
+  CAD tests running, order 1 byte-identical, Stage B v2 unchanged, shell
+  identical twice, exit 0). The Q71 head well is on the medial tail (skin
+  hides it), the lateral lid is uncut: `V2_LATERAL_unbroken` passes (18
+  samples, 0 pits); `V2_BOSS_pilot` passes (tail Ø2.10 / wall 1.92 / OD
+  5.94, islands Ø2.10 / 1.45 / 5.00); `V2_CLOSURE` engagement 4.30, boss
+  wall 3.08; renders stamp `manifest.commit` (`ccb6608`), test pins it.
+  USB still NOT_MEASURED (waits for §5c). Its decision list repeats Q34,
+  Q30, Q17, S4, standoff, Q70; nothing new. Seam for the reviewer: the
+  medial-tail well sits on the skin side near the REF site (Q17 REF dome
+  on the tail); the tail-end-face option was not built. w1 idles; next
+  WP14d after `DONE WP11d` (bosses to §5c's hole sites, neck-end strip
+  channels or pockets, the USB wall or the two tail charging pads, Q81).
 - **w3 → WP11c courtyards** (`tasks/WP11c-courtyards.md`): LANDED, `DONE
   WP11c` at `1897df0` on `lane/w3` (two commits on top of `bcecc83`, tree
   clean, report `.worktrees/w3/.reports/WP11c-report.md` present, 187
@@ -288,21 +295,23 @@ Outside those:
    w1's and the reviewer's (pins); the Q81 no-receptacle variant, if the
    grid picks it, touches the BOM (J1, U5 out), the schematic (VBUS from
    two pads), board-v2 §12, the shell (two tail pads) and plan v2 §5.4
-   (Pro amendment, Rolf's call).
+   (Pro amendment, Rolf's call); WP14c's screw well on the medial tail
+   vs the REF contact and skin (Q17), and whether a well against skin
+   collects sweat (the tail-end-face variant is the alternative).
 
 ## Next
 
 - Idle until `DONE WP11d` (w3, expected twice: the grid, then the queued
-  addendum) or `DONE WP14c` (w1), or BLOCKED/GONE for either (a DONE is
-  checked: report present, tree clean; then read); after the second
-  `DONE WP11d` settle Q78's width and Q81's variant in open-questions
-  from the process-edge cells of the grid, then brief WP12d for w2 on
-  §5c (OpenJDK 25 router, sides, Q79/Q80 or the no-receptacle variant)
-  and WP14d for w1 (bosses to §5c's hole sites, neck-end strip channels
-  or pockets, the USB wall or the two tail pads); when WP11d, WP14c,
-  WP12d and WP14d have landed (WP11c, WP13c, WP14b, WP17c, WP12d-prep
-  already have), open review r7 with a brief (expected) at
-  `tasks/review-r7.md` (expected), from `tasks/review-code-template.md`.
+  addendum), or BLOCKED/GONE for it (a DONE is checked: report present,
+  tree clean; then read); after the second `DONE WP11d` settle Q78's
+  width and Q81's variant in open-questions from the process-edge cells
+  of the grid, then brief WP12d for w2 on §5c (OpenJDK 25 router, sides,
+  Q79/Q80 or the no-receptacle variant) and WP14d for w1 (bosses to §5c's
+  hole sites, neck-end strip channels or pockets, the USB wall or the two
+  tail pads); when WP11d, WP12d and WP14d have landed (WP11c, WP13c,
+  WP14b, WP14c, WP17c, WP12d-prep already have), open review r7 with a
+  brief (expected) at `tasks/review-r7.md` (expected), from
+  `tasks/review-code-template.md`.
 
 ## Traps
 
