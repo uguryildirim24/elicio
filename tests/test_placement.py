@@ -278,5 +278,230 @@ class PlacementRegenTests(unittest.TestCase):
         self.assertEqual(P.render_svg("A"), DRAWING.read_bytes())
 
 
+class PlacementV2Tests(unittest.TestCase):
+    """WP11 packing v2: A/B, interfaces I/II, cell, series/stacked, width and lid."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+
+    def spec(self, **kwargs):
+        v2 = self.v2
+        base = dict(
+            arch="A",
+            cell="501015",
+            layout="series",
+            width=20.0,
+            lid_y=7.0,
+            arc_plus=0.0,
+            iface="II",
+            standoff=3.0,
+            recess=0.0,
+        )
+        base.update(kwargs)
+        return v2.V2Spec(
+            base["arch"],
+            base["cell"],
+            base["layout"],
+            base["width"],
+            base["lid_y"],
+            base["arc_plus"],
+            base["iface"],
+            base["standoff"],
+            base["recess"],
+        )
+
+    def test_cli_requires_the_v2_flags_together(self) -> None:
+        with self.assertRaises(SystemExit):
+            P.main(["--arch", "A"])
+
+    def test_architecture_c_is_out(self) -> None:
+        result = self.v2.run_spec(self.spec(arch="C"))
+        self.assertFalse(result.closes)
+        self.assertIn("architecture C is out", result.first_conflict)
+        self.assertTrue(
+            any("architecture C is out" in c for c in P.layout_conflicts("C", spec=self.spec(arch="C")))
+        )
+
+    def test_stacked_501015_does_not_close(self) -> None:
+        result = self.v2.run_spec(self.spec(layout="stacked", lid_y=8.0))
+        self.assertFalse(result.closes)
+        self.assertIn("cell top 9.70 > LID_Y 8", result.first_conflict)
+
+    def test_interface_i_clearances_turn09(self) -> None:
+        v2 = self.v2
+        cases = (
+            ("dtp", 3.0, 0.0, -0.5, -1.0),
+            ("dtp", 3.5, 0.0, 0.0, -0.5),
+            ("dtp", 4.0, 0.0, 0.5, 0.0),
+            ("dtp", 3.5, 0.5, 0.5, 0.0),
+            ("dtp", 4.0, 0.5, 1.0, 0.5),
+            ("501015", 3.5, 0.0, -2.0, -2.5),
+            ("501015", 4.0, 0.5, -1.0, -1.5),
+        )
+        for cell, st, rec, nom, defm in cases:
+            with self.subTest(cell=cell, standoff=st, recess=rec):
+                spec = self.spec(iface="I", cell=cell, standoff=st, recess=rec, lid_y=8.0)
+                clr = v2.cell_clearance(spec)
+                self.assertAlmostEqual(clr["nominal"], nom)
+                self.assertAlmostEqual(clr["deformed"], defm)
+                result = v2.run_spec(spec)
+                self.assertFalse(result.closes)
+                self.assertAlmostEqual(result.nominal_clearance, nom)
+                self.assertAlmostEqual(result.deformed_clearance, defm)
+
+    def test_module_stack_outer_heights(self) -> None:
+        v2 = self.v2
+        a4 = v2.module_stack(self.spec(iface="I", standoff=4.0, lid_y=8.0))
+        self.assertAlmostEqual(a4["stack"], 4.0 + 1.0 + 2.3)
+        self.assertAlmostEqual(a4["outer_zero"], 1.5 + 7.3 + 1.0)
+        b3 = v2.module_stack(self.spec(arch="B", iface="I", standoff=3.0, lid_y=8.0))
+        self.assertAlmostEqual(b3["stack"], 3.0 + 1.0 + 2.0)
+        self.assertAlmostEqual(b3["outer_zero"], 8.5)
+
+    def test_interface_i_does_not_close(self) -> None:
+        thick = self.v2.run_spec(self.spec(iface="I", standoff=3.5, lid_y=8.0))
+        self.assertFalse(thick.closes)
+        self.assertIn("nominal cell clearance", thick.first_conflict)
+        dtp = self.v2.run_spec(self.spec(iface="I", standoff=3.5, cell="dtp", lid_y=8.0))
+        self.assertFalse(dtp.closes)
+        self.assertIn("nominal cell clearance", dtp.first_conflict)
+        self.assertAlmostEqual(dtp.adjustment_mm, 0.8)
+        loaded = self.v2.run_spec(self.spec(iface="I", standoff=4.0, cell="dtp", recess=0.0, lid_y=9.0))
+        self.assertFalse(loaded.closes)
+        self.assertTrue(any("carry board load" in c for c in loaded.conflicts))
+        recessed = self.v2.run_spec(self.spec(iface="I", standoff=4.0, cell="dtp", recess=0.5, lid_y=9.0))
+        self.assertFalse(recessed.closes)
+        self.assertGreater(recessed.deformed_clearance, 0.0)
+        self.assertTrue(any("SIG1" in c for c in recessed.conflicts))
+
+    def test_a_501015_series_w20_y7_interface_ii_closes(self) -> None:
+        result = self.v2.run_spec(self.spec())
+        self.assertEqual(result.conflicts, [])
+        self.assertTrue(result.closes)
+        self.assertEqual(result.n_0402, 25)
+        self.assertEqual(result.usb_wall, "hook-end end face (fallback)")
+        self.assertAlmostEqual(result.total_chord, 47.9005, places=3)
+        self.assertLessEqual(result.total_chord, 52.0 - 3.0)
+        self.assertAlmostEqual(result.parts["switch"].y0, result.board_top)
+        self.assertAlmostEqual(result.parts["header"].y0, result.board_top)
+        self.assertEqual(result.parts["switch"].wu, 4.5)
+        self.assertEqual(result.parts["header"].ws, 7.6)
+
+    def test_matrix_closes_only_a_interface_ii_501015_series_w20(self) -> None:
+        rows = self.v2.run_matrix(include_arc=False)
+        self.assertEqual(len(rows), 864)
+        closed = [r for r in rows if r.closes]
+        self.assertEqual(
+            [r.spec.tag for r in closed],
+            [
+                "A_501015_series_w20_y7_iII_s3",
+                "A_501015_series_w20_y8_iII_s3",
+                "A_501015_series_w20_y8.5_iII_s3",
+                "A_501015_series_w20_y9_iII_s3",
+            ],
+        )
+        self.assertTrue(all(r.spec.arch == "A" and r.spec.iface == "II" for r in closed))
+        self.assertFalse(any(r.spec.arch == "B" and r.closes for r in rows))
+        self.assertFalse(any(r.spec.iface == "I" and r.closes for r in rows))
+
+    def test_arc_plus_fails_the_m1_gate(self) -> None:
+        result = self.v2.run_spec(self.spec(arc_plus=1.5))
+        self.assertFalse(result.closes)
+        self.assertTrue(any("TOTAL_CHORD" in c and "M1" in c for c in result.conflicts))
+
+    def test_v2_svg_regenerates_byte_identical(self) -> None:
+        spec = self.spec()
+        first = self.v2.render_svg(spec)
+        second = self.v2.render_svg(spec)
+        self.assertEqual(first, second)
+        named = self.v2.drawing_path(spec)
+        self.assertTrue(named.is_file(), named)
+        self.assertEqual(named.read_bytes(), first)
+
+    def test_failing_svg_lists_the_conflict(self) -> None:
+        spec = self.spec(arch="C")
+        data = self.v2.render_svg(spec).decode("utf-8")
+        self.assertIn('id="packing-v2"', data)
+        self.assertIn("closes=0", data)
+        self.assertIn("architecture C is out", data)
+
+    def test_every_committed_v2_svg_matches_a_fresh_render(self) -> None:
+        rows = self.v2.run_matrix(include_arc=False)
+        self.assertEqual(len(rows), 864)
+        by_spec = {r.spec: r for r in rows}
+        kept = self.v2.kept_drawing_specs(rows)
+        self.assertLessEqual(len(kept), 40)
+        committed = {p.name for p in self.v2.V2_DRAW_DIR.glob("placement_v2_*.svg")}
+        self.assertEqual(committed, {spec.filename for spec in kept})
+        for spec in kept:
+            with self.subTest(tag=spec.tag):
+                path = self.v2.drawing_path(spec)
+                self.assertEqual(path.read_bytes(), self.v2.render_svg(spec, by_spec[spec]))
+
+    def test_kept_drawings_are_closers_winner_and_one_per_family(self) -> None:
+        rows = self.v2.run_matrix(include_arc=False)
+        kept = self.v2.kept_drawing_specs(rows)
+        closers = [r.spec for r in rows if r.closes]
+        self.assertTrue(set(closers) <= set(kept))
+        self.assertIn(self.v2.stage_b_winner_spec(), kept)
+        families = {self.v2.conflict_family(r.first_conflict) for r in rows if not r.closes}
+        reps = self.v2.family_representatives(rows)
+        self.assertEqual(set(reps), families)
+        self.assertTrue({r.spec for r in reps.values()} <= set(kept))
+        self.assertEqual(
+            self.v2.conflict_family("module top 6.70 > LID_Y 6"), "module top # > LID_Y #"
+        )
+
+    def test_all_writes_closers_only_unless_all_drawings(self) -> None:
+        rows = self.v2.run_matrix(include_arc=False)
+        closers = {r.spec.filename for r in rows if r.closes}
+        with tempfile.TemporaryDirectory() as temp_dir:
+            out = Path(temp_dir)
+            self.assertEqual(P.main(["--all", "--out-dir", str(out)]), 0)
+            self.assertEqual({p.name for p in out.glob("*.svg")}, closers)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            out = Path(temp_dir)
+            self.assertEqual(P.main(["--kept-drawings", "--out-dir", str(out)]), 0)
+            kept = {s.filename for s in self.v2.kept_drawing_specs(rows)}
+            self.assertEqual({p.name for p in out.glob("*.svg")}, kept)
+            for name in kept:
+                self.assertEqual(
+                    (out / name).read_bytes(), (self.v2.V2_DRAW_DIR / name).read_bytes(), name
+                )
+
+    def test_packing_doc_regenerates_byte_identical(self) -> None:
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        rows = self.v2.run_matrix(include_arc=False)
+        self.assertEqual(doc.read_text(encoding="utf-8"), self.v2.packing_markdown(rows))
+
+    def test_cli_writes_the_named_v2_drawing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            out = Path(temp_dir) / "one.svg"
+            code = P.main(
+                [
+                    "--arch",
+                    "A",
+                    "--cell",
+                    "501015",
+                    "--layout",
+                    "series",
+                    "--width",
+                    "20",
+                    "--lid-y",
+                    "7",
+                    "--iface",
+                    "II",
+                    "--standoff",
+                    "3",
+                    "--out",
+                    str(out),
+                ]
+            )
+            self.assertEqual(code, 0)
+            self.assertTrue(out.is_file())
+            self.assertIn("elicio packing v2 A_501015_series_w20_y7_iII_s3", out.read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -297,8 +297,8 @@ def _validate_stage_b(payload: dict[str, Any], path: str) -> None:
     if payload.get("provisional") is not True:
         _fail(f"{path}.provisional", "Stage B manifest must set provisional true")
     packing = payload.get("packing")
-    if packing not in ("A", "B", "C"):
-        _fail(f"{path}.packing", "must be A, B or C")
+    if packing not in ("A", "B", "C", "v2"):
+        _fail(f"{path}.packing", "must be A, B, C or v2")
     if not isinstance(payload.get("closure_passed"), bool):
         _fail(f"{path}.closure_passed", "must be a bool")
     if not isinstance(payload.get("contact_source"), str) or not payload["contact_source"].strip():
