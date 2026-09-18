@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-18T14:52:11-04:00",
+ "generated": "2026-09-18T14:53:36-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
   "id": "w1B",
   "label": "elicio",
-  "tabs": 2
+  "tabs": 1
  },
  "coordinator": {
   "pane_id": "w1B:p1",
@@ -18,30 +18,7 @@
   "transcript": "/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl",
   "cwd": "/Users/rolfie/projects/elicio"
  },
- "workers": [
-  {
-   "start_args": [
-    "--resume",
-    "791832d5-f944-40f4-80ec-82deb5c4efca"
-   ],
-   "name": "w1",
-   "kind": "cursor",
-   "status": "done",
-   "pane_id": "w1B:pA",
-   "tab_id": "w1B:tA",
-   "tab_label": "w1",
-   "pane_label": null,
-   "cwd": "/Users/rolfie/projects/elicio/.worktrees/w1",
-   "session_id": "791832d5-f944-40f4-80ec-82deb5c4efca",
-   "tokens": {
-    "done": "1",
-    "lane": "WP14f",
-    "parent": "w1B:p1",
-    "waiting": "flat pattern v3"
-   },
-   "title": "Lane W1 Instructions"
-  }
- ],
+ "workers": [],
  "unlinked_agents": [],
  "other_workspaces": [
   {
@@ -52,32 +29,32 @@
   {
    "workspace_id": "w1E",
    "label": "jevtest",
-   "status": "done"
+   "status": "working"
   },
   {
    "workspace_id": "w1F",
    "label": "adeherdr",
-   "status": "done"
+   "status": "working"
   }
  ],
  "git": {
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "f308eba handoff: WP12i paused at 3a27ffd (v3 vendored and re-pinned, strips locked, island Contact runs failed by hand, router loop interrupted); w2 tab closed",
    "ee00fe1 handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps",
    "c817086 handoff: WP11g landed at ab9ce95 with the Q98 channels (H1 13.23, J4 16.52 rot 90, keep-out list); w1 and w2 released on v3; w3 tab closed; fresh snapshot",
    "2113b6d handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded",
    "b424478 handoff: WP11g first DONE at 78ab3f7 (pin table v3: posterior-wall pads, J2 inside, J3 break-off, R9/R10 out); second turn running for the Q98 channels; w1/w2 held until then",
-   "06a317d handoff: w4, w5, w9 tabs closed (Rolf: close out agents not running); lane/w4 dbeeafa kept unmerged for r8; fresh herdr snapshot",
-   "4f82c6b handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected"
+   "06a317d handoff: w4, w5, w9 tabs closed (Rolf: close out agents not running); lane/w4 dbeeafa kept unmerged for r8; fresh herdr snapshot"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "ee00fe1",
-    "subject": "handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps",
+    "head": "f308eba",
+    "subject": "handoff: WP12i paused at 3a27ffd (v3 vendored and re-pinned, strips locked, island Contact runs failed by hand, router loop interrupted); w2 tab closed",
     "dirty": 0
    },
    {
@@ -124,9 +101,9 @@
    }
   ],
   "branches": [
+   "main",
    "lane/w1-r6",
    "lane/w2",
-   "main",
    "lane/w3",
    "lane/w4",
    "lane/w5",

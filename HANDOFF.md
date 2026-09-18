@@ -154,14 +154,18 @@ exit 3 on Q21 only.
 ## In flight
 
 **PAUSED 12:05 2026-09-18 by Rolf** ("i have a lot of session running rn and
-cad fails there is no more memory so pause please"). w1 and w2 were
-interrupted (esc) and told to commit a wip commit for their package, write
-their report and push the WIP line with the sha, with no tests, builds, renders or router runs.
-On each WIP push I record the sha here and close that tab (Rolf's rule);
-branches and worktrees stay. Resume: restart w1 and w2 from the start
-lines in their briefs (Cursor resume ids in `HANDOFF.json`), prompt
-"Read HANDOFF.md, then your brief; continue from the wip commit", and
-only when Rolf says the machine has room.
+cad fails there is no more memory so pause please"). Both lanes then
+committed wip and pushed WIP; both tabs are closed; branches and worktrees
+stay. **herdr server restarted ~14:50** ("server had to restart
+recalibrate"): `state.py restore` re-linked w1, my pane was renamed back
+to `elicio` (the name the common file's closing steps push to), the round
+token was re-applied, w1's tab closed after its WIP was read (its GONE
+received). No lane is live. Resume, only when Rolf says the machine has
+room: for w1 and w2 `herdr tab create` in this workspace at their
+worktrees, `herdr agent start` from the start lines in their briefs
+(Cursor resume ids in `HANDOFF.json` at git `c817086`), then prompt
+"Read HANDOFF.md, then your brief; continue from the wip commit and its
+report".
 
 Round 7 is merged (`facb0c1`); its packages are in Settled. Round 8
 opened 09:05 on four lanes; every brief on main carries its start line.
@@ -209,7 +213,22 @@ opened 09:05 on four lanes; every brief on main carries its start line.
   `.worktrees/w3/.reports/WP11g-report.md` (expected) → `DONE WP11g`
   (the second one carries the channels); then I send w1 the line "flat
   pattern v3" plus the sha and w2 the line "pin table v3" plus the sha.
-- **w1 → WP14f shell v2f** (`tasks/WP14f-shell-v2f.md`, main `9354834`): RUNNING since 11:55 on "flat pattern v3 ab9ce95" (the second
+- **w1 → WP14f shell v2f** (`tasks/WP14f-shell-v2f.md`, main `9354834`): PAUSED at `938984e` (`WIP WP14f` received
+  12:20, read after the restart; report
+  `.worktrees/w1/.reports/WP14f-report.md` present and headed "WIP,
+  stopped (out of memory)"; tree clean). Tab `w1B:tA` CLOSED 14:55,
+  pane `w1B:pA` closed (GONE received); branch `lane/w1-r6` kept.
+  Reached: §5e reader at `ab9ce95`, bosses on H1 (13.23, 17.70), P4/P5
+  through the posterior wall (Ø2.7, ring pad inside, hex collar 3.0 into
+  the bay), skin holes / rib slot / drop channel no longer cut, checks
+  rewritten (`V2_CHARGE_pads`, `V2_WALL_minima`, `V2_CAVITY_v3`,
+  `V2_BOSS_sites`). Failed on one temp build (exit 3): `wall_around`
+  −1.0 at both seats (probe finds no boundary), `V2_BOARD_envelope`
+  0.047 mm³ nylon from the wall standoffs, J2 overlaps the P5 standoff
+  4.93 (recorded). Not done: that fix, shell-v2.md, committed solids and
+  renders (still the Q89 set), the gates. Restart from the start line in
+  `tasks/WP14f-shell-v2f.md`. Earlier:
+  RUNNING since 11:55 on "flat pattern v3 ab9ce95" (the second
   half: wall pads at (20.50, 4.35 / 12.35, y 4.35), bosses at H1
   (13.23, 17.70), cavity check on v3, third view, closure text). Before
   that WAITING since 10:20, lane at `89279c2` on `lane/w1-r6` (tree clean, no report
@@ -327,12 +346,11 @@ Outside those:
 
 ## Next
 
-- PAUSED: idle until the WIP pushes for WP14f (w1) and WP12i (w2)
-  arrive (then record each sha in In flight and close that tab), and
-  then until Rolf says the machine has room; on resume restart w1 and
-  w2 from their briefs' start lines and continue toward `DONE WP14f`
-  and `DONE WP12i`, after which review r8 opens (merge order w3
-  `ab9ce95`, w1-r6, w4 `dbeeafa`, w2).
+- PAUSED, no lane live: idle until Rolf says the machine has room; then
+  restart w1 (WP14f from `938984e`) and w2 (WP12i from `3a27ffd`) per the
+  resume line in In flight and continue toward `DONE WP14f` and `DONE
+  WP12i`, after which review r8 opens (merge order w3 `ab9ce95`, w1-r6,
+  w4 `dbeeafa`, w2).
 
 ## Traps
 
@@ -457,29 +475,21 @@ Outside those:
 checkpoint with:  python3 ~/.claude/skills/save-state/state.py snapshot
 Do not hand-edit ids into it. -->
 
-## Herdr (generated 2026-09-18T14:52:11-04:00 by state.py, herdr 0.9.0, session `default`)
-Workspace `w1B` (elicio), 2 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
+## Herdr (generated 2026-09-18T14:53:36-04:00 by state.py, herdr 0.9.0, session `default`)
+Workspace `w1B` (elicio), 1 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
 Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl`.
 
 ### Workers nested under the coordinator
-| name | kind | status | pane | tab (label) | cwd | tokens | last title |
-|---|---|---|---|---|---|---|---|
-| w1 | cursor | done | `w1B:pA` | `w1B:tA` (w1) | `/Users/rolfie/projects/elicio/.worktrees/w1` | done=1 lane=WP14f waiting=flat pattern v3 | Lane W1 Instructions |
+_none_
 
-Start lines as they run now (from `pane process-info`), for restarting a worker that is gone:
-
-```bash
-herdr agent start w1 --kind cursor --pane <new pane> --parent "$HERDR_PANE_ID" -- --resume 791832d5-f944-40f4-80ec-82deb5c4efca
-```
-
-Other workspaces on this server (not yours to touch): `w16` flyonenomics (working), `w1E` jevtest (done), `w1F` adeherdr (done)
+Other workspaces on this server (not yours to touch): `w16` flyonenomics (working), `w1E` jevtest (working), `w1F` adeherdr (working)
 
 ### Git
 Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behind origin/main).
 
 | worktree | branch | head | dirty files | last commit |
 |---|---|---|---|---|
-| `/Users/rolfie/projects/elicio` | `main` | ee00fe1 | 0 | handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps |
+| `/Users/rolfie/projects/elicio` | `main` | f308eba | 0 | handoff: WP12i paused at 3a27ffd (v3 vendored and re-pinned, strips locked, island Contact runs failed by hand, router loop interrupted); w2 tab closed |
 | `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | 938984e | 0 | wip(WP14f): wall P4/P5 CAD and §5e checks against pin table v3 ab9ce95 |
 | `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 3a27ffd | 1 | wip(WP12i): v3 land locked; hand_route interrupted |
 | `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | ab9ce95 | 0 | packing(v3): pin table v3 Q98 keep-outs, H1/H2 1.42 mm gap, well at 16.50 |
@@ -490,12 +500,12 @@ Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behi
 Last commits on the integration branch:
 
 ```
+f308eba handoff: WP12i paused at 3a27ffd (v3 vendored and re-pinned, strips locked, island Contact runs failed by hand, router loop interrupted); w2 tab closed
 ee00fe1 handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps
 c817086 handoff: WP11g landed at ab9ce95 with the Q98 channels (H1 13.23, J4 16.52 rot 90, keep-out list); w1 and w2 released on v3; w3 tab closed; fresh snapshot
 2113b6d handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded
 b424478 handoff: WP11g first DONE at 78ab3f7 (pin table v3: posterior-wall pads, J2 inside, J3 break-off, R9/R10 out); second turn running for the Q98 channels; w1/w2 held until then
 06a317d handoff: w4, w5, w9 tabs closed (Rolf: close out agents not running); lane/w4 dbeeafa kept unmerged for r8; fresh herdr snapshot
-4f82c6b handoff: WP12i first half at 03f031c (U2 RSM 0.40 pitch confirmed, U3 stays DSBGA, R9/R10 DNP, nine stiffeners, Q97 tests), w2 WAITING for pin table v3; Q98 row corrected
 ```
 
 ### Record files (newest first)
