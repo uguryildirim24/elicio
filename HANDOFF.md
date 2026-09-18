@@ -110,19 +110,29 @@ on a removed key.
   face; full suite OK; order 1 byte-identical. Tree clean. Waits for the
   round 5 reviewer. Q50 and Q51 hold the reading. Report
   `.reports/WP11-report.md` (absent on main, untracked in `.worktrees/w1`).
-- **w2** (cursor, `lane/w2`): WP12 board v2, first `DONE WP12` at
-  `9fa31d2` (~22:15): KiCad 10 project (rigid 4-layer, provisional
-  17 × 33 outline, interface I pads, Raytac placed, JST-SH placed),
-  `scripts/board/release.py` (absent on main) with ERC 0 and 829 unrouted
-  DRC errors reported, `docs/fab/board-v2.md` (absent on main),
-  `tests/test_board_release.py` (absent on main). Its venv shows 13
-  CadRegen hash failures it says it did not cause (reviewer reproduces).
-  The coordinator's note of ~20:45 (switch to interface II: 2-layer flex
-  with stiffeners, ring-pad tabs, outline from WP11's winner) was queued
-  as a Cursor follow-up and runs as a second turn: expect ONE more
-  `DONE WP12`; open the review after it. Its report
-  `.reports/WP12-report.md` (absent on main) is untracked in
-  `.worktrees/w2`.
+- **w2** (cursor, `lane/w2`): WP12 board v2 landed in two turns, final
+  `DONE WP12` at `a4080c2` (~22:40): KiCad 10 project, now a 2-layer FPC
+  with stiffeners, ring-pad tabs for interface II on WP11's winner
+  outline, USB on the end face; `scripts/board/release.py` (absent on
+  main), `docs/fab/board-v2.md` (absent on main) with the rejected
+  interface I recorded, `tests/test_board_release.py` (absent on main);
+  ERC 0, 893 unrouted DRC errors reported; 13 CadRegen hash failures in
+  its venv it says it did not cause (reviewer reproduces). Tree clean.
+  Waits for the reviewer. Its report `.reports/WP12-report.md` (absent on main)
+  is untracked in `.worktrees/w2`.
+- **rev5** (claude `claude-opus-5` high, bypass, `review/r5`, worktree
+  `.worktrees/review`, pane in the Herdr section): round 5 reviewer,
+  brief `tasks/review-r5.md` (`5d23c54`), prompted ~22:50. Merges
+  `lane/w1` by squash (prunes the 109 MB of drawings, Q56), then
+  `lane/w5`, `lane/w4`, `lane/w9`, `lane/w2`; gates: full suite with cad
+  extras, order 1 identity, Stage B v2 twice, `release.py` with
+  `kicad-cli`, `arduino-cli compile`; writes `tasks/reviews/code-r5.md` (expected)
+  (expected) and `.reports/review-r5-report.md` (expected), pushes
+  `DONE review-r5` with its report path and final sha, or WAITING. Needs-a-decision items
+  number from 57. When it lands: read the verdict, record decisions as
+  Q57+, fast-forward `main` to `review/r5` (`git merge --ff-only`),
+  fast-forward the idle lanes, close the review tab, checkpoint, tell
+  Rolf, then the answer sheet v3 and the vault file-back.
 - **w4** (cursor, `lane/w4`): WP13 firmware v2 landed, `DONE WP13` at
   `28b284c` (~21:05): `docs/fab/frame-v2.md` (absent on main), the
   decoder `src/elicio/frame_v2.py` (absent on main) with ten golden
@@ -154,14 +164,8 @@ on a removed key.
   and WP17 are reviewed together. Its report `.reports/WP17-report.md` (absent on main)
   is untracked in `.worktrees/w5`.
 
-Round 5 review: when WP12's second turn has also landed (WP11, WP13, WP16, WP17 and WP12's first turn have) (a lane that pushes WAITING is recorded and the review opens
-without it), create the round 5 review branch (expected, not created yet) from `main`,
-a fresh Opus 5 high reviewer from `tasks/review-code-template.md` as
-`tasks/review-r5.md` (expected), merging `lane/w1`, `lane/w5`, `lane/w2`, `lane/w4`,
-`lane/w9` in that order, with the attack points: WP11's measured table
-against plan v2 §3 (no constants), WP12's G2 table and undervoltage
-numbers against the datasheets, WP13's fixtures against `frame-v2.md`,
-L5/L6 quotes spot-checked on live pages, requirement 5 once.
+Round 5 review is running (rev5 above). No lane is working; w1, w2, w4,
+w5, w9 idle with their branches unmerged until the verdict.
 
 Rolf's open inputs on the answer sheet
 (https://claude.ai/artifact/5e9H1dC5CFHggtiaYtDDeA, db doc `answers/rolf`,
@@ -194,9 +198,10 @@ and gates G1–G8 for the build. Outside those:
 
 ## Next
 
-- Idle until a DONE lands (check report file and clean tree, read the
-  report); WP11, WP13, WP16 and WP17 have landed and WP12's first turn; when
-  WP12's second turn (interface II) has landed or pushed WAITING, open the round 5 review as described under In flight.
+- Idle until `DONE review-r5` (or WAITING/BLOCKED/GONE for rev5); then read
+  `tasks/reviews/code-r5.md` (expected), record its decisions as Q57 onward,
+  fast-forward `main` to `review/r5`, fast-forward the idle lanes, close
+  the review tab, checkpoint.
 
 ## Traps
 
