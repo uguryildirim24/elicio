@@ -382,22 +382,28 @@ SHELL_RING_SEAT_D = 6.0 + 0.10 + PRINT_TOL
 SHELL_SCREW_HOLE = 2.7  # brief; Stage B already opens CONTACT_HOLE 2.9
 JLC_MIN_WALL = 1.0  # JLC PA12-HP "Wall thickness: 1mm" (plan v2 §12)
 SHELL_PILOT = 2.10  # L8 §4: MJF PA12 M2.5 self-tap CAD Ø2.10–2.15
-# Q71: no snaps. Hinge lip at the hook-end wall plus one concealed
-# ISO 7380 M2.5×4 at the medial tail (skin face). S4 pull and drop stay qualitative.
+# Q71/Q89: no snaps. Hinge lip at the hook-end wall plus one concealed
+# ISO 7380 M2.5 at the medial tail (skin face). The ×4 ended in the body's
+# own tail (review r7). Q89: a lid boss drops into a tail pocket; the
+# screw is M2.5×8 so ≥ 3 mm of thread sits in the lid boss. S4 pull and
+# drop stay qualitative.
 SHELL_HINGE_U = (6.5, 13.5)
 SHELL_HINGE_S = (1.00, 1.48)  # remaining outer wall 1.00 of the 1.5 end wall
 SHELL_HINGE_Y0 = 7.25
 SHELL_HINGE_Y1 = 7.70  # 0.30 shelf of body over the lip
-SHELL_SCREW_U = 14.50
+SHELL_SCREW_U = 16.50  # clear of the Ø7.5 REF pocket at (8.50, 43.00)
 SHELL_SCREW_S = 41.00
 SHELL_SCREW_PILOT = 2.10
 SHELL_SCREW_HOLE_LID = 2.7
 SHELL_SCREW_WELL_D = 5.0  # Ø4.6 head plus print clearance
 SHELL_SCREW_WELL_H = 1.55
-SHELL_SCREW_ENGAGE = 4.0  # thread in the tail boss, from the floor up
-SHELL_SCREW_LEN = 4.0  # ISO 7380 M2.5×4 (Q71, L8 §4): shank under the head
+SHELL_SCREW_ENGAGE = 4.0  # body boss nylon around the clearance, from the floor
+SHELL_SCREW_LEN = 8.0  # ISO 7380 M2.5×8 (Q89): shank under the head
 SHELL_SCREW_BOSS_WALL = 1.4  # L8 §4; boss OD ≥ 5.0 around Ø2.10
 SHELL_SCREW_BOSS_OD = 5.0
+SHELL_LID_BOSS_H = 3.2  # drop from lid underside y 8.00 into the tail pocket
+SHELL_LID_ENGAGE = 3.0  # V2_CLOSURE: thread in the lid boss
+SHELL_LID_POCKET_CLEAR = 0.20  # radial air around the lid boss in the body
 # Elliptical hook half-axes (root then tip), millimetres. Root station is
 # circular (Q76) with radius HOOK_DIA/2, then the loft becomes the ellipse.
 SHELL_HOOK_ROOT = (2.20, 1.50)  # 4.4 × 3.0
@@ -3267,11 +3273,13 @@ def _record_shell_checks(
         lid, path, hinge_u, hinge_s, 0.5 * (SHELL_HINGE_Y0 + SHELL_HINGE_Y1)
     )
     screw_u, screw_s = SHELL_SCREW_U, SHELL_SCREW_S
+    boss_probe_u = screw_u + SHELL_SCREW_PILOT / 2.0 + 0.45
     well_air = not _inside_uys(body, path, screw_u, screw_s, SHELL_SCREW_WELL_H / 2.0)
     hole_air = not _inside_uys(body, path, screw_u, screw_s, floor_y + SHELL_SCREW_ENGAGE / 2.0)
+    # Axis is air through the tail pocket; body nylon is the off-axis boss.
     try:
         hole_top = _bisect(
-            lambda y: _inside_uys(body, path, screw_u, screw_s, y),
+            lambda y: _inside_uys(body, path, boss_probe_u, screw_s, y),
             floor_y + 1.0,
             lid_y - 0.2,
         )
@@ -3295,15 +3303,14 @@ def _record_shell_checks(
             boss_wall = -1.0
     except CheckFail:
         hole_r = boss_wall = -1.0
-    # Review r7: the screw closes the lid only if its thread reaches lid
-    # material. Head on the well bottom, ISO 7380 M2.5×4 shank above it;
-    # the lid's underside on the screw axis is measured on the lid solid.
+    # Q89: thread in the hanging lid boss. Head on the well bottom; M2.5×8
+    # shank above it; lid_under is the bottom of that boss (off the pilot).
     screw_tip_y = SHELL_SCREW_WELL_H + SHELL_SCREW_LEN
     try:
         lid_under_y = _bisect(
-            lambda y: _inside_uys(lid, path, screw_u, screw_s, y),
-            lid_y - 3.0,
-            lid_y + 1.0,
+            lambda y: _inside_uys(lid, path, boss_probe_u, screw_s, y),
+            floor_y + 1.0,
+            lid_y + 0.8,
         )
     except CheckFail:
         lid_under_y = lid_y
@@ -3313,19 +3320,18 @@ def _record_shell_checks(
         and lip_in
         and well_air
         and hole_air
-        and engagement >= SHELL_SCREW_ENGAGE - 0.05
         and boss_wall >= SHELL_SCREW_BOSS_WALL - 0.05
-        and lid_engagement >= SHELL_SCREW_ENGAGE - 0.05
+        and lid_engagement >= SHELL_LID_ENGAGE - 0.05
     )
     record(
         "V2_CLOSURE",
         closure_ok,
         (
-            "Q71: hinge lip at the hook-end wall (body nylon over the lip) plus one "
-            "concealed ISO 7380 M2.5×4 at the medial tail; engagement and boss wall "
-            "measured; the screw closes the lid only where its thread reaches the lid "
-            "(review r7: it ends in the body's own tail). S4 two-finger pull and 0.5 m "
-            "drop are qualitative (plan v2 §7)"
+            "Q89: hinge lip at the hook-end wall plus one concealed ISO 7380 "
+            f"M2.5×{SHELL_SCREW_LEN:.0f} at the medial tail; a lid boss drops into a "
+            f"tail pocket with ≥ {SHELL_LID_ENGAGE:g} mm of thread in the lid boss; "
+            "head in the well. S4 two-finger pull and 0.5 m drop are qualitative "
+            "(plan v2 §7)"
         ),
         hinge_lip_undercut=1.0 if lip_over else 0.0,
         hinge_lip_in=1.0 if lip_in else 0.0,
@@ -3394,23 +3400,31 @@ def _record_shell_checks(
             sampled += 1
             if top < min(left, right) - 0.70:
                 pits += 1
+    wall_u = SHELL_SCREW_U + SHELL_SCREW_PILOT / 2.0 + 0.45
     old_site_solid = _inside_uys(
-        lid, path, SHELL_SCREW_U, SHELL_SCREW_S, lid_y + 0.80
-    ) and _inside_uys(lid, path, SHELL_SCREW_U, SHELL_SCREW_S, lid_y + 0.30)
-    lateral_ok = sampled >= 8 and pits == 0 and old_site_solid
+        lid, path, wall_u, SHELL_SCREW_S, lid_y + 0.80
+    ) and _inside_uys(lid, path, wall_u, SHELL_SCREW_S, lid_y + 0.30)
+    pad_top = SHELL_SCREW_WELL_H + SHELL_SCREW_LEN + SHELL_SCREW_BOSS_WALL
+    pad_closed = _inside_uys(
+        lid, path, SHELL_SCREW_U, SHELL_SCREW_S, pad_top - 0.20
+    ) and not _inside_uys(
+        lid, path, SHELL_SCREW_U, SHELL_SCREW_S, pad_top + 0.30
+    )
+    lateral_ok = sampled >= 8 and pits == 0 and old_site_solid and pad_closed
     record(
         "V2_LATERAL_unbroken",
         lateral_ok,
         (
-            "Q71: no hole, well or pit opens on the lateral lid surface "
-            "(lid top sampled 3 mm apart; old lid-well site is nylon)"
+            "Q89: no hole, well or pit opens on the lateral lid surface "
+            "(lid top sampled 3 mm apart; lid-boss wall and closed outer pad are nylon)"
         ),
         samples=float(sampled),
         pits=float(pits),
         old_lid_well_solid=1.0 if old_site_solid else 0.0,
+        pad_closed=1.0 if pad_closed else 0.0,
     )
 
-    # L8 §4 / Q73: Ø2.10 CAD pilots, boss OD ≥ 5.0, radial wall ≥ 1.4.
+    # L8 §4 / Q73 / Q89: Ø2.10 CAD pilots, boss OD ≥ 5.0, radial wall ≥ 1.4.
     # Island bosses stay 0.5 below the standoff tops (V2_BOSS).
     pilot_nums: dict[str, float] = {}
     pilot_ok = True
@@ -3430,12 +3444,25 @@ def _record_shell_checks(
             or od < SHELL_SCREW_BOSS_OD - 0.05
         ):
             pilot_ok = False
+    lid_boss_y0 = lid_y - SHELL_LID_BOSS_H
+    lid_py = lid_boss_y0 + SHELL_LID_ENGAGE / 2.0
+    d, wall_r, od = _measure_pilot_boss(lid, path, SHELL_SCREW_U, SHELL_SCREW_S, lid_py)
+    pilot_nums["lid_pilot_d"] = round(d, 4)
+    pilot_nums["lid_wall"] = round(wall_r, 4)
+    pilot_nums["lid_od"] = round(od, 4)
+    if (
+        d < SHELL_PILOT - 0.05
+        or d > SHELL_PILOT + 0.08
+        or wall_r < SHELL_SCREW_BOSS_WALL - 0.05
+        or od < SHELL_SCREW_BOSS_OD - 0.05
+    ):
+        pilot_ok = False
     record(
         "V2_BOSS_pilot",
         pilot_ok and bool(pilot_nums),
         (
             "L8 §4: CAD pilot Ø2.10, boss OD ≥ 5.0, radial wall ≥ 1.4 at the tail "
-            "closure boss and the two island bosses; island drop is V2_BOSS"
+            "closure boss, the lid boss, and the two island bosses; island drop is V2_BOSS"
         ),
         **pilot_nums,
     )
@@ -4331,10 +4358,13 @@ def _apply_shell_features(
     )
     body = body.cut(groove)
 
-    # Q71: concealed tail screw on the medial (skin) face. Head well in the
-    # 1.5 floor; Ø2.10 pilot and OD ≥ 5.0 boss stand on the floor into the
-    # tail bulk. The lateral lid is not cut.
+    # Q89: concealed tail screw on the medial (skin) face. Head well in the
+    # 1.5 floor; Ø2.10 pilot through the body's OD ≥ 5.0 tail boss into a
+    # pocket that takes the hanging lid boss. The lateral lid is not cut.
     origin = _vec(path, SHELL_SCREW_U, SHELL_SCREW_S, 0.0)
+    lid_boss_y0 = lid_y - SHELL_LID_BOSS_H
+    pocket_y0 = lid_boss_y0 - 0.15
+    pocket_r = SHELL_SCREW_BOSS_OD / 2.0 + SHELL_LID_POCKET_CLEAR
     tail_boss = _y_cylinder(
         origin.X,
         floor_y - 0.05,
@@ -4349,23 +4379,54 @@ def _apply_shell_features(
         SHELL_SCREW_WELL_D / 2.0,
         SHELL_SCREW_WELL_H + 0.05,
     )
-    pilot = _y_cylinder(
+    pocket = _y_cylinder(
+        origin.X,
+        pocket_y0,
+        origin.Z,
+        pocket_r,
+        lid_y - pocket_y0 + 0.35,
+    )
+    body_pilot = _y_cylinder(
         origin.X,
         floor_y,
         origin.Z,
         SHELL_SCREW_PILOT / 2.0,
-        SHELL_SCREW_ENGAGE + 0.3,
+        pocket_y0 - floor_y + 0.4,
     )
-    body = body.fuse(tail_boss).cut(well).cut(pilot)
+    body = body.fuse(tail_boss).cut(well).cut(pocket).cut(body_pilot)
     measure["screw_u"] = SHELL_SCREW_U
     measure["screw_s"] = SHELL_SCREW_S
     measure["screw_engage"] = SHELL_SCREW_ENGAGE
+    measure["screw_len"] = SHELL_SCREW_LEN
     measure["screw_pilot"] = SHELL_SCREW_PILOT
     measure["screw_boss_od"] = SHELL_SCREW_BOSS_OD
+    measure["lid_boss_h"] = SHELL_LID_BOSS_H
+    measure["lid_engage"] = SHELL_LID_ENGAGE
     measure["screw_face"] = "medial"
 
-    # Lofted lid replaces the 1.0 plate plus the Ø19 blister. No lid well.
+    # Lofted lid plus a hanging boss into the tail pocket. A closed outer
+    # pad keeps the M2.5×8 tip inside nylon so the lateral face stays solid.
     lid = _lofted_shell_lid(path, params)
+    screw_tip_y = SHELL_SCREW_WELL_H + SHELL_SCREW_LEN
+    pad_top = screw_tip_y + SHELL_SCREW_BOSS_WALL
+    lid_boss = _y_cylinder(
+        origin.X,
+        lid_boss_y0,
+        origin.Z,
+        SHELL_SCREW_BOSS_OD / 2.0,
+        pad_top - lid_boss_y0,
+    )
+    lid_pilot = _y_cylinder(
+        origin.X,
+        lid_boss_y0 - 0.05,
+        origin.Z,
+        SHELL_SCREW_PILOT / 2.0,
+        screw_tip_y - lid_boss_y0 + 0.15,
+    )
+    lid = lid.fuse(lid_boss).cut(lid_pilot)
+    measure["lid_boss_y0"] = round(lid_boss_y0, 4)
+    measure["lid_pad_top"] = round(pad_top, 4)
+    measure["screw_tip_y"] = round(screw_tip_y, 4)
     # Lip stays under the 0.30 shelf (y 7.70–8.00). A strap in the cavity
     # joins the lip to the lid so they are one solid without filling the shelf.
     lip = maker(
@@ -4406,10 +4467,13 @@ def _apply_shell_features(
     measure["lid_inset"] = SHELL_LID_INSET
 
     notes["closure"] = (
-        "Q71: hinge lip at the hook-end wall plus one concealed ISO 7380 "
-        f"M2.5×4 on the medial tail at u={SHELL_SCREW_U:g} s={SHELL_SCREW_S:g}; "
+        "Q89: hinge lip at the hook-end wall plus one concealed ISO 7380 "
+        f"M2.5×{SHELL_SCREW_LEN:.0f} on the medial tail at u={SHELL_SCREW_U:g} "
+        f"s={SHELL_SCREW_S:g}; head in the well at y {SHELL_SCREW_WELL_H:g}; "
+        f"lid boss drops {SHELL_LID_BOSS_H:g} mm into a tail pocket; "
         f"pilot Ø{SHELL_SCREW_PILOT:g}, boss OD {SHELL_SCREW_BOSS_OD:g}, "
-        f"engagement {SHELL_SCREW_ENGAGE:g} mm. S4 pull and drop qualitative"
+        f"≥ {SHELL_LID_ENGAGE:g} mm of thread in the lid boss. "
+        "S4 pull and drop qualitative"
     )
     notes["shell_measure"] = measure
     notes["winner"] = SHELL_WINNER
