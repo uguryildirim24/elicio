@@ -83,7 +83,7 @@ bosses. (plan v2 §8)
 the standoffs. USB-C is at the hook-end end face (`packing-v2.md` §5).
 The board has no mounting holes, and the REF standoff sits past the
 board's end, so the island rests on two standoffs. The shell's two
-printed bosses have nothing to screw into (review r6, decision 73).
+printed bosses have nothing to screw into (review r6, decision 74).
 **Picture.** `docs/fab/cad/v2/drawing.pdf` board-on-standoffs view
 (expected; WP14).
 
@@ -95,7 +95,7 @@ Turn the board screws with the hex key until they seat. (plan v2 §8)
 
 **Tool.** 1.5 mm hex key.
 **Part.** The board screws WP14 names. On this tree it names none
-(decision 73). Stop here. Write me one line.
+(decision 74). Stop here. Write me one line.
 **Check.** Screws seat. Board does not rock. Tabs are not folded
 against the cavity end wall (Q59). If a tab fights the wall, stop.
 **Picture.** `docs/fab/cad/v2/render_medial.png` (expected; WP14).
@@ -130,7 +130,7 @@ Close the lid per WP14's closure. (plan v2 §8)
 
 **Tool.** Fingers. Hex key only if WP14's closure is the concealed tail
 screw (plan v2 §7). On this tree the lid has no undercut and lifts off
-(`V2_CLOSURE`, decision 71). Stop until that is decided.
+(`V2_CLOSURE`, decision 72). Stop until that is decided.
 **Part.** The lid from order 2.
 **Check.** Lid is seated. Seam is the one WP14 drew. No screw shows on
 the lateral face (plan v2 §7).

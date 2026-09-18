@@ -2071,11 +2071,11 @@
   "views": {
     "drawing.pdf": {
       "bytes": 74272,
-      "sha256": "42957eba6e90385f4c478b0153683818b69b728bc225e87bef95157a84755c8c"
+      "sha256": "90e28d99f5cff5713a5a7c3afcee3a4a57b1f84060bfb4e3a9856a36d3cfe2a7"
     },
     "render_lateral.png": {
-      "bytes": 124723,
-      "sha256": "bc2587f8c65adbc8f39abf6711d5286b66241eb7f578b7c87d7569c9c2b2a74e"
+      "bytes": 124578,
+      "sha256": "69bbda1d659f4b409e7212cc4d0523ae70d0c9ade9dd6daa249b9f1a4eefda88"
     },
     "render_medial.png": {
       "bytes": 124685,

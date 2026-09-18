@@ -43,7 +43,7 @@ Montage §8's table marks only lines 3.5 to 3.10 "same criterion". Line
 or flat for more than 200 sample intervals, counted on the acquisition
 stream). The tool follows the table: a same-criterion failure and a 3.4
 dropout get different codes. Whether a 3.4 dropout stops S2 is open
-decision 75 in `tasks/reviews/code-r6.md`; until it is taken, treat code 3
+decision 76 in `tasks/reviews/code-r6.md`; until it is taken, treat code 3
 as a stop and write the agent one line.
 
 | Code | Meaning |

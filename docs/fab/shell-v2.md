@@ -45,7 +45,7 @@ board edge. Review r6: the board (`board-v2.md` §11) has no
 mounting holes, and the bosses sit under J3 and under the module, so no
 board screw can go into them. The REF standoff (s 43.0) is past the
 board's end (s 37.6); the board rests on two standoffs only. Retention
-is decision 73 in `tasks/reviews/code-r6.md`.
+is decision 74 in `tasks/reviews/code-r6.md`.
 
 The cell 501015 sits in the pocket in series with the board, foam 0.5 on
 the lid face. USB-C opens on the hook-end end face (plan v2 §5.4
@@ -53,7 +53,7 @@ fallback; the medial face cannot hold the receptacle next to the cell).
 Review r6: the packing places the receptacle at s −5.80 to 1.50, so its
 mouth stands 4.8 mm outside the end face (outer face s −1.00), and the
 hook fills the opening's anterior 0.89 mm. Neither closes on this body
-(`V2_USB_end`, decision 70).
+(`V2_USB_end`, decision 71).
 The recovery switch is under a blind 0.5 recess in the lid, no hole.
 There is no text on the outside. The three contact heads are on the
 medial face; no screw is visible from the lateral side.
@@ -85,7 +85,7 @@ The snap grooves run to lid_y + 0.15 and the lip groove to lid_y + 0.12,
 so nothing of the body sits over any lid feature: the lid lifts straight
 off. The beam is also under JLC's 1 mm wall (plan v2 §12), and the
 0.75 mm between the module and the side wall has no room for a 1 mm
-beam. A working closure is decision 71 (concealed tail screw per plan
+beam. A working closure is decision 72 (concealed tail screw per plan
 v2 §7, or a different snap site).
 
 Insertion and retention forces stay **NOT_MEASURED** (printed PA12 E and
@@ -99,7 +99,7 @@ Interface II (`board-v2.md` §11). Datum chain, medial face y = 0 up:
 |---|---:|---|
 | Medial outer face | 0.00 | body frame |
 | Floor inner face (WALL_MEDIAL) | 1.50 | plan v2 §3 |
-| Ring pad top (PI 0.11 + FR4 0.2) | 1.81 | `packing-v2.md` §5, review r5. The board Gerber draws no ring FR4 (decision 72) |
+| Ring pad top (PI 0.11 + FR4 0.2) | 1.81 | `packing-v2.md` §5, review r5. The board Gerber draws no ring FR4 (decision 73) |
 | Standoff top / board underside | 4.81 | standoff 3.0 (Q43, Q58) |
 | Board top | 5.32 | flex 0.51 at parts |
 | Boss top | 4.31 | 0.5 below the standoff tops |

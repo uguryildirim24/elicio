@@ -47,7 +47,7 @@ Stop. Do not pay if any line is true.
 2. `docs/fab/cad/v2/manifest.json` is missing, or its
    `stage_b_failing` list is not empty. On this tree it lists
    `V2_CLOSURE`, `V2_EDGE_radii`, `V2_USB_end`, `V2_WALL_minima`
-   (review r6, decisions 70 and 71). Rows marked NOT_MEASURED are named
+   (review r6, decisions 71 and 72). Rows marked NOT_MEASURED are named
    in `shell-v2.md` §6 and are not a pass.
 3. You have not approved both renders (`render_medial.png` and
    `render_lateral.png` in `docs/fab/cad/v2/`, expected from WP14).
