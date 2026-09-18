@@ -1,6 +1,6 @@
 # Shell v2 — the wearable body on the round 5 winner
 
-WP14 then WP14b. The plan is not changed. Nothing is ordered. The body is
+WP14 then WP14b then WP14c. The plan is not changed. Nothing is ordered. The body is
 provisional until Rolf measures M1 (Q34) and approves the two renders.
 
 Winner: `A_501015_series_w20_y8_iII_s3` (`packing-v2.md` §5–§6). Same
@@ -39,7 +39,8 @@ flex tab, into a brass female hex standoff 5 AF and 3.0 mm tall. The
 standoff sits in a printed hex collar on the floor. The flex board rests
 on the three standoff tops (underside y 4.81, top y 5.32). Two printed
 bosses at (14.85, 21.50) and (14.85, 28.10) stop 0.5 below those tops so
-the board lands on the standoffs first. Packing skipped both board-corner
+the board lands on the standoffs first. Each island boss and the tail
+closure boss carries a CAD pilot Ø2.10 and OD 5.0 (L8 §4). Packing skipped both board-corner
 bosses (they sat on SIG1 or the antenna); these two sit on the high-u
 board edge. Review r6: the board (`board-v2.md` §11) has no
 mounting holes, and the bosses sit under J3 and under the module, so no
@@ -53,11 +54,11 @@ fallback; the medial face cannot hold the receptacle next to the cell).
 Review r6: the packing places the receptacle at s −5.80 to 1.50, so its
 mouth stands 4.8 mm outside the end face (outer face s −1.00), and the
 hook fills the opening's anterior 0.89 mm. WP14b leaves the hook-end
-wall solid. `V2_USB_end` is NOT_MEASURED until packing §5b (Q70).
+wall solid. `V2_USB_end` is NOT_MEASURED until packing §5c (Q70).
 The recovery switch is under a blind 0.5 recess in the lid, no hole.
 There is no text on the outside. The three contact heads are on the
-medial face; the lid screw sits in a well at the tail, not as a
-lateral screw.
+medial face. The lid-screw head well is on the medial tail (skin hides
+it). The lateral lid and body have no well.
 
 The hook starts as a circular root (r 1.75), then lofts to 4.4 × 3.0
 and to a 3.0 × 2.2 tip (Q76). Radius from M8 (HOOK_RADIUS on the
@@ -67,26 +68,31 @@ the order-1 loft plus the REF dome (Q17, provisional).
 ## 2. Closure (measured, Q71)
 
 No snaps. A hinge lip in the hook-end wall plus one concealed ISO 7380
-M2.5×4 titanium screw at the tail (u 14.50, s 41.00). E1 tongue/web is
-omitted (Q28). `V2_CLOSURE` measures the built lid and body:
+M2.5×4 titanium screw on the medial tail (u 14.50, s 41.00). The head
+well is in the 1.5 floor. The lateral lid is not cut. E1 tongue/web is
+omitted (Q28). `V2_CLOSURE` and `V2_LATERAL_unbroken` measure the built
+lid and body. `V2_BOSS_pilot` measures the tail boss and the two island
+bosses (L8 §4: CAD pilot Ø2.10, boss OD ≥ 5.0, radial wall ≥ 1.4).
 
 | Number | Measured |
 |---|---:|
 | Body nylon over the lip (undercut) | yes (1) |
 | Lid lip in the groove | yes (1) |
-| Screw engagement in the tail bulk | 4.00 mm |
-| Boss wall beside the Ø2.0 pilot | 3.13 mm |
-| Screw well air (head under the boss top) | yes (1) |
-| Head below the boss top | 1.75 mm |
-| Screw hole through the lid | yes (1) |
+| Screw engagement in the tail boss | 4.30 mm |
+| Boss wall beside the Ø2.10 pilot (`V2_CLOSURE`, +u) | 3.08 mm |
+| Screw well air on the medial face | yes (1) |
+| Lateral lid pits | 0 (`V2_LATERAL_unbroken`, 18 samples) |
+| Old lid-well site nylon | yes (1) |
+| Tail CAD pilot / wall / OD (`V2_BOSS_pilot`) | Ø2.10 / 1.92 / 5.94 |
+| Island bosses CAD pilot / wall / OD | Ø2.10 / 1.45 / 5.00 each |
 
 The hinge groove is s 1.00–1.48, y 7.25–7.70. That leaves 1.00 mm of
 outer end wall and 0.30 mm of body nylon over the lip, so the lid
-cannot lift straight off. The screw head sits in a Ø5.0 well in a
-local lid boss; it is not a screw on the lateral face. S4 two-finger
-pull and 0.5 m drop stay **qualitative** (plan v2 §7). Insertion and
-retention forces stay **NOT_MEASURED** until a printed PA12 part is
-in the hand.
+cannot lift straight off. The screw head sits in a Ø5.0 well through
+the medial floor, onto a Ø2.10 pilot in a Ø5.0 boss on the floor. S4
+two-finger pull and 0.5 m drop stay **qualitative** (plan v2 §7).
+Insertion and retention forces stay **NOT_MEASURED** until a printed
+PA12 part is in the hand.
 
 ## 3. Contact joint — what G7 needs from the shell
 
@@ -129,22 +135,24 @@ board package.
 ## 4. §7 checklist (measured on this solid)
 
 Build exit 0. `stage_b_failing` is empty. `V2_USB_end` is NOT_MEASURED
-by name (packing §5b, Q70) and does not fail the build.
+by name (packing §5c, Q70) and does not fail the build.
 
 | Item | Answer | Check / number |
 |---|---|---|
-| Stranger's glance: no lateral screws | Pass on the drawing. Three contact heads on the medial face are the skin seats. The lid screw is in a tail well | renders |
+| Stranger's glance: no lateral screws | Pass on the drawing. Three contact heads on the medial face are the skin seats. The lid-screw well is on the medial tail. `V2_LATERAL_unbroken` reports no lid pit | renders, `V2_LATERAL_unbroken` |
 | No text outside | Pass. Stage B emboss is skipped when `STAGE=shell` | notes.emboss |
 | Nothing else through the skin | Pass. The v1 bench-cable exit and REF wire channel are not cut on the shell | `CABLE_EXIT_cavity` NOT_MEASURED, wall_closed 1 |
 | Seam ≤ 0.3 | NOT_MEASURED. Lid inset 0.15 laps the wall tops; print and close at S4 | — |
 | No planar facet over 3 mm | Pass. Lofted lid, 0 of 6 stations flat; min rise over 3 mm 0.030 | `V2_EDGE_radii` flat_stations 0 |
 | Outside edges R ≥ 1.0 | Pass. Rim R 1.08 measured on the solid (3-point fit on the outer profile) | `V2_EDGE_radii` lid_rim_R 1.08 |
 | Medial face flat, R0.5 | Pass. FILLET_MEDIAL 1.5 applied on the outline; the face is the floor | FILLET_MEDIAL |
-| Closure | Pass. Hinge undercut 1; screw engagement 4.00; boss wall 3.13 | `V2_CLOSURE` |
+| Closure | Pass. Hinge undercut 1; screw engagement 4.30; boss wall 3.08; well on the medial tail | `V2_CLOSURE` |
+| Lateral lid unbroken | Pass. 0 pits in 18 samples; old lid-well site is nylon | `V2_LATERAL_unbroken` |
+| Boss pilots Ø2.10, OD ≥ 5.0, wall ≥ 1.4 | Pass. Tail Ø2.10 / 1.92 / 5.94; both islands Ø2.10 / 1.45 / 5.00 | `V2_BOSS_pilot` |
 | Hook circular root, ellipse, fillet, M8 radius | Circular root r 1.75, then 4.4 × 3.0 / 3.0 × 2.2. Joint fillet 1.5 applied. Radius from default HOOK_RADIUS | assemble_shell, Q76 |
 | Tail blended, REF dome | Order-1 tail loft; REF dome on the tail (Q17 provisional) | Q17 |
 | Colour | NOT_MEASURED. Grey or dyed black is Q30 | Q30 |
-| USB ligament ≥ 1.5 to the hook | NOT_MEASURED. Wall left solid until packing §5b | `V2_USB_end` |
+| USB ligament ≥ 1.5 to the hook | NOT_MEASURED. Wall left solid until packing §5c | `V2_USB_end` |
 | USB receptacle recessed ≥ 1.0 | NOT_MEASURED. Same row | `V2_USB_end` |
 | Wall ≥ 1.0 at slot and ligaments, ≥ 1.5 elsewhere | Pass. Hinge outer wall 1.00; side walls 1.50; floor under the slot 1.50; flex clearance 0.20 per side in u (slot width 2.90) | `V2_WALL_minima` |
 | Captive standoff | Pass. 5 AF prism holds no nylon; wells AF 5.30 | `V2_STANDOFF` |
@@ -157,9 +165,9 @@ Matte / vapour smoothing is a finish on the order, not this solid.
 
 The two renders in `docs/fab/cad/v2/`:
 
-- `render_medial.png` — skin face, three domes, tail, hook.
+- `render_medial.png` — skin face, three domes, medial-tail screw well, hook.
 - `render_lateral.png` — lofted lid, circular-root hook, hinge at the
-  hook-end wall, tail screw well. No USB opening.
+  hook-end wall, unbroken lateral face. No USB opening.
 
 One drawing page `drawing.pdf` in the v1 sheet style. His yes is the
 gate before any shell order (plan v2 §7). Nothing is uploaded.
@@ -169,8 +177,8 @@ gate before any shell order (plan v2 §7). Nothing is uploaded.
 | Check | Reason |
 |---|---|
 | `TAB_envelope_air` | v1 TE 31428 envelope; see `V2_TAB_envelope` |
-| `V2_USB_end` | waits for packing §5b, Q70; hook-end wall left solid |
-| `V2_USB_medial` | Medial USB is not cut; hook-end opening waits for packing §5b |
+| `V2_USB_end` | waits for packing §5c, Q70; hook-end wall left solid |
+| `V2_USB_medial` | Medial USB is not cut; hook-end opening waits for packing §5c |
 | `V2_ADJUSTMENT` | Region ±0.80 from pad vs hex vs JLC ±0.3; G5/G7 |
 | `V2_HARNESS` | 100 ± 3 mm cell leads, not a solid |
 | `V2_RECESS` | 0.5 floor recess is not on this solid (winner recess 0) |
@@ -187,5 +195,6 @@ is no copper, not air; the check reports it and does not fail.
 Review r6 moved these to `tasks/reviews/code-r6.md` (decisions 69 on).
 Still open from the lane: M1 (Q34), colour (Q30), Q17 REF dome, the S4
 pull and drop, standoff 3.0 vs Harwin 4.0 (a parameter change, not a
-fork). Q59 is closed as the slot. Q70 waits for WP11c packing §5b.
-Q71 and Q76 are built on this solid.
+fork). Q59 is closed as the slot. Q70 waits for WP11d packing §5c.
+Q71 and Q76 are built on this solid. The render stamp is the manifest
+commit that built the solids.

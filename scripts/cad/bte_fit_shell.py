@@ -363,21 +363,22 @@ SHELL_COLLAR_H = 2.0
 SHELL_RING_SEAT_D = 6.0 + 0.10 + PRINT_TOL
 SHELL_SCREW_HOLE = 2.7  # brief; Stage B already opens CONTACT_HOLE 2.9
 JLC_MIN_WALL = 1.0  # JLC PA12-HP "Wall thickness: 1mm" (plan v2 §12)
-SHELL_PILOT = 2.0  # M2.5 self-tap in PA12 (~80 % of 2.5)
+SHELL_PILOT = 2.10  # L8 §4: MJF PA12 M2.5 self-tap CAD Ø2.10–2.15
 # Q71: no snaps. Hinge lip at the hook-end wall plus one concealed
-# ISO 7380 M2.5×4 at the tail. S4 pull and drop stay qualitative.
+# ISO 7380 M2.5×4 at the medial tail (skin face). S4 pull and drop stay qualitative.
 SHELL_HINGE_U = (6.5, 13.5)
 SHELL_HINGE_S = (1.00, 1.48)  # remaining outer wall 1.00 of the 1.5 end wall
 SHELL_HINGE_Y0 = 7.25
 SHELL_HINGE_Y1 = 7.70  # 0.30 shelf of body over the lip
 SHELL_SCREW_U = 14.50
 SHELL_SCREW_S = 41.00
-SHELL_SCREW_PILOT = 2.0
+SHELL_SCREW_PILOT = 2.10
 SHELL_SCREW_HOLE_LID = 2.7
 SHELL_SCREW_WELL_D = 5.0  # Ø4.6 head plus print clearance
 SHELL_SCREW_WELL_H = 1.55
-SHELL_SCREW_ENGAGE = 4.0  # thread under the head, into the tail bulk
-SHELL_SCREW_BOSS_WALL = 1.0
+SHELL_SCREW_ENGAGE = 4.0  # thread in the tail boss, from the floor up
+SHELL_SCREW_BOSS_WALL = 1.4  # L8 §4; boss OD ≥ 5.0 around Ø2.10
+SHELL_SCREW_BOSS_OD = 5.0
 # Elliptical hook half-axes (root then tip), millimetres. Root station is
 # circular (Q76) with radius HOOK_DIA/2, then the loft becomes the ellipse.
 SHELL_HOOK_ROOT = (2.20, 1.50)  # 4.4 × 3.0
@@ -2896,13 +2897,13 @@ def _record_shell_checks(
     record(
         "V2_USB_end",
         False,
-        "NOT_MEASURED: V2_USB_end (waits for packing §5b, Q70); hook-end wall left solid",
+        "NOT_MEASURED: V2_USB_end (waits for packing §5c, Q70); hook-end wall left solid",
         wall_closed=1.0,
     )
     record(
         "V2_USB_medial",
         False,
-        "NOT_MEASURED: medial USB is not cut; hook-end opening waits for packing §5b, Q70",
+        "NOT_MEASURED: medial USB is not cut; hook-end opening waits for packing §5c, Q70",
         recess=v2.USB_RECESS,
     )
 
@@ -2950,25 +2951,26 @@ def _record_shell_checks(
         lid, path, hinge_u, hinge_s, 0.5 * (SHELL_HINGE_Y0 + SHELL_HINGE_Y1)
     )
     screw_u, screw_s = SHELL_SCREW_U, SHELL_SCREW_S
-    y_mid = lid_y - SHELL_SCREW_ENGAGE / 2.0
-    well_air = not _inside_uys(
-        lid, path, screw_u, screw_s, lid_y + 1.0 + SHELL_SCREW_WELL_H / 2.0
-    )
-    hole_air = not _inside_uys(lid, path, screw_u, screw_s, lid_y + 0.3)
+    well_air = not _inside_uys(body, path, screw_u, screw_s, SHELL_SCREW_WELL_H / 2.0)
+    hole_air = not _inside_uys(body, path, screw_u, screw_s, floor_y + SHELL_SCREW_ENGAGE / 2.0)
     try:
-        boss_bottom = _bisect(
+        hole_top = _bisect(
             lambda y: _inside_uys(body, path, screw_u, screw_s, y),
-            lid_y - SHELL_SCREW_ENGAGE - 1.5,
+            floor_y + 1.0,
             lid_y - 0.2,
         )
-        engagement = lid_y - boss_bottom
+        engagement = hole_top - floor_y
     except CheckFail:
         engagement = -1.0
     try:
-        hole_r = _radial_air(body, path, screw_u, screw_s, y_mid, "u", 3.5)
+        hole_r = _radial_air(
+            body, path, screw_u, screw_s, floor_y + SHELL_SCREW_ENGAGE / 2.0, "u", 3.5
+        )
         if hole_r > 0:
             outer = _bisect(
-                lambda uu: _inside_uys(body, path, uu, screw_s, y_mid),
+                lambda uu: _inside_uys(
+                    body, path, uu, screw_s, floor_y + SHELL_SCREW_ENGAGE / 2.0
+                ),
                 screw_u + hole_r + 0.15,
                 screw_u + 6.0,
             )
@@ -2977,22 +2979,12 @@ def _record_shell_checks(
             boss_wall = -1.0
     except CheckFail:
         hole_r = boss_wall = -1.0
-    try:
-        neighbour_top = _bisect(
-            lambda y: _inside_uys(lid, path, screw_u + 3.0, screw_s, y),
-            lid_y + 0.4,
-            lid_y + 4.0,
-        )
-        head_below = neighbour_top - (lid_y + 1.0)
-        head_top = neighbour_top
-    except CheckFail:
-        head_top = neighbour_top = head_below = -1.0
     closure_ok = (
         lip_over
         and lip_in
         and well_air
         and hole_air
-        and engagement >= 2.0 - 0.05
+        and engagement >= SHELL_SCREW_ENGAGE - 0.05
         and boss_wall >= SHELL_SCREW_BOSS_WALL - 0.05
     )
     record(
@@ -3000,8 +2992,8 @@ def _record_shell_checks(
         closure_ok,
         (
             "Q71: hinge lip at the hook-end wall (body nylon over the lip) plus one "
-            "concealed ISO 7380 M2.5×4 at the tail; engagement and boss wall measured. "
-            "S4 two-finger pull and 0.5 m drop are qualitative (plan v2 §7)"
+            "concealed ISO 7380 M2.5×4 at the medial tail; engagement and boss wall "
+            "measured. S4 two-finger pull and 0.5 m drop are qualitative (plan v2 §7)"
         ),
         hinge_lip_undercut=1.0 if lip_over else 0.0,
         hinge_lip_in=1.0 if lip_in else 0.0,
@@ -3009,9 +3001,9 @@ def _record_shell_checks(
         boss_wall=round(boss_wall, 4),
         screw_well_air=1.0 if well_air else 0.0,
         screw_hole_air=1.0 if hole_air else 0.0,
-        head_below_lid=round(head_below, 4),
         screw_u=SHELL_SCREW_U,
         screw_s=SHELL_SCREW_S,
+        well_on_medial=1.0 if well_air else 0.0,
     )
 
     # Plan v2 §7: no planar facet over 3 mm, sampled along the whole lid.
@@ -3050,6 +3042,67 @@ def _record_shell_checks(
         min_rise_over_3mm=round(crown_min, 4) if stations else -1.0,
         lid_rim_R=round(rim_r, 4),
         medial_fillet=float(params["FILLET_MEDIAL"]),
+    )
+
+    # Q71: the lateral lid outer has no well, hole or pit. Sample the lid
+    # top against its neighbours; the old lid-well site must stay nylon.
+    pits = 0
+    sampled = 0
+    for ss in (6.0, 12.0, 18.0, 24.0, 30.0, 36.0, 42.0):
+        for uu in (4.0, 10.0, 16.0):
+            try:
+                top = lid_top(uu, ss)
+                left = lid_top(uu - 2.5, ss)
+                right = lid_top(uu + 2.5, ss)
+            except CheckFail:
+                continue
+            sampled += 1
+            if top < min(left, right) - 0.70:
+                pits += 1
+    old_site_solid = _inside_uys(
+        lid, path, SHELL_SCREW_U, SHELL_SCREW_S, lid_y + 0.80
+    ) and _inside_uys(lid, path, SHELL_SCREW_U, SHELL_SCREW_S, lid_y + 0.30)
+    lateral_ok = sampled >= 8 and pits == 0 and old_site_solid
+    record(
+        "V2_LATERAL_unbroken",
+        lateral_ok,
+        (
+            "Q71: no hole, well or pit opens on the lateral lid surface "
+            "(lid top sampled 3 mm apart; old lid-well site is nylon)"
+        ),
+        samples=float(sampled),
+        pits=float(pits),
+        old_lid_well_solid=1.0 if old_site_solid else 0.0,
+    )
+
+    # L8 §4 / Q73: Ø2.10 CAD pilots, boss OD ≥ 5.0, radial wall ≥ 1.4.
+    # Island bosses stay 0.5 below the standoff tops (V2_BOSS).
+    pilot_nums: dict[str, float] = {}
+    pilot_ok = True
+    probe_sites = [("tail", SHELL_SCREW_U, SHELL_SCREW_S, floor_y + SHELL_SCREW_ENGAGE / 2.0)]
+    for name, u, s in placed:
+        mid_y = floor_y + (layout.boss_top_y - floor_y) / 2.0
+        probe_sites.append((name, u, s, mid_y))
+    for name, u, s, py in probe_sites:
+        d, wall_r, od = _measure_pilot_boss(body, path, u, s, py)
+        pilot_nums[f"{name}_pilot_d"] = round(d, 4)
+        pilot_nums[f"{name}_wall"] = round(wall_r, 4)
+        pilot_nums[f"{name}_od"] = round(od, 4)
+        if (
+            d < SHELL_PILOT - 0.05
+            or d > SHELL_PILOT + 0.08
+            or wall_r < SHELL_SCREW_BOSS_WALL - 0.05
+            or od < SHELL_SCREW_BOSS_OD - 0.05
+        ):
+            pilot_ok = False
+    record(
+        "V2_BOSS_pilot",
+        pilot_ok and bool(pilot_nums),
+        (
+            "L8 §4: CAD pilot Ø2.10, boss OD ≥ 5.0, radial wall ≥ 1.4 at the tail "
+            "closure boss and the two island bosses; island drop is V2_BOSS"
+        ),
+        **pilot_nums,
     )
 
     slot_u = (REF_SLOT_U[0] + REF_SLOT_U[1]) / 2.0
@@ -3145,7 +3198,7 @@ def _record_shell_checks(
         "V2_WALL_minima",
         minima_ok,
         "side walls 1.5; Q59 slot open with remaining end wall and floor ≥ 1.0; "
-        "hinge outer wall ≥ 1.0; USB opening waits for packing §5b",
+        "hinge outer wall ≥ 1.0; USB opening waits for packing §5c",
         **wall_nums,
     )
 
@@ -3221,6 +3274,69 @@ def _radial_air(
         except CheckFail:
             continue
     return min(found) if found else -1.0
+
+
+def _walk_pilot_wall(
+    body: Shape,
+    path: PathGeom,
+    u: float,
+    s: float,
+    y: float,
+    sign: float,
+    *,
+    hole_max: float = 2.2,
+    wall_max: float = 4.0,
+    step: float = 0.08,
+) -> tuple[float, float, float]:
+    """Walk ±u from an air centre: first nylon is the hole, next air is the boss OD."""
+
+    def inside(d: float) -> bool:
+        return _inside_uys(body, path, u + sign * d, s, y)
+
+    if inside(0.0):
+        return -1.0, -1.0, -1.0
+    prev = 0.0
+    d = step
+    hole_r = -1.0
+    while d <= hole_max + 1e-9:
+        if inside(d):
+            hole_r = _bisect(inside, prev, d)
+            break
+        prev, d = d, d + step
+    if hole_r <= 0:
+        return -1.0, -1.0, -1.0
+    prev = hole_r
+    d = hole_r + step
+    limit = hole_r + wall_max
+    while d <= limit + 1e-9:
+        if not inside(d):
+            outer = _bisect(inside, prev, d)
+            wall_r = outer - hole_r
+            return 2.0 * hole_r, wall_r, 2.0 * outer
+        prev, d = d, d + step
+    wall_r = prev - hole_r
+    return 2.0 * hole_r, wall_r, 2.0 * prev
+
+
+def _measure_pilot_boss(
+    body: Shape, path: PathGeom, u: float, s: float, y: float
+) -> tuple[float, float, float]:
+    """Return (pilot Ø, radial wall, boss OD) at (u, s, y), or −1s.
+
+    Island bosses stand in the cavity: a long ±u bisect stays air on both
+    ends and misses the nylon ring. Walk the first wall instead.
+    """
+    found: list[tuple[float, float, float]] = []
+    for sign in (1.0, -1.0):
+        d, wall_r, od = _walk_pilot_wall(body, path, u, s, y, sign)
+        if d > 0 and wall_r > 0:
+            found.append((d, wall_r, od))
+    if not found:
+        return -1.0, -1.0, -1.0
+    d = min(item[0] for item in found)
+    wall_r = min(item[1] for item in found)
+    od = min(item[2] for item in found)
+    return d, wall_r, od
 
 
 def _hex_prism(
@@ -3558,7 +3674,7 @@ def _apply_shell_features(
     measure["boss_top_y"] = round(layout.boss_top_y, 4)
     measure["standoff_top_y"] = round(layout.standoff_top_y, 4)
 
-    # Q70: USB opening waits for packing §5b. Leave the hook-end wall solid;
+    # Q70: USB opening waits for packing §5c. Leave the hook-end wall solid;
     # do not add the proud pad.
     measure["usb_opening_removed_mm3"] = 0.0
 
@@ -3574,22 +3690,40 @@ def _apply_shell_features(
     )
     body = body.cut(groove)
 
-    # Tail screw: blind pilot in the tail bulk, not through the medial face.
+    # Q71: concealed tail screw on the medial (skin) face. Head well in the
+    # 1.5 floor; Ø2.10 pilot and OD ≥ 5.0 boss stand on the floor into the
+    # tail bulk. The lateral lid is not cut.
     origin = _vec(path, SHELL_SCREW_U, SHELL_SCREW_S, 0.0)
-    engage_y0 = lid_y - SHELL_SCREW_ENGAGE
+    tail_boss = _y_cylinder(
+        origin.X,
+        floor_y - 0.05,
+        origin.Z,
+        SHELL_SCREW_BOSS_OD / 2.0,
+        SHELL_SCREW_ENGAGE + 0.5,
+    )
+    well = _y_cylinder(
+        origin.X,
+        -0.05,
+        origin.Z,
+        SHELL_SCREW_WELL_D / 2.0,
+        SHELL_SCREW_WELL_H + 0.05,
+    )
     pilot = _y_cylinder(
         origin.X,
-        engage_y0,
+        floor_y,
         origin.Z,
         SHELL_SCREW_PILOT / 2.0,
-        SHELL_SCREW_ENGAGE + 0.4,
+        SHELL_SCREW_ENGAGE + 0.3,
     )
-    body = body.cut(pilot)
+    body = body.fuse(tail_boss).cut(well).cut(pilot)
     measure["screw_u"] = SHELL_SCREW_U
     measure["screw_s"] = SHELL_SCREW_S
     measure["screw_engage"] = SHELL_SCREW_ENGAGE
+    measure["screw_pilot"] = SHELL_SCREW_PILOT
+    measure["screw_boss_od"] = SHELL_SCREW_BOSS_OD
+    measure["screw_face"] = "medial"
 
-    # Lofted lid replaces the 1.0 plate plus the Ø19 blister.
+    # Lofted lid replaces the 1.0 plate plus the Ø19 blister. No lid well.
     lid = _lofted_shell_lid(path, params)
     # Lip stays under the 0.30 shelf (y 7.70–8.00). A strap in the cavity
     # joins the lip to the lid so they are one solid without filling the shelf.
@@ -3610,26 +3744,6 @@ def _apply_shell_features(
         lid_y + 0.08,
     )
     lid = lid.fuse(lip).fuse(strap)
-    bearing = 1.0
-    boss_r = SHELL_SCREW_WELL_D / 2.0 + SHELL_SCREW_BOSS_WALL
-    boss_h = bearing + SHELL_SCREW_WELL_H + 0.2
-    lid_boss = _y_cylinder(origin.X, lid_y, origin.Z, boss_r, boss_h)
-    lid = lid.fuse(lid_boss)
-    well = _y_cylinder(
-        origin.X,
-        lid_y + bearing,
-        origin.Z,
-        SHELL_SCREW_WELL_D / 2.0,
-        SHELL_SCREW_WELL_H + 0.5,
-    )
-    hole = _y_cylinder(
-        origin.X,
-        lid_y - 0.2,
-        origin.Z,
-        SHELL_SCREW_HOLE_LID / 2.0,
-        bearing + SHELL_SCREW_WELL_H + 0.8,
-    )
-    lid = lid.cut(well).cut(hole)
 
     if "switch" in layout.parts:
         sw = layout.parts["switch"]
@@ -3649,11 +3763,11 @@ def _apply_shell_features(
     measure["lid_crown"] = SHELL_LID_CROWN
     measure["lid_rim_t"] = SHELL_LID_RIM_T
     measure["lid_inset"] = SHELL_LID_INSET
-    measure["screw_bearing"] = bearing
 
     notes["closure"] = (
         "Q71: hinge lip at the hook-end wall plus one concealed ISO 7380 "
-        f"M2.5×4 at u={SHELL_SCREW_U:g} s={SHELL_SCREW_S:g}; "
+        f"M2.5×4 on the medial tail at u={SHELL_SCREW_U:g} s={SHELL_SCREW_S:g}; "
+        f"pilot Ø{SHELL_SCREW_PILOT:g}, boss OD {SHELL_SCREW_BOSS_OD:g}, "
         f"engagement {SHELL_SCREW_ENGAGE:g} mm. S4 pull and drop qualitative"
     )
     notes["shell_measure"] = measure
