@@ -262,3 +262,70 @@ P2 RING_PAD at (10.40, 33.10) is inside U1's courtyard (U1 at (8.00, 29.35), 11.
 
 Contact class 1.0 mm and J4 NPTH vs B.Cu remain after any route of this land.
 
+## 9. WP12e place and route (`408a476`)
+
+Pinned from `hardware/board/packing_v2_flat.md` (`408a476` packing-v2.md §5d). Folded-site table ignored. Width 22 island u 2.25–19.75, s 16.00–37.60. 66 table parts plus H1/H2. 38 footprints flipped to B.Cu. R1–R3 on the island. Flat rings: P1 (5.90, 5.29), P2 (10.40, −5.81), P3 (8.50, 43.00), P4 (37.47, 2.80), P5 (30.05, 5.80). CHARGE rectangle centre (33.02, 4.30) 14.50 × 8.60 is in Edge.Cuts. J1/U5 absent. Holes (13.45, 17.70) and (17.95, 17.70). Tracks 0.
+
+Jar: `~/.local/opt/freerouting/freerouting-2.4.1.jar`. OpenJDK 25.0.4.1.
+
+### Outline
+
+SIG1/SIG2 `tab_detour` from attach (5.90, 16.00) and (10.40, 16.00) to the flat rings. REF tab from (8.50, 37.60) to (8.50, 43.00). CHARGE tab: after pocket (20.40, 7.40) enter u=25.77, then the 14.50 × 8.60 rectangle, then J2 hang to s=14.40. No copper-to-edge nudge.
+
+### Hole nudges (inside 0.1 mm pin)
+
+| Ref | From table (u, s) | To (u, s) | Why |
+|---|---|---|---|
+| R23 | (18.28, 21.17) | (18.37, 21.17) | J4 NPTH hole clearance 0.20 |
+| R26 | (14.22, 21.63) | (14.17, 21.63) | J4 NPTH hole clearance 0.20 |
+| R24 | (18.28, 22.37) | unchanged | needs +0.46 mm u; past the pin |
+
+### Zero-track DRC (owned PCB)
+
+```text
+kicad-cli pcb drc --format json -o /tmp/wp12e/drc-zero5.json hardware/board/elicio-v2.kicad_pcb
+Found 2 violations
+Found 146 unconnected items
+errors 2 warnings 0 unconnected 146
+   1 hole_clearance
+   1 solder_mask_bridge
+```
+
+Both hits: Pad 2 [GND] of R24 on B.Cu | NPTH pad of J4. Copper-edge 0. Shorts 0. Q84 island Contact-clearance 0.
+
+KiCad J4 NPTH centres at rot 90: (16.25, 27.14), (15.234, 22.06), (17.266, 22.06). Keep-out Ø1.39 on B.Cu at those centres. Pin table v2 listed (16.25, 22.06), (17.27, 27.14), (15.23, 27.14).
+
+### Freerouting 2.4.1 run (OpenJDK 25)
+
+DSN: pcbnew `ExportSpecctraDSN` → `/tmp/wp12e/elicio-v2.dsn` (59013 bytes).
+
+```text
+/opt/homebrew/opt/openjdk@25/bin/java -Djava.awt.headless=true \
+  -jar ~/.local/opt/freerouting/freerouting-2.4.1.jar \
+  --gui.enabled=false \
+  --user_data_path=/tmp/wp12e/fr-home \
+  -de /tmp/wp12e/elicio-v2.dsn \
+  -do /tmp/wp12e/elicio-v2.ses \
+  -mp 8 \
+  -mt 4 \
+  --router.job_timeout=00:08:00
+```
+
+| Item | Result |
+|---|---|
+| Version | Freerouting v2.4.1 (build-date: 2026-09-03) |
+| Wall time | 75.47 s (`time` real; job elapsed 1 m 12.94 s) |
+| Fanout | 113/230 SMD pins escaped (49.1%) |
+| Auto-route | 8 passes; final 75 unrouted, 17 violations |
+| SES | **yes** `/tmp/wp12e/elicio-v2.ses` 22585 bytes |
+| Copy import | 268 tracks, 12 vias |
+| Copy DRC | **317** errors, 75 unconnected (was 2 / 146 un-routed) |
+| Owned PCB | SES **not** written back |
+
+Copy DRC types: 199 track_width, 103 clearance, 9 copper_edge_clearance, 3 hole_clearance, 2 npth_inside_courtyard, 1 solder_mask_bridge. Shorts 0.
+
+### First structural reason
+
+R24 pad 2 [GND] on B.Cu occupies J4 NPTH at (17.266, 22.06). The 0.1 mm pin cannot separate them (0.46 mm required). Step 5: stop **un-shorted**, `routed: false`.
+
+
