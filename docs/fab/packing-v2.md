@@ -1469,6 +1469,7 @@ Hand `A_501015_series_w20_y8_iII_s3` to the board lane. Interface II. Board 0.51
 Board zone u 2.25–17.75, s 18.60–37.60. Underside y 4.81 (the standoff tops), top y 5.32.
 
 - Cell 501015 + foam 0.5 10.4 × 15.6 × 5.70, centre (7.00, 9.30), y 1.50–7.20 (floor).
+  Cell record (review r6): the pocket is the bare-cell envelope. The cell the record carries is the 501012 pack, 13.0 × 10.1 × 5.1 as listed (L7 §7.7.3; PCM inferred, not quoted; packed 5.6 ≤ 5.7), which closes on this body (§1e, `A_pack501012_series_w20_y8_iII_s3`) and leaves 2.6 of the pocket's 15.6 along s for foam (Q57); J2 beside the pocket takes its leads unchanged. The 17.0 501015 pack does not close here (§1e). The purchase route is Rolf's (decision 69 in `tasks/reviews/code-r6.md`).
 - Module Raytac MDBT50Q-1MV2 15.5 × 10.5 × 2.30, centre (10.00, 32.35), y 5.32–7.62 (top), length along u.
 - Antenna keep-out (no copper, every layer) u 2.25–6.05, s 26.15–38.55 (3.8 × 12.4; Raytac Spec K p.9/p.13, interface §6.3; height 2.3 plan v2 §3).
 - ADS1292 VQFN-32 5 × 5 × 1.00, centre (4.90, 21.25), y 5.32–6.32 (top).
