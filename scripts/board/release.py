@@ -5,7 +5,10 @@ Fails closed on any ERC error or any missing output. The board is not routed
 this round: DRC runs and its counts go into summary.json with
 ``"routed": false``, and DRC errors do not fail that job. ``--routed`` is the
 order release: it fails closed on any DRC error, any unconnected item, any
-PCB pad without a net or a board with no tracks (review r5).
+PCB pad without a net or a board with no tracks (review r5). ``routed`` in
+summary.json is true only when a ``--routed`` release passed; a refused one
+writes ``"routed": false``, ``"routed_requested": true`` and the blockers
+under ``refused`` (review r6).
 """
 from __future__ import annotations
 
@@ -301,8 +304,27 @@ def main() -> int:
         "elicio-v2.step": step.is_file() and step.stat().st_size > 0,
         "gerbers": len(gerber_files) > 0,
     }
+    missing_outputs = [name for name, ok in outputs.items() if not ok]
+    blockers = {
+        "erc_errors": erc_errors,
+        "missing_outputs": len(missing_outputs),
+    }
+    if args.routed:
+        blockers.update(
+            {
+                "drc_errors": drc_errors,
+                "unconnected_items": unconnected,
+                "pcb_pads_without_net": stats["pcb_pads_without_net"],
+                "no_tracks": int(stats["pcb_tracks"] == 0),
+            }
+        )
+    refused = {k: v for k, v in blockers.items() if v}
+    # Review r6: "routed" is true only for a --routed release that passed.
+    # A refused release says so; the request is recorded separately.
     payload = {
-        "routed": bool(args.routed),
+        "routed": bool(args.routed) and not refused,
+        "routed_requested": bool(args.routed),
+        "refused": refused,
         **stats,
         "erc_errors": erc_errors,
         "erc_warnings": erc_warnings,
@@ -327,24 +349,15 @@ def main() -> int:
     }
     summary.write_text(json.dumps(payload, indent=2) + "\n")
 
-    missing_outputs = [name for name, ok in outputs.items() if not ok]
     if erc_errors:
         sys.stderr.write(f"ERC errors: {erc_errors}\n")
         return 1
     if missing_outputs:
         sys.stderr.write("missing outputs: " + ", ".join(missing_outputs) + "\n")
         return 1
-    if args.routed:
-        blockers = {
-            "drc_errors": drc_errors,
-            "unconnected_items": unconnected,
-            "pcb_pads_without_net": stats["pcb_pads_without_net"],
-            "no_tracks": int(stats["pcb_tracks"] == 0),
-        }
-        bad = {k: v for k, v in blockers.items() if v}
-        if bad:
-            sys.stderr.write("routed release refused: " + json.dumps(bad) + "\n")
-            return 1
+    if args.routed and refused:
+        sys.stderr.write("routed release refused: " + json.dumps(refused) + "\n")
+        return 1
     print(json.dumps(payload, indent=2))
     return 0
 

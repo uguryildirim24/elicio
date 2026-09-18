@@ -15,19 +15,47 @@ RELEASE = ROOT / "scripts" / "board" / "release.py"
 SCH = ROOT / "hardware" / "board" / "elicio-v2.kicad_sch"
 PCB = ROOT / "hardware" / "board" / "elicio-v2.kicad_pcb"
 
-# packing-v2.md §5 named SMT centres for A_501015_series_w20_y8_iII_s3.
-PACKING_NAMED = {
-    "U1": (10.00, 32.35),
-    "U2": (4.90, 21.25),
-    "U3": (3.45, 24.85),
-    "U4": (9.45, 20.20),
-    "U5": (14.05, 3.10),
-    "D1": (13.50, 5.30),
-    "J1": (10.00, -2.15),
-    "J2": (14.40, 9.15),
-    "J3": (14.05, 22.60),
-    "SW1": (10.10, 24.20),
+PACKING = ROOT / "docs" / "fab" / "packing-v2.md"
+
+# Reference designator per packing-v2.md §5 bullet (the name the bullet
+# starts with). Review r6: the test reads the centres from §5 itself.
+PACKING_REFS = {
+    "Module Raytac": "U1",
+    "ADS1292": "U2",
+    "BQ25100": "U3",
+    "TLV71330": "U4",
+    "USBLC6-2SC6": "U5",
+    "PESD5V0L1UL": "D1",
+    "USB-C": "J1",
+    "JST-SH": "J2",
+    "Bench header": "J3",
+    "Recovery switch": "SW1",
 }
+
+
+def packing_section5_centres() -> dict[str, tuple[float, float]]:
+    """Named SMT centres from packing-v2.md §5 bullets, keyed by reference."""
+    text = PACKING.read_text(encoding="utf-8")
+    start = text.index("## 5. Layout for the board lane")
+    end = text.index("\n## 6.", start)
+    section = text[start:end]
+    out: dict[str, tuple[float, float]] = {}
+    for line in section.splitlines():
+        if not line.startswith("- "):
+            continue
+        for name, ref in PACKING_REFS.items():
+            if line[2:].startswith(name):
+                m = re.search(r"centre \(([-\d.]+), ([-\d.]+)\)", line)
+                if m:
+                    out[ref] = (float(m.group(1)), float(m.group(2)))
+    return out
+
+
+def packing_ref_ring() -> tuple[float, float]:
+    text = PACKING.read_text(encoding="utf-8")
+    m = re.search(r"^- REF: \(([-\d.]+), ([-\d.]+)\)", text, re.M)
+    assert m, "packing-v2.md §5 has no REF tab line"
+    return float(m.group(1)), float(m.group(2))
 
 
 def kicad_missing_message() -> str:
@@ -83,6 +111,8 @@ class BoardReleaseTests(unittest.TestCase):
             # and the summary says the board is not routed.
             self.assertEqual(summary["erc_warnings"], 0)
             self.assertIs(summary["routed"], False)
+            self.assertIs(summary["routed_requested"], False)
+            self.assertEqual(summary["refused"], {})
             for key in ("drc_errors", "drc_warnings", "unconnected_items", "pcb_tracks", "pcb_pads_without_net"):
                 self.assertIsInstance(summary[key], int, key)
             self.assertGreater((out / "elicio-v2.step").stat().st_size, 0)
@@ -101,7 +131,11 @@ class BoardReleaseTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 1, proc.stdout[-2000:])
             self.assertIn("routed release refused", proc.stderr)
             summary = json.loads((out / "summary.json").read_text())
-            self.assertIs(summary["routed"], True)
+            # Review r6: a refused release never reports routed: true.
+            self.assertIs(summary["routed"], False)
+            self.assertIs(summary["routed_requested"], True)
+            self.assertTrue(summary["refused"])
+            self.assertGreater(summary["refused"].get("drc_errors", 0), 0)
             self.assertGreater(summary["pcb_tracks"], 0)
 
 
@@ -114,7 +148,12 @@ class PackingAgreementTests(unittest.TestCase):
             ref = re.search(r'\(property "Reference" "([^"]+)"', chunk)
             if at and ref:
                 found[ref.group(1)] = (float(at.group(1)), float(at.group(2)))
-        for ref, (px, py) in PACKING_NAMED.items():
+        packing = packing_section5_centres()
+        self.assertEqual(sorted(packing), sorted(PACKING_REFS.values()))
+        # The REF ring is drawn at its folded site (along_floor); SIG1/SIG2
+        # rings are unfolded off the island and are not compared here.
+        packing["P3"] = packing_ref_ring()
+        for ref, (px, py) in packing.items():
             self.assertIn(ref, found, ref)
             x, y = found[ref]
             dist = ((x - px) ** 2 + (y - py) ** 2) ** 0.5
