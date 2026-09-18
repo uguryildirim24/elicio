@@ -340,11 +340,11 @@ STAGE_B_EMBOSS_S = 10.0  # battery zone, not over the module
 SHELL_PARTS = ("body_full_p15", "lid")
 SHELL_WINNER = "A_pack501012_series_w22_y8_iII_s3"
 SHELL_PARAMS_FILE = SCRIPT_DIR / "params" / "shell_v2.toml"
-# packing-v2.md §5d on lane/w3. The check parses the folded-site table;
-# this sha is the file that was read.
-S5C_PACKING_SHA = "408a4765ec953d6cc84210fd3e5632185ff95cbb"
+# packing-v2.md §5d (pin table v2.1, WP11f). The check parses the
+# folded-site table from this repository at this sha (review r7: the build
+# read another worktree before; its folded sites equal 408a476's).
+S5C_PACKING_SHA = "e4b857c2b2b9c48a36afada114372556d3a3d874"
 S5D_PACKING_SHA = S5C_PACKING_SHA
-S5C_W3_ROOT = Path("/Users/rolfie/projects/elicio/.worktrees/w3")
 S5C_PACKING_REL = "docs/fab/packing-v2.md"
 # Delay the tail loft. Cavity end stays at CAVITY_S[1] (38.2). Stage B v2
 # does not set this. P4/P5 are on the hook-end floor (Q86), not the tail.
@@ -395,6 +395,7 @@ SHELL_SCREW_HOLE_LID = 2.7
 SHELL_SCREW_WELL_D = 5.0  # Ø4.6 head plus print clearance
 SHELL_SCREW_WELL_H = 1.55
 SHELL_SCREW_ENGAGE = 4.0  # thread in the tail boss, from the floor up
+SHELL_SCREW_LEN = 4.0  # ISO 7380 M2.5×4 (Q71, L8 §4): shank under the head
 SHELL_SCREW_BOSS_WALL = 1.4  # L8 §4; boss OD ≥ 5.0 around Ø2.10
 SHELL_SCREW_BOSS_OD = 5.0
 # Elliptical hook half-axes (root then tip), millimetres. Root station is
@@ -774,18 +775,21 @@ def shell_hinge_u(params: Mapping[str, Any]) -> tuple[float, float]:
 
 
 def _s5c_packing_text() -> tuple[str, str, str]:
-    """Return (markdown, sha, path label) for packing §5d at S5D_PACKING_SHA."""
-    w3_md = S5C_W3_ROOT / S5C_PACKING_REL
+    """Return (markdown, sha, path label) for packing §5d at S5D_PACKING_SHA.
+
+    Read from this repository only, so the build does not depend on another
+    worktree; outside git, the working-tree file is read.
+    """
     try:
         text = subprocess.check_output(
-            ["git", "-C", str(S5C_W3_ROOT), "show", f"{S5D_PACKING_SHA}:{S5C_PACKING_REL}"],
+            ["git", "-C", str(REPO_ROOT), "show", f"{S5D_PACKING_SHA}:{S5C_PACKING_REL}"],
             stderr=subprocess.DEVNULL,
             encoding="utf-8",
         )
-        return text, S5D_PACKING_SHA, str(w3_md)
+        return text, S5D_PACKING_SHA, S5C_PACKING_REL
     except (OSError, subprocess.CalledProcessError):
         pass
-    for path in (w3_md, REPO_ROOT / S5C_PACKING_REL):
+    for path in (REPO_ROOT / S5C_PACKING_REL,):
         if path.is_file():
             body = path.read_text(encoding="utf-8")
             if "## 5d." not in body:
@@ -799,9 +803,9 @@ def _s5c_packing_text() -> tuple[str, str, str]:
                 ).strip()
             except (OSError, subprocess.CalledProcessError):
                 sha = "unknown"
-            return body, sha, str(path)
+            return body, sha, S5C_PACKING_REL
     raise CheckFail(
-        "packing §5d not found: expected lane/w3 docs/fab/packing-v2.md at "
+        "packing §5d not found: expected docs/fab/packing-v2.md at "
         f"{S5D_PACKING_SHA}"
     )
 
@@ -865,7 +869,7 @@ def _parse_s5d_shell_extras(text: str) -> dict[str, float | tuple[float, float]]
 
 @functools.lru_cache(maxsize=1)
 def load_s5c_no_receptacle() -> S5cNoReceptacle:
-    """Parse Q82 holes from §5c and P1–P5 plus shell extras from §5d at 408a476."""
+    """Parse Q82 holes from §5c and P1–P5 plus shell extras from §5d at S5D_PACKING_SHA."""
     text, sha, path_label = _s5c_packing_text()
     start_5c = text.find("## 5c.")
     if start_5c < 0:
@@ -957,7 +961,7 @@ def load_s5c_no_receptacle() -> S5cNoReceptacle:
 
 
 def load_s5d_folded() -> S5cNoReceptacle:
-    """§5d folded-site table for P1–P5 at 408a476. Same object as load_s5c_no_receptacle."""
+    """§5d folded-site table for P1–P5 at S5D_PACKING_SHA. Same object as load_s5c_no_receptacle."""
     return load_s5c_no_receptacle()
 
 
@@ -3126,9 +3130,16 @@ def _record_shell_checks(
     ):
         in_well = not _inside_uys(body, path, u, s, floor_y + v2.ring_under(spec) / 2.0)
         hole_open = not _inside_uys(body, path, u, s, wall / 2.0)
+        # Review r7: the screw goes in from the skin (plan v2 §8 step 2), so
+        # the axis is air from outside the medial face through the floor;
+        # a printed cap over the hole fails here.
+        face_open = not any(
+            _inside_uys(body, path, u, s, yy) for yy in (-CONTACT_DOME_CROWN / 2.0, -0.05, 0.05)
+        )
         ring_nums[f"{label}_well_air"] = 1.0 if in_well else 0.0
         ring_nums[f"{label}_hole_open"] = 1.0 if hole_open else 0.0
-        if not in_well or not hole_open:
+        ring_nums[f"{label}_face_open"] = 1.0 if face_open else 0.0
+        if not in_well or not hole_open or not face_open:
             ring_ok = False
     ring_t = v2.ring_under(spec)
     sites = (
@@ -3146,7 +3157,8 @@ def _record_shell_checks(
         "V2_RING_seat",
         ring_ok,
         (
-            f"ring-pad seat: air over the floor at each site, Ø2.7 hole through the 1.5 wall, "
+            f"ring-pad seat: air over the floor at each site, Ø2.7 hole through the 1.5 wall "
+            f"and open at the medial face (no printed cap; the dome is the titanium head), "
             f"seat Ø measured on the solid ≥ Ø{seat_need:g} ring outline + {PRINT_TOL:g} print"
         ),
         ring_t=round(ring_t, 4),
@@ -3283,6 +3295,19 @@ def _record_shell_checks(
             boss_wall = -1.0
     except CheckFail:
         hole_r = boss_wall = -1.0
+    # Review r7: the screw closes the lid only if its thread reaches lid
+    # material. Head on the well bottom, ISO 7380 M2.5×4 shank above it;
+    # the lid's underside on the screw axis is measured on the lid solid.
+    screw_tip_y = SHELL_SCREW_WELL_H + SHELL_SCREW_LEN
+    try:
+        lid_under_y = _bisect(
+            lambda y: _inside_uys(lid, path, screw_u, screw_s, y),
+            lid_y - 3.0,
+            lid_y + 1.0,
+        )
+    except CheckFail:
+        lid_under_y = lid_y
+    lid_engagement = max(0.0, screw_tip_y - lid_under_y)
     closure_ok = (
         lip_over
         and lip_in
@@ -3290,6 +3315,7 @@ def _record_shell_checks(
         and hole_air
         and engagement >= SHELL_SCREW_ENGAGE - 0.05
         and boss_wall >= SHELL_SCREW_BOSS_WALL - 0.05
+        and lid_engagement >= SHELL_SCREW_ENGAGE - 0.05
     )
     record(
         "V2_CLOSURE",
@@ -3297,7 +3323,9 @@ def _record_shell_checks(
         (
             "Q71: hinge lip at the hook-end wall (body nylon over the lip) plus one "
             "concealed ISO 7380 M2.5×4 at the medial tail; engagement and boss wall "
-            "measured. S4 two-finger pull and 0.5 m drop are qualitative (plan v2 §7)"
+            "measured; the screw closes the lid only where its thread reaches the lid "
+            "(review r7: it ends in the body's own tail). S4 two-finger pull and 0.5 m "
+            "drop are qualitative (plan v2 §7)"
         ),
         hinge_lip_undercut=1.0 if lip_over else 0.0,
         hinge_lip_in=1.0 if lip_in else 0.0,
@@ -3305,6 +3333,9 @@ def _record_shell_checks(
         boss_wall=round(boss_wall, 4),
         screw_well_air=1.0 if well_air else 0.0,
         screw_hole_air=1.0 if hole_air else 0.0,
+        screw_tip_y=round(screw_tip_y, 4),
+        lid_underside_y=round(lid_under_y, 4),
+        lid_engagement=round(lid_engagement, 4),
         screw_u=SHELL_SCREW_U,
         screw_s=SHELL_SCREW_S,
         well_on_medial=1.0 if well_air else 0.0,
@@ -3533,14 +3564,20 @@ def _record_shell_checks(
     )
 
     charge_ok = True
-    charge_nums: dict[str, float] = {"flush_pads": 1.0, "floor_holes_d": CHARGE_PAD_D}
+    # Review r7: the ring copper lies on the floor top, so it sits one floor
+    # thickness below the skin face at the bottom of the open hole.
+    charge_nums: dict[str, float] = {"pad_recess": round(floor_y, 4), "floor_holes_d": CHARGE_PAD_D}
     cref = contact_ref_us(params)
     pad_r = CHARGE_PAD_D / 2.0
     cell_u0, cell_u1 = s5c.cell_u
     cell_s0, cell_s1 = s5c.cell_s
     for name, (u, s) in (("P4", s5c.p4), ("P5", s5c.p5)):
+        # Review r7: a nylon cap over the pad would insulate it from the
+        # charger; the pad is reached through the open Ø5 hole.
         dome = _inside_uys(body, path, u, s, -0.4)
-        hole = not _inside_uys(body, path, u, s, wall / 2.0)
+        hole = not any(
+            _inside_uys(body, path, u, s, yy) for yy in (-0.05, 0.05, wall / 2.0, wall - 0.05)
+        )
         floor_samples: list[float] = []
         creep_hits = 0.0
         creep_n = 0.0
@@ -3586,7 +3623,7 @@ def _record_shell_checks(
             cell_gap = min(cell_gap_u, cell_gap_s)
         d_ref = math.hypot(u - cref[0], s - cref[1]) - pad_r - SHELL_RING_SEAT_D / 2.0
         d_screw = math.hypot(u - SHELL_SCREW_U, s - SHELL_SCREW_S) - pad_r - SHELL_SCREW_WELL_D / 2.0
-        charge_nums[f"{name}_dome"] = 1.0 if dome else 0.0
+        charge_nums[f"{name}_cap"] = 1.0 if dome else 0.0
         charge_nums[f"{name}_hole"] = 1.0 if hole else 0.0
         charge_nums[f"{name}_floor_t"] = round(floor_t, 4)
         charge_nums[f"{name}_nylon_around"] = round(floor_t, 4)
@@ -3598,7 +3635,7 @@ def _record_shell_checks(
         charge_nums[f"{name}_s"] = s
         charge_nums[f"{name}_y"] = s5c.p4_y if name == "P4" else s5c.p5_y
         if (
-            not dome
+            dome
             or not hole
             or floor_t < JLC_MIN_WALL - 0.05
             or cell_gap < -0.05
@@ -3624,8 +3661,9 @@ def _record_shell_checks(
         "V2_CHARGE_pads",
         charge_ok,
         (
-            "Q86: two flush RING_PAD charging contacts at §5d folded P4/P5 "
-            f"(sha {s5c.packing_sha}); Ø5 holes through the hook-end medial floor; "
+            "Q86: two RING_PAD charging contacts at §5d folded P4/P5 "
+            f"(sha {s5c.packing_sha}); Ø5 holes open through the hook-end medial floor, "
+            f"no nylon cap, ring copper {floor_y:.2f} below the skin face; "
             f"nylon between ≥ {S5C_CHARGE_NYLON:g}; floor around each ≥ {JLC_MIN_WALL:g}; "
             f"cell pocket clearance stated; nylon under {CHARGE_CREEPAGE:g} mm creepage (Q84); "
             f"clear of REF and the medial screw well ≥ {S5C_CHARGE_CLEAR:g}"
@@ -4176,6 +4214,9 @@ def _apply_shell_features(
             ring_t + 0.05,
         )
         body = body.cut(ring_seat)
+        # Review r7: the dome on the skin is the bought titanium ISO 7380
+        # head (plan §4: MOCK_CONTACTS false cuts holes, only the gauge
+        # prints domes). The hole opens the medial face; no nylon cap.
         hole = _y_cylinder(
             origin.X,
             -0.6,
@@ -4183,9 +4224,6 @@ def _apply_shell_features(
             SHELL_SCREW_HOLE / 2.0,
             wall + SHELL_COLLAR_H + 1.0,
         )
-        body = body.cut(hole)
-        cap = _cap_solid(path, u, s)
-        body = body.fuse(cap)
         body = body.cut(hole)
 
     # Review r6: the packing's 5 × 5 standoff boxes are not cut any more;
@@ -4243,15 +4281,14 @@ def _apply_shell_features(
                 )
 
     # Q86: P4/P5 on the hook-end medial floor (not the tail corners).
-    # Flush RING_PAD Ø5 through the floor, same dome as WP14d. No USB.
+    # RING_PAD Ø5 under a Ø5 hole through the floor. No USB.
     s5d = load_s5d_folded()
     for name, site in (("P4", s5d.p4), ("P5", s5d.p5)):
         u, s = site
         origin = _vec(path, u, s, 0.0)
         hole = _y_cylinder(
-            origin.X, 0.0, origin.Z, CHARGE_PAD_D / 2.0, wall + 1.2
+            origin.X, -0.05, origin.Z, CHARGE_PAD_D / 2.0, wall + 1.25
         )
-        cap = _cap_solid(path, u, s)
         ring_seat = _y_cylinder(
             origin.X,
             floor_y - 0.02,
@@ -4259,19 +4296,21 @@ def _apply_shell_features(
             SHELL_RING_SEAT_D / 2.0,
             ring_t + 0.05,
         )
-        body = body.cut(hole).cut(ring_seat).fuse(cap)
+        # Review r7: no nylon cap over the pad; the Ø5 hole opens the
+        # medial face so the charger reaches the ring copper.
+        body = body.cut(hole).cut(ring_seat)
         measure[f"{name}_u"] = round(u, 4)
         measure[f"{name}_s"] = round(s, 4)
         measure[f"{name}_y"] = round(s5d.p4_y if name == "P4" else s5d.p5_y, 4)
     fold = _charge_fold_cuts(path, params, s5d)
     measure["rib_slot_removed_mm3"] = round(_overlap_volume(body, fold), 4)
     body = body.cut(fold)
-    measure["charge_construction"] = "flush_pads_hook_end_floor"
+    measure["charge_construction"] = "open_holes_hook_end_floor"
     measure["usb_opening_removed_mm3"] = 0.0
     notes["charge"] = (
         f"Q86: charging pads at §5d folded sites P4 ({s5d.p4[0]:.2f}, {s5d.p4[1]:.2f}) "
-        f"and P5 ({s5d.p5[0]:.2f}, {s5d.p5[1]:.2f}), y {s5d.p4_y:.2f}, flush RING_PAD "
-        f"Ø{CHARGE_PAD_D:g} through the hook-end medial floor. Tail-corner pads removed. "
+        f"and P5 ({s5d.p5[0]:.2f}, {s5d.p5[1]:.2f}), y {s5d.p4_y:.2f}, RING_PAD under an open "
+        f"Ø{CHARGE_PAD_D:g} hole through the hook-end medial floor. Tail-corner pads removed. "
         f"Rib slot u {s5d.rib_slot_u[0]:.2f}–{s5d.rib_slot_u[1]:.2f}, "
         f"s {s5d.rib_slot_s[0]:.2f}–{s5d.rib_slot_s[1]:.2f}, height {s5d.rib_slot_h:.2f}. "
         f"Drop channel at leftover s={s5d.drop_s0:.2f}, two 90° at R {s5d.drop_r:g}, "
