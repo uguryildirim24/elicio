@@ -39,7 +39,7 @@ FLEX_VIA_DRILL = 0.30
 CONTACT_TRACK = 0.15
 CONTACT_CLEAR = 0.20
 CONTACT_NETS = ("SIG1", "SIG2", "REF")
-TAB_RULE_HALF = 3.20
+TAB_RULE_HALF = 3.50
 JAVA = Path("/opt/homebrew/opt/openjdk@25/bin/java")
 FREEROUTE_JAR = Path.home() / ".local" / "opt" / "freerouting" / "freerouting-2.4.1.jar"
 
@@ -70,12 +70,11 @@ CHARGE_S0, CHARGE_S1 = CHARGE_CY - CHARGE_WS / 2, CHARGE_CY + CHARGE_WS / 2
 RF_BOX = (2.25, 33.80, 14.20, 37.60)
 J4_KEEP = (14.25, 21.10, 18.25, 28.10)
 SKIP_REFS = {"J1", "U5"}
-# Q87: 0.1 mm pin does not bind for a hole the table got wrong. R24 +0.47 u
-# clears J4 NPTH (17.266, 22.06) hole clearance 0.20. R23/R26 stay inside 0.1 mm.
-HOLE_NUDGE = {
-    "R23": (0.09, 0.0),
-    "R26": (-0.05, 0.0),
-    "R24": (0.47, 0.0),
+# Pin table v2.1 (e4b857c): J4 holes from the KiCad footprint. R24 rot 90.
+V21_POSE = {
+    "R23": (18.32, 21.10, 0.0),
+    "R24": (18.49, 22.57, 90.0),
+    "R26": (14.21, 21.63, 90.0),
 }
 HOLE_REFS = {"H1", "H2"}
 RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
@@ -230,44 +229,12 @@ def add_drc_rule_area(board, x0, y0, x1, y1, name) -> None:
 
 
 def add_q84_contact_areas(board) -> None:
-    """tabs = three strips plus P1–P3 rings; tail_pads = P4, P5 and CHARGE rect."""
-    hw = TAB_STRIP / 2
-    strips = (
-        (
-            SIG1_SITE[0] - hw,
-            min(SIG1_SITE[1], SIG1_ATTACH[1]) - TAB_RULE_HALF,
-            SIG1_SITE[0] + hw,
-            max(SIG1_SITE[1], SIG1_ATTACH[1]),
-        ),
-        (
-            SIG2_SITE[0] - hw,
-            min(SIG2_SITE[1], SIG2_ATTACH[1]) - TAB_RULE_HALF,
-            SIG2_SITE[0] + hw,
-            max(SIG2_SITE[1], SIG2_ATTACH[1]),
-        ),
-        (
-            REF_SITE[0] - hw,
-            min(REF_SITE[1], REF_ATTACH[1]),
-            REF_SITE[0] + hw,
-            max(REF_SITE[1], REF_ATTACH[1]) + TAB_RULE_HALF,
-        ),
-    )
-    for x0, y0, x1, y1 in strips:
-        add_drc_rule_area(board, x0, y0, x1, y1, "tabs")
+    """Q88: 1.0 mm creepage on each Ø5 land plus 1.0 mm (7 × 7 of §12)."""
+    half = TAB_RULE_HALF
     for cx, cy in (SIG1_SITE, SIG2_SITE, REF_SITE):
-        add_drc_rule_area(
-            board, cx - TAB_RULE_HALF, cy - TAB_RULE_HALF, cx + TAB_RULE_HALF, cy + TAB_RULE_HALF, "tabs"
-        )
-    add_drc_rule_area(board, CHARGE_U0, CHARGE_S0, CHARGE_U1, CHARGE_S1, "tail_pads")
+        add_drc_rule_area(board, cx - half, cy - half, cx + half, cy + half, "tabs")
     for cx, cy in (P4_SITE, P5_SITE):
-        add_drc_rule_area(
-            board,
-            cx - TAB_RULE_HALF,
-            cy - TAB_RULE_HALF,
-            cx + TAB_RULE_HALF,
-            cy + TAB_RULE_HALF,
-            "tail_pads",
-        )
+        add_drc_rule_area(board, cx - half, cy - half, cx + half, cy + half, "tail_pads")
 
 
 def add_j4_both_side_keepout(board) -> None:
@@ -585,11 +552,13 @@ def add_locked_path(board, pts: list[tuple[float, float]], net, layer, width: fl
 
 
 def pre_route_tabs(board) -> None:
-    """Locked traces on each strip centre and on the CHARGE tab (WP12f).
+    """Locked Contact: ring → strip centre → island → R1–R3. Charge tab to first parts.
 
-    Stop on the strip 1.0 mm before L1/D2 (Q84). Island legs to R1–R3
-    and VBUS to D1 stay for Freerouting: a scripted manhattan shorts
-    J2, crosses SIG2/REF, and still intersects the tabs area.
+    Q88 7×7 ends at the land. A segment that only clips that box still carries
+    1.0 mm for its whole length, so REF and GND split at the box edge. SIG2
+    cannot enter at u=10.40 (D2 pad 2 sits on that centre line); it jogs on
+    the coverlaid strip to u=11.27, then to 11.50 to pass C1 west of H1.
+    VBUS stays on the CHARGE south edge: island VBUS to D1 crosses SIG1.
     """
     sig1 = ensure_net(board, "SIG1")
     sig2 = ensure_net(board, "SIG2")
@@ -598,11 +567,62 @@ def pre_route_tabs(board) -> None:
     gnd = ensure_net(board, "GND")
     fcu = pcbnew.F_Cu
     p1 = pad_center(board, "P1", "1")
-    add_locked_path(board, [p1, (SIG1_ATTACH[0], 15.50)], sig1, fcu, CONTACT_TRACK)
+    r1 = pad_center(board, "R1", "1")
+    add_locked_path(
+        board,
+        [
+            p1,
+            (SIG1_ATTACH[0], 15.50),
+            (5.38, 15.50),
+            (5.38, 19.50),
+            (r1[0], 19.50),
+            r1,
+        ],
+        sig1,
+        fcu,
+        CONTACT_TRACK,
+    )
     p2 = pad_center(board, "P2", "1")
-    add_locked_path(board, [p2, (SIG2_ATTACH[0], 15.50)], sig2, fcu, CONTACT_TRACK)
+    r2 = pad_center(board, "R2", "1")
+    add_locked_path(
+        board,
+        [
+            p2,
+            (SIG2_ATTACH[0], 15.50),
+            (11.27, 15.50),
+            (11.27, 16.50),
+            (11.50, 16.50),
+            (11.50, 19.50),
+            (13.50, 19.50),
+            (13.50, 28.20),
+            (16.40, 28.20),
+            (16.40, r2[1]),
+            r2,
+        ],
+        sig2,
+        fcu,
+        CONTACT_TRACK,
+    )
     p3 = pad_center(board, "P3", "1")
-    add_locked_path(board, [p3, (REF_ATTACH[0], 37.95)], ref, fcu, CONTACT_TRACK)
+    r3 = pad_center(board, "R3", "1")
+    # 7×7 south edge is s=39.50. Leave it on a short stub so the island
+    # run does not inherit 1.0 mm versus U1 pad 26.
+    add_locked_path(board, [p3, (REF_ATTACH[0], 39.35)], ref, fcu, CONTACT_TRACK)
+    add_locked_path(
+        board,
+        [
+            (REF_ATTACH[0], 39.35),
+            (REF_ATTACH[0], 37.20),
+            (14.40, 37.20),
+            (14.40, 33.20),
+            (18.47, 33.20),
+            (18.47, r3[1]),
+            r3,
+        ],
+        ref,
+        fcu,
+        CONTACT_TRACK,
+    )
     p4 = pad_center(board, "P4", "1")
     add_locked_path(
         board,
@@ -612,14 +632,23 @@ def pre_route_tabs(board) -> None:
         FLEX_TRACK,
     )
     p5 = pad_center(board, "P5", "1")
+    j2g = pad_center(board, "J2", "2")
+    p5_west = P5_SITE[0] - TAB_RULE_HALF
     add_locked_path(
         board,
-        [p5, (p5[0], 7.80), (CHARGE_U0 + 0.5, 7.80)],
+        [p5, (p5[0], 8.20), (p5_west, 8.20), (p5_west, 7.80), (p5_west - 0.15, 7.80)],
         gnd,
         fcu,
         FLEX_TRACK,
     )
-    print("pre-route locked strip and charge-tab traces")
+    add_locked_path(
+        board,
+        [(p5_west - 0.15, 7.80), (j2g[0], 7.80), j2g],
+        gnd,
+        fcu,
+        FLEX_TRACK,
+    )
+    print("pre-route locked Contact ring-to-R and charge-tab traces")
 
 
 def add_strip_other_net_keepouts(board) -> None:
@@ -764,7 +793,7 @@ def build() -> None:
         (P4_SITE, "RING_P4_CLEAR"),
         (P5_SITE, "RING_P5_CLEAR"),
     ):
-        add_keepout(board, cx - 3.2, cy - 3.2, cx + 3.2, cy + 3.2, name, allow_pads=True, allow_tracks=True)
+        add_keepout(board, cx - TAB_RULE_HALF, cy - TAB_RULE_HALF, cx + TAB_RULE_HALF, cy + TAB_RULE_HALF, name, allow_pads=True, allow_tracks=True)
     for i, href in enumerate(("H1", "H2"), 1):
         hx, hy = hole_xy(table, href, i - 1)
         add_keepout(board, hx - 1.65, hy - 1.65, hx + 1.65, hy + 1.65, f"HOLE{i}_KEEP", allow_pads=True)
@@ -794,10 +823,12 @@ def build() -> None:
         print("place", ref, fp_id, row.u, row.s, row.rot, row.side)
         fp = place_fp(board, ref, fp_id, row.u, row.s, row.rot, meta["value"], bool(meta.get("dnp")))
         apply_placement_row(fp, row)
-        dx, dy = HOLE_NUDGE.get(ref, (0.0, 0.0))
-        if dx or dy:
-            fp.SetPosition(v2(row.u + dx, row.s + dy))
-            print("nudge", ref, dx, dy)
+        pose = V21_POSE.get(ref)
+        if pose:
+            u, s, rot = pose
+            fp.SetPosition(v2(u, s))
+            fp.SetOrientationDegrees(rot)
+            print("v2.1 pose", ref, u, s, rot)
 
     u1 = next(fp for fp in board.GetFootprints() if fp.GetReference() == "U1")
     # Packing: module keep-out empty. The Raytac library zone blocks B.Cu parts.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Repeatable WP12f route: DSN class check, Freerouting 2.4.1, SES import.
+"""Repeatable WP12g route: DSN class check, Freerouting 2.4.1, SES import.
 
 Uses KiCad's Python (pcbnew) for DSN/SES. Freerouting on OpenJDK 25.
 """
@@ -31,17 +31,17 @@ DSN_VIA = "Via[0-1]_700:300_um"
 FREEROUTE_FLAGS = [
     "--gui.enabled=false",
     "-mp",
-    "12",
+    "20",
     "-mt",
     "4",
-    "--router.job_timeout=00:10:00",
+    "--router.job_timeout=00:20:00",
     "--router.automatic_neckdown=false",
     "--router.strict_drc=true",
     "--router.neck_width_um=100",
     "--router.copper_to_edge_clearance_um=300",
     "--router.hole_clearance_um=200",
     "--router.fanout.enabled=true",
-    "--router.fanout.max_passes=40",
+    "--router.fanout.max_passes=80",
     "--router.fanout.ripup_allowed=true",
 ]
 
@@ -117,7 +117,7 @@ def freeroute(dsn: Path, ses: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--work", type=Path, default=Path("/tmp/wp12f"))
+    parser.add_argument("--work", type=Path, default=Path("/tmp/wp12g"))
     parser.add_argument("--dsn-check", action="store_true")
     parser.add_argument("--route", action="store_true")
     parser.add_argument("--import-owned", action="store_true")
