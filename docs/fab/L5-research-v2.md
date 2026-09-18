@@ -93,6 +93,8 @@ Source: LCSC ([lcsc.com](https://www.lcsc.com)) and JLCPCB Parts ([jlcpcb.com/pa
 | **Fanstel BT840** | `BT840` / `BT840F` (nRF52840) | `BT840` series | **Extended / Consigned** | Out of stock; Consignment | ~$6.80–$8.50 USD |
 | **TI INA128** | `INA128UA/2K5` (SOIC-8) | `C7405` | **Extended** ($3.00 feeder) | In Stock | ~$6.50–$8.20 USD |
 
+*Review r5 notes (2026-09-17):* the TLV713 row is the 3.3 V `TLV71333`; the plan and board use the 3.0 V `TLV71330PDBVR` (`board-v2.md`), so this row's tier, stock and price do not apply to the chosen part and are UNVERIFIED (cited page is the lcsc.com root). The C356849 page cited for the E73 fix returned HTTP 404 on the review re-read, so the corrected number is UNVERIFIED (2026-09-17); the E73-2G4M08S1C drawing (antenna, keep-out) is still unreachable.
+
 *Fee rules:* Basic parts have zero loading fees. Extended parts incur $3.00 USD per unique part line. Consigned/Global Sourcing parts incur part purchase costs and manual check-in handling fees.
 
 ---
@@ -107,7 +109,7 @@ Source: Seeed Studio ([seeedstudio.com](https://www.seeedstudio.com/Seeed-XIAO-B
 *   **Dimensions:** $21.0\text{ mm length} \times 17.5\text{ mm width}$. PCB substrate is $1.2\text{ mm}$ thick.
 *   **Total Height:** **$4.3\text{ to } 4.5\text{ mm}$** including the mounted USB-C connector (connector extends $3.16\text{ mm}$ above PCB surface).
 *   **Weight:** **$4.0\text{ g}$** (0.004 kg).
-*   **Charger & Current:** Integrated TI BQ25100/BQ25101. Default charge current is **$50\text{ mA}$**; software-configurable to **$100\text{ mA}$** via GPIO pin `P0.13` / charge control pin LOW (re-read: Seeed Wiki [wiki.seeedstudio.com/XIAO_BLE/](https://wiki.seeedstudio.com/XIAO_BLE/)).
+*   **Charger & Current:** Integrated TI BQ25100/BQ25101. Default charge current is **$50\text{ mA}$**; software-configurable to **$100\text{ mA}$** via GPIO pin `P0.13` / charge control pin LOW (re-read: Seeed Wiki [wiki.seeedstudio.com/XIAO_BLE/](https://wiki.seeedstudio.com/XIAO_BLE/)). Review r5 re-read (2026-09-17): "The battery charging current can be set to approximately 50 mA or 100 mA using P0.13."
 *   **Battery Pads:** Dedicated solder pads `BAT+` and `BAT-` on the PCB underside.
 *   **Pricing & Stock (2026-09-17):**
     *   Seeed Studio: **$9.90 USD**, In Stock.
@@ -118,6 +120,8 @@ Source: Seeed Studio ([seeedstudio.com](https://www.seeedstudio.com/Seeed-XIAO-B
     *   *Software:* Upstream Zephyr RTOS support (`seeed_xiao_nrf52840` / `xiao_ble`) and official Arduino support (`Seeed nRF52 mbed-enabled Boards`).
 
 ### 4.2 Engineering Trade-Off
+
+The lane's trade-off list, not a recommendation. Plan v2 chose a module with the RF inside it on the one board (Raytac MDBT50Q-1MV2 or Ebyte E73-2G4M08S1C) and ruled the XIAO out (plan v2 §1 item 5).
 
 *   **Pros:** Isolates RF tuning, BLE antenna impedance matching, 32.768 kHz crystal routing, and USB-C power handling to a proven pre-certified module. The custom PCB holds only the analog front-end.
 *   **Cons:** The $4.3–4.5\text{ mm}$ total height with USB-C connector creates vertical clearance constraints in a thin shell (internal cavity $\le 6.0\text{ mm}$), requiring a pocket cutout or connector removal.
