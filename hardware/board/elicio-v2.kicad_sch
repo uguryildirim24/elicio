@@ -8,7 +8,7 @@
 		(title "elicio-v2")
 		(date "2026-09-17")
 		(rev "0")
-		(comment 1 "WP12 board v2. Interface II flex, packing A_501015_series_w20. Schematic contract unchanged. Not for order.")
+		(comment 1 "WP12d board v2d. No USB-C receptacle (Q81). P4/P5 tail pads feed VBUS/GND. D1 PESD on VBUS. Not for order.")
 	)
 	(lib_symbols
 	(symbol "elicio:ADS1292"
@@ -6577,30 +6577,16 @@
 		)
 		(uuid "18c232e5-3105-4dd0-8dbe-2672091b2e24")
 	)
-	(global_label "USB_DN"
-		(shape input)
-		(at 30.48 88.9 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "def8c729-e7a4-433f-848f-607fb613ae3e")
+	(no_connect
+		(at 30.48 88.9)
+		(uuid "055f97c6-d99d-4163-86c8-a85b1f79b4d3")
 	)
-	(global_label "USB_DP"
-		(shape input)
-		(at 30.48 91.44 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "aaea72d2-fa29-4832-b61e-b72dfc6dc976")
+
+	(no_connect
+		(at 30.48 91.44)
+		(uuid "f404e158-6bdd-43d1-af4f-5986b3e1f795")
 	)
+
 	(no_connect
 		(at 71.12 71.12)
 		(uuid "d15b3c54-146a-415a-a0eb-dd0968c45a69")
@@ -7617,257 +7603,11 @@
 		)
 		(uuid "3fcdaea4-6014-4998-8083-4074cf735e1a")
 	)
-	(symbol
-		(lib_id "Connector:USB_C_Receptacle_USB2.0_16P")
-		(at 203.2 50.8 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "b0b1ba17-789b-4c1f-b288-fba64f8c7d57")
-		(property "Reference" "J1"
-			(at 203.2 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "TYPE-C-31-M-14"
-			(at 203.2 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
-			(at 203.2 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 203.2 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" "C223907"
-			(at 203.2 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "TYPE-C-31-M-14"
-			(at 203.2 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "A1"
-			(uuid "d20d397c-80ba-418d-bdd2-2958540e2049")
-		)
-		(pin "A4"
-			(uuid "214071d8-289f-40bd-b666-ce639d0bf99d")
-		)
-		(pin "A5"
-			(uuid "617544f1-a527-468c-abbc-acd02ac6d79e")
-		)
-		(pin "A6"
-			(uuid "d2f5172e-ad3b-4fec-88b5-abdd78ee213c")
-		)
-		(pin "A7"
-			(uuid "9d27d61f-9a3c-48a6-9780-3c54b38624ea")
-		)
-		(pin "A8"
-			(uuid "c15742ad-f657-46d2-9ac1-5acedbcb6f83")
-		)
-		(pin "A9"
-			(uuid "54c04316-b288-4667-9f12-0e4560339cd8")
-		)
-		(pin "A12"
-			(uuid "a03465bd-b925-476f-8c3c-682ccf688060")
-		)
-		(pin "B1"
-			(uuid "090eb767-1e8b-491b-bc3e-76183dc7e323")
-		)
-		(pin "B4"
-			(uuid "74f9d7ec-999a-4485-b6f3-2cdcbdb85be9")
-		)
-		(pin "B5"
-			(uuid "d4f35f8c-76ff-409a-8176-8f6fa249c7a4")
-		)
-		(pin "B6"
-			(uuid "6757c336-7e01-47cd-9d5e-c19426551c8e")
-		)
-		(pin "B7"
-			(uuid "527b7bca-fb05-4fc7-9453-9d4e523e2faf")
-		)
-		(pin "B8"
-			(uuid "47fe6067-f116-4ecf-87cb-624605dd1cc4")
-		)
-		(pin "B9"
-			(uuid "19f8983b-59f5-4e91-a4fa-e18b50b8e358")
-		)
-		(pin "B12"
-			(uuid "235d190c-bf84-48c0-b9e6-3c181360be0b")
-		)
-		(pin "SH"
-			(uuid "dc27277a-2551-4632-a709-4d315f826ed9")
-		)
-		(instances
-			(project "elicio-v2"
-				(path "/420b5650-2bf7-4a1a-b8d9-f0e848e2539f"
-					(reference "J1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(global_label "GND"
-		(shape input)
-		(at 203.2 73.66 90)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "e94d51e9-921f-4f62-8f35-79682d2df8e7")
-	)
-	(global_label "VBUS"
-		(shape input)
-		(at 218.44 35.56 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "1bf7a398-5ac5-4997-aed9-ca50381cc46f")
-	)
-	(global_label "CC1"
-		(shape input)
-		(at 218.44 40.64 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "47e2d0a0-9f8a-4dc4-8c41-4de500170c3c")
-	)
-	(global_label "USB_DP"
-		(shape input)
-		(at 218.44 53.34 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "fa01e388-f6fb-46c7-a164-16acfa1c3042")
-	)
-	(global_label "USB_DN"
-		(shape input)
-		(at 218.44 48.26 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "9b1f0350-60e3-46a3-a9c0-f32927f0abb9")
-	)
-	(no_connect
-		(at 218.44 63.5)
-		(uuid "1b0f6cb8-f28b-45e0-b17f-59944e579807")
-	)
-	(global_label "CC2"
-		(shape input)
-		(at 218.44 43.18 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "ee03e9cd-3fb9-447a-8fb5-236cec742a86")
-	)
-	(global_label "USB_DP"
-		(shape input)
-		(at 218.44 55.88 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "b48ebea3-8630-49cf-934a-a5be12e3878e")
-	)
-	(global_label "USB_DN"
-		(shape input)
-		(at 218.44 50.8 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "76e01091-1eb7-48af-91b5-8ca578d3df22")
-	)
-	(no_connect
-		(at 218.44 66.04)
-		(uuid "a9273f25-fea6-4adf-abeb-c5c54228377d")
-	)
-	(global_label "GND"
-		(shape input)
-		(at 195.58 73.66 90)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "c3533f56-0acf-47c4-97f2-af5fa81be3fd")
-	)
+
+
+
+
+
 	(symbol
 		(lib_id "Connector:Conn_01x02_Pin")
 		(at 25.4 165.1 0)
@@ -8915,180 +8655,11 @@
 		)
 		(uuid "d5936454-39d4-4c97-9260-5702616dce54")
 	)
-	(symbol
-		(lib_id "elicio:USBLC6-2SC6")
-		(at 165.1 50.8 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "d153ffc8-b158-44fe-a403-119221865885")
-		(property "Reference" "U5"
-			(at 165.1 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "USBLC6-2SC6"
-			(at 165.1 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
-			(at 165.1 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 165.1 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" "C7519"
-			(at 165.1 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "USBLC6-2SC6"
-			(at 165.1 50.8 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "1abe2a04-d193-4b27-b4fa-0d7d89f48217")
-		)
-		(pin "2"
-			(uuid "4ba2c204-c490-40ea-8e7a-86a2b6120095")
-		)
-		(pin "3"
-			(uuid "1f44e9fd-39b4-40cd-9b77-26bb02f7db00")
-		)
-		(pin "4"
-			(uuid "b1894b4c-4b3d-4c72-a8f7-2380d017e3a8")
-		)
-		(pin "5"
-			(uuid "f6c38a7c-d256-4db4-9939-c7e06685be41")
-		)
-		(pin "6"
-			(uuid "e9f51546-5542-4fa1-ab42-e3bad0e07347")
-		)
-		(instances
-			(project "elicio-v2"
-				(path "/420b5650-2bf7-4a1a-b8d9-f0e848e2539f"
-					(reference "U5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(global_label "USB_DP"
-		(shape input)
-		(at 160.02 50.8 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "741a009c-1e74-4fff-bedc-4172901da72d")
-	)
-	(global_label "GND"
-		(shape input)
-		(at 165.1 58.42 90)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "009c06e4-185a-40ef-81bc-3b85e0943e60")
-	)
-	(global_label "USB_DN"
-		(shape input)
-		(at 160.02 53.34 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "5132fd4c-09ab-4f7b-bab1-5b59480c4759")
-	)
-	(global_label "USB_DN"
-		(shape input)
-		(at 170.18 53.34 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "7e132644-3390-4513-b674-6287464edaba")
-	)
-	(global_label "VBUS"
-		(shape input)
-		(at 165.1 45.72 270)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "eb917393-40bf-4274-aee4-8bf4e9e934ad")
-	)
-	(global_label "USB_DP"
-		(shape input)
-		(at 170.18 50.8 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "07af2a9b-bddf-4465-91ed-842e8b8ceb2e")
-	)
+
+
+
+
+
 	(symbol
 		(lib_id "elicio:PESD5V0L1UL")
 		(at 137.16 50.8 0)
@@ -9580,6 +9151,182 @@
 			(justify left)
 		)
 		(uuid "442967f1-0a30-4ea4-8345-9f89f5f1637d")
+	)
+	(symbol
+		(lib_id "elicio:PAD_8x8")
+		(at 279.4 50.8 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "14dee719-7636-49af-ae34-c9eefd47fd42")
+		(property "Reference" "P4"
+			(at 279.4 50.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "CHARGE_VBUS"
+			(at 279.4 50.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "elicio:RING_PAD_D5_H2.7"
+			(at 279.4 50.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 279.4 50.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" ""
+			(at 279.4 50.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "73f78433-78c9-4852-a5b8-364fbcd9fa0d")
+		)
+		(instances
+			(project "elicio-v2"
+				(path "/420b5650-2bf7-4a1a-b8d9-f0e848e2539f"
+					(reference "P4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(global_label "VBUS"
+		(shape input)
+		(at 279.4 44.449999999999996 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "d4144a14-5862-49b0-baf0-d6aa86a48628")
+	)
+	(symbol
+		(lib_id "elicio:PAD_8x8")
+		(at 279.4 76.2 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "f4410081-fbe7-4834-bac6-da87484ab19a")
+		(property "Reference" "P5"
+			(at 279.4 76.2 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "CHARGE_GND"
+			(at 279.4 76.2 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "elicio:RING_PAD_D5_H2.7"
+			(at 279.4 76.2 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 279.4 76.2 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" ""
+			(at 279.4 76.2 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "42b04926-ced7-4059-b529-375778d3f5cb")
+		)
+		(instances
+			(project "elicio-v2"
+				(path "/420b5650-2bf7-4a1a-b8d9-f0e848e2539f"
+					(reference "P5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape input)
+		(at 279.4 69.85000000000001 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "3296e41d-6a63-4c92-82a4-bcde5592adaa")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -10587,17 +10334,9 @@
 			)
 		)
 	)
-	(global_label "CC1"
-		(shape input)
-		(at 215.9 21.59 270)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "e3fa4265-46b1-4e81-9240-68669a62cfe9")
+	(no_connect
+		(at 215.9 21.59)
+		(uuid "5d991a92-3deb-476f-933d-75e524527d95")
 	)
 	(global_label "GND"
 		(shape input)
@@ -10690,17 +10429,9 @@
 			)
 		)
 	)
-	(global_label "CC2"
-		(shape input)
-		(at 228.6 21.59 270)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "3faa1846-1b11-43ce-80b4-7caf9734e9b8")
+	(no_connect
+		(at 228.6 21.59)
+		(uuid "0f0e6222-2f0a-4b8a-9e2e-33da0dd6efb7")
 	)
 	(global_label "GND"
 		(shape input)
