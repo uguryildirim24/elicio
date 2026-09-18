@@ -123,7 +123,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11d fourth turn, the no-receptacle pin table; w1 WP14d; w2 WP12d), WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w3 WP11d fourth turn, the no-receptacle pin table; w1 WP14d), w2 WP12d WAITING for the §5c sha, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -235,7 +235,7 @@ fast-forwarded to `110a79b`.
   (place from §5c with sides, R1–R3 on the island, J1/J4 per Q80 or the
   Q81 no-receptacle variant, route on OpenJDK 25, import, DRC 0).
 - **w2 → WP12d board v2d** (`tasks/WP12d-board-v2d.md`, main `d67e534`):
-  RUNNING since 02:10 on `lane/w2` on top of `edf612f` (told to `git
+  WAITING since 02:30 (`WAITING WP12d §5c final sha`, pushed by the lane after its pre-route steps) on `lane/w2` on top of `edf612f` (told to `git
   merge main` first): J1 and U5 out, tail pads P4/P5 in, TVS on VBUS if
   absent, ERC 0; outline and regions from §5c width 22 chord 47.90; place
   from the no-receptacle two-sided pin table with sides, R1–R3 on the
@@ -243,7 +243,7 @@ fast-forwarded to `110a79b`.
   unconnected; then it STOPS with `WAITING WP12d §5c final sha` unless I
   have already sent the line "§5c final" plus the sha (after w3's third `DONE WP11d`);
   then route on OpenJDK 25 to DRC 0, `release.py --routed` exit 0,
-  Gerbers/BOM/CPL. Waits for that one line from me. Report
+  Gerbers/BOM/CPL. Waits for exactly that one line from me, sent right after w3's fourth `DONE WP11d`: a `herdr agent prompt w2` whose text is "§5c final" followed by the sha. Report
   `.worktrees/w2/.reports/WP12d-report.md` (expected) → `DONE WP12d`.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
