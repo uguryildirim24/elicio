@@ -9,6 +9,7 @@ after the board bends onto the bosses. Standoffs 3.0, 3.5 and 4.0.
 A 0.5-deep floor recess (web 1.0 remaining) is run at 3.5 and 4.0.
 Interface II is the flex-tab fallback.
 Arc-plus for the DTP301120 under interface II is §1b (WP11b, Q55).
+The Jauch LP501218JH under interface II is §1c (WP11b, L7-research-v4.md §2).
 The REF tab route search is in §5 (WP11b, Q59).
 
 ## 1. Every run at BODY_ARC 48.4
@@ -948,9 +949,114 @@ First-conflict families (numbers masked), failing DTP arc-plus runs:
 | module #×# at (#,#) outside the board | 4 |
 | module overlaps ADS#_RSM | 4 |
 
+## 1c. Jauch LP501218JH under interface II (WP11b, L7 §2)
+
+Jauch Quartz LP501218JH+PCM 5.4 × 12.5 × 20, foam 0.5 (Q57), series, interface II, architecture A. Widths 18 to 20, LID_Y 7 to 9, standoffs 3 and 4, BODY_ARC 48.4 and arc-plus +1.5 and +3.0. Conflict logic is the round 5 checker (no new constants). 72 runs. Source: `docs/fab/L7-research-v4.md` §2 (DigiKey `1908-LP501218JH+PCM+2WIRE50MM-ND`, 60 mAh, page price and stock on 2026-09-17).
+
+Bare 2-wire leads (28 AWG, 50 ± 3 mm, no connector) per L7 §2. Plan v2 R2: Rolf solders nothing (no soldering, glue, crimping or wire stripping). This cell is a packing candidate only if the assembler or the seller terminates the leads.
+
+| arch | standoff | width | lid | arc+ | closes | first conflict | TOTAL_CHORD | M1 gate |
+|---|---:|---:|---:|---:|---|---|---:|---:|
+| A | 3 | 18 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 3 | 18 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 18 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 18 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 4 | 18 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 18 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 18 | 8 | 0 | no | JST_SH top 8.22 > LID_Y 8 | 47.90 | 50.90 |
+| A | 3 | 18 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 18 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 18 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 |
+| A | 4 | 18 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 18 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 18 | 8.5 | 0 | no | module 10.50×15.50 at (7.50,29.85) outside the board | 47.90 | 50.90 |
+| A | 3 | 18 | 8.5 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 |
+| A | 3 | 18 | 8.5 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 18 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 |
+| A | 4 | 18 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 18 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 18 | 9 | 0 | no | module 10.50×15.50 at (7.50,29.85) outside the board | 47.90 | 50.90 |
+| A | 3 | 18 | 9 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 |
+| A | 3 | 18 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 18 | 9 | 0 | no | JST_SH top 9.22 > LID_Y 9 | 47.90 | 50.90 |
+| A | 4 | 18 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 18 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+| A | 3 | 19 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 3 | 19 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 19 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 19 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 4 | 19 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 19 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 19 | 8 | 0 | no | JST_SH top 8.22 > LID_Y 8 | 47.90 | 50.90 |
+| A | 3 | 19 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 19 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 19 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 |
+| A | 4 | 19 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 19 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 19 | 8.5 | 0 | no | module 10.50×15.50 at (7.50,29.85) outside the board | 47.90 | 50.90 |
+| A | 3 | 19 | 8.5 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 |
+| A | 3 | 19 | 8.5 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 19 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 |
+| A | 4 | 19 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 19 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 19 | 9 | 0 | no | module 10.50×15.50 at (7.50,29.85) outside the board | 47.90 | 50.90 |
+| A | 3 | 19 | 9 | 1.5 | no | module overlaps ADS1292_RSM | 49.42 | 52.42 |
+| A | 3 | 19 | 9 | 3 | no | module overlaps ADS1292_RSM | 50.93 | 53.93 |
+| A | 4 | 19 | 9 | 0 | no | JST_SH top 9.22 > LID_Y 9 | 47.90 | 50.90 |
+| A | 4 | 19 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 19 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+| A | 3 | 20 | 7 | 0 | no | module top 7.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 3 | 20 | 7 | 1.5 | no | module top 7.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 3 | 20 | 7 | 3 | no | module top 7.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 4 | 20 | 7 | 0 | no | module top 8.62 > LID_Y 7 | 47.90 | 50.90 |
+| A | 4 | 20 | 7 | 1.5 | no | module top 8.62 > LID_Y 7 | 49.42 | 52.42 |
+| A | 4 | 20 | 7 | 3 | no | module top 8.62 > LID_Y 7 | 50.93 | 53.93 |
+| A | 3 | 20 | 8 | 0 | no | JST_SH top 8.22 > LID_Y 8 | 47.90 | 50.90 |
+| A | 3 | 20 | 8 | 1.5 | no | JST_SH top 8.22 > LID_Y 8 | 49.42 | 52.42 |
+| A | 3 | 20 | 8 | 3 | no | JST_SH top 8.22 > LID_Y 8 | 50.93 | 53.93 |
+| A | 4 | 20 | 8 | 0 | no | module top 8.62 > LID_Y 8 | 47.90 | 50.90 |
+| A | 4 | 20 | 8 | 1.5 | no | module top 8.62 > LID_Y 8 | 49.42 | 52.42 |
+| A | 4 | 20 | 8 | 3 | no | module top 8.62 > LID_Y 8 | 50.93 | 53.93 |
+| A | 3 | 20 | 8.5 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| A | 3 | 20 | 8.5 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| A | 3 | 20 | 8.5 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| A | 4 | 20 | 8.5 | 0 | no | module top 8.62 > LID_Y 8.5 | 47.90 | 50.90 |
+| A | 4 | 20 | 8.5 | 1.5 | no | module top 8.62 > LID_Y 8.5 | 49.42 | 52.42 |
+| A | 4 | 20 | 8.5 | 3 | no | module top 8.62 > LID_Y 8.5 | 50.93 | 53.93 |
+| A | 3 | 20 | 9 | 0 | no | cell to antenna zone 4.65 < 5 mm | 47.90 | 50.90 |
+| A | 3 | 20 | 9 | 1.5 | no | JST_SH in the antenna keep-out | 49.42 | 52.42 |
+| A | 3 | 20 | 9 | 3 | no | cell overlaps standoff_SIG1 | 50.93 | 53.93 |
+| A | 4 | 20 | 9 | 0 | no | JST_SH top 9.22 > LID_Y 9 | 47.90 | 50.90 |
+| A | 4 | 20 | 9 | 1.5 | no | JST_SH top 9.22 > LID_Y 9 | 49.42 | 52.42 |
+| A | 4 | 20 | 9 | 3 | no | JST_SH top 9.22 > LID_Y 9 | 50.93 | 53.93 |
+
+0 of 72 close at BODY_ARC or +1.5 or +3.0. There is no Jauch body that closes. At BODY_ARC, TOTAL_CHORD 47.90 against M1−3 = 49.00. At +3.0 mm of arc, TOTAL_CHORD 50.93 (+3.03 mm of chord versus the 501015 winner). First conflict of each run is in the table.
+
+First-conflict families (numbers masked), failing Jauch runs:
+
+| family | runs |
+|---|---:|
+| module top # > LID_Y # | 36 |
+| JST_SH top # > LID_Y # | 18 |
+| module overlaps ADS#_RSM | 8 |
+| module #×# at (#,#) outside the board | 4 |
+| JST_SH in the antenna keep-out | 2 |
+| cell overlaps standoff_SIG# | 2 |
+| cell to antenna zone # < # mm | 2 |
+
+### Smallest body per buyable cell (WP11b, L7 §2)
+
+L7-research-v4.md §2 found no 501015-class cell sold in ones. The two buyable packs with page price, stock and a drawing are DTP301120 and LP501218JH.
+
+| cell | sold in ones | smallest closer | width | lid | standoff | arc+ | TOTAL_CHORD | vs 501015 winner |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| 501015 | no (L7 §2) | `A_501015_series_w20_y8_iII_s3` | 20 | 8 | 3 | 0 | 47.90 | — |
+| DTP301120 | yes, SparkFun PRT-25270 | none | — | — | — | — | — | no closer |
+| LP501218JH | yes, DigiKey (bare leads; needs a terminator) | none | — | — | — | — | — | no closer |
+
 ## 2. Clearance, stack, and first-conflict families
 
-Cell packed height = body + foam 0.5: DTP301120 3.2 + 0.5 = 3.7; 501015 5.2 + 0.5 = 5.7.
+Cell packed height = body + foam 0.5: DTP301120 3.2 + 0.5 = 3.7; 501015 5.2 + 0.5 = 5.7; LP501218JH 5.4 + 0.5 = 5.9 (WP11b Jauch series, not in the 864-run matrix).
 Foam 0.5 is plan v1 §5's number and the one the order-1 Stage B `CELL_envelope` measures on the solid. Plan v2 §3 says 0.3; this file and Stage B use one number (review r5, decision 57).
 Nominal clearance = standoff − (packed − recess). The board underside is at the standoff top (rigid).
 Deformed clearance = (standoff − 0.5) − (packed − recess). The board bends down onto the bosses.
@@ -1147,6 +1253,7 @@ Measured on the built `A_501015_series_w20_y8_iII_s3` solid (review r5; `tests/t
 | Seeed XIAO nRF52840 antenna keep-out | 12.4 × 3.8 | sheet unreachable; v1 rule interface §6.3; C is out |
 | DTP301120 | 22 × 11.5 × 3.2 | SparkFun PRT-25270 drawing p.9, L5-research-v2.md §1 |
 | 501015 | 15.6 × 10.4 × 5.2 | v1 CELL_BODY_MAX (plan v1 §3.3) |
+| LP501218JH | 20 × 12.5 × 5.4 | Jauch LP501218JH+PCM+2 WIRE 50MM; DigiKey 1908-LP501218JH+PCM+2WIRE50MM-ND; L7-research-v4.md §2 |
 | Foam on the cell | 0.5 | plan v1 §5 and order-1 CELL_envelope; plan v2 §3 says 0.3 (decision 57) |
 | Interface I board | FR4 1, 4-layer | plan v2 §5.2 |
 | Interface I pad | 8 × 8 ENIG | turn 07 |
@@ -1185,7 +1292,7 @@ Measured on the built `A_501015_series_w20_y8_iII_s3` solid (review r5; `tests/t
 - E73 antenna sheet: unreachable; v1 12.4 × 3.8 used.
 - M1 on Rolf (Q34): default 52 used for the gate.
 - REF tab lid-to-wall gap: packing treats the cavity end wall as solid from floor 1.5 to LID_Y 8.0; a gap under the lid was not probed on the solid.
-- DTP single-unit purchase and a 501015 pack in ones: Q55; this package does not order.
+- 501015 pack in ones: none found (`docs/fab/L7-research-v4.md` §2). DTP301120 is sold in ones (SparkFun PRT-25270). LP501218JH is sold in ones (DigiKey 1908-LP501218JH+PCM+2WIRE50MM-ND) with bare 2-wire leads; plan v2 R2, Rolf solders nothing, so it is a candidate only if the assembler or the seller terminates the leads. This package does not order.
 
 ## 9. Drawings in the repo
 
