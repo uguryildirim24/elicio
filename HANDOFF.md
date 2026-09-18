@@ -123,7 +123,7 @@ exit 3 on Q21 only.
 ## In flight
 
 Round 7 opened 2026-09-18 00:45 on the merged main `110a79b`: three lanes
-working (w3 WP11d fourth turn, the no-receptacle pin table; w1 WP14d), w2 WP12d WAITING for the §5c sha, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
+working (w1 WP14d, w2 WP12d routing), WP11d landed with both pin tables, WP11c, WP13c, WP14b, WP14c, WP17c and WP12d-prep landed, w4, w5 and w9 idle, no reviewer yet. Every lane sits on its own branch in
 its own worktree; `lane/w1-r6`, `lane/w4`, `lane/w5`, `lane/w9` are
 fast-forwarded to `110a79b`.
 
@@ -193,25 +193,23 @@ fast-forwarded to `110a79b`.
   holes); side-wall fold pockets leave a 0.65 wall → Q83 (neck-end
   strips, 501012 body SIG1 10.71 / SIG2 21.81); three FR4 ring pieces
   fine (count 5). Recorded at `a3960d6`.
-- **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): `DONE WP11d`
-  three times on `lane/w3`: `e2a0e01` (16-cell grid), `e1f1d6f` (32
-  cells with the no-receptacle variant, Q82 hole sites, neck-end strips),
-  `ae19850` (placer keeps pad-to-outline ≥ 0.30 on island and pocket,
-  holes not under U1); tree clean, report
-  `.worktrees/w3/.reports/WP11d-report.md` present, tests OK. Results:
-  with the receptacle, width 20 two-sided 53/66 and width 22 two-sided
-  66/66; without it (J1, U5 out, tail pads P4/P5 at (0.75, 44.0) and
-  (21.25, 44.0)), width 20 two-sided 52/64 (J4 never places) and width 22
-  two-sided 64/64; every body-outline cell fails on J4; island holes for
-  the width-22 closers at (13.45, 17.70) and (17.95, 17.70); neck-end
-  strips on every cell. Settled in open-questions at `d67e534`: Q78 width
-  22, Q81 no-receptacle variant, Q82 those hole sites, Q83 neck-end
-  strips. §5c carries ONE pin table so far (the USB cell, 66 footprints,
-  side column, every rule met); the build's variant (no receptacle, width
-  22) has none yet: a fourth turn was prompted at 02:20 to publish it in
-  the same format with that cell's strip lengths and the norec drawing;
-  it pushes a fourth `DONE WP11d`, after which I send w2 the line "§5c
-  final" plus the sha. Waits for nothing from me.
+- **w3 → WP11d layout v2c** (`tasks/WP11d-layout-v2c.md`): LANDED, `DONE
+  WP11d` four times on `lane/w3`, final `c6bd2fe` (tree clean, report
+  `.worktrees/w3/.reports/WP11d-report.md` present, tests OK).
+  `scripts/cad/layout_v2c.py` (absent on main), §5c with 32 cells and
+  two pin tables (USB cell 66/66 and the no-receptacle cell 64/64, both
+  process-edge, width 22, chord 47.90, two sides, neck fold, every rule
+  met including pad-to-outline ≥ 0.30), four drawings under
+  `docs/fab/cad/v2c/` (absent on main). Results: width 20 places its BOM
+  in no cell (USB 53/66, no-receptacle 52/64, J4 never fits); every
+  body-outline cell fails on J4; the build's cell (no receptacle): P4/P5
+  tail pads at (0.75, 44.0) and (21.25, 44.0) with RING_PAD_D5_H2.7
+  courtyards on the floor, holes (13.45, 17.70) and (17.95, 17.70),
+  strips SIG1 10.71 / SIG2 21.81, R1–R3 on the island. Settled in
+  open-questions at `d67e534` (Q78 width 22, Q81 no receptacle, Q82,
+  Q83). The sha went to w2 at 03:00 as the line "§5c final" plus
+  `c6bd2fe`; w1's WP14d numbers (pads, holes, strips) did not move, so
+  no WP14e. w3 idles; merges in round 7's review.
 - **w2 → WP12d-prep** (`tasks/WP12d-prep-router.md`): LANDED, `DONE
   WP12d-prep` at `edf612f` on `lane/w2` (merged main at `68f38ba`, one
   package commit, tree clean, report
@@ -235,7 +233,7 @@ fast-forwarded to `110a79b`.
   (place from §5c with sides, R1–R3 on the island, J1/J4 per Q80 or the
   Q81 no-receptacle variant, route on OpenJDK 25, import, DRC 0).
 - **w2 → WP12d board v2d** (`tasks/WP12d-board-v2d.md`, main `d67e534`):
-  WAITING since 02:30 (`WAITING WP12d §5c final sha`, pushed by the lane after its pre-route steps) on `lane/w2` on top of `edf612f` (told to `git
+  RUNNING again since 03:00 on `lane/w2` on top of `edf612f` (told to `git
   merge main` first): J1 and U5 out, tail pads P4/P5 in, TVS on VBUS if
   absent, ERC 0; outline and regions from §5c width 22 chord 47.90; place
   from the no-receptacle two-sided pin table with sides, R1–R3 on the
@@ -243,7 +241,11 @@ fast-forwarded to `110a79b`.
   unconnected; then it STOPS with `WAITING WP12d §5c final sha` unless I
   have already sent the line "§5c final" plus the sha (after w3's third `DONE WP11d`);
   then route on OpenJDK 25 to DRC 0, `release.py --routed` exit 0,
-  Gerbers/BOM/CPL. Waits for exactly that one line from me, sent right after w3's fourth `DONE WP11d`: a `herdr agent prompt w2` whose text is "§5c final" followed by the sha. Report
+  Gerbers/BOM/CPL. Pre-route half committed (`fcaa6d4` J1/U5 out, P4/P5 in; `2cffd4e`
+  width-22 outline and two-sided place from §5c); it pushed `WAITING
+  WP12d §5c final sha` at 02:30 and got the line "§5c final" plus
+  `c6bd2fe` at 03:00; now re-pins from the no-receptacle table and routes
+  on OpenJDK 25 to DRC 0. Waits for nothing from me. Report
   `.worktrees/w2/.reports/WP12d-report.md` (expected) → `DONE WP12d`.
 - **w4 → WP13c dropout rule** (`tasks/WP13c-dropout.md`, main `0293d48`):
   LANDED, `DONE WP13c` at `21dde8a` on `lane/w4` (one commit, tree clean,
@@ -328,15 +330,15 @@ Outside those:
 
 ## Next
 
-- Idle until the fourth `DONE WP11d` (w3, the no-receptacle pin table),
-  `DONE WP14d` (w1), `DONE WP12d` or `WAITING WP12d §5c final sha` (w2),
-  or BLOCKED/GONE for any (a DONE is checked: report present, tree clean;
-  then read); on the fourth `DONE WP11d` send w2 the line "§5c final"
-  plus the sha (a prompt; if w2 is WAITING it continues, if not the line
-  is queued) and, if a number w1 used moved, note a WP14e; when WP11d,
-  WP14d and WP12d have landed (WP11c, WP13c, WP14b, WP14c, WP17c,
-  WP12d-prep already have), open review r7 with a brief (expected) at
-  `tasks/review-r7.md` (expected), from `tasks/review-code-template.md`.
+- Idle until `DONE WP14d` (w1) or `DONE WP12d` (w2), or BLOCKED/GONE/
+  WAITING for either (a DONE is checked: report present, tree clean;
+  then read); when both have landed (WP11c, WP11d, WP13c, WP14b, WP14c,
+  WP17c, WP12d-prep already have), open review r7: a review worktree
+  (expected) at `.worktrees/review` (expected) on a round 7 review branch
+  cut from main, a fresh Opus 5 high pane,
+  brief (expected) at `tasks/review-r7.md` (expected) from
+  `tasks/review-code-template.md` with the seams in Open item 6 and every
+  report pasted; merge order w3, w1-r6, w5, w4, w2.
 
 ## Traps
 
