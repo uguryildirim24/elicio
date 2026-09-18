@@ -89,7 +89,7 @@ Source: LCSC ([lcsc.com](https://www.lcsc.com)) and JLCPCB Parts ([jlcpcb.com/pa
 | **TI TLV713 3.3V** | `TLV71333PDBVR` (SOT-23-5) | `C90840` | **Basic / Preferred** ($0.00) | In Stock (> 10,000) | ~$0.18–$0.28 USD |
 | **Raytac MDBT50Q-1MV2** | `MDBT50Q-1MV2` (nRF52840) | `C5142646` | **Extended / Consigned** | Out of stock; Global Sourcing / Consignment | ~$8.20–$10.50 USD |
 | **Seeed XIAO nRF52840** | `102010448` (Castellated SMT) | Listed in ecosystem | **Consigned / Customer Supplied** | Stocked at Seeed/DigiKey; consign to JLC | $9.90 (Seeed) / $10.38 (DigiKey) |
-| **Ebyte E73-2G4M08S1C** | `E73-2G4M08S1C` (nRF52840) | `C474779` | **Extended** ($3.00 feeder) | In Stock | ~$4.80–$6.20 USD |
+| **Ebyte E73-2G4M08S1C** | `E73-2G4M08S1C` (nRF52840) | `C356849` (re-read: [lcsc.com](https://www.lcsc.com/product-detail/Bluetooth-Modules_C356849.html)) | **Extended** ($3.00 feeder) | In Stock | ~$4.80–$6.20 USD |
 | **Fanstel BT840** | `BT840` / `BT840F` (nRF52840) | `BT840` series | **Extended / Consigned** | Out of stock; Consignment | ~$6.80–$8.50 USD |
 | **TI INA128** | `INA128UA/2K5` (SOIC-8) | `C7405` | **Extended** ($3.00 feeder) | In Stock | ~$6.50–$8.20 USD |
 
@@ -107,7 +107,7 @@ Source: Seeed Studio ([seeedstudio.com](https://www.seeedstudio.com/Seeed-XIAO-B
 *   **Dimensions:** $21.0\text{ mm length} \times 17.5\text{ mm width}$. PCB substrate is $1.2\text{ mm}$ thick.
 *   **Total Height:** **$4.3\text{ to } 4.5\text{ mm}$** including the mounted USB-C connector (connector extends $3.16\text{ mm}$ above PCB surface).
 *   **Weight:** **$4.0\text{ g}$** (0.004 kg).
-*   **Charger & Current:** Integrated TI BQ25100/BQ25101. Default charge current is **$50\text{ mA}$**; software-configurable to **$100\text{ mA}$** via GPIO pin `P0.17` / charge control pin LOW.
+*   **Charger & Current:** Integrated TI BQ25100/BQ25101. Default charge current is **$50\text{ mA}$**; software-configurable to **$100\text{ mA}$** via GPIO pin `P0.13` / charge control pin LOW (re-read: Seeed Wiki [wiki.seeedstudio.com/XIAO_BLE/](https://wiki.seeedstudio.com/XIAO_BLE/)).
 *   **Battery Pads:** Dedicated solder pads `BAT+` and `BAT-` on the PCB underside.
 *   **Pricing & Stock (2026-09-17):**
     *   Seeed Studio: **$9.90 USD**, In Stock.
