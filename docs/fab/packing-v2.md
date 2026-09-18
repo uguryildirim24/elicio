@@ -13,6 +13,7 @@ The Jauch LP501218JH under interface II is §1c (WP11b, L7-research-v4.md §2).
 A bigger lid and width for the two buyable cells is §1d (WP11b note 2).
 The 501015 pack (17.0 mm with PCM) and 501012 pack are §1e (WP11b note 3, L7 §7).
 The REF tab route search is in §5 (WP11b, Q59).
+The board-lane layout with real courtyards is §5b (WP11c).
 
 ## 1. Every run at BODY_ARC 48.4
 
@@ -1520,6 +1521,262 @@ Stack at each site: floor 1.5, ring 0.31, brass standoff 3 (5 AF, circumradius 2
 Harness 100 ± 3 mm: NOT_MEASURED (routed length, not a solid).
 
 B and C do not close. There is no board-lane layout for them.
+
+## 5b. Layout for the board lane, v2 (WP11c)
+
+Real F.CrtYd and pad extents from `git show 845bac7:hardware/board/elicio-v2.kicad_pcb` (WP12b after dropping the shorting copper). Round-5 packing envelopes stay in the 864-run table. Courtyard-to-courtyard uses a 0.05 mm solder-mask-to-copper margin (DRC; two expansions = 0.10 mm pad-to-pad). Contact netclass clearance is 1.0 mm (WP12b `elicio-v2.kicad_pro`, nets SIG1/SIG2/REF).
+
+### Part table — KiCad courtyard vs round 5
+
+| ref | footprint | courtyard w × h | pad extent w × h | round-5 packing | Δw | Δh |
+|---|---|---:|---:|---:|---:|---:|
+| C1 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C2 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C3 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C4 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C5 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C6 | C_0603_1608Metric | 2.960 × 1.460 | 2.450 × 0.950 | — | — | — |
+| C7 | C_0603_1608Metric | 2.960 × 1.460 | 2.450 × 0.950 | — | — | — |
+| C8 | C_0603_1608Metric | 2.960 × 1.460 | 2.450 × 0.950 | — | — | — |
+| C9 | C_0603_1608Metric | 2.960 × 1.460 | 2.450 × 0.950 | — | — | — |
+| C10 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C11 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C12 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C13 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C14 | C_0402_1005Metric | 1.820 × 0.920 | 1.520 × 0.620 | — | — | — |
+| C15 | C_0603_1608Metric | 2.960 × 1.460 | 2.450 × 0.950 | — | — | — |
+| D1 | D_SOD-523 | 2.500 × 1.400 | 2.100 × 0.600 | 2.20 × 1.00 | +0.30 | +0.40 |
+| D2 | LED_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| J1 | USB_C_Receptacle_HRO_TYPE-C-31-M-12 | 10.640 × 9.420 | 9.640 × 6.620 | 8.90 × 7.30 | +1.74 | +2.12 |
+| J2 | JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal | 5.800 × 6.560 | 5.400 × 4.775 | 4.00 × 6.00 | +1.80 | +0.56 |
+| J3 | PinHeader_1x03_P2.54mm_Horizontal | 12.310 × 8.620 | 1.700 × 6.780 | 7.60 × 2.50 | +4.71 | +6.12 |
+| J4 | Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical | 7.000 × 4.000 | 6.071 × 3.023 | — | — | — |
+| L1 | L_0603_1608Metric | 2.960 × 1.460 | 2.450 × 0.950 | — | — | — |
+| P1 | RING_PAD_D5_H2.7 | 6.400 × 6.400 | 5.000 × 5.000 | — | — | — |
+| P2 | RING_PAD_D5_H2.7 | 6.400 × 6.400 | 5.000 × 5.000 | — | — | — |
+| P3 | RING_PAD_D5_H2.7 | 6.400 × 6.400 | 5.000 × 5.000 | — | — | — |
+| Q1 | SOT-23 | 3.860 × 3.400 | 2.475 × 3.375 | — | — | — |
+| Q2 | SOT-23 | 3.860 × 3.400 | 2.475 × 3.375 | — | — | — |
+| Q3 | SOT-23 | 3.860 × 3.400 | 2.475 × 3.375 | — | — | — |
+| Q4 | SOT-23 | 3.860 × 3.400 | 2.475 × 3.375 | — | — | — |
+| Q5 | SOT-23 | 3.860 × 3.400 | 2.475 × 3.375 | — | — | — |
+| R1 | R_0402_1005Metric | 1.860 × 0.940 | 1.660 × 0.540 | 1.80 × 0.90 | +0.06 | +0.04 |
+| R2 | R_0402_1005Metric | 1.860 × 0.940 | 1.660 × 0.540 | 1.80 × 0.90 | +0.06 | +0.04 |
+| R3 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | 1.80 × 0.90 | +0.06 | +0.04 |
+| R4 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R5 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R6 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R7 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R8 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R9 | R_0402_1005Metric | 1.860 × 0.940 | 1.660 × 0.540 | — | — | — |
+| R10 | R_0402_1005Metric | 1.860 × 0.940 | 1.660 × 0.540 | — | — | — |
+| R11 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R12 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R13 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R14 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R15 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R16 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R17 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R18 | R_0402_1005Metric | 1.860 × 0.940 | 1.660 × 0.540 | — | — | — |
+| R19 | R_0402_1005Metric | 1.860 × 0.940 | 1.660 × 0.540 | — | — | — |
+| R20 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R21 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R22 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R23 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R24 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R25 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R26 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R27 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R28 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R29 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| R30 | R_0402_1005Metric | 1.860 × 0.940 | 1.560 × 0.640 | — | — | — |
+| SW1 | SW_Push_1P1T_XKB_TS-1187A | 7.500 × 5.600 | 7.000 × 4.500 | 4.50 × 4.50 | +3.00 | +1.10 |
+| U1 | Raytac_MDBT50Q | 11.500 × 16.500 | 10.200 × 11.400 | 10.50 × 15.50 | +1.00 | +1.00 |
+| U2 | VQFN-32-1EP_4x4mm_P0.4mm_EP2.8x2.8mm | 5.260 × 5.260 | 4.750 × 4.750 | 5.00 × 5.00 | +0.26 | +0.26 |
+| U3 | Texas_YFP0006 | 2.960 × 3.500 | 0.650 × 1.050 | 2.10 × 1.40 | +0.86 | +2.10 |
+| U4 | SOT-23-5 | 4.100 × 3.400 | 3.600 × 2.500 | 3.30 × 2.90 | +0.80 | +0.50 |
+| U5 | SOT-23-6 | 4.100 × 3.400 | 3.600 × 2.500 | 3.30 × 2.90 | +0.80 | +0.50 |
+
+Keep-outs on that board (zone bbox from the same KiCad file):
+
+| name | x0 | y0 | x1 | y1 |
+|---|---:|---:|---:|---:|
+| J4_USB_C_keepout | 14.46 | 4.13 | 15.73 | 6.67 |
+| RF_FEED_NOTCH | 6.05 | 33.05 | 7.25 | 34.65 |
+| RF_NO_COPPER | 2.25 | 26.15 | 6.05 | 38.55 |
+| RING_REF_CLEAR | 5.00 | 39.50 | 12.00 | 46.50 |
+| RING_SIG1_CLEAR | -8.25 | 18.50 | -1.25 | 25.50 |
+| RING_SIG2_CLEAR | 21.25 | 29.60 | 28.25 | 36.60 |
+| unnamed_keepout_2 | 6.05 | 33.05 | 7.25 | 34.65 |
+| unnamed_keepout_3 | 2.25 | 26.15 | 6.00 | 38.55 |
+
+### Rules the search must meet
+
+| rule | source |
+|---|---|
+| JLC FPC assembly, body to board edge ≥ 2.5 mm | board-v2.md §12 / L6 |
+| copper to outline ≥ 0.30 mm | board-v2.md §12; DRC min_copper_edge_clearance |
+| courtyard-to-courtyard ≥ 0, with solder-mask bridge margin 0.10 mm | WP11c brief; DRC solder_mask_to_copper_clearance 0.05 mm |
+| Contact netclass clearance 1.0 mm | WP12b elicio-v2.kicad_pro |
+| module keep-out empty of everything | Raytac Spec K; RF_NO_COPPER |
+| J4 on the hook-end end face with its plug volume | packing-v2.md §5; plan v2 §5.4 |
+| SW1 under the lid recess | packing-v2.md §5 |
+| J3 and TC2030 reachable | WP11c brief |
+
+### 501012 pack, w20 × y8, BODY_ARC, interface II, standoff 3 (the shell as built)
+
+Spec `A_pack501012_series_w20_y8_iII_s3`. TOTAL_CHORD 47.90. Board u 2.25–17.75, s 16.00–37.60.
+
+**First rule that cannot be met:** JLC FPC assembly edge 2.5 mm (board-v2.md §12 / L6): U1 body 10.5×15.5 at the packing pose (long along u) sits 0.00 mm from the island edge u 2.25–17.75 (width 15.50). JLC wants 2.5 mm. Turning U1 long-along-s needs island 15.5×20.5; this island is 15.50×21.60, so U1 can meet 2.5 mm on the short sides only if nothing else shares that 10.5 mm strip. U2 courtyard 5.26 cannot sit beside U1 under that rule. First rule that cannot be met.
+
+| rule | met | detail |
+|---|---|---|
+| JLC FPC assembly edge 2.5 mm (board-v2.md §12 / L6) | no | U1 body 10.5×15.5 at the packing pose (long along u) sits 0.00 mm from the island edge u 2.25–17.75 (width 15.50). JLC wants 2.5 mm. Turning U1 long-along-s needs island 15.5×20.5; this island is 15.50×21.60, so U1 can meet 2.5 mm on the short sides only if nothing else shares that 10.5 mm strip. U2 courtyard 5.26 cannot sit beside U1 under that rule. First rule that cannot be met. |
+| copper-to-edge 0.30 (board-v2.md §12) | no | U1 pad-edge 0.150 < 0.30 |
+| courtyard-to-courtyard ≥ 0 with solder-mask bridge margin 0.10 | yes | no courtyard overlap among placed parts |
+| Contact netclass 1.0 mm (WP12b elicio-v2.kicad_pro) | no | R1/R2/R3 0402 pad gap 0.48 mm < 1.0 mm (SIG1–AFE_IN1P, SIG2–AFE_IN1N, REF–RLD_FB). A 2.5 mm tab cannot hold the 0402 and that clearance. See variants A and B. |
+| module keep-out empty (RF_NO_COPPER / U1 antenna) | yes | no non-U1 footprint in RF_NO_COPPER |
+| J4 on the hook-end end face with its plug volume | no | J1 USB wall hook-end end face (fallback) (USB courtyard 10.64×9.42 fills that face). J4 at (14.10, 18.15) rot 0 face top |
+| SW1 under the lid recess | yes | SW1 at (13.50, 23.70) on the board top |
+| J3 and TC2030 reachable | yes | J3 (24.75, 21.32) rot 0; J4 (14.10, 18.15) rot 0 |
+| every WP12b footprint placed | no | unplaced: U5, Q1, Q2, Q3, Q4, Q5, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30 |
+
+- Contact 1.0 mm (WP12b netclass Contact) cannot hold on a 2.5 mm tab with an 0402 across it (pad gap 0.48 mm). Variant A: R1/R2/R3 on the island at the tab root; each tab carries one Contact trace.
+- Variant B: widen each tab to 4.0 mm so an 0402 can sit on the tab with 1.0 mm to other copper. The 0402 pad gap 0.48 mm still violates Contact-to-Default 1.0 mm; that needs a larger package or a DRC exception.
+
+Contact sites are unchanged: SIG1 (5.90, 22.00), SIG2 (10.40, 33.10), REF (8.50, 43.00). REF tab (8.50, 43.00) → (8.50, 36.80); `REF_end_wall_slot` is cut.
+
+| ref | u | s | rot | courtyard wu × ws | face | notes |
+|---|---:|---:|---:|---:|---|---|
+| C1 | 17.01 | 3.61 | 0 | 1.82 × 0.92 | pocket | passive grid |
+| C2 | 17.06 | 12.56 | 90 | 0.92 × 1.82 | pocket | passive grid |
+| C3 | 13.01 | 3.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C4 | 13.01 | 4.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C5 | 13.01 | 5.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C6 | 13.58 | 6.38 | 0 | 2.96 × 1.46 | pocket | passive grid, pocket |
+| C7 | 13.58 | 8.38 | 0 | 2.96 × 1.46 | pocket | passive grid, pocket |
+| C8 | 13.58 | 10.38 | 0 | 2.96 × 1.46 | pocket | passive grid, pocket |
+| C9 | 13.58 | 12.38 | 0 | 2.96 × 1.46 | pocket | passive grid, pocket |
+| C10 | 13.01 | 14.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C11 | 15.01 | 3.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C12 | 15.01 | 4.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C13 | 15.01 | 5.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C14 | 15.01 | 14.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C15 | 16.33 | 7.13 | 90 | 1.46 × 2.96 | pocket | passive grid, pocket |
+| D1 | 17.00 | 2.35 | 0 | 2.50 × 1.40 | pocket | PESD VBUS |
+| D2 | 6.83 | 16.62 | 0 | 1.86 × 0.94 | top | LED |
+| J1 | 10.00 | -2.15 | 0 | 10.64 × 9.42 | top | USB hook-end end face (fallback) |
+| J2 | 20.40 | 8.00 | 0 | 5.80 × 6.56 | pocket | JST-SH; hangs off the pocket high-u wall |
+| J3 | 24.75 | 21.32 | 0 | 12.31 × 8.62 | top | bench header; pins hang off the high-u outline |
+| J4 | 14.10 | 18.15 | 0 | 7.00 × 4.00 | top | TC2030; reachable from the leftover high-u edge |
+| L1 | 3.88 | 16.88 | 0 | 2.96 × 1.46 | top | 10 µH |
+| P1 | 5.90 | 22.00 | 0 | 6.40 × 6.40 | floor | SIG1 folded site |
+| P2 | 10.40 | 33.10 | 0 | 6.40 × 6.40 | floor | SIG2 folded site |
+| P3 | 8.50 | 43.00 | 0 | 6.40 × 6.40 | floor | REF site; REF_end_wall_slot |
+| R1 | 6.40 | 17.62 | 0 | 1.86 × 0.94 | top | 220 kΩ variant A: island at tab root |
+| R2 | 8.33 | 17.62 | 0 | 1.86 × 0.94 | top | 220 kΩ variant A: island at tab root |
+| R3 | 9.00 | 16.62 | 0 | 1.86 × 0.94 | top | 220 kΩ variant A: island at tab root |
+| R4 | 16.53 | 2.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R5 | 16.53 | 9.62 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R6 | 16.53 | 10.62 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R7 | 16.53 | 11.62 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R8 | 16.53 | 12.62 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R9 | 17.03 | 3.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R10 | 17.03 | 4.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R11 | 17.03 | 5.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R12 | 17.03 | 13.62 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| SW1 | 13.50 | 23.70 | 0 | 7.50 × 5.60 | top | lid recess |
+| U1 | 10.00 | 32.35 | 90 | 16.50 × 11.50 | top | packing centre; courtyard 11.5×16.5 at rot 90 |
+| U2 | 14.73 | 8.00 | 0 | 5.26 × 5.26 | pocket | ADS1292 |
+| U3 | 14.08 | 3.40 | 0 | 2.96 × 3.50 | pocket | BQ25100 |
+| U4 | 14.15 | 13.05 | 0 | 4.10 × 3.40 | pocket | TLV71330 |
+
+Tab exits (unchanged): SIG1 (5.90, 22.00) → (5.90, 29.00); SIG2 (10.40, 33.10) → (10.40, 26.10); REF (8.50, 43.00) → (8.50, 36.80). Island outline u 2.25–17.75, s as in the spec row. WP12d places from this table and tests within 0.1 mm.
+
+### 501015 pack 17.0×10.0×5.0 at +1.5 mm of arc (valid only if M1 ≥ 52.5)
+
+Spec `A_pack501015_series_w20_y8_iII_s3_a1.5`. TOTAL_CHORD 49.42. Board u 2.25–17.75, s 20.00–39.10.
+
+**First rule that cannot be met:** M1 ≥ TOTAL_CHORD + 3 (Q34); 17 mm pack at +1.5 only if M1 ≥ 52.5: TOTAL_CHORD 49.42, need M1 ≥ 52.42; default.toml M1=52
+
+| rule | met | detail |
+|---|---|---|
+| M1 ≥ TOTAL_CHORD + 3 (Q34); 17 mm pack at +1.5 only if M1 ≥ 52.5 | no | TOTAL_CHORD 49.42, need M1 ≥ 52.42; default.toml M1=52 |
+| JLC FPC assembly edge 2.5 mm (board-v2.md §12 / L6) | no | U1 body 10.5×15.5 at the packing pose (long along u) sits 0.00 mm from the island edge u 2.25–17.75 (width 15.50). JLC wants 2.5 mm. Turning U1 long-along-s needs island 15.5×20.5; this island is 15.50×19.10, so U1 can meet 2.5 mm on the short sides only if nothing else shares that 10.5 mm strip. U2 courtyard 5.26 cannot sit beside U1 under that rule. First rule that cannot be met. |
+| copper-to-edge 0.30 (board-v2.md §12) | no | U1 pad-edge 0.150 < 0.30 |
+| courtyard-to-courtyard ≥ 0 with solder-mask bridge margin 0.10 | yes | no courtyard overlap among placed parts |
+| Contact netclass 1.0 mm (WP12b elicio-v2.kicad_pro) | no | R1/R2/R3 0402 pad gap 0.48 mm < 1.0 mm (SIG1–AFE_IN1P, SIG2–AFE_IN1N, REF–RLD_FB). A 2.5 mm tab cannot hold the 0402 and that clearance. See variants A and B. |
+| module keep-out empty (RF_NO_COPPER / U1 antenna) | no | inside RF_NO_COPPER: P3 |
+| J4 on the hook-end end face with its plug volume | no | J1 USB wall hook-end end face (fallback) (USB courtyard 10.64×9.42 fills that face). J4 at (15.10, 15.25) rot 90 face pocket |
+| SW1 under the lid recess | yes | SW1 at (13.50, 24.20) on the board top |
+| J3 and TC2030 reachable | no | missing J3 |
+| every WP12b footprint placed | no | unplaced: U3, U5, J3, Q1, Q2, Q3, Q4, Q5, R27, R28, R29, R30 |
+
+- Contact 1.0 mm (WP12b netclass Contact) cannot hold on a 2.5 mm tab with an 0402 across it (pad gap 0.48 mm). Variant A: R1/R2/R3 on the island at the tab root; each tab carries one Contact trace.
+- Variant B: widen each tab to 4.0 mm so an 0402 can sit on the tab with 1.0 mm to other copper. The 0402 pad gap 0.48 mm still violates Contact-to-Default 1.0 mm; that needs a larger package or a DRC exception.
+
+Contact sites are unchanged: SIG1 (5.90, 22.00), SIG2 (10.40, 33.10), REF (8.50, 43.00). REF tab (8.50, 43.00) → (8.50, 36.80); `REF_end_wall_slot` is cut.
+
+| ref | u | s | rot | courtyard wu × ws | face | notes |
+|---|---:|---:|---:|---:|---|---|
+| C1 | 12.46 | 12.06 | 90 | 0.92 × 1.82 | pocket | passive grid |
+| C2 | 12.46 | 14.06 | 90 | 0.92 × 1.82 | pocket | passive grid |
+| C3 | 12.46 | 16.06 | 90 | 0.92 × 1.82 | pocket | passive grid |
+| C4 | 17.46 | 2.56 | 90 | 0.92 × 1.82 | pocket | passive grid |
+| C5 | 12.91 | 3.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C6 | 13.48 | 4.38 | 0 | 2.96 × 1.46 | pocket | passive grid, pocket |
+| C7 | 13.48 | 6.38 | 0 | 2.96 × 1.46 | pocket | passive grid, pocket |
+| C8 | 13.48 | 8.38 | 0 | 2.96 × 1.46 | pocket | passive grid, pocket |
+| C9 | 13.48 | 10.38 | 0 | 2.96 × 1.46 | pocket | passive grid, pocket |
+| C10 | 12.91 | 12.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C11 | 12.91 | 13.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C12 | 12.91 | 14.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C13 | 12.91 | 15.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C14 | 12.91 | 16.11 | 0 | 1.82 × 0.92 | pocket | passive grid, pocket |
+| C15 | 13.48 | 17.38 | 0 | 2.96 × 1.46 | pocket | passive grid, pocket |
+| D1 | 8.15 | 26.35 | 0 | 2.50 × 1.40 | top | PESD VBUS |
+| D2 | 10.83 | 20.62 | 0 | 1.86 × 0.94 | top | LED |
+| J1 | 10.00 | -2.15 | 0 | 10.64 × 9.42 | top | USB hook-end end face (fallback) |
+| J2 | 20.40 | 8.00 | 0 | 5.80 × 6.56 | pocket | JST-SH; hangs off the pocket high-u wall |
+| J4 | 15.10 | 15.25 | 90 | 4.00 × 7.00 | pocket | TC2030; reachable from the leftover high-u edge |
+| L1 | 3.88 | 26.38 | 0 | 2.96 × 1.46 | top | 10 µH |
+| P1 | 5.90 | 22.00 | 0 | 6.40 × 6.40 | floor | SIG1 folded site |
+| P2 | 10.40 | 33.10 | 0 | 6.40 × 6.40 | floor | SIG2 folded site |
+| P3 | 8.50 | 43.00 | 0 | 6.40 × 6.40 | floor | REF site; REF_end_wall_slot |
+| R1 | 12.90 | 20.62 | 0 | 1.86 × 0.94 | top | 220 kΩ variant A: island at tab root |
+| R2 | 16.10 | 20.62 | 0 | 1.86 × 0.94 | top | 220 kΩ variant A: island at tab root |
+| R3 | 6.37 | 26.58 | 90 | 0.94 × 1.86 | top | 220 kΩ variant A: island at tab root |
+| R4 | 14.93 | 3.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R5 | 14.93 | 12.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R6 | 14.93 | 13.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R7 | 14.93 | 14.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R8 | 14.93 | 15.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R9 | 14.93 | 16.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R10 | 16.43 | 2.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R11 | 16.43 | 4.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R12 | 16.43 | 5.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R13 | 16.43 | 6.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R14 | 16.43 | 7.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R15 | 16.43 | 8.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R16 | 16.43 | 9.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R17 | 16.43 | 10.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R18 | 16.43 | 11.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R19 | 16.43 | 17.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R20 | 16.43 | 18.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R21 | 16.93 | 3.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R22 | 16.93 | 12.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R23 | 16.93 | 13.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R24 | 16.93 | 14.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R25 | 16.93 | 15.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| R26 | 16.93 | 16.12 | 0 | 1.86 × 0.94 | pocket | passive grid, pocket |
+| SW1 | 13.50 | 24.20 | 0 | 7.50 × 5.60 | top | lid recess |
+| U1 | 10.00 | 33.85 | 90 | 16.50 × 11.50 | top | packing centre; courtyard 11.5×16.5 at rot 90 |
+| U2 | 14.63 | 8.00 | 0 | 5.26 × 5.26 | pocket | ADS1292 |
+| U4 | 14.55 | 3.35 | 0 | 4.10 × 3.40 | pocket | TLV71330 |
+
+Tab exits (unchanged): SIG1 (5.90, 22.00) → (5.90, 29.00); SIG2 (10.40, 33.10) → (10.40, 26.10); REF (8.50, 43.00) → (8.50, 36.80). Island outline u 2.25–17.75, s as in the spec row. WP12d places from this table and tests within 0.1 mm.
+
+Drawings: this layout does not add `placement_v2_*.svg` under `docs/fab/cad/v1/`. The round-5 14-file kept set is pinned, and the layout does not fully close every rule (Q56).
 
 ## 6. Winners sent to Stage B (at most six)
 
