@@ -916,6 +916,128 @@ class PlacementWP11dTests(unittest.TestCase):
         cls.mod = cls.v2._layout_v2c_mod()
         cls.rows = cls.mod.run_v2c_grid(cls.v2)
 
+    def _assert_full_cell(self, lay, *, receptacle: bool) -> None:
+        self.assertIsNotNone(lay)
+        self.assertGreaterEqual(lay.placed, lay.bom_n)
+        self.assertEqual(lay.missing, [])
+        self.assertEqual(lay.first_blocking, "")
+        self.assertEqual(lay.receptacle, receptacle)
+        self.assertEqual(lay.fold, "neck")
+        self.assertEqual(len(lay.hole_sites), 2)
+        for name, ok, why in lay.rules:
+            self.assertTrue(ok, f"{name}: {why}")
+        by = {p.ref: p for p in lay.parts}
+        if receptacle:
+            self.assertIn("J1", by)
+            self.assertIn("U5", by)
+            self.assertNotIn("P4", by)
+            self.assertNotIn("P5", by)
+            self.assertEqual(lay.bom_n, 66)
+        else:
+            self.assertNotIn("J1", by)
+            self.assertNotIn("U5", by)
+            self.assertIn("P4", by)
+            self.assertIn("P5", by)
+            self.assertEqual(lay.bom_n, 64)
+            for ref in ("P4", "P5"):
+                p = by[ref]
+                self.assertEqual(p.footprint, "RING_PAD_D5_H2.7")
+                self.assertAlmostEqual(p.wu, 6.40, places=2)
+                self.assertAlmostEqual(p.ws, 6.40, places=2)
+                self.assertEqual(p.face, "floor")
+                self.assertIn("RING_PAD", p.notes)
+            self.assertAlmostEqual(by["P4"].s, 44.00, places=2)
+            self.assertAlmostEqual(by["P5"].s, 44.00, places=2)
+        for ref in ("R1", "R2", "R3"):
+            self.assertIn(ref, by)
+            self.assertIn(by[ref].face, {"top", "bottom"})
+            p = by[ref]
+            self.assertTrue(
+                self.mod._inside(p.u, p.s, p.wu, p.ws, lay.island)
+                or self.mod._inside(p.u, p.s, p.wu, p.ws, lay.leftover),
+                f"{ref} not on the island (Q79)",
+            )
+        overlaps = []
+        for face in ("top", "bottom"):
+            group = [p for p in lay.parts if p.face == face]
+            boxes = [self.v2._part_box(p, 0.0, 1.0) for p in group]
+            for i, a in enumerate(boxes):
+                for b in boxes[i + 1 :]:
+                    if self.v2._overlap(a, b, 0.0):
+                        overlaps.append(f"{a.name}/{b.name}")
+        self.assertEqual(overlaps, [])
+        _bu0, _bu1, bs0, bs1 = lay.island
+        sw1 = by.get("SW1")
+        self.assertIsNotNone(sw1)
+        u1 = by["U1"]
+        for hu, hs in lay.hole_sites:
+            hole = self.v2.Box(
+                "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
+            )
+            self.assertFalse(
+                self.v2._overlap(self.v2._part_box(sw1, 0.0, 1.0), hole, 0.0),
+                "SW1 overlaps a Q82 hole",
+            )
+            self.assertFalse(
+                self.v2._overlap(self.v2._part_box(u1, 0.0, 1.0), hole, 0.0),
+                f"Q82 hole ({hu}, {hs}) under U1",
+            )
+        for p in lay.parts:
+            if p.face == "hook":
+                self.assertEqual(p.ref, "J1")
+                continue
+            if p.face == "floor":
+                self.assertIn(p.ref, {"P1", "P2", "P3", "P4", "P5"})
+                continue
+            if p.ref in {"J2", "J3"}:
+                continue
+            in_island = self.mod._inside(p.u, p.s, p.wu, p.ws, lay.island)
+            in_left = self.mod._inside(p.u, p.s, p.wu, p.ws, lay.leftover)
+            in_pocket = p.s + p.ws / 2.0 <= bs0 + 0.3
+            self.assertTrue(
+                in_island or in_left or in_pocket,
+                f"{p.ref} not inside island, leftover, or pocket",
+            )
+        for p in lay.parts:
+            if p.face != "bottom":
+                continue
+            for site in (self.v2.CONTACT_1, self.v2.CONTACT_2):
+                ring = self.v2.Box("ring", site[0], site[1], 7.0, 7.0, -1.0, 20.0, "floor")
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), ring, 0.0),
+                    f"{p.ref} over ring {site}",
+                )
+            for hu, hs in lay.hole_sites:
+                hole = self.v2.Box(
+                    "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
+                )
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), hole, 0.0),
+                    f"{p.ref} over Q82 hole ({hu}, {hs})",
+                )
+            for name, u, s, wu, ws in (
+                ("TABROOT_SIG1", self.v2.CONTACT_1[0], bs0 + 1.0, self.v2.TAB_W, 2.0),
+                ("TABROOT_SIG2", self.v2.CONTACT_2[0], bs0 + 1.0, self.v2.TAB_W, 2.0),
+                ("TABROOT_REF", self.v2.CONTACT_REF[0], bs1 - 2.0, self.v2.TAB_W, 4.0),
+            ):
+                root = self.v2.Box(name, u, s, wu, ws, -1.0, 20.0, "floor")
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), root, 0.0),
+                    f"{p.ref} over {name}",
+                )
+        for p in lay.parts:
+            if p.face not in {"top", "bottom"} or p.ref in self.mod.COPPER_SKIP_REFS:
+                continue
+            outline = self.mod._copper_outline_for(p.u, p.s, p.wu, p.ws, lay.island, None)
+            if outline is None:
+                continue
+            edge_mm = self.mod._pad_edge(
+                self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, outline
+            )
+            self.assertGreaterEqual(edge_mm, 0.30 - 1e-9, f"{p.ref} copper-to-edge {edge_mm:.3f}")
+        for ref in ("D1", "C3", "C10", "C11", "C12", "SW1"):
+            self.assertIn(ref, by)
+
     def test_grid_has_sixteen_cells(self) -> None:
         self.assertEqual(len(self.rows), 32)
         keys = {
@@ -957,114 +1079,22 @@ class PlacementWP11dTests(unittest.TestCase):
             self.assertIs(wp12, win)
         if win is None:
             return
-        self.assertGreaterEqual(win.placed, win.bom_n)
-        self.assertEqual(win.missing, [])
-        self.assertEqual(win.first_blocking, "")
-        for name, ok, why in win.rules:
-            self.assertTrue(ok, f"{name}: {why}")
-        by = {p.ref: p for p in win.parts}
-        for ref in ("R1", "R2", "R3"):
-            self.assertIn(ref, by)
-            self.assertIn(by[ref].face, {"top", "bottom"})
-        overlaps = []
-        for face in ("top", "bottom"):
-            group = [p for p in win.parts if p.face == face]
-            boxes = [self.v2._part_box(p, 0.0, 1.0) for p in group]
-            for i, a in enumerate(boxes):
-                for b in boxes[i + 1 :]:
-                    if self.v2._overlap(a, b, 0.0):
-                        overlaps.append(f"{a.name}/{b.name}")
-        self.assertEqual(overlaps, [])
-        bu0, bu1, bs0, bs1 = win.island
-        self.assertEqual(len(win.hole_sites), 2)
-        if "SW1" in by:
-            sw1 = by["SW1"]
-            for hu, hs in win.hole_sites:
-                hole = self.v2.Box(
-                    "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
-                )
-                self.assertFalse(
-                    self.v2._overlap(self.v2._part_box(sw1, 0.0, 1.0), hole, 0.0),
-                    "SW1 overlaps a Q82 hole",
-                )
-        for ref in ("R1", "R2", "R3"):
-            p = by[ref]
-            self.assertTrue(
-                self.mod._inside(p.u, p.s, p.wu, p.ws, win.island)
-                or self.mod._inside(p.u, p.s, p.wu, p.ws, win.leftover),
-                f"{ref} not on the island (Q79)",
-            )
-        for p in win.parts:
-            if p.face == "hook":
-                self.assertEqual(p.ref, "J1")
-                continue
-            if p.face == "floor":
-                self.assertIn(p.ref, {"P1", "P2", "P3", "P4", "P5"})
-                continue
-            if p.ref in {"J2", "J3"}:
-                continue
-            in_island = self.mod._inside(p.u, p.s, p.wu, p.ws, win.island)
-            in_left = self.mod._inside(p.u, p.s, p.wu, p.ws, win.leftover)
-            in_pocket = p.s + p.ws / 2.0 <= bs0 + 0.3
-            self.assertTrue(
-                in_island or in_left or in_pocket,
-                f"{p.ref} not inside island, leftover, or pocket",
-            )
-        for p in win.parts:
-            if p.face != "bottom":
-                continue
-            for site in (self.v2.CONTACT_1, self.v2.CONTACT_2):
-                ring = self.v2.Box("ring", site[0], site[1], 7.0, 7.0, -1.0, 20.0, "floor")
-                self.assertFalse(
-                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), ring, 0.0),
-                    f"{p.ref} over ring {site}",
-                )
-            for hu, hs in win.hole_sites:
-                hole = self.v2.Box(
-                    "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
-                )
-                self.assertFalse(
-                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), hole, 0.0),
-                    f"{p.ref} over Q82 hole ({hu}, {hs})",
-                )
-            for name, u, s, wu, ws in (
-                ("TABROOT_SIG1", self.v2.CONTACT_1[0], bs0 + 1.0, self.v2.TAB_W, 2.0),
-                ("TABROOT_SIG2", self.v2.CONTACT_2[0], bs0 + 1.0, self.v2.TAB_W, 2.0),
-                ("TABROOT_REF", self.v2.CONTACT_REF[0], bs1 - 2.0, self.v2.TAB_W, 4.0),
-            ):
-                root = self.v2.Box(name, u, s, wu, ws, -1.0, 20.0, "floor")
-                self.assertFalse(
-                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), root, 0.0),
-                    f"{p.ref} over {name}",
-                )
-        u1 = by["U1"]
-        sw1 = by.get("SW1")
-        for hu, hs in win.hole_sites:
-            hole = self.v2.Box(
-                "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
-            )
-            self.assertFalse(
-                self.v2._overlap(self.v2._part_box(u1, 0.0, 1.0), hole, 0.0),
-                f"Q82 hole ({hu}, {hs}) under U1",
-            )
-            if sw1 is not None:
-                self.assertFalse(
-                    self.v2._overlap(self.v2._part_box(sw1, 0.0, 1.0), hole, 0.0),
-                    "SW1 overlaps a Q82 hole",
-                )
-        pocket = None
-        for p in win.parts:
-            if p.face not in {"top", "bottom"} or p.ref in self.mod.COPPER_SKIP_REFS:
-                continue
-            outline = self.mod._copper_outline_for(p.u, p.s, p.wu, p.ws, win.island, pocket)
-            if outline is None:
-                continue
-            edge_mm = self.mod._pad_edge(
-                self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, outline
-            )
-            self.assertGreaterEqual(edge_mm, 0.30 - 1e-9, f"{p.ref} copper-to-edge {edge_mm:.3f}")
-        for ref in ("D1", "C3", "C10", "C11", "C12"):
-            self.assertIn(ref, by)
+        self._assert_full_cell(win, receptacle=True)
+
+    def test_norec_pin_table_cell_meets_every_rule(self) -> None:
+        norec = self.mod.wp12d_norec_layout(self.v2)
+        self.assertIsNotNone(norec)
+        self.assertAlmostEqual(norec.width, 22.0, places=2)
+        self.assertAlmostEqual(norec.chord, 47.90, places=2)
+        self.assertEqual(norec.sides, "two")
+        self.assertEqual(norec.edge, "process")
+        self._assert_full_cell(norec, receptacle=False)
+        self.assertAlmostEqual(norec.hole_sites[0][0], 13.45, places=2)
+        self.assertAlmostEqual(norec.hole_sites[0][1], 17.70, places=2)
+        self.assertAlmostEqual(norec.hole_sites[1][0], 17.95, places=2)
+        self.assertAlmostEqual(norec.hole_sites[1][1], 17.70, places=2)
+        self.assertGreater(norec.sig1_strip, 0.0)
+        self.assertGreater(norec.sig2_strip, 0.0)
 
     def test_packing_doc_has_section_5c(self) -> None:
         doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
@@ -1079,6 +1109,12 @@ class PlacementWP11dTests(unittest.TestCase):
         self.assertIn("| process | 20 | 47.90 | two |", text)
         self.assertIn("The 16 cells with no receptacle", text)
         self.assertIn("WP12d pin table", text)
+        self.assertIn("smallest all-64 with no receptacle", text)
+        self.assertIn("Neck-end strips (Q83): SIG1", text)
+        self.assertIn("RING_PAD_D5_H2.7", text)
+        self.assertIn("| P4 |", text)
+        self.assertIn("| P5 |", text)
+        self.assertIn("placement_v2c_process_norec_w22_c47.90_two.svg", text)
         self.assertIn("not under U1", text)
         self.assertIn("D1, C3, C10, C11 and C12", text)
         self.assertIn("| ref | side | u | s | rot |", text)
