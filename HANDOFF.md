@@ -223,6 +223,16 @@ Outside those:
 5. Order 1 (the fit gauge) is not ordered and will not be: plan v2 is one
    order per thing; `docs/fab/cad/v1/` stays byte-identical as the
    regression anchor only.
+6. Seams for review r7, collected as lanes land (they go into the
+   review brief, expected at `tasks/review-r7.md`): WP14b's screw well is a visible round recess on the
+   lateral face near the tail, while Q71 reads "invisible from the
+   lateral side" (move it to the tail's end face or the medial tail in
+   w1's second turn, or the reviewer rules); both WP14b renders carry the
+   stamp "solids commit c68d4b2839c9" from the reviewer's build although
+   the solids are new (`scripts/cad/render.py` stamps the wrong commit);
+   WP11c's §5b and WP11d's §5c must agree with WP12d's placement and
+   WP14b's USB wall on one set of numbers; WP13c's `sidecar.json` fields
+   vs WP15's assemble sheet wording.
 
 ## Next
 
