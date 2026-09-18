@@ -153,12 +153,45 @@ the same way. R2b lists the lid-off double-press.
 
 ## Undervoltage constants
 
-`V_STOP_MV` 2700 and `V_START_MV` 2800 in `firmware/src/undervoltage.h`
-are marked from WP12. They are placeholders. Plan v2 §5.5: V_STOP is the
-battery threshold where AVDD would leave 2.7 V under dropout, sense
-error and radio transients. WP12 has not published that calculation.
-2700 mV is the ADS1292 AVDD minimum (TI SBAS502C, read 2026-09-17), not
-the computed pack threshold. V_START is 100 mV above that placeholder.
+`V_STOP_MV` 3000 and `V_START_MV` 3200 in `firmware/src/undervoltage.h`
+are WP12's pack thresholds (`docs/fab/board-v2.md` §6: AVDD minimum 2.7 V
+plus a 150 mV LDO dropout bound gives 2.85 V, plus sense error, a radio
+transient and margin). Computed, not measured on a pack. The WP13 lane
+had 2700/2800 placeholders; review r5 aligned them.
+
+## ADS1292 register set
+
+`firmware/src/ads1292.c`, checked against TI SBAS502C §8.6.1 (review r5):
+
+| Register | Value | Why |
+|---|---|---|
+| CONFIG1 | `0x04` | continuous, DR 100 = 2000 SPS |
+| CONFIG2 | `0xA0` | bit 7 set, PDB_REFBUF on, VREF_4V 0 = 2.42 V |
+| LOFF | `0x10` | reset value, lead-off off when worn |
+| CH1SET | `0x60` | gain 12, normal electrode input |
+| CH2SET | `0x81` | unused: PD2 = 1 with the input short Table 22 note (1) asks for (IN2 is tied to AVDD on the board) |
+| RLD_SENS | `0x23` | PDB_RLD, RLD from IN1P and IN1N |
+| LOFF_SENS | `0x00` | off |
+| RESP1 | `0x02` | required on the non-R ADS1292 |
+| RESP2 | `0x07` | bit 2 RESP_FREQ must be written 1 on the ADS1292, bit 1 RLDREF_INT internal, bit 0 must be 1 (the lane wrote `0x02`) |
+
+## Product nRF supply (REGOUT0)
+
+On the product board the module runs in high-voltage mode (VDDH = VBAT)
+and REG0 makes +VDD (`board-v2.md` §2). REG0's output is set by UICR
+REGOUT0, and an erased UICR gives 1.8 V. The ADS1292 digital inputs need
+VIH ≥ 0.8 × DVDD = 2.4 V at DVDD 3.0 V, so the product image must write
+REGOUT0 = 3.0 V (the `REGOUT0_VOUT_3V0` value) on first boot and reset.
+The Feather stand-in has its own 3.3 V regulator and does not need it.
+Not coded this round (no product board id yet).
+
+## VBUS and the AFE pins
+
+With VBUS present the board turns the AFE rail off. The sketch then stops
+acquisition without talking to the ADS1292 and puts SCK, MOSI, CS, PWDN
+and START in high-impedance input mode, so no output back-feeds the
+unpowered AFE through its input clamps. They are driven again when
+acquisition restarts.
 
 ## G4 tests WP13 owns
 
@@ -190,4 +223,7 @@ hardware VBUS gate (R7/G2) were not run. The sketch reads
 `NRF_POWER->USBREGSTATUS` for VBUS and `PIN_VBAT` for millivolts; those
 are Feather stand-ins. LED_RED is the stream indicator, not the product
 LED net. Acquisition continues while BLE is down; ring overflow is
-overrun, not transport loss. That behaviour is coded, not measured.
+overrun, not transport loss. A STREAM frame stops at the first gap in the
+ring's acquisition indices, so its samples are always consecutive DRDYs,
+and the frame after a gap carries OVERRUN. That behaviour is coded, not
+measured.
