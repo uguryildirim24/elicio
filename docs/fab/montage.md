@@ -438,3 +438,46 @@ dry-contact recording, any change to §3 voids the S1 entry (§1).
 |---|---|
 | 2026-09-17 | First issue (WP7a part 1). |
 | 2026-09-17 | Review r2, before any data: quotes checked against their files; numbers without a verbatim source tagged PROPOSED; configuration B and the reference choice sourced; gel-pad overlap and the on-body meter step removed; `elicio` commands corrected; coordinate window struck. |
+
+## 8. Protocol v2 mapping (WP13)
+
+Measurement path on the ADS1292 worn chain (plan v2 §6). Amplitudes are
+input-referred µV using the nominal scale in `docs/fab/frame-v2.md`
+(metadata only). That is an explicit decision to apply the v1 numbers to
+this transfer function. It is not a claim that the INA128 bench and this
+chain are the same.
+
+Digital band-pass for noise and pk-pk lines: Butterworth order 4, band
+20 Hz to 490 Hz, zero-phase `sosfiltfilt`, fs = 2000 Hz. Rest RMS window:
+the full 60 s record after start-up exclusions. Flex and clench pk-pk
+window: 2.0 s starting at the cue.
+
+Dropout on this chain: rail or a flat trace for more than 200 sample
+intervals at 2000 SPS (100 ms). Counted on the acquisition stream
+(`acq_index` and the sample bytes). A gap in `frame_seq` is transport
+loss. Report it beside dropout. Do not substitute it for dropout.
+
+Start-up exclusions (not scored): HELLO; STREAM with N = 0; any sample
+with INVALID; any interval with VBUS streaming refused; the first 200
+conversions after a RESTART flag (rail and reference settle); OVERRUN
+gaps (those conversions were not stored).
+
+Input headroom and common-mode headroom are separate from the shift
+line. Both are **open: needs S2 data**.
+
+| # | v1 pass | Mapping |
+|---|---|---|
+| 3.1 | Resting noise, 20–490 Hz, ≤ 5 µV RMS | revised: same number, on the digital band-pass above, input-referred from ADS1292 codes. Not a claim the analog noise matches the INA128 bench. |
+| 3.2 | Deliberate auricular flex ≥ 45 µV pk-pk and ≥ 3:1 over rest pk-pk | revised: same numbers, same filter and 2.0 s window, input-referred. |
+| 3.3 | Firm teeth clench ≥ 150 µV pk-pk; ≥ 10:1 over rest; ≥ 3:1 over the §3.2 flex | revised: same numbers, same filter and 2.0 s window, input-referred. |
+| 3.4 | 0 dropouts; INA128 output shift ≤ ±0.5 V | revised: dropout is the original rule, 200 sample intervals, on the acquisition stream, with transport loss reported beside it. Shift restated as ± 50 mV input-referred (± 0.5 V at gain 10) on the DC-preserving path (raw codes, no high-pass) relative to rest. Input headroom and common-mode headroom separately: open: needs S2 data. |
+| 3.5 | Re-donning on 3 days, threshold unchanged, ≥ 9 of 10 flexes detected each day | same criterion (detector hits, not ADC scale). |
+| 3.6 | Eating, 5 min, ≤ 0.20 false flex events/min | same criterion. |
+| 3.7 | Talking, 5 min, 0 false flex events | same criterion. |
+| 3.8 | Walking, 5 min, 0 false flex events | same criterion. |
+| 3.9 | Three yawns: 0 confirmation pairs; 0 actions above NONE | same criterion (harness). |
+| 3.10 | Five wide smiles, five hard blinks: ≤ 1 of 5 NONE triggers per set; 0 above NONE | same criterion (harness). |
+
+The bench montage procedure in §2 is re-targeted to the board on its
+stand with the plan v2 §5.6 leads when that board exists. No dry data
+was judged against this table.
