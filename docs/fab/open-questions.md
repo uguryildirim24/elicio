@@ -145,6 +145,8 @@ WP11c read the real KiCad courtyards and searched the board layout on the w20 ×
 | Q79 | Contact netclass 1.0 mm on a 2.5 mm tab: an 0402 across a Contact net has a 0.48 pad gap | Variant A, as the round 6 verdict's "To WP12c" note already reads it: R1, R2, R3 on the island at the tab roots, each tab carries one Contact trace and nothing else; the tabs stay 2.5 wide. No DRC exception | Coordinator |
 | Q80 | The hook-end face cannot hold both J1 (USB-C receptacle, courtyard 10.64 × 9.42) and J4 (TC2030 programming footprint with its keep-out) | J1 keeps the hook-end face per plan v2 §5.4 and Q70, its receptacle body an occupant of the packing; J4 goes to the leftover, its keep-out a no-part zone on the board only, because the probe is pressed on before the lid closes and needs no shell volume | Coordinator |
 
+WP17c (`docs/fab/L8-research-v5.md` on `lane/w5` at `f8b1634`, merges in round 7) read the pages: JLC's "component body to board edge ≥ 2.5 mm" is the distance to the panel's process rail, which JLC adds itself ("Panel by JLCPCB", 5 mm rails, FPC on a carrier); with rails the board's own outline keeps copper-to-outline 0.20 for pads and 0.30 for traces; both sides of a 2-layer flex are assembled (the $23.57 fixture, two reflow passes); Freerouting 2.4.1 headless writes a SES on macOS with Java 21 (`--gui.enabled=false -de <dsn> -do <ses>`); M2.5 Grade 5 titanium button-head screws in ones at The Thomas RC ($1.60) or 1up Racing 5-packs ($8.49–8.99), McMaster and Bolt Depot have none; HP's MJF guidance gives an M2.5 self-tapping pilot of Ø2.10–2.15 in CAD with a boss OD ≥ 5.0. So: Q78's process-edge reading stands and its width question waits for WP11d's grid; Q71 and Q73 take the pilot and boss numbers (WP14c); Q77's router is Freerouting 2.4.1 (WP12d). Prices stay UNVERIFIED until Rolf's checkout; the round 7 reviewer checks the quotes.
+
 ## For Rolf
 
 Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
@@ -173,3 +175,4 @@ Plan §10 "Open for Rolf" items 1 to 10 stand. From round 1, in addition:
 - Q58 when the joint drawing exists: the no-nut clamp (Q6 closes with it).
 - Q69 the battery route: the marketplace 501012 pack, or a manufacturer sample of the 17.0 mm 501015 pack after measuring M1 (≥ 52.5). Answer sheet question 2b.
 - Q72 the extra-stiffener fee line at G3, with the board price.
+- Q71 the tail screw at G4 with the parts order: one M2.5 × 4 Grade 5 titanium button head, in ones from The Thomas RC or a 1up Racing 5-pack (L8 §4); you buy it.
