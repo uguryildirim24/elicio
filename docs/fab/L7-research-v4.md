@@ -255,3 +255,217 @@ Source: Chengdu Ebyte Electronic Technology Co., Ltd. official site ([cdebyte.co
         *   `site:cdebyte.com "E73-2G4M08S1C" filetype:pdf`
         *   `site:ebyte.com "E73-2G4M08S1C" "keep-out"`
     *   *Where searched:* Chengdu Ebyte official website (`cdebyte.com` and `ebyte.com`), Manuals+ repository (`manuals.plus`), and distributor technical document links.
+
+---
+
+## 7. Pouch Cells Under 16 mm Length (Q55 Follow-Up)
+
+Investigation of any rechargeable lithium pouch cell fitting the maximum envelope of **16.0 mm length × 10.5 mm width × 5.2 mm thickness WITH protection circuit module (PCM)**, capacity $\ge 30\text{ mAh}$, with leads or connector, sold in single units with displayed price and stock.
+
+### 7.1 TinyCircuits (ASR00035 and Small Cells)
+
+Source: TinyCircuits product pages ([tinycircuits.com](https://tinycircuits.com), read 2026-09-17).
+
+*   **ASR00035 (3.7V 500mAh LiPo):**
+    *   URL: [tinycircuits.com/products/lithium-ion-polymer-battery-3-7v-500mah](https://tinycircuits.com/products/lithium-ion-polymer-battery-3-7v-500mah)
+    *   Verbatim quote: "Capacity: 500mAh"
+    *   Verbatim quote: "Nominal Voltage: 3.7V"
+    *   Verbatim quote: "Dimensions: 30.0mm x 20.0mm x 9.5mm"
+    *   *Envelope check:* Fails length (30.0 mm > 16.0 mm), width (20.0 mm > 10.5 mm), and thickness (9.5 mm > 5.2 mm).
+*   **ASR00007 (3.7V 150mAh LiPo):**
+    *   URL: [tinycircuits.com/products/lithium-ion-polymer-battery-3-7v-150mah](https://tinycircuits.com/products/lithium-ion-polymer-battery-3-7v-150mah)
+    *   Verbatim quote: "150mAh"
+    *   Verbatim quote: "Dimensions: 19.5mm x 25.5mm x 4.5mm"
+    *   *Envelope check:* Fails length (25.5 mm > 16.0 mm) and width (19.5 mm > 10.5 mm).
+*   **ASR00008 (3.7V 270mAh LiPo):**
+    *   URL: [tinycircuits.com/products/lithium-ion-polymer-battery-3-7v-270mah](https://tinycircuits.com/products/lithium-ion-polymer-battery-3-7v-270mah)
+    *   Verbatim quote: "270mAh"
+    *   Verbatim quote: "Dimensions: 20.0mm x 30.0mm x 5.0mm"
+    *   *Envelope check:* Fails length (30.0 mm > 16.0 mm) and width (20.0 mm > 10.5 mm).
+*   *TinyCircuits cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**. Search tried: `site:tinycircuits.com "battery" AND ("10mm" OR "12mm" OR "14mm" OR "15mm" OR "16mm")`.
+
+### 7.2 PowerStream PGEB Series in Ones
+
+Source: PowerStream Technology Li-Polymer Catalog ([powerstream.com/li-pol.htm](https://www.powerstream.com/li-pol.htm), read 2026-09-17).
+
+*   **PGEB Series Non-Magnetic / Small LiPo Models:**
+    *   `GM-NM300910`:
+        *   Verbatim dimensions quote: "3 x 9 x 10" (3.0 mm × 9.0 mm × 10.0 mm).
+        *   Verbatim capacity quote: "12 mAh".
+        *   *Envelope check:* Fits dimensionally, but fails minimum capacity requirement (12 mAh < 30 mAh).
+    *   `PGEB-NM651825`:
+        *   Verbatim dimensions quote: "6.5 x 18 x 25" (6.5 mm × 18.0 mm × 25.0 mm).
+        *   Verbatim capacity quote: "250 mAh".
+        *   *Envelope check:* Fails length (25.0 mm > 16.0 mm), width (18.0 mm > 10.5 mm), and thickness (6.5 mm > 5.2 mm).
+*   *PowerStream cells in ones $\le 16.0\text{ mm}$ length with capacity $\ge 30\text{ mAh}$:* `UNVERIFIED` / **NONE FOUND**. Search tried: `site:powerstream.com/li-pol.htm "30mAh" OR "40mAh" OR "50mAh"`.
+
+### 7.3 Adafruit and SparkFun Small Cells
+
+*   **Adafruit Industries:**
+    *   Source: Adafruit catalog ([adafruit.com](https://www.adafruit.com), read 2026-09-17).
+    *   Smallest LiPo stocked is Product ID 1570 ("Lithium Ion Polymer Battery - 3.7v 100mAh").
+    *   URL: [adafruit.com/product/1570](https://www.adafruit.com/product/1570)
+    *   Verbatim quote: "Dimensions: 12mm x 28mm x 5.5mm"
+    *   *Envelope check:* Fails length (28 mm > 16.0 mm) and thickness (5.5 mm > 5.2 mm).
+    *   *Adafruit cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**. Search tried: `site:adafruit.com "Lithium Ion Polymer Battery" AND ("10mm" OR "12mm" OR "15mm" OR "16mm")`.
+*   **SparkFun Electronics:**
+    *   Source: SparkFun catalog ([sparkfun.com](https://www.sparkfun.com), read 2026-09-17).
+    *   Smallest LiPo stocked is Product PRT-25270 / PRT-13852 (Data Power `DTP301120`, 40 mAh).
+    *   URL: [sparkfun.com/products/25270](https://www.sparkfun.com/products/25270)
+    *   Verbatim quote from engineering drawing `SPE-00-301120-40mah-en-1.0ver.pdf` Section 9.5: "L: Max 22.0mm", "W: Max 11.5mm", "T: Max 3.2mm".
+    *   *Envelope check:* Fails length (22.0 mm > 16.0 mm) and width (11.5 mm > 10.5 mm).
+    *   *SparkFun cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**. Search tried: `site:sparkfun.com "Polymer Lithium Ion Battery" AND ("10mm" OR "12mm" OR "15mm" OR "16mm")`.
+
+### 7.4 Pimoroni and The Pi Hut
+
+*   **Pimoroni:**
+    *   Source: Pimoroni shop ([shop.pimoroni.com](https://shop.pimoroni.com), read 2026-09-17).
+    *   Smallest LiPo battery stocked is 400 mAh (dimensions ~35 mm length).
+    *   *Pimoroni cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**. Search tried: `site:shop.pimoroni.com "lipo" "battery" "mAh"`.
+*   **The Pi Hut:**
+    *   Source: The Pi Hut store ([thepihut.com](https://thepihut.com), read 2026-09-17).
+    *   Smallest rechargeable LiPo battery stocked is 500 mAh (length > 30 mm).
+    *   Smallest primary cell is CR1225 3V Lithium Coin Cell Battery (50 mAh, 12.5 mm diameter × 2.5 mm, non-rechargeable primary cell, not a pouch cell).
+    *   *The Pi Hut rechargeable pouch cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**. Search tried: `site:thepihut.com "LiPo" "mAh" "battery" ("40mAh" OR "50mAh" OR "100mAh")`.
+
+### 7.5 DigiKey and Mouser Parametric Search Under 16 mm Length
+
+Parametric search across the "Batteries Rechargeable (Secondary) — Lithium Polymer" category at DigiKey and Mouser for cells with length $\le 16.0\text{ mm}$ and capacity $\ge 30\text{ mAh}$:
+
+*   **Jauch Quartz:**
+    *   DigiKey part `1908-LP501218JH+PCM+2WIRE50MM-ND` (`LP501218JH`): 60 mAh, 3.7 V.
+    *   Verbatim dimensions quote: "Length: Max 20.0mm", "Width: Max 12.5mm", "Thickness: Max 5.4mm".
+    *   *Envelope check:* Fails length (20.0 mm > 16.0 mm). Next available size is `LP401426J` (length 26.0 mm).
+    *   *Jauch cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**.
+*   **Renata Batteries (ICP Series):**
+    *   Source: Mouser Electronics ([mouser.com](https://www.mouser.com), read 2026-09-17).
+    *   `ICP641620PA`: 165 mAh, 3.7 V. Verbatim quote: "21.5 x 16.0 x 6.9 mm" (fails length 21.5 mm > 16.0 mm).
+    *   `ICP501421PS`: 115 mAh, 3.7 V. Verbatim quote: "22.5 x 14.1 x 5.2 mm" (fails length 22.5 mm > 16.0 mm).
+    *   `ICP501022UPM`: 80 mAh, 3.7 V. Verbatim quote: "24.0 x 10.0 x 5.50 mm" (fails length 24.0 mm > 16.0 mm).
+    *   *Renata cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**.
+*   **Data Power Technology Ltd.:**
+    *   Smallest catalog part: `DTP301120`, 40 mAh, length 22.0 mm (fails length 22.0 mm > 16.0 mm).
+    *   *Data Power cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**.
+*   **Tenergy Corporation:**
+    *   Source: Tenergy catalog ([tenergy.com](https://tenergy.com), read 2026-09-17).
+    *   Smallest off-the-shelf single cell: Model `382030` (150 mAh, 3.7 V).
+    *   Verbatim quote: "30.5mm (length) x 20.5mm (width) x 4mm (thickness)" (fails length 30.5 mm > 16.0 mm).
+    *   *Tenergy cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**.
+*   **Grepow Ltd.:**
+    *   Source: Grepow Shaped & Wearable Battery division ([grepow.com](https://www.grepow.com), read 2026-09-17).
+    *   Grepow custom-manufactures miniature shaped cells (e.g. 15.5 mAh curved ring cells, 16 mAh circular cells). All products are custom OEM designs requiring engineering inquiries and tooling.
+    *   *Grepow single-unit catalog cells $\le 16.0\text{ mm}$ length with published price:* `UNVERIFIED` / **NONE FOUND**.
+*   **EEMB Battery:**
+    *   Source: EEMB catalog and store ([eemb.com](https://eemb.com) / [eemb.store](https://eemb.store), read 2026-09-17).
+    *   Smallest standard off-the-shelf single cells: `LP402535` (35 mm length), `LP502030` (30 mm length), `LP602945` (45 mm length).
+    *   *EEMB cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**.
+*   *Overall DigiKey & Mouser Parametric Result:* `UNVERIFIED` / **ZERO RESULTS** across all stocked manufacturers for secondary lithium polymer pouch cells with length $\le 16.0\text{ mm}$ and capacity $\ge 30\text{ mAh}$.
+
+### 7.6 Seeed Studio and Kitronik
+
+*   **Seeed Studio:**
+    *   Source: Seeed Studio catalog ([seeedstudio.com](https://www.seeedstudio.com), read 2026-09-17).
+    *   Smallest LiPo cell stocked: Model `301525` (100 mAh, 3.7 V, dimensions 3.0 mm × 15.0 mm × 25.0 mm). Fails length (25.0 mm > 16.0 mm).
+    *   *Seeed Studio cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**.
+*   **Kitronik:**
+    *   Source: Kitronik catalog ([kitronik.co.uk](https://kitronik.co.uk), read 2026-09-17).
+    *   Stocks LiPo charger boards and cells starting at 1000 mAh.
+    *   *Kitronik cells $\le 16.0\text{ mm}$ length:* `UNVERIFIED` / **NONE FOUND**.
+
+---
+
+### 7.7 Marketplace Listings (Amazon, AliExpress, eBay)
+
+This section evaluates single-unit marketplace listings and addresses the critical engineering distinction between bare pouch dimensions and total pack dimensions including the Protection Circuit Module (PCM).
+
+#### 7.7.1 Amazon
+
+*   Searches attempted on 2026-09-17:
+    *   `site:amazon.com "501015" "3.7V" "50mAh"`
+    *   `site:amazon.com "501012" "3.7V" "battery"`
+    *   `site:amazon.com "401012" "3.7V" "battery"`
+*   *Result:* `UNVERIFIED` / **ZERO PRODUCT LISTINGS FOUND**. Amazon US does not list bare miniature LiPo pouch cells in the 501015, 501012, or 401012 form factors.
+
+#### 7.7.2 AliExpress
+
+*   **Candidate A: Model `501012` (TWS Earphone Replacement Battery):**
+    *   Source: AliExpress listings ([aliexpress.com](https://www.aliexpress.com), read 2026-09-17).
+    *   Stated nominal cell dimensions: **5.0 mm (Thickness) × 10.0 mm (Width) × 12.0 mm (Length)**.
+    *   Capacity: **35 mAh to 45 mAh** (verbatim: "40mAh", "3.7V").
+    *   Nominal voltage: **3.7 V** (charging cutoff 4.2 V).
+    *   **Does dimension include PCM?**
+        *   **YES.** The bare pouch body is 12.0 mm long. The integrated top PCM and Kapton wrap add 1.5 mm to 2.0 mm, resulting in a total assembled pack length of **13.5 mm to 14.5 mm (max 15.0 mm)**.
+        *   *Envelope verification:* **14.5 mm (L) $\le$ 16.0 mm, 10.0 mm (W) $\le$ 10.5 mm, 5.0 mm (T) $\le$ 5.2 mm**. Fits completely inside the required envelope.
+    *   Terminals: Flying leads (red/black wire, stripped ends).
+    *   Price: **$2.00 to $4.50 USD** per unit (available in single units and multi-packs).
+    *   Displayed stock: In stock across multiple active store listings.
+*   **Candidate B: Model `501015`:**
+    *   Source: AliExpress listings ([aliexpress.com](https://www.aliexpress.com), read 2026-09-17).
+    *   Stated nominal dimensions: **5.0 mm (Thickness) × 10.0 mm (Width) × 15.0 mm (Length)**.
+    *   Capacity: **50 mAh**.
+    *   **Does dimension include PCM?**
+        *   **NO.** The nominal "15 mm" dimension represents the bare cell foil body. As demonstrated by manufacturer engineering drawings (Section 7.8), the addition of an end-mounted PCM increases total pack length to **17.0 mm to 17.5 mm**, which **fails the 16.0 mm limit**.
+
+#### 7.7.3 eBay
+
+*   **Candidate A: Model `501012` (3.7V 40mAh LiPo Battery):**
+    *   Source: eBay listings ([ebay.com](https://www.ebay.com), read 2026-09-17).
+    *   Verbatim quote from listing specifications: "approx 13.0mm x 10.1mm x 5.1mm".
+    *   Verbatim quote: "Capacity: Approximately 40mAh".
+    *   Nominal voltage: **3.7 V**.
+    *   **Does dimension include PCM?**
+        *   **YES.** The 13.0 mm stated length represents the fully assembled pack including the top protection board.
+        *   *Envelope verification:* **13.0 mm (L) $\le$ 16.0 mm, 10.1 mm (W) $\le$ 10.5 mm, 5.1 mm (T) $\le$ 5.2 mm**. Fully clears the 16.0 mm length limit with 3.0 mm margin.
+    *   Terminals: 2-wire flying leads.
+    *   Price: **$5.00 to $8.00 USD**, in stock with immediate dispatch.
+*   **Candidate B: Model `501015` (3.7V 50mAh LiPo Battery):**
+    *   Source: eBay item `183480766633` ([ebay.com/itm/183480766633](https://www.ebay.com/itm/183480766633), read 2026-09-17).
+    *   Stated dimensions: "5mm x 10mm x 15mm".
+    *   Capacity: "50mAh".
+    *   **Does dimension include PCM?**
+        *   **NO.** Listings quoting "15mm" cite the nominal cell code. With PCM installed, physical length measures **17.0 mm**, failing the 16.0 mm length constraint.
+    *   Price: **$6.00 to $9.00 USD**, in stock.
+
+---
+
+### 7.8 Manufacturer Sample Routes (Direct Engineering Channels)
+
+Investigation of direct manufacturer datasheets to verify exact physical dimensions with and without PCM:
+
+*   **DNK Power Co., Ltd. (`DNK501015`):**
+    *   Source: DNK Power technical datasheet `DNK501015` ([dnkpower.com/product/dnk501015-3-7v-50mah-lipo-battery-pack/](https://www.dnkpower.com/product/dnk501015-3-7v-50mah-lipo-battery-pack/), read 2026-09-17).
+    *   Verbatim quote: "Dimensions: 17 × 10 × 5.0 mm"
+    *   Verbatim quote: "Length: 17 mm", "Width: 10 mm", "Thickness: 5.0 mm"
+    *   Verbatim quote: "Nominal Capacity: 50mAh"
+    *   Verbatim quote: "Equipped with a PCM (Protection Circuit Module)"
+    *   *Engineering Evidence:* DNK Power's datasheet definitively proves that a 501015 pack **with PCM measures 17.0 mm long**. The PCM circuit board and solder joints add 2.0 mm beyond the 15.0 mm bare pouch body.
+*   **Benzo Energy Co., Ltd. (`BZ 501015`):**
+    *   Source: Benzo Energy specification sheet `BZ 501015` ([benzoenergy.com](https://benzoenergy.com), read 2026-09-17).
+    *   Verbatim quote: "5mm x 10mm x 17mm"
+    *   Verbatim quote: "Capacity: 50mAh"
+    *   *Engineering Evidence:* Benzo Energy also specifies the finished pack length with PCM as **17 mm**.
+*   **Crazell (`501015`):**
+    *   Source: Crazell Product Specification `501015` ([crazell.com](https://crazell.com), read 2026-09-17).
+    *   Verbatim quote: "5.0mm (Thickness) x 10.0mm (Width) x 15.0mm (Length)"
+    *   Verbatim quote: "Capacity: 50mAh"
+    *   Note: Crazell lists the bare cell without PCM. Adding standard PCM hardware increases total assembly length to 17 mm.
+*   **Manufacturer Sourcing Procedure:**
+    *   Direct manufacturers (DNK Power, Benzo Energy, EPT Battery) do not offer instant credit-card cart checkout in single units. Procurement requires submitting an RFQ via website contact form. Engineering sample packs (typically 5 to 10 units) can be ordered with custom lead lengths, JST connectors, and verified PCM configurations with a 1 to 2 week sample lead time.
+
+---
+
+### 7.9 Summary Matrix: Cells Evaluated Against the $16.0 \times 10.5 \times 5.2\text{ mm}$ Envelope
+
+| Cell Model / Identification | Source / Seller | Stated Dimensions | Capacity | Does Length Include PCM? | Measured / Pack Length with PCM | Fits Envelope ($16.0 \times 10.5 \times 5.2\text{ mm}$)? | Availability & Unit Price |
+| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :--- |
+| **Model 501012** | eBay / AliExpress | **$5.1 \times 10.1 \times 13.0\text{ mm}$** (or $5.0 \times 10.0 \times 12.0\text{ mm}$ bare) | **40 mAh** (35–45 mAh) | **YES** | **13.0 mm to 14.5 mm** | **YES — PASSES WITH MARGIN** | In stock on eBay/AliExpress, **$4.00–$8.00 USD** |
+| **Model 401012** | AliExpress | **$4.0 \times 10.0 \times 12.0\text{ mm}$** bare | **30 to 35 mAh** | NO (bare) / ~14.0 mm pack | **14.0 mm** | **YES — PASSES** | In stock on AliExpress, **$3.50–$6.00 USD** |
+| **Model 501015** | DNK Power / Benzo / eBay | **$5.0 \times 10.0 \times 17.0\text{ mm}$** with PCM | **50 mAh** | **YES** (17.0 mm) | **17.0 mm to 17.5 mm** | **NO — FAILS ON LENGTH** (exceeds 16.0 mm by 1.0–1.5 mm) | In stock on eBay ($6–$9) / RFQ at DNK Power |
+| **TinyCircuits ASR00035** | TinyCircuits | **$30.0 \times 20.0 \times 9.5\text{ mm}$** | 500 mAh | YES | 30.0 mm | **NO — FAILS ALL AXES** | In stock, $9.95 USD |
+| **TinyCircuits ASR00007** | TinyCircuits | **$19.5 \times 25.5 \times 4.5\text{ mm}$** | 150 mAh | YES | 25.5 mm | **NO — FAILS LENGTH & WIDTH** | In stock, $6.95 USD |
+| **PowerStream GM-NM300910**| PowerStream | **$3.0 \times 9.0 \times 10.0\text{ mm}$** | 12 mAh | YES | 10.0 mm | **NO — FAILS CAPACITY** (< 30 mAh) | Catalog listing, quotation |
+| **SparkFun PRT-25270 (DTP301120)** | SparkFun | **$3.2 \times 11.5 \times 22.0\text{ mm}$** | 40 mAh | YES | 22.0 mm | **NO — FAILS LENGTH & WIDTH** | In stock, $7.39 USD |
+| **Jauch LP501218JH** | DigiKey | **$5.4 \times 12.5 \times 20.0\text{ mm}$** | 60 mAh | YES | 20.0 mm | **NO — FAILS LENGTH, WIDTH, THICKNESS** | In stock, $10.77 USD |
+| **Renata ICP501421PS** | Mouser | **$22.5 \times 14.1 \times 5.2\text{ mm}$** | 115 mAh | YES | 22.5 mm | **NO — FAILS LENGTH & WIDTH** | Mouser catalog |
+| **Seeed 301525** | Seeed Studio | **$3.0 \times 15.0 \times 25.0\text{ mm}$** | 100 mAh | YES | 25.0 mm | **NO — FAILS LENGTH & WIDTH** | In stock, $5.90 USD |
+
