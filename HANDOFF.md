@@ -145,11 +145,14 @@ Outside those:
 1. `lane/w1` diverged from `main` at `7df78b5` with 864 SVGs (109 MB,
    pushed). Q56: nobody deletes it but Rolf; round 6 work is on `lane/w1-r6`.
 2. The answer sheet (artifact `https://claude.ai/artifact/5e9H1dC5CFHggtiaYtDDeA`)
-   still shows v2; a v3 with Q30, Q33, Q34, Q36, Q38, Q41, Q46/Q53, Q47,
-   Q67 in plain words is owed now that round 5 landed.
-3. The vault holds rounds 1 to 4 and plan v2's sign-off (page
-   `Wiki/projects/Elicio.md`, vault main `c21a0b9`); round 5's result is
-   not filed back yet.
+   is at version 3 (22:40): M1, body 9.0, ceiling, look and colour,
+   China or not and ship-to, the charging rule, priorities, module route,
+   probes owned, tools on the Mac, anything else. Answers land in db doc
+   `answers/rolf` (ArtifactData `get`), merged with his earlier fields;
+   `sheet: 3` marks a v3 save.
+3. The vault holds rounds 1 to 5 (page `Wiki/projects/Elicio.md`, stub
+   `raw/research/2026-09-17-elicio-round-5-board-packing-firmware.md`,
+   vault main `e67a685`); round 6 is filed after its merge.
 4. The HANDOFF checker treats any backticked path as a claim; nonexistent
    ones need "(expected)" or "(absent on main)" on the same line.
 5. Order 1 (the fit gauge) is not ordered and will not be: plan v2 is one
@@ -161,8 +164,7 @@ Outside those:
 - Idle until the six `DONE` pushes (or WAITING/BLOCKED/GONE); on each,
   check the report file and a clean worktree, read the report; when all
   six are in, open the round 6 reviewer as described under In flight, then
-  checkpoint. Between pushes: answer sheet v3 and the vault file-back of
-  round 5.
+  checkpoint.
 
 ## Traps
 
