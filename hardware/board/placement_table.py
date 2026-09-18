@@ -87,11 +87,10 @@ def iter_markdown_tables(text: str) -> list[tuple[str, list[str], list[list[str]
 
 
 def _is_folded_table(heading: str, header: list[str]) -> bool:
-    blob = heading + " " + " ".join(header)
-    if "folded" in blob or "shell site" in blob or "shell-site" in blob:
+    if header and header[0] in {"pad", "net"}:
         return True
     keys = set(header)
-    return "u" in keys and "s" in keys and "y" in keys
+    return "y" in keys and "u" in keys and "s" in keys and "rot" not in keys
 
 
 def _is_keepout_table(heading: str, header: list[str]) -> bool:
@@ -102,6 +101,8 @@ def _is_keepout_table(heading: str, header: list[str]) -> bool:
         return True
     keys = set(header)
     if {"u0", "s0", "u1", "s1"} <= keys:
+        return True
+    if "keep" in keys and "drill" in keys:
         return True
     return "radius" in keys or ("clearance" in keys and "diameter" in keys)
 
@@ -193,7 +194,7 @@ def parse_j4_keepouts(text: str) -> list[KeepoutZone]:
             name = (rec.get("name") or rec.get("hole") or rec.get("keepout") or rec.get("ref") or "j4_holes").strip()
             if not name or name.lower() in {"name", "hole", "keepout", "ref"}:
                 continue
-            layers = (rec.get("layers") or rec.get("side") or "both").strip().lower()
+            layers = (rec.get("layers") or rec.get("sides") or rec.get("side") or "both").strip().lower()
             if {"u0", "s0", "u1", "s1"} <= keys:
                 u0, s0, u1, s1 = (float(rec[k]) for k in ("u0", "s0", "u1", "s1"))
                 zones.append(
@@ -210,7 +211,9 @@ def parse_j4_keepouts(text: str) -> list[KeepoutZone]:
             s_raw = _coord(rec, "s", "y")
             if not u_raw or not s_raw:
                 continue
-            if rec.get("radius"):
+            if rec.get("keep"):
+                radius = float(rec["keep"]) / 2.0
+            elif rec.get("radius"):
                 radius = float(rec["radius"])
             else:
                 diameter = float(rec.get("diameter") or rec.get("drill") or 0.0)
@@ -224,7 +227,10 @@ def parse_j4_keepouts(text: str) -> list[KeepoutZone]:
 
 def forbids_back_copper(zone: KeepoutZone) -> bool:
     """True when the keep-out bans B.Cu footprints (J4 holes, both sides)."""
-    return zone.layers in BACK_LAYERS
+    blob = zone.layers.replace(" ", "")
+    if "b.cu" in blob:
+        return True
+    return blob in BACK_LAYERS
 
 
 def wants_back_copper(row: PlacementRow) -> bool:
