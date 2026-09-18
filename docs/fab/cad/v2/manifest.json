@@ -839,7 +839,7 @@
     "total_chord": 47.900523407445874
   },
   "closure_passed": false,
-  "commit": "c3c11d8d500f60ee93a0102a75fbdcf29ff91ff6",
+  "commit": "c68d4b2839c9ebc031d8a04376656b290656e677",
   "contact_source": "interface II flex tabs under standoffs (WP11 turn 07)",
   "contact_stack": {
     "board_underside_y": 4.3,
@@ -2070,19 +2070,19 @@
   },
   "views": {
     "drawing.pdf": {
-      "bytes": 74230,
-      "sha256": "ac177523dfa191f9f03bdef08e444f01538c27e9457f0c14fdb8da1cd4c0fd7e"
+      "bytes": 74229,
+      "sha256": "c59de952f844dee90a7ced70626a49ad4fb1f8166d8bd7823df0941d4635ff6d"
     },
     "render_lateral.png": {
-      "bytes": 120434,
-      "sha256": "7053600f5fdce9db3913e3c8de275e34eee167bfd5edf8bc37ad4e02ba29db19"
+      "bytes": 120419,
+      "sha256": "a0634fb86354644911264b2b824a8214cdbe2a9c7cc253f71f2751c094a1a945"
     },
     "render_medial.png": {
-      "bytes": 124587,
-      "sha256": "bef12b69e528c4164714a6e17a12896001054c1a94b2835a554fe64217f45308"
+      "bytes": 124685,
+      "sha256": "640baef1cc258399dc03613cfcb07ed24bef8d6562c87332040bcef3d4f6e2c4"
     }
   },
-  "views_commit": "c3c11d8d500f60ee93a0102a75fbdcf29ff91ff6",
+  "views_commit": "c68d4b2839c9ebc031d8a04376656b290656e677",
   "views_hash_rule": "SHA-256 of raw file bytes. PNG tIME/tEXt/zTXt/iTXt/eXIf rewritten; Creation Time text and PDF CreationDate/ModDate/ID pinned to 2026-09-16T00:00:00Z. Same pin as the solids hash_rule timestamp.",
   "walls": {
     "anterior side wall": 1.5,
