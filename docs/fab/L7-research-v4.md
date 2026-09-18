@@ -4,6 +4,21 @@ This document provides verified technical facts, catalog records, manufacturer s
 
 Every numerical specification and quantity carries its source page URL, the date read (2026-09-17), and a verbatim quote of the source sentence, or the tag `UNVERIFIED` with the search query attempted.
 
+**Review r6 page re-check (2026-09-17/18).** I re-read the pages below. Where a line here disagrees, this block wins and the line carries a `Review r6` note.
+
+| Line | Finding |
+|---|---|
+| §1.3 ST-LINK V3MINIE | Confirmed: "1.65 V to 3.60 V", $25.51, in stock at DigiKey |
+| §1.3 Black Magic Probe | Range confirmed ("1.7V up to 5V"). Price on 1bitsquared.com today $76.90, not $74.95 |
+| §1.1 nRF52840 absolute maximum | Not re-read: infocenter and docs.nordicsemi.com returned 403, the Mouser PDF timed out. `board-v2.md` §4 carries the 2.1 V limit from its own read |
+| §2 Jauch DigiKey URL | The link resolves to a Siemens motor starter, not LP501218JH. The Jauch price and stock lines are `UNVERIFIED` |
+| §3.1 stiffener fee quotes | Paraphrases. The page says: "For prototype orders, when there are 4 or more stiffeners on the board, an extra fee is required." (`board-v2.md` §18) |
+| §3.1 FR4 thickness list | The 0.15 / 0.3 / 0.5 entries were not on the page I could load; `board-v2.md` §12 lists FR4 0.1 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.2 / 1.6. The 0.3 entry is `UNVERIFIED` |
+| §3.2 fixture fee $23.57 | Conflicts with `board-v2.md` §18 ($24.63 each, $49.25 for two, pcb-assembly-price page). The sheets use §18 |
+| §4.1 LCSC codes | `board-v2.md` §13 re-checked each code on the parts pages; most of this table's replacement codes do not resolve to the stated part. Use §13 |
+| §4.2 ADS1292 quote | Paraphrase. SBAS502C p. 66: "Each ADS1291, ADS1292, and ADS1292R supply should be bypassed with 10-μF and a 0.1-μF solid ceramic capacitors." Same values, Q68 stands |
+| §7.7 501012 "includes PCM" | The lane's inference. The verbatim quotes are only "approx 13.0mm x 10.1mm x 5.1mm" and "Approximately 40mAh". Neither 501012 line names a listing (item number or URL), and no listing carries a drawing (plan v2 R2, §9) |
+
 ---
 
 ## 1. First-Load Probe (Q64)
@@ -59,7 +74,7 @@ Source: Nordic Semiconductor nRF52840 Product Specification v1.7 ([infocenter.no
 | Probe | Target Voltage Range / $V_{TRef}$ Statement | Licence Terms for Private Prototype | Price & Stock (US Seller, 2026-09-17) | macOS Apple Silicon Support |
 | :--- | :--- | :--- | :--- | :--- |
 | **SEGGER J-Link EDU Mini** | **1.2 V to 5 V**<br>Verbatim quote: "Target interface voltage (VIF) 1.2 V ... 5 V"<br>Verbatim quote: "Current drawn from target voltage sense pin (VTRef) < 170 µA"<br>Verbatim quote: "Target supply voltage: N/A" | Non-commercial educational use only.<br>Verbatim quote: "You may use the J-Link EDU for non profit educational purposes only! Non-profit educational purposes means that you may not use the J-Link EDU and its J-Link software: direct or indirect in or for a profit organization or business purposes or other undertaking intended for profit; direct or indirect in any other commercial environment (e.g. office); to develop, debug, program or manufacturer a commercial product (or parts thereof); to use it to either earn money or reasonably anticipate the receipt of monetary gain from it."<br>Verbatim quote (Adafruit 3571): "As long are your intentions are non-commercial, the J-Link EDU is an excellent choice!" | Adafruit (Product ID 3571):<br>**$75.95 USD**<br>**In stock**<br><br>DigiKey (Part 899-8.08.91-ND):<br>Discontinued (historical $73.92 USD) | **Yes, native**.<br>SEGGER distributes native "J-Link Software and Documentation Pack for macOS 64-bit Apple Silicon" (.pkg installer). |
-| **Black Magic Probe V2.3** (1BitSquared) | **1.7 V to 5 V**<br>Verbatim quote: "wide target IO voltage range support of 1.7V up to 5V enabled by VREF-referenced level shifters"<br>Provides optional software-controlled 3.3 V target power. | Open Source Hardware (CERN OHL) & Firmware (GPL-3.0). Unrestricted for private or commercial development. | 1BitSquared ([1bitsquared.com](https://1bitsquared.com/products/black-magic-probe)):<br>**$74.95 USD**<br>**In stock** (orderable) | **Yes, native**.<br>Driverless standard USB CDC ACM serial interface. Compatible with standard macOS arm64 GDB, LLDB, and OpenOCD toolchains. |
+| **Black Magic Probe V2.3** (1BitSquared) | **1.7 V to 5 V**<br>Verbatim quote: "wide target IO voltage range support of 1.7V up to 5V enabled by VREF-referenced level shifters"<br>Provides optional software-controlled 3.3 V target power. | Open Source Hardware (CERN OHL) & Firmware (GPL-3.0). Unrestricted for private or commercial development. | 1BitSquared ([1bitsquared.com](https://1bitsquared.com/products/black-magic-probe)):<br>**$74.95 USD**<br>**In stock** (orderable)<br>Review r6: $76.90 on the page today | **Yes, native**.<br>Driverless standard USB CDC ACM serial interface. Compatible with standard macOS arm64 GDB, LLDB, and OpenOCD toolchains. |
 | **Raspberry Pi Debug Probe** | Fixed **3.3 V nominal**.<br>Verbatim quote: "The probe operates at 3.3V nominal I/O voltage."<br>Verbatim quote: "While designed for use with Raspberry Pi products, the Debug Probe provides standard UART and CMSIS-DAP interfaces over USB, so it can also be used to debug any Arm-based microcontroller that provides an SWD port with 3.3V I/O"<br>**No $V_{TRef}$ level shifting.** Cannot level shift to 1.8 V. Direct connection to an unconfigured target violates the 2.1 V absolute maximum rating. | Open Hardware & Firmware (BSD 3-Clause). Unrestricted. | Adafruit (Product ID 5699):<br>**$12.00 USD**<br>**In stock**<br><br>DigiKey (Part 2648-SC0889-ND):<br>**$12.00 USD**<br>**In stock** | **Yes, native**.<br>USB CMSIS-DAP interface works with native macOS arm64 OpenOCD and pyOCD. |
 | **STMicroelectronics ST-LINK V3 MINIE** (`STLINK-V3MINIE`) | **1.65 V to 3.60 V**<br>Verbatim quote: "1.65 V to 3.60 V application voltage support"<br>Senses target voltage via STDC14 pin 1; does not power target. | Proprietary firmware, unrestricted for development on supported ARM Cortex-M microcontrollers. | DigiKey (Part 497-STLINK-V3MINIE-ND):<br>**$25.51 USD**<br>**In stock** | **Yes, native**.<br>Supported on macOS Apple Silicon via STM32CubeProgrammer, pyOCD, and OpenOCD. |
 
@@ -115,13 +130,14 @@ Sources:
     *   Verbatim quote (Stacked Stiffeners): "If you need to stack stiffeners in the same location, there is an additional cost of $8.14 + $24.44/m² for every extra stiffener."
 *   **Stiffener Materials and Thicknesses Offered:**
     *   *Polyimide (PI):* **0.05 mm**, **0.075 mm**, **0.1 mm**, **0.15 mm**, **0.2 mm**, **0.225 mm**, **0.25 mm**.
-    *   *FR4:* **0.1 mm**, **0.15 mm**, **0.2 mm**, **0.3 mm**, **0.4 mm**, **0.5 mm**, **0.6 mm**, **0.8 mm**, **1.0 mm**, **1.2 mm**, **1.6 mm**.
+    *   *FR4:* **0.1 mm**, **0.15 mm**, **0.2 mm**, **0.3 mm**, **0.4 mm**, **0.5 mm**, **0.6 mm**, **0.8 mm**, **1.0 mm**, **1.2 mm**, **1.6 mm**. Review r6: 0.15 / 0.3 / 0.5 `UNVERIFIED`; see the block at the top.
     *   *Stainless Steel (Metal):* **0.1 mm**, **0.2 mm**, **0.3 mm**.
     *   *3M Tape:* **3M467 (0.05 mm)**, **3M9080 (0.15 mm)**.
 
 ### 3.2 Flex Fixture Fee
 
 *   Verbatim quote: "There is an additional fixture (tooling) fee for flex PCB assembly, which is approximately $23.57 per fixture (quantity required depends on production volume)"
+*   Review r6: conflicts with `board-v2.md` §18 ($24.63 each). The order sheets use §18.
 
 ### 3.3 Consignment (Customer-Supplied Parts) Page Fees
 
@@ -155,6 +171,8 @@ Sources:
 
 ### 4.1 LCSC Resolution for `board-v2.md` §13 BOM Lines
 
+Review r6: superseded by `board-v2.md` §13, which re-checked each code on its page. Do not take codes from this table.
+
 Source: LCSC Electronics ([lcsc.com](https://www.lcsc.com), read 2026-09-17) and JLCPCB Parts Library ([jlcpcb.com/parts](https://jlcpcb.com/parts), read 2026-09-17).
 
 | Ref | MPN / Description | `board-v2.md` §13 Entry | Verified LCSC Part # | JLCPCB Tier | Displayed Stock (2026-09-17) | Unit Price (Qty 1–10) | Status / Notes |
@@ -178,6 +196,7 @@ Source: Texas Instruments ADS1292 Datasheet SBAS502C ([ti.com/lit/ds/symlink/ads
 
 *   Section 11.1 "Power Supply Recommendations":
     *   Verbatim quote: "Each supply pin (AVDD and DVDD) should be bypassed using both a 10-µF and a 0.1-µF ceramic capacitor."
+    *   Review r6: that is a paraphrase. SBAS502C p. 66 reads "Each ADS1291, ADS1292, and ADS1292R supply should be bypassed with 10-μF and a 0.1-μF solid ceramic capacitors."
     *   Verbatim quote: "To achieve the best performance, it is recommended that the capacitors be placed as close to the device as possible."
 
 ### 4.3 BQ25100 Charger Sentences
@@ -415,6 +434,7 @@ This section evaluates single-unit marketplace listings and addresses the critic
     *   Nominal voltage: **3.7 V**.
     *   **Does dimension include PCM?**
         *   **YES.** The 13.0 mm stated length represents the fully assembled pack including the top protection board.
+        *   Review r6: inference, not a quote from the listing; no item number is given.
         *   *Envelope verification:* **13.0 mm (L) $\le$ 16.0 mm, 10.1 mm (W) $\le$ 10.5 mm, 5.1 mm (T) $\le$ 5.2 mm**. Fully clears the 16.0 mm length limit with 3.0 mm margin.
     *   Terminals: 2-wire flying leads.
     *   Price: **$5.00 to $8.00 USD**, in stock with immediate dispatch.
