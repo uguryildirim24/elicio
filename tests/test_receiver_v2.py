@@ -18,6 +18,7 @@ from elicio.receiver_v2 import (
     FRAME_CASES,
     LOADER_NAME,
     RAIL_CODE,
+    SAME_CRITERION,
     _meta,
     _sample_bytes,
     pack_ads_sample,
@@ -34,6 +35,7 @@ from elicio.receiver_v2 import (
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures" / "receiver_v2"
 BOARD_MD = ROOT / "docs" / "fab" / "board-v2.md"
+MONTAGE_MD = ROOT / "docs" / "fab" / "montage.md"
 PINS_H = ROOT / "firmware" / "src" / "board_pins.h"
 
 
@@ -234,6 +236,40 @@ class ReceiverV2Tests(unittest.TestCase):
             sidecar["same_criterion"]["3.7"] = "fail"
             sidecar_path.write_text(json.dumps(sidecar) + "\n", encoding="utf-8")
             self.assertEqual(_run(["receive-check", str(out)])[0], EXIT_SAME_CRITERION_FAILED)
+
+    def test_every_montage_section_8_line(self) -> None:
+        """Review r7: walk montage §8. "same criterion" lines stop (exit 1) when
+        scored fail; the revised lines 3.1–3.4 are not scored by this tool."""
+        text = MONTAGE_MD.read_text(encoding="utf-8")
+        section = text[text.index("## 8. Protocol v2 mapping"):]
+        end = section.find("\n## ", 1)
+        section = section if end < 0 else section[:end]
+        same, revised = [], []
+        for line in section.splitlines():
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) == 3 and cells[0].startswith("3."):
+                (same if cells[2].startswith("same criterion") else revised).append(cells[0])
+        self.assertEqual(tuple(same), SAME_CRITERION)
+        self.assertEqual(revised, ["3.1", "3.2", "3.3", "3.4"])
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "walk"
+            receive_packets(case_packets("normal"), out, "bench", "walk")
+            sidecar_path = out / "sidecar.json"
+            base = json.loads(sidecar_path.read_text(encoding="utf-8"))
+            self.assertEqual(check_session(out)["exit_code"], 0)
+            for key, value, expected in (
+                *((k, "fail", EXIT_SAME_CRITERION_FAILED) for k in same),
+                *((k, "pass", 0) for k in same),
+                *((k, "not_scored", 0) for k in same),
+                *((k, "fail", 0) for k in revised),
+            ):
+                with self.subTest(line=key, value=value):
+                    sidecar = json.loads(json.dumps(base))
+                    sidecar["same_criterion"][key] = value
+                    sidecar_path.write_text(json.dumps(sidecar) + "\n", encoding="utf-8")
+                    summary = check_session(out)
+                    self.assertEqual(summary["exit_code"], expected)
+                    self.assertEqual(_run(["receive-check", str(out)])[0], expected)
 
     def test_bleak_is_optional_for_the_fake_path(self) -> None:
         import elicio.receiver_v2 as mod
