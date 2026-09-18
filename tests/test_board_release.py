@@ -15,24 +15,16 @@ RELEASE = ROOT / "scripts" / "board" / "release.py"
 SCH = ROOT / "hardware" / "board" / "elicio-v2.kicad_sch"
 PCB = ROOT / "hardware" / "board" / "elicio-v2.kicad_pcb"
 
-PACKING = ROOT / "hardware" / "board" / "packing_5c_norec.md"
+PACKING = ROOT / "hardware" / "board" / "packing_v2_flat.md"
+
 
 def packing_section5_centres() -> dict[str, tuple[float, float]]:
-    """Named SMT centres from the vendored §5c no-receptacle pin table."""
-    text = PACKING.read_text(encoding="utf-8")
-    out: dict[str, tuple[float, float]] = {}
-    for line in text.splitlines():
-        if not line.startswith("|"):
-            continue
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if len(cells) < 5 or cells[0] in {"ref", "---"} or cells[0].startswith("---"):
-            continue
-        ref = cells[0]
-        try:
-            out[ref] = (float(cells[2]), float(cells[3]))
-        except ValueError:
-            continue
-    return out
+    """Named SMT centres from the vendored pin table v2 (flat coordinates)."""
+    sys.path.insert(0, str(ROOT / "hardware" / "board"))
+    from placement_table import parse_pin_table_v2
+
+    rows = parse_pin_table_v2(PACKING.read_text(encoding="utf-8"))
+    return {row.ref: (row.u, row.s) for row in rows}
 
 
 def kicad_missing_message() -> str:
@@ -140,14 +132,19 @@ class PackingAgreementTests(unittest.TestCase):
         self.assertNotIn("U5", packing)
         self.assertIn("P4", packing)
         self.assertIn("P5", packing)
+        self.assertAlmostEqual(packing["P4"][0], 37.47, places=2)
+        self.assertAlmostEqual(packing["P4"][1], 2.80, places=2)
+        self.assertAlmostEqual(packing["P5"][0], 30.05, places=2)
+        self.assertAlmostEqual(packing["P5"][1], 5.80, places=2)
         for ref, (px, py) in packing.items():
             if ref.startswith("H"):
                 continue
             self.assertIn(ref, found, ref)
             x, y = found[ref]
             dist = ((x - px) ** 2 + (y - py) ** 2) ** 0.5
+            limit = 0.1
             self.assertLessEqual(
-                dist, 0.1, f"{ref} pcb=({x},{y}) packing=({px},{py}) d={dist}"
+                dist, limit, f"{ref} pcb=({x},{y}) packing=({px},{py}) d={dist}"
             )
         self.assertIn("H1", found)
         self.assertIn("H2", found)
@@ -336,6 +333,25 @@ Pin table v2 flat
         self.assertAlmostEqual(zones[0].radius, 0.9906 / 2 + 0.20)
         self.assertAlmostEqual(zones[0].u, 16.25)
         self.assertAlmostEqual(zones[0].s, 22.06)
+
+    def test_vendored_v2_table_p4_p5_and_j4_keep_diameter(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import forbids_back_copper, parse_j4_keepouts, parse_pin_table_v2
+
+        text = PACKING.read_text(encoding="utf-8")
+        rows = {r.ref: r for r in parse_pin_table_v2(text)}
+        self.assertAlmostEqual(rows["P4"].u, 37.47)
+        self.assertAlmostEqual(rows["P4"].s, 2.80)
+        self.assertAlmostEqual(rows["P5"].u, 30.05)
+        self.assertAlmostEqual(rows["P5"].s, 5.80)
+        self.assertAlmostEqual(rows["P1"].s, 5.29)
+        self.assertAlmostEqual(rows["P2"].s, -5.81)
+        zones = parse_j4_keepouts(text)
+        self.assertEqual(len(zones), 3)
+        self.assertTrue(all(forbids_back_copper(z) for z in zones))
+        self.assertTrue(all(abs(2 * z.radius - 1.39) < 1e-6 for z in zones))
 
 
 if __name__ == "__main__":

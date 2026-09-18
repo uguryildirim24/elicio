@@ -1,16 +1,16 @@
 # Board v2 — schematic, G2/G4 records, release job
 
-Status: design record for WP12d. Not for order, quote or upload.
+Status: design record for WP12e. Not for order, quote or upload.
 Date: 2026-09-18.
 KiCad: 10.0.6 (`kicad-cli`).
-Interface: **II** (plan v2 §5.3 fallback). Packing §5c no-receptacle cell, width 22, chord 47.90, two sides, neck-end tabs (Q81–Q83). LID_Y 8.0. Standoff 3.0 mm on a 0.31 ring: board underside y 4.81, top y 5.32. Cell 501012 pack in series. Board width 22 mm body, island u 2.25–19.75, s 16.00–37.60.
+Interface: **II** (plan v2 §5.3 fallback). Packing pin table v2 (flat coordinates, `408a476`), width 22, chord 47.90, two sides, SIG/REF/CHARGE tabs (Q81–Q86). LID_Y 8.0. Standoff 3.0 mm on a 0.31 ring: board underside y 4.81, top y 5.32. Cell 501012 pack in series. Board width 22 mm body, island u 2.25–19.75, s 16.00–37.60.
 
 Project: `hardware/board/elicio-v2.kicad_pro`.
-The schematic drops J1 (USB-C) and U5 (USBLC6). Two RING_PAD tail pads P4 (VBUS) and P5 (GND) feed the existing P-FET inhibit and charger path. D1 PESD5V0L1UL stays on VBUS. The land is a 2-layer flex with two FR4 0.4 stiffeners and five ring pads (three EMG, two charge).
+The schematic drops J1 (USB-C) and U5 (USBLC6). Two RING_PAD charge pads P4 (VBUS) and P5 (GND) sit on the CHARGE tab (Q86 rib-slot fold). D1 PESD5V0L1UL stays on VBUS. The land is a 2-layer flex with two FR4 0.4 stiffeners and five ring pads (three EMG, two charge).
 
-Packing (u, s) = PCB (x, y). Named centres follow `hardware/board/packing_5c_norec.md` (copied from packing-v2.md §5c at `c6bd2fe`). R1–R3 sit on the island at the tab roots (Q79). J4 TC2030 sits on the leftover (Q80). Island holes at (13.45, 17.70) and (17.95, 17.70) (Q82). Neck-end strips SIG1 10.71 mm, SIG2 21.81 mm (Q83). Two-sided assembly: packing `side=bottom` rows are flipped to B.Cu.
+Packing (u, s) = PCB (x, y). Named centres follow `hardware/board/packing_v2_flat.md` (copied from packing-v2.md §5d at `408a476`). The folded-site table is the shell's and is not pinned. R1–R3 sit on the island at the tab roots (Q79). J4 TC2030 sits on the leftover (Q80). Island holes at (13.45, 17.70) and (17.95, 17.70) (Q82). SIG1/SIG2 strips leave the neck end to flat rings (5.90, 5.29) and (10.40, −5.81) (Q83, Q85). CHARGE rectangle centre (33.02, 4.30) 14.50 × 8.60 is part of the outline. Two-sided assembly: packing `side=bottom` rows are flipped to B.Cu.
 
-| Item | PCB centre (u, s) | §5c pin table | Size / note |
+| Item | PCB centre (u, s) | pin table v2 | Size / note |
 |---|---|---|---|
 | Board zone | u 2.25–19.75, s 16.00–37.60 | same | PI 0.11 + FR4 0.4 at parts. Rings are PI 0.11 + FR4 0.2 in packing; this Gerber has no ring FR4 (§12) |
 | Module U1 | (8.00, 29.35) rot 0° | (8.00, 29.35) | 10.50 × 15.50 × 2.3, length along s; process pose |
@@ -20,13 +20,16 @@ Packing (u, s) = PCB (x, y). Named centres follow `hardware/board/packing_5c_nor
 | TLV71330 U4 | (16.65, 34.80) | (16.65, 34.80) | island |
 | SW1 | (16.25, 4.45) | (16.25, 4.45) | lid, pocket island |
 | J3 bench | (26.11, 20.31) | (26.11, 20.31) | hang; pads Ø1.5 |
-| PESD D1 | (3.95, 16.75) | (3.95, 16.75) | VBUS TVS (already on the sheet) |
+| PESD D1 | (3.95, 17.15) | (3.95, 17.15) | VBUS TVS |
 | JST-SH J2 | (22.40, 10.93) | (22.40, 10.93) | pocket hang |
 | USB-C J1 | — | absent | Q81 until M1 ≥ 58.3 |
 | USBLC6 U5 | — | absent | Q81 with J1 |
-| Charge P4 | (0.75, 44.00) | (0.75, 44.00) | RING_PAD CHARGE_VBUS |
-| Charge P5 | (21.25, 44.00) | (21.25, 44.00) | RING_PAD CHARGE_GND |
-| TC2030 J4 | (16.25, 24.60) rot 90° | (16.25, 24.60) | leftover; keep-out is a board no-part zone |
+| SIG1 P1 | (5.90, 5.29) | (5.90, 5.29) | RING_PAD; flat strip end |
+| SIG2 P2 | (10.40, −5.81) | (10.40, −5.81) | RING_PAD; flat strip end |
+| REF P3 | (8.50, 43.00) | (8.50, 43.00) | RING_PAD; REF tab |
+| Charge P4 | (37.47, 2.80) | (37.47, 2.80) | RING_PAD CHARGE_VBUS; CHARGE tab |
+| Charge P5 | (30.05, 5.80) | (30.05, 5.80) | RING_PAD CHARGE_GND; CHARGE tab |
+| TC2030 J4 | (16.25, 24.60) rot 90° | (16.25, 24.60) | leftover; NPTH keep-out Ø1.39 on B.Cu |
 | H1 / H2 | (13.45, 17.70), (17.95, 17.70) | Q82 | Ø2.7, keep 3.30 |
 | R1–R3 220 kΩ | island tab roots | table | Q79 variant A |
 
@@ -348,12 +351,12 @@ Encoded in the board design settings, in `elicio-v2.kicad_pro`, and in `elicio-v
 | Region | Rule area | Contact-to-anything |
 |---|---|---|
 | Three tab strips and ring pads P1–P3 | `tabs` | 1.0 mm |
-| Tail pads P4, P5 | `tail_pads` | 1.0 mm (any net in the area) |
+| CHARGE rectangle and pads P4, P5 | `tail_pads` | 1.0 mm (any net in the area) |
 | Island (R1–R3 and the rest of the body) | none | **0.20 mm** (Contact netclass; ≥ 0.20 JLC flex) |
 
 Board minimum clearance stays **0.10 mm** (JLC 1 oz 4/4 mil). Custom rules cannot go below that floor. The Contact netclass is 0.20 mm so the island 0402 passes; the `.kicad_dru` file raises 1.0 mm inside `tabs` and `tail_pads`.
 
-J4 NPTH holes are a both-side keep-out named `j4_holes`: hole diameter plus the board hole clearance (0.20 mm). No B.Cu footprint or pad in that zone.
+J4 NPTH holes are a B.Cu keep-out Ø1.39 at the KiCad hole centres (drill 0.9906 mm plus 2 × 0.20 mm hole clearance). The keep-out allows J4's own pads so it does not DRC against the footprint. No B.Cu track or fill through those holes.
 
 ## 13. BOM (placed, in-BOM, not DNP)
 
@@ -442,26 +445,26 @@ Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.c
 
 ## 15. What DRC says
 
-Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md`.
+Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md` §9.
 
-WP12d placed from packing §5c no-receptacle width-22 two-sided (`c6bd2fe`). **0 tracks, 0 vias.** Freerouting 2.4.1 on OpenJDK 25 wrote a SES; import on a copy raised DRC from 56 to 374. The SES was discarded. **Order release is not green. `routed`: false.**
+WP12e placed from pin table v2 (`408a476`, `hardware/board/packing_v2_flat.md`). Flat outline: SIG1/SIG2 strips, REF tab, CHARGE rectangle. **0 tracks.** Freerouting 2.4.1 on OpenJDK 25 wrote a SES; import on a copy raised DRC from 2 to 317. The SES was discarded. **Order release is not green. `routed`: false.**
 
 Zero-track DRC on this land (`kicad-cli pcb drc --format json`, 2026-09-18):
 
 | Item | Result |
 |---|---|
-| DRC errors | 56 |
+| DRC errors | 2 |
 | DRC warnings | 0 |
 | Unconnected items | 146 |
 | Pads without a net | 0 |
 | pcb_tracks | 0 |
 | Vias | 0 |
 
-Error counts: 23 clearance (netclass Contact 1.0 mm vs 0402 pad gap on R1–R3, and vs U1 pads around P2), 15 solder_mask_bridge, 11 shorting_items (all P2 SIG2 ring at (10.40, 33.10) vs U1 pads — the SIG2 site sits under the module), 7 hole_clearance (J4 NPTH vs B.Cu 0402). Copper-to-edge 0 after a hang-outline nudge (J3 pad 3).
+Error counts: 1 hole_clearance, 1 solder_mask_bridge. Both are Pad 2 [GND] of R24 on B.Cu against a J4 NPTH. Copper-to-edge 0. No shorting_items. No Contact-clearance hit on island 0402 (Q84). P2 is at (10.40, -5.81), not under U1.
 
-**First structural reason DRC 0 cannot land:** P2 RING_PAD PTH at (10.40, 33.10) overlaps U1 pads on F.Cu. A router cannot separate stacked pads. Second: Contact 1.0 mm cannot sit on an 0402 (pad gap 0.48 mm). Third: J4 NPTH vs leftover B.Cu 0402.
+**First structural reason DRC 0 cannot land:** R24 pad 2 on B.Cu sits on J4 NPTH at (17.266, 22.06). KiCad's TC2030 at (16.25, 24.60) rot 90 puts two holes at s=22.06 (u 15.234 and 17.266) and one at (16.25, 27.14). Pin table v2 listed the pair at s=27.14. A move that clears the hole is 0.46 mm, past the 0.1 mm pin. R23 (+0.09 mm u) and R26 (-0.05 mm u) were nudged inside that pin; R24 was not.
 
-Freerouting **v2.4.1** on OpenJDK 25 (`~/.local/opt/freerouting/freerouting-2.4.1.jar`): 8 auto-route passes, 75.86 s, SES 22813 bytes, 81 unrouted / 50 router violations. Copy import: 275 tracks, 17 vias, 374 DRC errors. Owned PCB stays un-shorted.
+Freerouting **v2.4.1** on OpenJDK 25 (`~/.local/opt/freerouting/freerouting-2.4.1.jar`): 8 auto-route passes, 75.47 s, SES 22585 bytes, 75 unrouted / 17 router violations. Copy import: 268 tracks, 12 vias, 317 DRC errors, 75 unconnected, 0 shorts. Owned PCB stays un-shorted.
 
 `release.py --routed` fails closed on DRC errors, unconnected items, and no tracks (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
 
@@ -473,7 +476,7 @@ Freerouting **v2.4.1** on OpenJDK 25 (`~/.local/opt/freerouting/freerouting-2.4.
 
 `scripts/board/release.py` runs ERC, DRC, JLC-column BOM, JLC CPL (the BOM's designators, SMD and the THT header J3; review r6), gerbers+drill, STEP, and `release/summary.json`. Non-zero exit on any ERC error, any missing output, or a BOM part without a CPL row; with `--routed`, also on DRC errors, unconnected items, pads without a net, or no tracks.
 
-`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks == 0, and named SMT centres within 0.1 mm of `packing_5c_norec.md`. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
+`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks == 0, and named SMT centres within 0.1 mm of `packing_v2_flat.md`. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
 
 ## 18. Assembler consequences and C7 (quote only)
 
@@ -519,8 +522,8 @@ Packing SW1 centre is (16.25, 4.45) on the pocket island.
 ## 19. Needs a decision
 
 1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Cell is **501015** with a 100 ± 3 mm harness (**NOT_MEASURED**).
-2. **SIG1/SIG2 unfold** — Gerber rings are off the island; packing XY is the folded site. WP14 must fold them before the cell is fitted.
-3. **Order route** — `--routed` is fail-closed: P2 sits under U1 on this §5c table; Contact 1.0 mm vs 0402; J4 NPTH vs B.Cu. Packing must move P2 off the module courtyard before a router can reach DRC 0.
+2. **SIG1/SIG2/CHARGE unfold** — Gerber rings are the flat sites. WP14 folds them onto the shell sites (rib-slot for CHARGE, Q86).
+3. **Order route** — `--routed` is fail-closed: R24 on B.Cu sits on a J4 NPTH. The pin-table-v2 keep-out XY does not match the KiCad TC2030 at rot 90. Clearing R24 needs a 0.46 mm move, past the 0.1 mm pin. Packing must keep B.Cu pads out of the real hole sites.
 4. **3.3 V probe vs 1.8 V first-load** — Q64: this board cannot set REGOUT0 through a 3.3 V probe. WP17b kit.
 5. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
 6. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.

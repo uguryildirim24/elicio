@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Place elicio-v2 from packing §5c (no receptacle), sync nets, save.
+"""Place elicio-v2 from pin table v2 (flat coordinates), sync nets, save.
 
-WP12d. Packing (u, s) = PCB (x, y). Width 22 island. No maze unless --route-only.
+WP12e. Packing (u, s) = PCB (x, y). Flat pattern with SIG/REF/CHARGE tabs.
 """
 from __future__ import annotations
 
@@ -23,7 +23,6 @@ from placement_table import (  # noqa: E402
     PlacementRow,
     parse_j4_keepouts,
     parse_pin_table_v2,
-    parse_placement_markdown,
     wants_back_copper,
 )
 
@@ -31,8 +30,8 @@ ROOT = Path(__file__).resolve().parents[2]
 BOARD_DIR = ROOT / "hardware" / "board"
 KICAD_FP = Path("/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints")
 LOCAL_FP = BOARD_DIR / "lib" / "elicio.pretty"
-TABLE = BOARD_DIR / "packing_5c_norec.md"
-V2_TABLE = BOARD_DIR / "packing_v2_flat.md"
+TABLE = BOARD_DIR / "packing_v2_flat.md"
+V2_TABLE = TABLE
 CONTACT_ISLAND_CLEARANCE = 0.20
 TAB_RULE_HALF = 3.20
 JAVA = Path("/opt/homebrew/opt/openjdk@25/bin/java")
@@ -46,22 +45,31 @@ POCKET_S0, POCKET_S1 = 1.35, 16.00
 J2_HANG_S0, J2_HANG_S1 = 7.40, 14.40
 HANG_U1 = 33.20
 HANG_S0, HANG_S1 = 16.00, 26.70
-NECK_FOLD_S0 = 14.40
 TAB_STRIP = 2.5
 TAB_CAP_R = 3.2
 HOLES = ((13.45, 17.70), (17.95, 17.70))
-SIG1_SITE = (5.90, 22.00)
-SIG2_SITE = (10.40, 33.10)
+SIG1_ATTACH = (5.90, 16.00)
+SIG2_ATTACH = (10.40, 16.00)
+REF_ATTACH = (8.50, 37.60)
+SIG1_SITE = (5.90, 5.29)
+SIG2_SITE = (10.40, -5.81)
 REF_SITE = (8.50, 43.00)
-P4_SITE = (0.75, 44.00)
-P5_SITE = (21.25, 44.00)
-# Neck-end fold strips (Q83): 2.5 mm at the island low-s edge.
-SIG1_FOLD_U = SIG1_SITE[0]
-SIG2_FOLD_U = SIG2_SITE[0]
+P4_SITE = (37.47, 2.80)
+P5_SITE = (30.05, 5.80)
+CHARGE_CX, CHARGE_CY = 33.02, 4.30
+CHARGE_WU, CHARGE_WS = 14.50, 8.60
+CHARGE_U0, CHARGE_U1 = CHARGE_CX - CHARGE_WU / 2, CHARGE_CX + CHARGE_WU / 2
+CHARGE_S0, CHARGE_S1 = CHARGE_CY - CHARGE_WS / 2, CHARGE_CY + CHARGE_WS / 2
 # U1 process pose keep-out 12.4 × 3.8 at the high-s antenna end.
 RF_BOX = (2.25, 33.80, 14.20, 37.60)
 J4_KEEP = (14.25, 21.10, 18.25, 28.10)
 SKIP_REFS = {"J1", "U5"}
+# Smallest B.Cu nudges that stay inside the 0.1 mm pin. R24 still hits a J4 hole.
+HOLE_NUDGE = {
+    "R23": (0.09, 0.0),
+    "R26": (-0.05, 0.0),
+}
+HOLE_REFS = {"H1", "H2"}
 RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
 
 LIBS = {
@@ -214,12 +222,27 @@ def add_drc_rule_area(board, x0, y0, x1, y1, name) -> None:
 
 
 def add_q84_contact_areas(board) -> None:
-    """tabs = three strips plus P1–P3 rings; tail_pads = P4 and P5."""
+    """tabs = three strips plus P1–P3 rings; tail_pads = P4, P5 and CHARGE rect."""
     hw = TAB_STRIP / 2
     strips = (
-        (SIG1_FOLD_U - hw, NECK_FOLD_S0, SIG1_FOLD_U + hw, BOARD_S0),
-        (SIG2_FOLD_U - hw, NECK_FOLD_S0, SIG2_FOLD_U + hw, BOARD_S0),
-        (REF_SITE[0] - hw, BOARD_S1, REF_SITE[0] + hw, REF_SITE[1] + TAB_RULE_HALF),
+        (
+            SIG1_SITE[0] - hw,
+            min(SIG1_SITE[1], SIG1_ATTACH[1]) - TAB_RULE_HALF,
+            SIG1_SITE[0] + hw,
+            max(SIG1_SITE[1], SIG1_ATTACH[1]),
+        ),
+        (
+            SIG2_SITE[0] - hw,
+            min(SIG2_SITE[1], SIG2_ATTACH[1]) - TAB_RULE_HALF,
+            SIG2_SITE[0] + hw,
+            max(SIG2_SITE[1], SIG2_ATTACH[1]),
+        ),
+        (
+            REF_SITE[0] - hw,
+            min(REF_SITE[1], REF_ATTACH[1]),
+            REF_SITE[0] + hw,
+            max(REF_SITE[1], REF_ATTACH[1]) + TAB_RULE_HALF,
+        ),
     )
     for x0, y0, x1, y1 in strips:
         add_drc_rule_area(board, x0, y0, x1, y1, "tabs")
@@ -227,6 +250,7 @@ def add_q84_contact_areas(board) -> None:
         add_drc_rule_area(
             board, cx - TAB_RULE_HALF, cy - TAB_RULE_HALF, cx + TAB_RULE_HALF, cy + TAB_RULE_HALF, "tabs"
         )
+    add_drc_rule_area(board, CHARGE_U0, CHARGE_S0, CHARGE_U1, CHARGE_S1, "tail_pads")
     for cx, cy in (P4_SITE, P5_SITE):
         add_drc_rule_area(
             board,
@@ -239,13 +263,18 @@ def add_q84_contact_areas(board) -> None:
 
 
 def add_j4_both_side_keepout(board) -> None:
-    """NPTH diameter plus board hole clearance; no B.Cu footprint or pad."""
+    """NPTH keep-out Ø1.39 on B.Cu at the real hole centres; J4 pads allowed."""
+    keep_r = 1.39 / 2.0
+    if TABLE.exists():
+        parsed = parse_j4_keepouts(TABLE.read_text())
+        if parsed:
+            keep_r = parsed[0].radius
     j4 = next((fp for fp in board.GetFootprints() if fp.GetReference() == "J4"), None)
     if j4 is None:
         return
-    clearance = pcbnew.ToMM(board.GetDesignSettings().m_HoleClearance)
     bcu = pcbnew.LSET()
     bcu.AddLayer(pcbnew.B_Cu)
+    n = 0
     for pad in j4.Pads():
         try:
             attr = pad.GetAttribute()
@@ -254,24 +283,24 @@ def add_j4_both_side_keepout(board) -> None:
         if attr != pcbnew.PAD_ATTRIB_NPTH:
             continue
         pos = pad.GetPosition()
-        drill = pcbnew.ToMM(pad.GetDrillSize().x)
-        radius = drill / 2.0 + clearance
         x = pcbnew.ToMM(pos.x)
         y = pcbnew.ToMM(pos.y)
+        n += 1
         add_named_area(
             board,
-            x - radius,
-            y - radius,
-            x + radius,
-            y + radius,
-            "j4_holes",
+            x - keep_r,
+            y - keep_r,
+            x + keep_r,
+            y + keep_r,
+            f"J4-NPTH{n}",
             layers=bcu,
             allow_tracks=False,
             allow_vias=False,
             allow_fills=False,
-            allow_pads=False,
-            allow_footprints=False,
+            allow_pads=True,
+            allow_footprints=True,
         )
+        print("j4 keepout", f"J4-NPTH{n}", round(x, 3), round(y, 3), "dia", round(2 * keep_r, 3))
 
 
 def add_text(board, x, y, text, layer, size=0.7) -> None:
@@ -303,24 +332,21 @@ def add_copper_zone(board, name: str, net, pts, layer) -> None:
 
 
 def outline_points():
-    """Width-22 island, leftover/pocket, J3 hang, neck-end folds, three tail tabs."""
-    hw = TAB_STRIP / 2
-    pts = [
-        (BOARD_U0, BOARD_S0),
-        (SIG1_FOLD_U - hw, BOARD_S0),
-        (SIG1_FOLD_U - hw, NECK_FOLD_S0),
-        (SIG1_FOLD_U + hw, NECK_FOLD_S0),
-        (SIG1_FOLD_U + hw, BOARD_S0),
-        (SIG2_FOLD_U - hw, BOARD_S0),
-        (SIG2_FOLD_U - hw, NECK_FOLD_S0),
-        (SIG2_FOLD_U + hw, NECK_FOLD_S0),
-        (SIG2_FOLD_U + hw, BOARD_S0),
+    """Flat pattern: island, leftover/pocket, J3 hang, SIG strips, REF tab, CHARGE tab."""
+    pts = [(BOARD_U0, BOARD_S0)]
+    pts += tab_detour(SIG1_ATTACH, SIG1_SITE)
+    pts += tab_detour(SIG2_ATTACH, SIG2_SITE)
+    pts += [
         (POCKET_U0, BOARD_S0),
         (POCKET_U0, POCKET_S0),
         (20.40, POCKET_S0),
         (20.40, J2_HANG_S0),
-        (POCKET_U1, J2_HANG_S0),
-        (POCKET_U1, J2_HANG_S1),
+        (CHARGE_U0, J2_HANG_S0),
+        (CHARGE_U0, CHARGE_S0),
+        (CHARGE_U1, CHARGE_S0),
+        (CHARGE_U1, CHARGE_S1),
+        (CHARGE_U0, CHARGE_S1),
+        (CHARGE_U0, J2_HANG_S1),
         (BOARD_U1, J2_HANG_S1),
         (BOARD_U1, HANG_S0),
         (HANG_U1, HANG_S0),
@@ -328,11 +354,8 @@ def outline_points():
         (BOARD_U1, HANG_S1),
         (BOARD_U1, BOARD_S1),
     ]
-    pts += tab_detour((BOARD_U1, BOARD_S1), P5_SITE)
-    pts += [(REF_SITE[0], BOARD_S1)]
-    pts += tab_detour((REF_SITE[0], BOARD_S1), REF_SITE)
+    pts += tab_detour(REF_ATTACH, REF_SITE)
     pts += [(BOARD_U0, BOARD_S1)]
-    pts += tab_detour((BOARD_U0, BOARD_S1), P4_SITE)
     return pts
 
 
@@ -533,20 +556,22 @@ def stamp_paste_pad_nets(path: Path) -> None:
     path.write_text(pattern.sub(repl, text))
 
 
+def hole_xy(table: dict[str, PlacementRow], href: str, index: int) -> tuple[float, float]:
+    if href in table:
+        return table[href].u, table[href].s
+    return HOLES[index]
+
+
 def load_table() -> dict[str, PlacementRow]:
-    path = V2_TABLE if V2_TABLE.exists() else TABLE
-    text = path.read_text()
-    if path == V2_TABLE or "pin table v2" in text.lower() or "folded" in text.lower():
-        rows = parse_pin_table_v2(text)
-    else:
-        rows = parse_placement_markdown(text)
-    print("placement table", path.name, "rows", len(rows))
+    text = TABLE.read_text()
+    rows = parse_pin_table_v2(text)
+    print("placement table", TABLE.name, "rows", len(rows))
     return {row.ref: row for row in rows}
 
 
 def build() -> None:
     sch = BOARD_DIR / "elicio-v2.kicad_sch"
-    net_path = Path("/tmp/wp12d/elicio-v2.net")
+    net_path = Path("/tmp/wp12e/elicio-v2.net")
     net_path.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         ["kicad-cli", "sch", "export", "netlist", "--format", "kicadsexpr", "-o", str(net_path), str(sch)],
@@ -563,7 +588,7 @@ def build() -> None:
         raise SystemExit("P4/P5 missing from netlist")
     skip = {r for r, c in comps.items() if not c["footprint"] or ":" not in c["footprint"]}
     skip |= {r for r, c in comps.items() if c["footprint"].startswith("power:")}
-    skip |= SKIP_REFS
+    skip |= SKIP_REFS | HOLE_REFS
 
     out = BOARD_DIR / "elicio-v2.kicad_pcb"
     if out.exists():
@@ -584,7 +609,8 @@ def build() -> None:
         (P5_SITE, "RING_P5_CLEAR"),
     ):
         add_keepout(board, cx - 3.2, cy - 3.2, cx + 3.2, cy + 3.2, name, allow_pads=True, allow_tracks=True)
-    for i, (hx, hy) in enumerate(HOLES, 1):
+    for i, href in enumerate(("H1", "H2"), 1):
+        hx, hy = hole_xy(table, href, i - 1)
         add_keepout(board, hx - 1.65, hy - 1.65, hx + 1.65, hy + 1.65, f"HOLE{i}_KEEP", allow_pads=True)
 
     add_filled_rect(board, BOARD_U0 + 0.30, BOARD_S0 + 0.30, BOARD_U1 - 0.30, BOARD_S1 - 0.30, pcbnew.Eco1_User)
@@ -592,9 +618,10 @@ def build() -> None:
     add_text(board, 11.0, 36.9, "Eco1 FR4 0.4 #1 parts island", pcbnew.Eco1_User, 0.5)
     add_text(board, 16.0, 8.0, "Eco1 FR4 0.4 #2 leftover/pocket", pcbnew.Eco1_User, 0.5)
     add_text(board, 11.0, 15.2, "BEND R>=1.5 NO VIA/PART/STIFFENER", pcbnew.Dwgs_User, 0.6)
-    add_text(board, 11.0, 15.9, "NECK-END FOLD Q83 SIG1 10.71 SIG2 21.81", pcbnew.Dwgs_User, 0.5)
-    add_filled_rect(board, 4.65, NECK_FOLD_S0, 11.65, BOARD_S0, pcbnew.Cmts_User)
-    add_text(board, 8.2, 15.2, "NECK BEND", pcbnew.Cmts_User, 0.5)
+    add_text(board, 8.2, 10.6, "SIG1 STRIP FLAT 10.71", pcbnew.Cmts_User, 0.5)
+    add_text(board, 13.5, 5.1, "SIG2 STRIP FLAT 21.81", pcbnew.Cmts_User, 0.5)
+    add_text(board, 33.0, 4.3, "CHARGE TAB Q86", pcbnew.Cmts_User, 0.5)
+    add_filled_rect(board, 4.65, 14.40, 11.65, BOARD_S0, pcbnew.Cmts_User)
 
     missing_table = sorted(ref for ref in table if ref not in comps and ref not in skip)
     if missing_table:
@@ -611,31 +638,33 @@ def build() -> None:
         print("place", ref, fp_id, row.u, row.s, row.rot, row.side)
         fp = place_fp(board, ref, fp_id, row.u, row.s, row.rot, meta["value"], bool(meta.get("dnp")))
         apply_placement_row(fp, row)
+        dx, dy = HOLE_NUDGE.get(ref, (0.0, 0.0))
+        if dx or dy:
+            fp.SetPosition(v2(row.u + dx, row.s + dy))
+            print("nudge", ref, dx, dy)
 
     u1 = next(fp for fp in board.GetFootprints() if fp.GetReference() == "U1")
     # Packing: module keep-out empty. The Raytac library zone blocks B.Cu parts.
     for zone in list(u1.Zones()):
         u1.Remove(zone)
 
-    for i, (hx, hy) in enumerate(HOLES, 1):
+    for i, href in enumerate(("H1", "H2"), 1):
+        hx, hy = hole_xy(table, href, i - 1)
         fp = load_fp("elicio:MountingHole_M2.5")
-        fp.SetReference(f"H{i}")
+        fp.SetReference(href)
         fp.SetValue("HOLE_D2.7")
         fp.SetPosition(v2(hx, hy))
         fp.SetExcludedFromBOM(True)
         fp.SetExcludedFromPosFiles(True)
         board.Add(fp)
-        print("hole", f"H{i}", hx, hy)
+        print("hole", href, hx, hy)
 
     assign_nets(board, nets)
     shrink_j3_pads(board)
     configure_rules(board)
     add_j4_both_side_keepout(board)
-    if V2_TABLE.exists():
-        for zone in parse_j4_keepouts(V2_TABLE.read_text()):
-            print("v2 keepout", zone.name, zone.u, zone.s, zone.radius, zone.layers)
     # No copper zones on the un-routed land: a GND pour on the island shorts
-    # Contact rings (class 1.0 mm on the tabs). Zones return after a DRC-0 route.
+    # Contact rings on the tabs. Zones return after a DRC-0 route.
 
     board.SetFileName(str(out))
     board.Save(str(out))
