@@ -774,5 +774,615 @@ class PlacementWP11bTests(unittest.TestCase):
         self.assertIn("## 1e. 501015 pack and 501012 pack under interface II (WP11b note 3, L7 §7)", doc.read_text(encoding="utf-8"))
 
 
+class PlacementWP11cTests(unittest.TestCase):
+    """WP11c: real F.CrtYd from 845bac7 and a courtyard-true layout search."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.fps = cls.v2.parse_kicad_pcb(cls.v2.load_wp12b_pcb())
+        cls.lay12 = cls.v2.layout_v2_501012()
+        cls.lay15 = cls.v2.layout_v2_501015_arc()
+
+    def test_kicad_courtyards_match_wp12b_file(self) -> None:
+        self.assertEqual(len(self.fps), 66)
+        table = self.v2.kicad_part_table(self.fps)
+        for fp in self.fps:
+            with self.subTest(ref=fp.ref):
+                want = self.v2.KICAD_COURTYARD[fp.footprint]
+                self.assertLessEqual(abs(fp.cr_w - want[0]), 0.05)
+                self.assertLessEqual(abs(fp.cr_h - want[1]), 0.05)
+                row = table[fp.ref]
+                self.assertLessEqual(abs(row["cr_w"] - fp.cr_w), 0.05)
+                self.assertLessEqual(abs(row["cr_h"] - fp.cr_h), 0.05)
+                self.assertLessEqual(abs(row["pad_w"] - fp.pad_w), 0.05)
+                self.assertLessEqual(abs(row["pad_h"] - fp.pad_h), 0.05)
+
+    def test_contact_netclass_is_1_0_mm(self) -> None:
+        self.assertAlmostEqual(self.v2.contact_netclass_clearance(), 1.0)
+        self.assertAlmostEqual(self.v2.CONTACT_NETCLASS_CLEARANCE, 1.0)
+        zones = self.v2.parse_kicad_keepouts(self.v2.load_wp12b_pcb())
+        self.assertIn("RF_NO_COPPER", zones)
+        self.assertIn("RF_FEED_NOTCH", zones)
+        self.assertIn("J4_USB_C_keepout", zones)
+
+    def test_layout_v2_501012_blocks_on_jlc_assembly_edge(self) -> None:
+        lay = self.lay12
+        self.assertTrue(lay.first_blocking.startswith("JLC FPC assembly edge 2.5 mm"))
+        self.assertEqual(lay.contacts_moved_mm, {"SIG1": 0.0, "SIG2": 0.0, "REF": 0.0})
+        self.assertTrue(any(p.ref == "U1" for p in lay.parts))
+        # Decision 73 hole at (14.85, 21.50) occupies the leftover SW1 site.
+        self.assertFalse(any(p.ref == "SW1" for p in lay.parts))
+        by_ref = {p.ref: p for p in lay.parts}
+        self.assertAlmostEqual(by_ref["P1"].u, 5.9)
+        self.assertAlmostEqual(by_ref["P1"].s, 22.0)
+        self.assertAlmostEqual(by_ref["P2"].u, 10.4)
+        self.assertAlmostEqual(by_ref["P2"].s, 33.1)
+        self.assertAlmostEqual(by_ref["P3"].u, 8.5)
+        self.assertAlmostEqual(by_ref["P3"].s, 43.0)
+
+    def test_layout_v2_501015_arc_blocks_on_m1(self) -> None:
+        lay = self.lay15
+        self.assertTrue(lay.first_blocking.startswith("M1 ≥ TOTAL_CHORD + 3"))
+        self.assertAlmostEqual(self.v2.body_geom(lay.spec)["total_chord"], 49.4157, places=3)
+
+    def test_packing_doc_has_section_5b(self) -> None:
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("## 5b. Layout for the board lane, v2 (WP11c)", text)
+        self.assertIn("Variant A:", text)
+        self.assertIn("Variant B:", text)
+        self.assertIn("845bac7", text)
+        rows = getattr(PlacementV2Tests, "rows", None)
+        generated = self.v2.packing_markdown(
+            rows if rows is not None else self.v2.run_matrix(include_arc=False)
+        )
+        self.assertEqual(text, generated)
+        committed = {p.name for p in self.v2.V2_DRAW_DIR.glob("placement_v2_*.svg")}
+        kept = {s.filename for s in self.v2.kept_drawing_specs(
+            rows if rows is not None else self.v2.run_matrix(include_arc=False)
+        )}
+        self.assertEqual(committed, kept)
+
+    def test_r6_decision_70_usb_body_nothing_closes(self) -> None:
+        o = self.v2.usb_c_close_options(self.lay12.spec)
+        self.assertAlmostEqual(o["wu"], 10.64, places=2)
+        self.assertAlmostEqual(o["ws"], 9.42, places=2)
+        self.assertAlmostEqual(o["h"], 3.2, places=1)
+        self.assertAlmostEqual(o["packing_hang_mm"], 4.80, places=2)
+        self.assertGreater(o["hang_mm"], 4.80)
+        self.assertAlmostEqual(o["opening_u0"], 5.50, places=2)
+        self.assertAlmostEqual(o["hook_u_max"], 6.39, places=2)
+        self.assertAlmostEqual(o["hook_shift_mm"], 2.40, places=2)
+        self.assertFalse(o["longer_closes"])
+        self.assertFalse(o["hook_only_closes"])
+        self.assertEqual(o["what_closes"], "nothing")
+        names = [n for n, _ok, _why in self.lay12.rules]
+        self.assertTrue(any("code-r6.md decision 70" in n for n in names))
+        usb_rule = next(r for r in self.lay12.rules if "decision 70" in r[0])
+        self.assertFalse(usb_rule[1])
+        self.assertIn("What closes it: nothing", usb_rule[2])
+
+    def test_r6_decision_72_three_ring_stiffeners(self) -> None:
+        self.assertEqual(self.v2.RING_FR4_PIECES, 3)
+        self.assertAlmostEqual(self.v2.TAB_T, 0.31, places=2)
+        self.assertAlmostEqual(self.v2.STIFFENER_TAB, 0.2, places=2)
+        rule = next(r for r in self.lay12.rules if "decision 72" in r[0])
+        self.assertTrue(rule[1])
+        self.assertIn("3 pieces", rule[2])
+        self.assertIn("0.31", rule[2])
+
+    def test_r6_decision_73_boss_holes(self) -> None:
+        self.assertEqual(self.v2.BOSS_HOLE_SITES, ((14.85, 21.50), (14.85, 28.10)))
+        self.assertAlmostEqual(self.v2.BOSS_HOLE_DIA, 2.7)
+        hits = self.v2.boss_hole_hits(self.lay12.parts)
+        self.assertTrue(any("28.10" in h for h in hits))
+        rule = next(r for r in self.lay12.rules if "decision 73" in r[0])
+        self.assertFalse(rule[1])
+        names = {k[0] for k in self.lay12.keepouts}
+        self.assertIn("HOLE_M1", names)
+        self.assertIn("HOLE_M2", names)
+
+    def test_r6_decision_74_fold_variants_shared_numbers(self) -> None:
+        f = self.v2.tab_fold_variants(self.lay12.spec)
+        self.assertAlmostEqual(f["R"], 1.5, places=1)
+        self.assertAlmostEqual(f["neck"]["SIG1_strip"], 10.71, places=2)
+        self.assertAlmostEqual(f["neck"]["SIG2_strip"], 21.81, places=2)
+        self.assertAlmostEqual(f["side"]["SIG1_strip"], 8.36, places=2)
+        self.assertAlmostEqual(f["side"]["SIG2_strip"], 12.06, places=2)
+        self.assertAlmostEqual(f["side"]["pocket"][0], 0.85, places=2)
+        rule = next(r for r in self.lay12.rules if "decision 74" in r[0])
+        self.assertTrue(rule[1])
+        self.assertIn("10.71", rule[2])
+        self.assertIn("8.36", rule[2])
+        self.assertIn("Same numbers for PCB, packing table and shell", rule[2])
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("tasks/reviews/code-r6.md decision 70", text)
+        self.assertIn("tasks/reviews/code-r6.md decision 72", text)
+        self.assertIn("tasks/reviews/code-r6.md decision 73", text)
+        self.assertIn("tasks/reviews/code-r6.md decision 74", text)
+        self.assertIn("What closes it: nothing", text)
+        self.assertIn("| 501012 BODY_ARC | neck-end | 10.71 | 21.81 |", text)
+        self.assertIn("| 501012 BODY_ARC | side-wall pockets | 8.36 | 12.06 |", text)
+
+
+class PlacementWP11dTests(unittest.TestCase):
+    """WP11d: 32-cell layout grid, both edge readings, two sides, Q81–Q83."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.mod = cls.v2._layout_v2c_mod()
+        cls.rows = cls.mod.run_v2c_grid(cls.v2)
+
+    def _assert_full_cell(self, lay, *, receptacle: bool) -> None:
+        self.assertIsNotNone(lay)
+        self.assertGreaterEqual(lay.placed, lay.bom_n)
+        self.assertEqual(lay.missing, [])
+        self.assertEqual(lay.first_blocking, "")
+        self.assertEqual(lay.receptacle, receptacle)
+        self.assertEqual(lay.fold, "neck")
+        self.assertEqual(len(lay.hole_sites), 2)
+        for name, ok, why in lay.rules:
+            self.assertTrue(ok, f"{name}: {why}")
+        by = {p.ref: p for p in lay.parts}
+        if receptacle:
+            self.assertIn("J1", by)
+            self.assertIn("U5", by)
+            self.assertNotIn("P4", by)
+            self.assertNotIn("P5", by)
+            self.assertEqual(lay.bom_n, 66)
+        else:
+            self.assertNotIn("J1", by)
+            self.assertNotIn("U5", by)
+            self.assertIn("P4", by)
+            self.assertIn("P5", by)
+            self.assertEqual(lay.bom_n, 64)
+            for ref in ("P4", "P5"):
+                p = by[ref]
+                self.assertEqual(p.footprint, "RING_PAD_D5_H2.7")
+                self.assertAlmostEqual(p.wu, 6.40, places=2)
+                self.assertAlmostEqual(p.ws, 6.40, places=2)
+                self.assertEqual(p.face, "floor")
+                self.assertIn("RING_PAD", p.notes)
+            p4s, p5s = self.mod.charge_pad_sites(lay.width, self.v2)
+            self.assertAlmostEqual(by["P4"].u, p4s[0], places=2)
+            self.assertAlmostEqual(by["P4"].s, p4s[1], places=2)
+            self.assertAlmostEqual(by["P5"].u, p5s[0], places=2)
+            self.assertAlmostEqual(by["P5"].s, p5s[1], places=2)
+            cu0, cu1 = 1.50, lay.width - 1.50
+            self.assertGreaterEqual(by["P4"].u, cu0)
+            self.assertLessEqual(by["P5"].u, cu1)
+            self.assertNotAlmostEqual(by["P4"].u, 0.75, places=2)
+            self.assertLessEqual(by["P4"].s + 2.50, 45.5)
+            self.assertLessEqual(by["P5"].s + 2.50, 45.5)
+        for ref in ("R1", "R2", "R3"):
+            self.assertIn(ref, by)
+            self.assertIn(by[ref].face, {"top", "bottom"})
+            p = by[ref]
+            self.assertTrue(
+                self.mod._inside(p.u, p.s, p.wu, p.ws, lay.island)
+                or self.mod._inside(p.u, p.s, p.wu, p.ws, lay.leftover),
+                f"{ref} not on the island (Q79)",
+            )
+        overlaps = []
+        for face in ("top", "bottom"):
+            group = [p for p in lay.parts if p.face == face]
+            boxes = [self.v2._part_box(p, 0.0, 1.0) for p in group]
+            for i, a in enumerate(boxes):
+                for b in boxes[i + 1 :]:
+                    if self.v2._overlap(a, b, 0.0):
+                        overlaps.append(f"{a.name}/{b.name}")
+        self.assertEqual(overlaps, [])
+        _bu0, _bu1, bs0, bs1 = lay.island
+        sw1 = by.get("SW1")
+        self.assertIsNotNone(sw1)
+        u1 = by["U1"]
+        for hu, hs in lay.hole_sites:
+            hole = self.v2.Box(
+                "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
+            )
+            self.assertFalse(
+                self.v2._overlap(self.v2._part_box(sw1, 0.0, 1.0), hole, 0.0),
+                "SW1 overlaps a Q82 hole",
+            )
+            self.assertFalse(
+                self.v2._overlap(self.v2._part_box(u1, 0.0, 1.0), hole, 0.0),
+                f"Q82 hole ({hu}, {hs}) under U1",
+            )
+        for p in lay.parts:
+            if p.face == "hook":
+                self.assertEqual(p.ref, "J1")
+                continue
+            if p.face == "floor":
+                self.assertIn(p.ref, {"P1", "P2", "P3", "P4", "P5"})
+                continue
+            if p.ref in {"J2", "J3"}:
+                continue
+            in_island = self.mod._inside(p.u, p.s, p.wu, p.ws, lay.island)
+            in_left = self.mod._inside(p.u, p.s, p.wu, p.ws, lay.leftover)
+            in_pocket = p.s + p.ws / 2.0 <= bs0 + 0.3
+            self.assertTrue(
+                in_island or in_left or in_pocket,
+                f"{p.ref} not inside island, leftover, or pocket",
+            )
+        for p in lay.parts:
+            if p.face != "bottom":
+                continue
+            for site in (self.v2.CONTACT_1, self.v2.CONTACT_2):
+                ring = self.v2.Box("ring", site[0], site[1], 7.0, 7.0, -1.0, 20.0, "floor")
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), ring, 0.0),
+                    f"{p.ref} over ring {site}",
+                )
+            for hu, hs in lay.hole_sites:
+                hole = self.v2.Box(
+                    "hole", hu, hs, self.v2.BOSS_HOLE_KEEP, self.v2.BOSS_HOLE_KEEP, -1.0, 20.0, "floor"
+                )
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), hole, 0.0),
+                    f"{p.ref} over Q82 hole ({hu}, {hs})",
+                )
+            for name, u, s, wu, ws in (
+                ("TABROOT_SIG1", self.v2.CONTACT_1[0], bs0 + 1.0, self.v2.TAB_W, 2.0),
+                ("TABROOT_SIG2", self.v2.CONTACT_2[0], bs0 + 1.0, self.v2.TAB_W, 2.0),
+                ("TABROOT_REF", self.v2.CONTACT_REF[0], bs1 - 2.0, self.v2.TAB_W, 4.0),
+            ):
+                root = self.v2.Box(name, u, s, wu, ws, -1.0, 20.0, "floor")
+                self.assertFalse(
+                    self.v2._overlap(self.v2._part_box(p, 0.0, 1.0), root, 0.0),
+                    f"{p.ref} over {name}",
+                )
+        for p in lay.parts:
+            if p.face not in {"top", "bottom"} or p.ref in self.mod.COPPER_SKIP_REFS:
+                continue
+            outline = self.mod._copper_outline_for(p.u, p.s, p.wu, p.ws, lay.island, None)
+            if outline is None:
+                continue
+            edge_mm = self.mod._pad_edge(
+                self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, outline
+            )
+            self.assertGreaterEqual(edge_mm, 0.30 - 1e-9, f"{p.ref} copper-to-edge {edge_mm:.3f}")
+        for ref in ("D1", "C3", "C10", "C11", "C12", "SW1"):
+            self.assertIn(ref, by)
+
+    def test_grid_has_sixteen_cells(self) -> None:
+        self.assertEqual(len(self.rows), 32)
+        keys = {
+            (r.edge, r.width, round(r.chord, 2), r.sides, r.receptacle) for r in self.rows
+        }
+        self.assertEqual(len(keys), 32)
+
+    def test_process_w20_chord_4790_two_sides_does_not_place_all_66(self) -> None:
+        lay = self.mod.v2c_cell(self.v2, "process", 20.0, 47.90, True, True)
+        self.assertLess(lay.placed, 66)
+        self.assertAlmostEqual(lay.extra_u, 0.0, places=2)
+        self.assertAlmostEqual(lay.extra_s, 0.0, places=2)
+        self.assertAlmostEqual(lay.under_clear_mm, 3.31, places=2)
+
+    def test_q81_no_receptacle_cells(self) -> None:
+        norec = [r for r in self.rows if not r.receptacle]
+        self.assertEqual(len(norec), 16)
+        for lay in norec:
+            refs = {p.ref for p in lay.parts}
+            self.assertNotIn("J1", refs)
+            self.assertNotIn("U5", refs)
+            self.assertIn("P4", refs)
+            self.assertIn("P5", refs)
+            self.assertEqual(lay.bom_n, 64)
+
+    def test_q83_neck_end_is_the_default_fold(self) -> None:
+        for lay in self.rows:
+            self.assertEqual(lay.fold, "neck")
+            self.assertLess(lay.wall_left, 1.0)
+
+    def test_winning_layout_if_any(self) -> None:
+        win = self.mod.smallest_full(self.rows, "process", receptacle=True)
+        wp12 = self.mod.wp12d_layout(self.v2)
+        w20 = self.mod.v2c_cell(self.v2, "process", 20.0, 47.90, True, True)
+        if w20.placed < 66 or w20.first_blocking:
+            self.assertIsNotNone(wp12)
+            self.assertGreater(wp12.width, 20.0)
+        else:
+            self.assertIs(wp12, win)
+        if win is None:
+            return
+        self._assert_full_cell(win, receptacle=True)
+
+    def test_norec_pin_table_cell_meets_every_rule(self) -> None:
+        norec = self.mod.wp12d_norec_layout(self.v2)
+        self.assertIsNotNone(norec)
+        self.assertAlmostEqual(norec.width, 22.0, places=2)
+        self.assertAlmostEqual(norec.chord, 47.90, places=2)
+        self.assertEqual(norec.sides, "two")
+        self.assertEqual(norec.edge, "process")
+        self._assert_full_cell(norec, receptacle=False)
+        self.assertAlmostEqual(norec.hole_sites[0][0], 13.45, places=2)
+        self.assertAlmostEqual(norec.hole_sites[0][1], 17.70, places=2)
+        self.assertAlmostEqual(norec.hole_sites[1][0], 17.95, places=2)
+        self.assertAlmostEqual(norec.hole_sites[1][1], 17.70, places=2)
+        self.assertGreater(norec.sig1_strip, 0.0)
+        self.assertGreater(norec.sig2_strip, 0.0)
+
+    def test_packing_doc_has_section_5c(self) -> None:
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("## 5c. Layout grid v2c", text)
+        self.assertIn("Q78", text)
+        self.assertIn("Q79", text)
+        self.assertIn("Q80", text)
+        self.assertIn("Q81", text)
+        self.assertIn("Q82", text)
+        self.assertIn("Q83", text)
+        self.assertIn("| process | 20 | 47.90 | two |", text)
+        self.assertIn("The 16 cells with no receptacle", text)
+        self.assertIn("WP12d pin table", text)
+        self.assertIn("smallest all-64 with no receptacle", text)
+        self.assertIn("Neck-end strips (Q83): SIG1", text)
+        self.assertIn("RING_PAD_D5_H2.7", text)
+        self.assertIn("| P4 |", text)
+        self.assertIn("| P5 |", text)
+        self.assertIn("placement_v2c_process_norec_w22_c47.90_two.svg", text)
+        self.assertIn("not under U1", text)
+        self.assertIn("D1, C3, C10, C11 and C12", text)
+        self.assertIn("| ref | side | u | s | rot |", text)
+        self.assertIn("docs/fab/cad/v2c/", text)
+        v1_v2 = {p.name for p in self.v2.V2_DRAW_DIR.glob("placement_v2_*.svg")}
+        self.assertEqual(len(v1_v2), 14)
+        v1_v2c = {p.name for p in self.v2.V2_DRAW_DIR.glob("placement_v2c_*.svg")}
+        self.assertEqual(v1_v2c, set())
+        v2c_dir = Path(__file__).resolve().parents[1] / "docs" / "fab" / "cad" / "v2c"
+        v2c = {p.name for p in v2c_dir.glob("placement_v2c_*.svg")}
+        self.assertLessEqual(len(v2c), 4)
+        self.assertGreaterEqual(len(v2c), 1)
+
+
+class PlacementWP11eTests(unittest.TestCase):
+    """WP11e: flat pattern, pin table v2, J4 NPTH keep-out (Q85)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.mod = cls.v2._layout_v2c_mod()
+        cls.lay = cls.mod.wp12d_norec_layout(cls.v2)
+
+    def test_norec_cell_still_places_all_64(self) -> None:
+        self.assertIsNotNone(self.lay)
+        self.assertEqual(self.lay.missing, [])
+        self.assertEqual(self.lay.first_blocking, "")
+        self.assertGreaterEqual(self.lay.placed, 64)
+
+    def test_flat_pattern_does_not_self_overlap(self) -> None:
+        hits = self.mod.flat_pattern_hits(self.v2, self.lay)
+        self.assertEqual(hits, [])
+
+    def test_flat_ring_centres_outside_every_courtyard(self) -> None:
+        pads = self.mod.neck_flat_pads(
+            self.v2, self.lay.island, self.lay.sig1_strip, self.lay.sig2_strip
+        )
+        skip = {"P1", "P2", "P3", "P4", "P5"}
+        for ref, (u, s) in pads.items():
+            for p in self.lay.parts:
+                if p.ref in skip:
+                    continue
+                self.assertFalse(
+                    self.mod._centre_in_courtyard(u, s, p),
+                    f"{ref} flat ({u:.2f}, {s:.2f}) inside {p.ref} at ({p.u:.2f}, {p.s:.2f})",
+                )
+        u1 = next(p for p in self.lay.parts if p.ref == "U1")
+        self.assertFalse(self.mod._centre_in_courtyard(pads["P2"][0], pads["P2"][1], u1))
+        self.assertAlmostEqual(pads["P1"][0], self.v2.CONTACT_1[0], places=2)
+        self.assertAlmostEqual(pads["P2"][0], self.v2.CONTACT_2[0], places=2)
+        bs0 = self.lay.island[2]
+        self.assertAlmostEqual(pads["P1"][1], bs0 - self.lay.sig1_strip, places=2)
+        self.assertAlmostEqual(pads["P2"][1], bs0 - self.lay.sig2_strip, places=2)
+        self.assertNotAlmostEqual(pads["P2"][1], self.v2.CONTACT_2[1], places=2)
+        charge = self.mod.charge_flat_pads(self.v2, self.lay.island, self.lay.width)
+        skip = {"P1", "P2", "P3", "P4", "P5"}
+        for ref, (u, s) in charge.items():
+            for p in self.lay.parts:
+                if p.ref in skip:
+                    continue
+                self.assertFalse(
+                    self.mod._centre_in_courtyard(u, s, p),
+                    f"{ref} flat ({u:.2f}, {s:.2f}) inside {p.ref} at ({p.u:.2f}, {p.s:.2f})",
+                )
+        rows = list(self.mod._pin_table_v2_parts(self.v2, self.lay))
+        self.assertEqual(len(rows), 68)
+        p2 = next(r for r in rows if r[0] == "P2")
+        self.assertAlmostEqual(p2[3], pads["P2"][1], places=2)
+        p4 = next(r for r in rows if r[0] == "P4")
+        self.assertAlmostEqual(p4[2], charge["P4"][0], places=2)
+        self.assertAlmostEqual(p4[3], charge["P4"][1], places=2)
+        self.assertIn("FLAT PCB (Q85)", p4[7])
+
+    def test_j4_npth_empty_on_bottom(self) -> None:
+        self.assertGreaterEqual(len(self.lay.j4_npth), 2)
+        keep_r = self.mod.j4_npth_keep_r()
+        for p in self.lay.parts:
+            if p.face != "bottom":
+                continue
+            self.assertFalse(
+                self.mod._pad_hits_j4_npth(
+                    self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, self.lay.j4_npth, keep_r
+                ),
+                f"{p.ref} on B.Cu in J4 NPTH at ({p.u:.2f}, {p.s:.2f})",
+            )
+
+    def test_folded_site_table_equals_section_5_contacts(self) -> None:
+        folded = self.mod.folded_pad_sites(self.v2, self.lay.width, False)
+        self.assertAlmostEqual(folded["P1"][0], self.v2.CONTACT_1[0], places=2)
+        self.assertAlmostEqual(folded["P1"][1], self.v2.CONTACT_1[1], places=2)
+        self.assertAlmostEqual(folded["P2"][0], self.v2.CONTACT_2[0], places=2)
+        self.assertAlmostEqual(folded["P2"][1], self.v2.CONTACT_2[1], places=2)
+        self.assertAlmostEqual(folded["P3"][0], self.v2.CONTACT_REF[0], places=2)
+        self.assertAlmostEqual(folded["P3"][1], self.v2.CONTACT_REF[1], places=2)
+        p4, p5 = self.mod.charge_pad_sites(self.lay.width, self.v2)
+        self.assertAlmostEqual(folded["P4"][0], p4[0], places=2)
+        self.assertAlmostEqual(folded["P4"][1], p4[1], places=2)
+        self.assertAlmostEqual(folded["P5"][0], p5[0], places=2)
+        self.assertAlmostEqual(folded["P5"][1], p5[1], places=2)
+        for ref in ("P1", "P2", "P3", "P4", "P5"):
+            self.assertAlmostEqual(folded[ref][2], self.v2.FLOOR_Y, places=2)
+
+    def test_charge_pads_on_hook_end_medial_floor(self) -> None:
+        p4 = next(p for p in self.lay.parts if p.ref == "P4")
+        p5 = next(p for p in self.lay.parts if p.ref == "P5")
+        cu0, cu1 = 1.50, self.lay.width - 1.50
+        self.assertGreaterEqual(p4.u, cu0)
+        self.assertLessEqual(p5.u, cu1)
+        self.assertGreaterEqual(p4.u - 2.50, cu0)
+        self.assertLessEqual(p5.u + 2.50, cu1)
+        self.assertLessEqual(p4.s + 2.50, 45.5)
+        self.assertLessEqual(p5.s + 2.50, 45.5)
+        lobe = self.mod.charge_tail_outline(self.v2, self.lay.island, self.lay.width)
+        cav = (cu0, cu1, 1.50, 38.20)
+        for p in (p4, p5):
+            edge = self.mod._pad_edge(self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, lobe)
+            self.assertGreaterEqual(edge, 0.30 - 1e-9, f"{p.ref} pad-to-outline {edge:.3f}")
+            edge_c = self.mod._pad_edge(self.v2, p.u, p.s, p.pad_w, p.pad_h, p.rot, cav)
+            self.assertGreaterEqual(edge_c, 0.30 - 1e-9, f"{p.ref} pad-to-cavity {edge_c:.3f}")
+            g_ref = self.mod._edge_gap(p.u, p.s, 2.50, 8.50, 43.00, 3.20)
+            g_screw = self.mod._edge_gap(p.u, p.s, 2.50, 14.50, 41.00, 2.50)
+            self.assertGreaterEqual(g_ref, 2.0 - 1e-9, f"{p.ref} REF edge {g_ref:.2f}")
+            self.assertGreaterEqual(g_screw, 2.0 - 1e-9, f"{p.ref} screw edge {g_screw:.2f}")
+            self.assertFalse(p.s + 2.50 > 38.20 and p.s - 2.50 < 39.25 and p.u + 2.50 > 7.25 and p.u - 2.50 < 9.75)
+        between = ((p4.u - p5.u) ** 2 + (p4.s - p5.s) ** 2) ** 0.5 - 5.0
+        self.assertGreaterEqual(between, 3.0 - 1e-9)
+        self.assertNotAlmostEqual(p4.u, 0.75, places=2)
+        self.assertNotAlmostEqual(p5.u, 21.25, places=2)
+        self.assertNotAlmostEqual(p4.s, 49.50, places=2)
+        self.assertAlmostEqual(self.mod.CHARGE_TAIL_MAX_D, 2.1, places=1)
+        rule = next(r for r in self.lay.rules if r[0].startswith("P4/P5 on the hook-end"))
+        self.assertTrue(rule[1], rule[2])
+        self.assertIn("tail Ø5 impossible", rule[2])
+
+    def test_packing_doc_has_section_5d(self) -> None:
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("## 5d. Flat pattern and pin table v2", text)
+        self.assertIn("Pin table v2.1 — flat PCB coordinates", text)
+        self.assertIn("Folded sites for the shell", text)
+        self.assertIn("J4 NPTH keep-out both sides", text)
+        self.assertIn("| H1 |", text)
+        self.assertIn("| H2 |", text)
+        self.assertIn("FLAT PCB (Q85)", text)
+        self.assertIn("placement_v2c_process_norec_w22_c47.90_two.svg", text)
+        self.assertIn("| P4 | CHARGE_VBUS | 14.70 | 4.30 |", text)
+        self.assertIn("| P5 | CHARGE_GND | 17.70 | 11.72 |", text)
+        self.assertNotIn("| P4 | CHARGE_VBUS | 0.75 | 44.00 |", text)
+        self.assertNotIn("| P4 | CHARGE_VBUS | 5.05 | 49.50 |", text)
+        self.assertIn("hook-end medial floor", text)
+        self.assertIn("largest tail pair Ø2.1", text)
+        self.assertIn("| P4 | floor | 37.47 | 2.80 |", text)
+        self.assertIn("| P5 | floor | 30.05 | 5.80 |", text)
+        self.assertIn("s 14.90–15.70", text)
+        self.assertIn("Drop height 3.31", text)
+        self.assertIn("### Shell extras for the P4/P5 fold", text)
+        v2c_dir = Path(__file__).resolve().parents[1] / "docs" / "fab" / "cad" / "v2c"
+        v2c = {p.name for p in v2c_dir.glob("placement_v2c_*.svg")}
+        self.assertLessEqual(len(v2c), 4)
+
+    def test_charge_flat_centres_distinct_from_folded(self) -> None:
+        pads = self.mod.charge_flat_pads(self.v2, self.lay.island, self.lay.width)
+        p4, p5 = self.mod.charge_pad_sites(self.lay.width, self.v2)
+        self.assertAlmostEqual(pads["P4"][0], 37.47, places=2)
+        self.assertAlmostEqual(pads["P4"][1], 2.80, places=2)
+        self.assertAlmostEqual(pads["P5"][0], 30.05, places=2)
+        self.assertAlmostEqual(pads["P5"][1], 5.80, places=2)
+        self.assertNotAlmostEqual(pads["P4"][0], p4[0], places=2)
+        self.assertNotAlmostEqual(pads["P4"][1], p4[1], places=2)
+        self.assertNotAlmostEqual(pads["P5"][0], p5[0], places=2)
+        self.assertNotAlmostEqual(pads["P5"][1], p5[1], places=2)
+        self.assertAlmostEqual(self.mod.charge_drop_mm(self.v2), 3.31, places=2)
+        self.assertAlmostEqual(self.mod.charge_fold_allowance(self.v2), 5.02, places=2)
+
+    def test_floor_pad_sharing_xy_with_top_has_distinct_flat_centre(self) -> None:
+        flats = self.mod.all_flat_pads(self.v2, self.lay)
+        shared = 0
+        for p in self.lay.parts:
+            if p.face != "floor":
+                continue
+            for t in self.lay.parts:
+                if t.face not in {"top", "bottom"}:
+                    continue
+                if not self.mod._xy_overlap(p.u, p.s, p.wu, p.ws, t.u, t.s, t.wu, t.ws):
+                    continue
+                shared += 1
+                self.assertIn(p.ref, flats)
+                fu, fs = flats[p.ref]
+                self.assertFalse(
+                    abs(fu - p.u) < 1e-9 and abs(fs - p.s) < 1e-9,
+                    f"{p.ref} shares XY with {t.ref} at ({p.u:.2f}, {p.s:.2f}) but flat=folded",
+                )
+                self.assertFalse(
+                    self.mod._centre_in_courtyard(fu, fs, t),
+                    f"{p.ref} flat ({fu:.2f}, {fs:.2f}) inside {t.ref}",
+                )
+        self.assertGreaterEqual(shared, 1)
+        self.assertTrue(
+            any(p.ref in {"P4", "P5"} and t.ref in {"SW1", "U2"}
+                for p in self.lay.parts if p.face == "floor"
+                for t in self.lay.parts if t.face == "top"
+                and self.mod._xy_overlap(p.u, p.s, p.wu, p.ws, t.u, t.s, t.wu, t.ws))
+        )
+
+
+class PlacementWP11fTests(unittest.TestCase):
+    """WP11f: J4 NPTH centres from the KiCad footprint, pin table v2.1."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = P._v2()
+        cls.mod = cls.v2._layout_v2c_mod()
+        cls.lay = cls.mod.wp12d_norec_layout(cls.v2)
+
+    def test_j4_npth_centres_match_kicad_within_0_01(self) -> None:
+        j4 = next(p for p in self.lay.parts if p.ref == "J4")
+        self.assertAlmostEqual(j4.u, 16.25, places=2)
+        self.assertAlmostEqual(j4.s, 24.60, places=2)
+        self.assertAlmostEqual(j4.rot, 90.0, places=1)
+        text = self.mod._j4_pcb_text()
+        self.assertIn("Tag-Connect_TC2030", text)
+        parsed, drill = self.mod._j4_npth_locals_from_pcb(text)
+        self.assertEqual(len(parsed), 3)
+        self.assertIsNotNone(drill)
+        pads, spec_drill, _clr = self.mod.j4_npth_spec()
+        self.assertEqual(len(pads), 3)
+        self.assertAlmostEqual(spec_drill, 0.9906, places=4)
+        for got, want in zip(pads, parsed):
+            self.assertAlmostEqual(got[0], want[0], places=3)
+            self.assertAlmostEqual(got[1], want[1], places=3)
+        holes = self.mod.j4_npth_world(j4.u, j4.s, j4.rot)
+        expected = ((16.25, 27.14), (15.234, 22.06), (17.266, 22.06))
+        for eu, es in expected:
+            self.assertTrue(
+                any(abs(hu - eu) < 0.01 and abs(hs - es) < 0.01 for hu, hs in holes),
+                f"KiCad hole ({eu}, {es}) missing from {holes}",
+            )
+        self.assertEqual(len(holes), 3)
+        self.assertEqual(self.lay.j4_npth, holes)
+
+    def test_pin_table_v21_has_68_rows_and_real_holes(self) -> None:
+        rows = list(self.mod._pin_table_v2_parts(self.v2, self.lay))
+        self.assertEqual(len(rows), 68)
+        r24 = next(p for p in self.lay.parts if p.ref == "R24")
+        keep_r = self.mod.j4_npth_keep_r()
+        self.assertFalse(
+            self.mod._pad_hits_j4_npth(
+                self.v2, r24.u, r24.s, r24.pad_w, r24.pad_h, r24.rot, self.lay.j4_npth, keep_r
+            ),
+            f"R24 ({r24.u:.2f}, {r24.s:.2f}) pad on J4 NPTH",
+        )
+        doc = Path(__file__).resolve().parents[1] / "docs" / "fab" / "packing-v2.md"
+        text = doc.read_text(encoding="utf-8")
+        self.assertIn("Pin table v2.1 — flat PCB coordinates", text)
+        self.assertIn("| J4-NPTH1 | 16.250 | 27.140 |", text)
+        self.assertIn("| J4-NPTH2 | 15.234 | 22.060 |", text)
+        self.assertIn("| J4-NPTH3 | 17.266 | 22.060 |", text)
+        self.assertNotIn("| J4-NPTH1 | 16.25 | 22.06 |", text)
+
+
 if __name__ == "__main__":
     unittest.main()

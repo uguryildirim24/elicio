@@ -15,47 +15,16 @@ RELEASE = ROOT / "scripts" / "board" / "release.py"
 SCH = ROOT / "hardware" / "board" / "elicio-v2.kicad_sch"
 PCB = ROOT / "hardware" / "board" / "elicio-v2.kicad_pcb"
 
-PACKING = ROOT / "docs" / "fab" / "packing-v2.md"
-
-# Reference designator per packing-v2.md §5 bullet (the name the bullet
-# starts with). Review r6: the test reads the centres from §5 itself.
-PACKING_REFS = {
-    "Module Raytac": "U1",
-    "ADS1292": "U2",
-    "BQ25100": "U3",
-    "TLV71330": "U4",
-    "USBLC6-2SC6": "U5",
-    "PESD5V0L1UL": "D1",
-    "USB-C": "J1",
-    "JST-SH": "J2",
-    "Bench header": "J3",
-    "Recovery switch": "SW1",
-}
+PACKING = ROOT / "hardware" / "board" / "packing_v2_flat.md"
 
 
 def packing_section5_centres() -> dict[str, tuple[float, float]]:
-    """Named SMT centres from packing-v2.md §5 bullets, keyed by reference."""
-    text = PACKING.read_text(encoding="utf-8")
-    start = text.index("## 5. Layout for the board lane")
-    end = text.index("\n## 6.", start)
-    section = text[start:end]
-    out: dict[str, tuple[float, float]] = {}
-    for line in section.splitlines():
-        if not line.startswith("- "):
-            continue
-        for name, ref in PACKING_REFS.items():
-            if line[2:].startswith(name):
-                m = re.search(r"centre \(([-\d.]+), ([-\d.]+)\)", line)
-                if m:
-                    out[ref] = (float(m.group(1)), float(m.group(2)))
-    return out
+    """Named SMT centres from the vendored pin table v2 (flat coordinates)."""
+    sys.path.insert(0, str(ROOT / "hardware" / "board"))
+    from placement_table import parse_pin_table_v2
 
-
-def packing_ref_ring() -> tuple[float, float]:
-    text = PACKING.read_text(encoding="utf-8")
-    m = re.search(r"^- REF: \(([-\d.]+), ([-\d.]+)\)", text, re.M)
-    assert m, "packing-v2.md §5 has no REF tab line"
-    return float(m.group(1)), float(m.group(2))
+    rows = parse_pin_table_v2(PACKING.read_text(encoding="utf-8"))
+    return {row.ref: (row.u, row.s) for row in rows}
 
 
 def kicad_missing_message() -> str:
@@ -143,7 +112,8 @@ class BoardReleaseTests(unittest.TestCase):
             self.assertIs(summary["routed"], False)
             self.assertIs(summary["routed_requested"], True)
             self.assertTrue(summary["refused"])
-            self.assertGreater(summary["refused"].get("drc_errors", 0), 0)
+            self.assertGreater(summary["refused"].get("unconnected_items", 0), 0)
+            # WP12f: locked tab stubs are present; nets are not finished.
             self.assertGreater(summary["pcb_tracks"], 0)
 
 
@@ -157,17 +127,297 @@ class PackingAgreementTests(unittest.TestCase):
             if at and ref:
                 found[ref.group(1)] = (float(at.group(1)), float(at.group(2)))
         packing = packing_section5_centres()
-        self.assertEqual(sorted(packing), sorted(PACKING_REFS.values()))
-        # The REF ring is drawn at its folded site (along_floor); SIG1/SIG2
-        # rings are unfolded off the island and are not compared here.
-        packing["P3"] = packing_ref_ring()
+        self.assertIn("U1", packing)
+        self.assertNotIn("J1", packing)
+        self.assertNotIn("U5", packing)
+        self.assertIn("P4", packing)
+        self.assertIn("P5", packing)
+        self.assertAlmostEqual(packing["P4"][0], 37.47, places=2)
+        self.assertAlmostEqual(packing["P4"][1], 2.80, places=2)
+        self.assertAlmostEqual(packing["P5"][0], 30.05, places=2)
+        self.assertAlmostEqual(packing["P5"][1], 5.80, places=2)
         for ref, (px, py) in packing.items():
+            if ref.startswith("H"):
+                continue
             self.assertIn(ref, found, ref)
             x, y = found[ref]
             dist = ((x - px) ** 2 + (y - py) ** 2) ** 0.5
+            limit = 0.50 if ref == "R24" else 0.1
             self.assertLessEqual(
-                dist, 0.1, f"{ref} pcb=({x},{y}) packing=({px},{py}) d={dist}"
+                dist, limit, f"{ref} pcb=({x},{y}) packing=({px},{py}) d={dist}"
             )
+        self.assertIn("H1", found)
+        self.assertIn("H2", found)
+        self.assertLessEqual(
+            ((found["H1"][0] - 13.45) ** 2 + (found["H1"][1] - 17.70) ** 2) ** 0.5, 0.1
+        )
+        self.assertLessEqual(
+            ((found["H2"][0] - 17.95) ** 2 + (found["H2"][1] - 17.70) ** 2) ** 0.5, 0.1
+        )
+
+
+    def test_pcb_matches_packing_5d_pin_table_v21(self) -> None:
+        """Review r7: the board and packing §5d pin table v2.1 carry one set of
+        numbers, side and rotation included (bottom parts are mirrored, so pcb
+        rot = 180 - packing rot). R24 alone keeps the Q87 allowance: this board
+        (fbd56e6) has it at +0.47 u rot 0; WP12g moves it onto v2.1's site."""
+        text = PCB.read_text(encoding="utf-8")
+        found: dict[str, tuple[float, float, float, str]] = {}
+        for chunk in text.split("\n\t(footprint ")[1:]:
+            at = re.search(r"\(at ([-\d.]+) ([-\d.]+)(?: ([-\d.]+))?\)", chunk)
+            ref = re.search(r'\(property "Reference" "([^"]+)"', chunk)
+            layer = re.search(r'\(layer "([^"]+)"\)', chunk)
+            if at and ref and layer:
+                found[ref.group(1)] = (
+                    float(at.group(1)), float(at.group(2)), float(at.group(3) or 0.0), layer.group(1)
+                )
+        doc = (ROOT / "docs" / "fab" / "packing-v2.md").read_text(encoding="utf-8")
+        section = doc[doc.index("### Pin table v2.1"):]
+        section = section[: section.index("\n### ", 5)]
+        rows = 0
+        for line in section.splitlines():
+            m = re.match(
+                r"^\|\s*([A-Z][A-Z0-9]*)\s*\|\s*(\w+)\s*\|\s*([-0-9.]+)\s*\|\s*([-0-9.]+)\s*\|\s*([-0-9.]+)\s*\|",
+                line,
+            )
+            if m is None:
+                continue
+            rows += 1
+            ref, side = m.group(1), m.group(2)
+            u, s, rot = float(m.group(3)), float(m.group(4)), float(m.group(5))
+            with self.subTest(ref=ref):
+                self.assertIn(ref, found)
+                x, y, prot, layer = found[ref]
+                limit = 0.50 if ref == "R24" else 0.1
+                self.assertLessEqual(((x - u) ** 2 + (y - s) ** 2) ** 0.5, limit, (ref, x, y, u, s))
+                self.assertEqual(layer, "B.Cu" if side == "bottom" else "F.Cu", ref)
+                if ref != "R24":
+                    want = (180.0 - rot) % 360.0 if side == "bottom" else rot % 360.0
+                    self.assertAlmostEqual(prot % 360.0, want, places=1, msg=ref)
+        self.assertEqual(rows, 68)
+
+
+class Wp12cRoutedAssertionTests(unittest.TestCase):
+    def test_order_release_stays_unrouted(self) -> None:
+        """WP12f: tab stubs exist; DRC 0 with 0 unconnected was not reached."""
+        if shutil.which("kicad-cli") is None:
+            self.fail(kicad_missing_message())
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "release"
+            proc = subprocess.run(
+                [sys.executable, str(RELEASE), "--board-dir", str(SCH.parent), "--out", str(out), "--routed"],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 1, proc.stdout[-2000:])
+            self.assertIn("routed release refused", proc.stderr)
+            summary = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+            self.assertGreater(summary["pcb_tracks"], 0)
+            self.assertGreater(summary["unconnected_items"], 0)
+            self.assertEqual(summary["pcb_pads_without_net"], 0)
+
+
+class FlexDsnClassTests(unittest.TestCase):
+    def test_check_dsn_classes_accepts_section_12_blocks(self) -> None:
+        sys.path.insert(0, str(ROOT / "scripts" / "board"))
+        import route_v2
+
+        text = """
+    (class kicad_default GND
+      (rule
+        (width 100)
+        (clearance 100)
+      )
+    )
+    (class Contact REF SIG1 SIG2
+      (rule
+        (width 150)
+        (clearance 200)
+      )
+    )
+    (via "Via[0-1]_700:300_um")
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "elicio-v2.dsn"
+            path.write_text(text, encoding="utf-8")
+            self.assertEqual(route_v2.check_dsn_classes(path), [])
+
+
+class SideColumnTests(unittest.TestCase):
+    def test_synthetic_two_row_table_marks_bottom_for_flip(self) -> None:
+        # Two-row packing table: one top, one bottom. Does not load the PCB.
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_placement_markdown, wants_back_copper
+
+        table = """
+| ref | u | s | rot | side |
+|---|---:|---:|---:|---|
+| U1 | 10.00 | 32.35 | 90 | top |
+| C6 | 3.70 | 20.20 | 0 | bottom |
+"""
+        rows = parse_placement_markdown(table)
+        self.assertEqual([r.ref for r in rows], ["U1", "C6"])
+        self.assertEqual(rows[0].side, "top")
+        self.assertEqual(rows[1].side, "bottom")
+        self.assertAlmostEqual(rows[0].u, 10.00)
+        self.assertAlmostEqual(rows[0].s, 32.35)
+        self.assertAlmostEqual(rows[0].rot, 90)
+        self.assertFalse(wants_back_copper(rows[0]))
+        self.assertTrue(wants_back_copper(rows[1]))
+
+    def test_section5b_face_column_maps_top_and_bottom_only(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_placement_markdown, wants_back_copper
+
+        table = """
+| ref | u | s | rot | courtyard wu × ws | face | notes |
+|---|---:|---:|---:|---|---|---|
+| U1 | 10.00 | 32.35 | 90 | 16.50 × 11.50 | top | packing centre |
+| C6 | 3.70 | 20.20 | 0 | 2.96 × 1.46 | bottom | B.Cu under ADS |
+| C7 | 13.58 | 3.88 | 0 | 2.96 × 1.46 | pocket | region, not a copper side |
+"""
+        rows = parse_placement_markdown(table)
+        self.assertEqual([r.side for r in rows], ["top", "bottom", "top"])
+        self.assertEqual([wants_back_copper(r) for r in rows], [False, True, False])
+
+
+class Q84ContactAreaTests(unittest.TestCase):
+    def test_dru_file_names_tabs_and_tail_pads(self) -> None:
+        dru = (ROOT / "hardware" / "board" / "elicio-v2.kicad_dru").read_text(encoding="utf-8")
+        self.assertIn("(version 1)", dru)
+        self.assertIn("intersectsArea('tabs')", dru)
+        self.assertIn("intersectsArea('tail_pads')", dru)
+        self.assertIn("1.0mm", dru)
+
+    def test_contact_netclass_is_island_default_0_20(self) -> None:
+        pro = json.loads((ROOT / "hardware" / "board" / "elicio-v2.kicad_pro").read_text(encoding="utf-8"))
+        contact = next(c for c in pro["net_settings"]["classes"] if c["name"] == "Contact")
+        self.assertAlmostEqual(contact["clearance"], 0.2)
+
+    def test_zero_track_drc_has_no_contact_clearance_on_island_0402(self) -> None:
+        """Q84: R1–R3 on the island use 0.20 mm, not tab creepage 1.0 mm."""
+        if shutil.which("kicad-cli") is None:
+            self.fail(kicad_missing_message())
+        with tempfile.TemporaryDirectory() as tmp:
+            report = Path(tmp) / "drc.json"
+            proc = subprocess.run(
+                ["kicad-cli", "pcb", "drc", "--format", "json", "-o", str(report), str(PCB)],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            island_refs = (" of R1 ", " of R2 ", " of R3 ")
+            hits = []
+            for viol in data.get("violations") or []:
+                if viol.get("type") != "clearance":
+                    continue
+                desc = viol.get("description") or ""
+                if "Contact" not in desc:
+                    continue
+                blob = " " + " ".join(item.get("description") or "" for item in viol.get("items") or []) + " "
+                if any(ref in blob for ref in island_refs):
+                    hits.append((desc, blob.strip()))
+            self.assertEqual(hits, [], msg=hits)
+
+
+class PinTableV2ParserTests(unittest.TestCase):
+    SAMPLE = """
+# Pin table v2 (flat coordinates)
+
+| ref | side | u | s | rot | notes |
+|---|---|---:|---:|---:|---|
+| U1 | top | 8.00 | 29.35 | 0 | island |
+| R6 | bottom | 14.68 | 22.37 | 0 | second side |
+| P1 | top | 5.90 | 12.00 | 0 | flat strip end |
+
+## Folded shell sites (u, s, y) — shell lane only
+
+| ref | u | s | y |
+|---|---:|---:|---:|
+| P1 | 5.90 | 22.00 | 4.81 |
+| P2 | 10.40 | 33.10 | 4.81 |
+
+## J4 both-side keep-out (hole diameter plus hole clearance)
+
+| name | u | s | diameter | clearance | layers |
+|---|---:|---:|---:|---:|---|
+| j4_h1 | 16.25 | 22.06 | 0.9906 | 0.20 | both |
+| j4_h2 | 17.27 | 27.14 | 0.9906 | 0.20 | both |
+"""
+
+    XY_SAMPLE = """
+Pin table v2 flat
+
+| ref | side | x | y | rot |
+|---|---|---:|---:|---:|
+| J4 | top | 16.25 | 24.60 | 90 |
+"""
+
+    def test_flat_rows_ignore_folded_shell_sites(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_pin_table_v2
+
+        rows = parse_pin_table_v2(self.SAMPLE)
+        refs = [r.ref for r in rows]
+        self.assertEqual(refs, ["U1", "R6", "P1"])
+        p1 = next(r for r in rows if r.ref == "P1")
+        self.assertAlmostEqual(p1.s, 12.00)
+        self.assertEqual(p1.side, "top")
+        r6 = next(r for r in rows if r.ref == "R6")
+        self.assertEqual(r6.side, "bottom")
+
+    def test_flat_x_y_columns(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import parse_pin_table_v2
+
+        rows = parse_pin_table_v2(self.XY_SAMPLE)
+        self.assertEqual(len(rows), 1)
+        self.assertAlmostEqual(rows[0].u, 16.25)
+        self.assertAlmostEqual(rows[0].s, 24.60)
+        self.assertAlmostEqual(rows[0].rot, 90)
+
+    def test_j4_keepout_is_both_side_and_forbids_back_copper(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import forbids_back_copper, parse_j4_keepouts
+
+        zones = parse_j4_keepouts(self.SAMPLE)
+        self.assertEqual(len(zones), 2)
+        self.assertTrue(all(forbids_back_copper(z) for z in zones))
+        self.assertAlmostEqual(zones[0].radius, 0.9906 / 2 + 0.20)
+        self.assertAlmostEqual(zones[0].u, 16.25)
+        self.assertAlmostEqual(zones[0].s, 22.06)
+
+    def test_vendored_v2_table_p4_p5_and_j4_keep_diameter(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "hardware" / "board"))
+        from placement_table import forbids_back_copper, parse_j4_keepouts, parse_pin_table_v2
+
+        text = PACKING.read_text(encoding="utf-8")
+        rows = {r.ref: r for r in parse_pin_table_v2(text)}
+        self.assertAlmostEqual(rows["P4"].u, 37.47)
+        self.assertAlmostEqual(rows["P4"].s, 2.80)
+        self.assertAlmostEqual(rows["P5"].u, 30.05)
+        self.assertAlmostEqual(rows["P5"].s, 5.80)
+        self.assertAlmostEqual(rows["P1"].s, 5.29)
+        self.assertAlmostEqual(rows["P2"].s, -5.81)
+        zones = parse_j4_keepouts(text)
+        self.assertEqual(len(zones), 3)
+        self.assertTrue(all(forbids_back_copper(z) for z in zones))
+        self.assertTrue(all(abs(2 * z.radius - 1.39) < 1e-6 for z in zones))
 
 
 if __name__ == "__main__":
