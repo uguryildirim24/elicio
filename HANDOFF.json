@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T20:40:35-04:00",
+ "generated": "2026-09-17T20:53:43-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -55,6 +55,8 @@
    "cwd": "/home/user/projects/elicio/.worktrees/w2",
    "session_id": "137b6bf4-e654-4a43-bc69-e0421552a50c",
    "tokens": {
+    "done": "1",
+    "lane": "WP12",
     "parent": "w1B:p1"
    },
    "title": "Lane W2 Instructions"
@@ -147,21 +149,21 @@
   "repo": "/home/user/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "1bad8c6 Q56: WP11's 109 MB of drawings; squash-merge and prune in review r5",
+   "ffb5b10 Q54, Q55: Raytac sourcing route, the 501015 cell as a G1 gate; HANDOFF after WP17 landed",
    "343a336 HANDOFF: w5 restarted with its flags after the herdr restart dropped them; trap recorded",
    "ae4b6b3 Q52, Q53: Arduino confirmed for the firmware, WP13's tool installs; HANDOFF after WP13 landed",
    "c1bdb1d HANDOFF: WP11 complete on lane/w1 (864 runs; only interface II closes)",
-   "c1df29b HANDOFF: WP16 landed on lane/w9",
-   "ac35231 Q50, Q51: interface I closes nowhere, the build switches to interface II; HANDOFF after WP11's first DONE",
-   "a3b5428 HANDOFF: mark expected files and the review branch so the checker passes"
+   "c1df29b HANDOFF: WP16 landed on lane/w9"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/home/user/projects/elicio",
     "branch": "main",
-    "head": "343a336",
-    "subject": "HANDOFF: w5 restarted with its flags after the herdr restart dropped them; trap recorded",
-    "dirty": 2
+    "head": "1bad8c6",
+    "subject": "Q56: WP11's 109 MB of drawings; squash-merge and prune in review r5",
+    "dirty": 1
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w1",
@@ -173,9 +175,9 @@
    {
     "path": "/home/user/projects/elicio/.worktrees/w2",
     "branch": "lane/w2",
-    "head": "401f92d",
-    "subject": "Open questions Q37 to Q49 (plan v2 decisions); briefs WP12 board, WP13 firmware, WP16 record, WP17 research v3",
-    "dirty": 1
+    "head": "9fa31d2",
+    "subject": "board(v2): schematic, release job, G2/G4 records",
+    "dirty": 0
    },
    {
     "path": "/home/user/projects/elicio/.worktrees/w4",
@@ -200,12 +202,12 @@
    }
   ],
   "branches": [
-   "lane/w5",
+   "lane/w2",
    "main",
+   "lane/w5",
    "lane/w4",
    "lane/w1",
    "lane/w9",
-   "lane/w2",
    "review/r4",
    "review/r3",
    "review/r2",
