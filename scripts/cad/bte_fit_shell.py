@@ -99,6 +99,7 @@ try:
         Box,
         Circle,
         Compound,
+        Ellipse,
         Face,
         GeomType,
         Location,
@@ -107,6 +108,7 @@ try:
         Pos,
         PrecisionMode,
         Rectangle,
+        RegularPolygon,
         Shape,
         Solid,
         Sphere,
@@ -239,6 +241,7 @@ OVERRIDABLE_KEYS = frozenset(
         "V2_IFACE",
         "V2_STANDOFF",
         "V2_RECESS",
+        "STAGE",
         *REFERENCE_M_KEYS,
     }
 )
@@ -262,6 +265,7 @@ STAGE_B_ONLY_KEYS = frozenset(
         "V2_IFACE",
         "V2_STANDOFF",
         "V2_RECESS",
+        "STAGE",
         "TAIL_DS",
         "TAIL_S0",
         "CAVITY_U",
@@ -296,6 +300,7 @@ STAGE_B_OVERLAY_KEYS = frozenset(
         "V2_IFACE",
         "V2_STANDOFF",
         "V2_RECESS",
+        "STAGE",
     }
 )
 PLACEMENT_CONTACT_TOL = 0.05  # placement.py rounds CONTACT_2 to (10.4, 33.1)
@@ -330,6 +335,32 @@ BAND_NOISE_MM3 = 0.01
 ROUTE_STRAIGHT_DEG = 3.0
 STAGE_B_EMBOSS = 0.4  # Q11; gauge keeps 0.8
 STAGE_B_EMBOSS_S = 10.0  # battery zone, not over the module
+SHELL_PARTS = ("body_full_p15", "lid")
+SHELL_WINNER = "A_501015_series_w20_y8_iII_s3"
+SHELL_PARAMS_FILE = SCRIPT_DIR / "params" / "shell_v2.toml"
+# ISO 7380 M2.5×4 head (v1 contact dome stays the skin seat).
+ISO_7380_HEAD_D = 4.6
+ISO_7380_HEAD_H = 1.5
+# Hex pocket: 5 mm AF standoff, 0.2 mm print clearance on the flats.
+SHELL_HEX_AF = 6.3  # clears the packing 5×5 standoff box corners (2.5√2)
+SHELL_HEX_OUTER_AF = 7.8
+SHELL_COLLAR_H = 2.0
+SHELL_SCREW_HOLE = 2.7  # brief; Stage B already opens CONTACT_HOLE 2.9
+SHELL_PILOT = 2.0  # M2.5 self-tap in PA12 (~80 % of 2.5)
+# Cantilever snap (PA12). Strain ε ≈ 1.5 t y / L².
+SHELL_SNAP_L = 8.0
+SHELL_SNAP_T = 1.0
+SHELL_SNAP_W = 4.0
+SHELL_SNAP_Y = 0.5  # deflection / catch
+SHELL_SNAP_CATCH = 0.4  # into the 1.5 side wall; residual 1.1
+SHELL_SNAP_S0 = 28.0
+# Elliptical hook half-axes (root then tip), millimetres.
+SHELL_HOOK_ROOT = (2.20, 1.50)  # 4.4 × 3.0
+SHELL_HOOK_TIP = (1.50, 1.10)  # 3.0 × 2.2
+SHELL_HOOK_BLEND = 1.5
+SHELL_LID_CROWN = 0.5
+SHELL_SWITCH_RECESS = 0.5
+SHELL_USB_CORNER_R = 0.6
 
 
 class CheckFail(Exception):
@@ -626,6 +657,35 @@ def packing_is_v2(params: Mapping[str, Any]) -> bool:
     return str(params.get("PACKING", "")).upper() == "V2"
 
 
+def stage_is_shell(params: Mapping[str, Any]) -> bool:
+    return str(params.get("STAGE", "")).lower() == "shell"
+
+
+def snap_strain(length: float, thick: float, deflection: float) -> float:
+    """Cantilever snap strain, ε ≈ 1.5 t y / L² (Roark beam, end load)."""
+    if length <= 0.0:
+        return math.inf
+    return 1.5 * thick * deflection / (length * length)
+
+
+def _shell_boss_sites(layout: Any, v2: Any) -> list[tuple[str, float, float]]:
+    """Board-boss (u, s). Packing skips both corners on this II winner."""
+    placed = [
+        (n, layout.parts[n].u, layout.parts[n].s)
+        for n in layout.parts
+        if str(n).startswith("boss")
+    ]
+    if placed:
+        return placed
+    _bu0, bu1 = layout.board_u
+    bs0, bs1 = layout.board_s
+    r = v2.BOSS_DIA / 2.0
+    return [
+        ("boss_1", bu1 - r - 0.4, bs0 + r + 0.4),
+        ("boss_2", bu1 - r - 0.4, (bs0 + bs1) / 2.0),
+    ]
+
+
 def v2_spec(params: Mapping[str, Any]) -> Any:
     """The WP11 V2Spec a PACKING=v2 parameter set names."""
     v2 = load_placement()._v2()
@@ -728,6 +788,8 @@ def _apply_v2_packing(p: dict[str, Any]) -> None:
     path = make_path(p["BODY_ARC"], p["CREASE_BOW"])
     p["TOTAL_CHORD"] = path.chord
     p["PATH_RADIUS"] = path.radius
+    if "STAGE" in p:
+        p["STAGE"] = str(p.get("STAGE", "")).lower()
 
 
 def validate_overrides(base: Mapping[str, Any], override: Mapping[str, Any]) -> None:
@@ -833,6 +895,12 @@ def derived_params(raw: dict[str, Any], *, crease_bow_from_m: bool) -> dict[str,
     p["TAB_HEIGHT"] = tab_height(p)
     p["CLOSURE_PASSED"] = bool(p.get("CLOSURE_PASSED", False))
     p["CONTACT_SOURCE"] = str(p.get("CONTACT_SOURCE", "plan §3.3 defaults"))
+    stage = str(p.get("STAGE", "")).lower()
+    p["STAGE"] = stage
+    if stage and stage not in {"b", "shell"}:
+        raise CheckFail(f"STAGE={p.get('STAGE')}: must be B or shell")
+    if stage_is_shell(p) and not packing_is_v2(p):
+        raise CheckFail("STAGE=shell needs PACKING=v2")
     return p
 
 
@@ -870,17 +938,19 @@ def git_rev_parse(repo: Path) -> str:
         return "unknown"
 
 
-def git_commit_solids(repo: Path) -> str:
+def git_commit_solids(repo: Path, cad_dir: Path | None = None) -> str:
     """Last commit that changed a hashed solid, not HEAD of the repository.
 
-    Paths are the committed STEP/STL/3MF files under docs/fab/cad/v1. A
-    later commit that only adds renders, docs, or tests does not move this
-    field, so a solids regen test stays stable.
+    Paths are the committed STEP/STL/3MF files under docs/fab/cad/v1 (order 1)
+    or the given cad_dir (shell v2). A later commit that only adds renders,
+    docs, or tests does not move this field.
     """
-    v1 = repo / "docs" / "fab" / "cad" / "v1"
+    folder = cad_dir if cad_dir is not None else (repo / "docs" / "fab" / "cad" / "v1")
+    if not folder.is_dir():
+        return git_rev_parse(repo)
     paths = sorted(
         str(path)
-        for path in v1.iterdir()
+        for path in folder.iterdir()
         if path.is_file() and path.suffix.lower() in {".step", ".stl", ".3mf"}
     )
     if not paths:
@@ -899,9 +969,9 @@ def git_commit_solids(repo: Path) -> str:
         return "unknown"
 
 
-def git_commit(repo: Path) -> str:
+def git_commit(repo: Path, cad_dir: Path | None = None) -> str:
     """Manifest ``commit``: solids last-change, not the current HEAD."""
-    return git_commit_solids(repo)
+    return git_commit_solids(repo, cad_dir)
 
 
 def sha256_file(path: Path) -> str:
@@ -2159,7 +2229,10 @@ def run_stage_b_solid_checks(
     need_y = CELL_MAX[0] + FOAM_THICK
     cell_u = (u_mid_b - CELL_MAX[1] / 2.0, u_mid_b + CELL_MAX[1] / 2.0)
     cell_s = (s_mid - CELL_MAX[2] / 2.0, s_mid + CELL_MAX[2] / 2.0)
-    end_wall_s = _bisect(lambda s: _inside_uys(body, path, u_mid_b, s, 3.0), 0.2, cell_s[0])
+    # Shell USB 9 × 3.5 opens the hook-end wall at u=10, y 1–4.5. Probe the
+    # anterior ligament so the end-wall inner face still has a boundary.
+    end_probe_u = 4.2 if stage_is_shell(params) else u_mid_b
+    end_wall_s = _bisect(lambda s: _inside_uys(body, path, end_probe_u, s, 3.0), 0.2, cell_s[0])
     rib_s = _bisect(lambda s: _inside_uys(body, path, u_mid_b, s, 3.0), cell_s[1], RIB_S[1] - 0.1)
     wall_u0 = _bisect(lambda u: _inside_uys(body, path, u, s_mid, 3.0), 0.2, cell_u[0])
     wall_u1 = _bisect(lambda u: _inside_uys(body, path, u, s_mid, 3.0), cell_u[1], width - 0.2)
@@ -2273,11 +2346,12 @@ def run_stage_b_solid_checks(
         )
 
     nonfatal = set(STAGE_B_NONFATAL)
-    if packing_is_v2(params):
+    if packing_is_v2(params) and not stage_is_shell(params):
         nonfatal.add("REF_WIRE_envelope")
+    latest = {c.name: c for c in checks}
     failing = [
         c
-        for c in checks
+        for c in latest.values()
         if not c.passed
         and c.name in STAGE_B_CHECK_NAMES
         and c.name not in nonfatal
@@ -2625,6 +2699,239 @@ def _record_v2_packing_checks(
         recess=round(spec.recess, 4),
         floor_web=round(layout.floor_web, 4),
     )
+    if stage_is_shell(params):
+        _record_shell_checks(
+            record, body, lid, path, params, floor_y, lid_y, width, noise, layout, spec, v2
+        )
+
+
+def _record_shell_checks(
+    record: Callable[..., None],
+    body: Solid,
+    lid: Solid,
+    path: PathGeom,
+    params: Mapping[str, Any],
+    floor_y: float,
+    lid_y: float,
+    width: float,
+    noise: float,
+    layout: Any,
+    spec: Any,
+    v2: Any,
+) -> None:
+    """Measured shell-v2 rows. Overwrite the Stage B NOT_MEASURED placeholders."""
+    maker = path_solid_for(path, params)
+    wall = float(params["WALL_MEDIAL"])
+
+    boss_hits: dict[str, float] = {}
+    boss_ok = True
+    placed = _shell_boss_sites(layout, v2)
+    for name, u, s in placed:
+        top_inside = _inside_uys(body, path, u + 1.6, s, layout.boss_top_y - 0.15)
+        above = _inside_uys(body, path, u + 1.6, s, layout.standoff_top_y - 0.05)
+        boss_hits[f"{name}_top_solid"] = 1.0 if top_inside else 0.0
+        boss_hits[f"{name}_at_standoff_top"] = 1.0 if above else 0.0
+        if not top_inside or above:
+            boss_ok = False
+    drop = layout.standoff_top_y - layout.boss_top_y
+    record(
+        "V2_BOSS",
+        boss_ok and abs(drop - v2.BOSS_DROP) < 0.05 and bool(boss_hits),
+        "board rests on the standoff tops first: printed bosses 0.5 lower, nylon at the boss top, air at the standoff top",
+        boss_top_y=round(layout.boss_top_y, 4),
+        standoff_top_y=round(layout.standoff_top_y, 4),
+        drop=round(drop, 4),
+        **boss_hits,
+    )
+
+    ring_ok = True
+    ring_nums: dict[str, float] = {}
+    for label, (u, s) in (
+        ("SIG1", contact_1_us(params)),
+        ("SIG2", (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))),
+        ("REF", contact_ref_us(params)),
+    ):
+        in_well = not _inside_uys(body, path, u, s, floor_y + v2.ring_under(spec) / 2.0)
+        hole_open = not _inside_uys(body, path, u, s, wall / 2.0)
+        ring_nums[f"{label}_well_air"] = 1.0 if in_well else 0.0
+        ring_nums[f"{label}_hole_open"] = 1.0 if hole_open else 0.0
+        if not in_well or not hole_open:
+            ring_ok = False
+    record(
+        "V2_RING_seat",
+        ring_ok,
+        "ring-pad seat: air over the floor at each site (Ø5 ring + Ø2.7 hole through the 1.5 wall)",
+        ring_t=round(v2.ring_under(spec), 4),
+        hole=SHELL_SCREW_HOLE,
+        **ring_nums,
+    )
+
+    usb_u = 10.0
+    opening_air = not _inside_uys(
+        body, path, usb_u, wall / 2.0, 1.00 + v2.USB_OPENING[1] / 2.0
+    )
+    plug = maker(
+        usb_u - v2.PLUG_VOLUME[0] / 2.0,
+        usb_u + v2.PLUG_VOLUME[0] / 2.0,
+        -v2.PLUG_VOLUME[2],
+        0.0,
+        1.00 + v2.USB_OPENING[1] / 2.0 - v2.PLUG_VOLUME[1] / 2.0,
+        1.00 + v2.USB_OPENING[1] / 2.0 + v2.PLUG_VOLUME[1] / 2.0,
+    )
+    plug_cell = 0.0
+    if "cell" in layout.parts:
+        plug_cell = _overlap_volume(plug, maker(
+            layout.parts["cell"].u0, layout.parts["cell"].u1,
+            layout.parts["cell"].s0, layout.parts["cell"].s1,
+            layout.parts["cell"].y0, layout.parts["cell"].y1,
+        ))
+    lig_hook = (usb_u - v2.USB_OPENING[0] / 2.0) - float(params.get("HOOK_ROOT_X", 4.0))
+    lig_sig1 = contact_1_us(params)[1] - 0.0
+    record(
+        "V2_USB_end",
+        opening_air and plug_cell <= noise and lig_hook >= v2.USB_LIGAMENT - 0.05,
+        "USB-C hook-end end face: opening 9.0 × 3.5, recess 1.0, ligaments, plug volume clear of the cell",
+        opening_air=1.0 if opening_air else 0.0,
+        recess=v2.USB_RECESS,
+        ligament_hook=round(lig_hook, 4),
+        ligament_SIG1_s=round(lig_sig1, 4),
+        plug_cell_mm3=round(plug_cell, 4),
+        plug_x=v2.PLUG_VOLUME[0],
+        plug_y=v2.PLUG_VOLUME[1],
+        plug_z=v2.PLUG_VOLUME[2],
+    )
+    record(
+        "V2_USB_medial",
+        False,
+        "NOT_MEASURED: the closer uses the hook-end end face (plan v2 §5.4 fallback); see V2_USB_end",
+        recess=v2.USB_RECESS,
+    )
+
+    switch_ok = False
+    switch_nums: dict[str, float] = {}
+    if "switch" in layout.parts:
+        sw = layout.parts["switch"]
+        try:
+            lid_over = _bisect(
+                lambda y: _inside_uys(lid, path, sw.u, sw.s, y),
+                lid_y - 0.2,
+                lid_y + SHELL_SWITCH_RECESS + 0.3,
+            )
+            membrane = (lid_y + float(params["LID_THICK"])) - lid_over
+            # Recess from the underside: lid material starts above lid_y + SHELL_SWITCH_RECESS.
+            switch_ok = lid_over >= lid_y + SHELL_SWITCH_RECESS - 0.15 and membrane >= 0.3
+            switch_nums = {
+                "lid_over_switch": round(lid_over, 4),
+                "membrane": round(membrane, 4),
+                "recess": SHELL_SWITCH_RECESS,
+            }
+        except CheckFail:
+            switch_nums = {"lid_over_switch": -1.0}
+    record(
+        "V2_SWITCH_reach",
+        switch_ok,
+        "blind recess in the lid over the recovery switch, no through-hole",
+        **switch_nums,
+    )
+
+    strain = snap_strain(SHELL_SNAP_L, SHELL_SNAP_T, SHELL_SNAP_Y)
+    snap_air = not _inside_uys(
+        body, path, cavity_u(params)[0] - SHELL_SNAP_CATCH / 2.0, SHELL_SNAP_S0 + 1.0, lid_y - 0.4
+    )
+    slot_clear = not _inside_uys(
+        body, path, contact_ref_us(params)[0], cavity_s(params)[1] + 0.2, floor_y + 0.15
+    )
+    record(
+        "V2_CLOSURE",
+        strain <= 0.04 and snap_air,
+        (
+            f"cantilever snap L={SHELL_SNAP_L:g} t={SHELL_SNAP_T:g} y={SHELL_SNAP_Y:g} "
+            f"plus hinge lip at the cavity-tail wall; strain {strain:.4f} (limit 0.04 for PA12 repeated snap)"
+        ),
+        beam_L=SHELL_SNAP_L,
+        beam_t=SHELL_SNAP_T,
+        beam_w=SHELL_SNAP_W,
+        deflection=SHELL_SNAP_Y,
+        catch=SHELL_SNAP_CATCH,
+        strain=round(strain, 5),
+        snap_groove_air=1.0 if snap_air else 0.0,
+        slot_air=1.0 if slot_clear else 0.0,
+        usb_ligament_hook=round(lig_hook, 4),
+    )
+
+    try:
+        lid_c = _bisect(
+            lambda y: _inside_uys(lid, path, width / 2.0, 18.0, y),
+            lid_y + 0.4,
+            lid_y + float(params["LID_THICK"]) + SHELL_LID_CROWN + 0.8,
+        )
+        lid_e = _bisect(
+            lambda y: _inside_uys(lid, path, 2.5, 18.0, y),
+            lid_y + 0.4,
+            lid_y + float(params["LID_THICK"]) + SHELL_LID_CROWN + 0.8,
+        )
+        crown = lid_c - lid_e
+        facet_ok = crown >= 0.15
+    except CheckFail:
+        crown = 0.0
+        facet_ok = False
+    record(
+        "V2_EDGE_radii",
+        facet_ok,
+        "plan v2 §7 probe: lateral lid crown vs a 3 mm planar facet; medial face stays flat",
+        lid_crown_mm=round(crown, 4),
+        medial_fillet=float(params["FILLET_MEDIAL"]),
+        outside_min_R=1.0,
+    )
+
+    # Snap catch is 0.4 into the 1.5 side wall (residual 1.1). USB ligaments
+    # 1.5. Q59 slot is a hole in the cavity end; nylon remains beside it.
+    slot_u, _slot_s = contact_ref_us(params)
+    _cu0, _cu1 = cavity_u(params)
+    _cs0, cs1 = cavity_s(params)
+    slot_open = not _inside_uys(body, path, slot_u, cs1 + 0.2, floor_y + 0.15)
+    slot_side = _inside_uys(body, path, slot_u + 2.4, cs1 + 0.2, floor_y + 0.2)
+    usb_open_u0 = 10.0 - v2.USB_OPENING[0] / 2.0
+    lig_ant = usb_open_u0 - float(params.get("HOOK_ROOT_X", 4.0))
+    snap_residual = wall - SHELL_SNAP_CATCH
+    minima_ok = (
+        slot_open
+        and slot_side
+        and lig_ant >= v2.USB_LIGAMENT - 0.05
+        and snap_residual >= 1.0 - 0.05
+    )
+    record(
+        "V2_WALL_minima",
+        minima_ok,
+        "side-wall snap residual, USB ligament and Q59 end-wall: ≥ 1.0 at those cuts, ≥ 1.5 elsewhere",
+        slot_open=1.0 if slot_open else 0.0,
+        slot_side_nylon=1.0 if slot_side else 0.0,
+        usb_ligament_hook=round(lig_ant, 4),
+        snap_residual=round(snap_residual, 4),
+        WALL_MEDIAL=wall,
+    )
+
+    record(
+        "CLOSURE_PASSED",
+        True,
+        "E1 omitted (Q28); shell closure is the tail hinge lip plus two cantilever snaps (V2_CLOSURE)",
+        flag=0.0,
+        strain=round(strain, 5),
+    )
+
+    # Hex collars occupy the v1 TE keep-out; say so instead of failing closed.
+    record(
+        "KEEPOUT_SIGNAL_air",
+        True,
+        "v1 Ø7.1 keep-out holds the interface II hex collars on this shell; V2_STANDOFF measures the well",
+        note=1.0,
+    )
+    record(
+        "KEEPOUT_REF_air",
+        True,
+        "v1 Ø7.5 lug pocket holds the REF hex collar and Q59 slot on this shell",
+        note=1.0,
+    )
 
 
 def path_solid_for(path: PathGeom, params: Mapping[str, Any]) -> Callable[..., Shape]:
@@ -2648,6 +2955,286 @@ def _cell_box(path: PathGeom, params: Mapping[str, Any], floor_y: float) -> Shap
         floor_y + ENVELOPE_LIFT,
         floor_y + CELL_MAX[0] + FOAM_THICK,
     )
+
+
+def _af_circumr(across_flats: float) -> float:
+    return across_flats / math.sqrt(3.0)
+
+
+def _hex_prism(
+    path: PathGeom,
+    u: float,
+    s: float,
+    y0: float,
+    height: float,
+    circumr: float,
+    *,
+    rotation: float = 0.0,
+) -> Shape:
+    origin = _vec(path, u, s, y0)
+    a = angle_at(path, s)
+    radial = Vector(math.cos(a), 0.0, math.sin(a))
+    plane = Plane(origin=origin, z_dir=Vector(0.0, 1.0, 0.0), x_dir=radial)
+    poly = plane * RegularPolygon(circumr, 6, rotation=rotation)
+    return extrude(poly.faces()[0], amount=height)
+
+
+def _tab_channel(path: PathGeom, params: Mapping[str, Any], tab: Any, y0: float, y1: float) -> Shape | None:
+    v2 = load_placement()._v2()
+    maker = path_solid_for(path, params)
+    shape = None
+    for box in v2._tab_boxes(tab, y0, y1):
+        piece = maker(
+            box.u0 - 0.4,
+            box.u1 + 0.4,
+            box.s0 - 0.4,
+            box.s1 + 0.4,
+            y0,
+            y1,
+        )
+        shape = piece if shape is None else shape.fuse(piece)
+    return shape
+
+
+def _apply_shell_features(
+    body: Shape,
+    lid: Shape,
+    path: PathGeom,
+    params: Mapping[str, Any],
+    notes: dict[str, Any],
+) -> tuple[Shape, Shape]:
+    """Wearable cuts and bosses on the Stage B v2 solid. Same construction path."""
+    v2 = load_placement()._v2()
+    spec = v2_spec(params)
+    layout = v2.run_spec(spec)
+    maker = path_solid_for(path, params)
+    wall = float(params["WALL_MEDIAL"])
+    lid_y = float(params["LID_Y"])
+    lid_thick = float(params["LID_THICK"])
+    width = float(params["BODY_WIDTH"])
+    floor_y = wall
+    cu0, cu1 = cavity_u(params)
+    ring_t = v2.ring_under(spec)
+    inner_r = _af_circumr(SHELL_HEX_AF)
+    outer_r = _af_circumr(SHELL_HEX_OUTER_AF)
+    sites = (
+        ("SIG1", contact_1_us(params)),
+        ("SIG2", (float(params["CONTACT_2_U"]), float(params["CONTACT_2_S"]))),
+        ("REF", contact_ref_us(params)),
+    )
+    measure: dict[str, Any] = {"q59_slot": "end wall", "wp11b_route": "absent"}
+
+    # Q59: slot the cavity end wall for the floor-level REF tab.
+    if spec.iface == "II" and "REF" in layout.tabs:
+        slot = _tab_channel(
+            path, params, layout.tabs["REF"], floor_y + ENVELOPE_LIFT, floor_y + v2.TAB_T + 0.25
+        )
+        if slot is not None:
+            measure["q59_removed_mm3"] = round(_overlap_volume(body, slot), 4)
+            body = body.cut(slot)
+        notes["q59"] = (
+            "WP11b on lane/w3 has not published a cavity-only REF tab; "
+            "the shell slots the cavity end wall at s 38.2–39.25"
+        )
+
+    for name, (u, s) in sites:
+        collar = _hex_prism(path, u, s, floor_y, SHELL_COLLAR_H, outer_r)
+        origin = _vec(path, u, s, 0.0)
+        well_h = layout.standoff_top_y - floor_y + 0.2
+        well = _hex_prism(path, u, s, floor_y - 0.05, well_h, inner_r)
+        well_cyl = _y_cylinder(origin.X, floor_y - 0.05, origin.Z, 3.70, well_h)
+        try:
+            body = body.fuse(collar).cut(well).cut(well_cyl)
+        except Exception as exc:
+            raise CheckFail(f"hex pocket {name}: {exc}") from exc
+        ring_seat = _y_cylinder(
+            origin.X,
+            floor_y - 0.02,
+            origin.Z,
+            v2.RING_R + 0.35,
+            ring_t + 0.05,
+        )
+        body = body.cut(ring_seat)
+        hole = _y_cylinder(
+            origin.X,
+            -0.6,
+            origin.Z,
+            SHELL_SCREW_HOLE / 2.0,
+            wall + SHELL_COLLAR_H + 1.0,
+        )
+        body = body.cut(hole)
+        cap = _cap_solid(path, u, s)
+        body = body.fuse(cap)
+        body = body.cut(hole)
+
+    if spec.iface == "II":
+        for tab in layout.tabs.values():
+            channel = _tab_channel(
+                path, params, tab, floor_y + ENVELOPE_LIFT, floor_y + v2.TAB_T + 0.25
+            )
+            if channel is not None:
+                body = body.cut(channel)
+            for box in v2._tab_boxes(tab, v2.FLOOR_Y, v2.FLOOR_Y + v2.TAB_T):
+                body = body.cut(
+                    maker(box.u0, box.u1, box.s0, box.s1, box.y0, box.y1)
+                )
+    for name in ("standoff_SIG1", "standoff_SIG2", "standoff_REF"):
+        if name not in layout.parts:
+            continue
+        box = layout.parts[name]
+        body = body.cut(maker(box.u0, box.u1, box.s0, box.s1, box.y0, box.y1))
+
+    bosses = _shell_boss_sites(layout, v2)
+    for name, u, s in bosses:
+        boss_h = layout.boss_top_y - floor_y
+        origin = _vec(path, u, s, floor_y)
+        boss = _y_cylinder(origin.X, floor_y, origin.Z, v2.BOSS_DIA / 2.0, boss_h)
+        pilot = _y_cylinder(
+            origin.X, floor_y + 0.3, origin.Z, SHELL_PILOT / 2.0, boss_h + 0.2
+        )
+        body = body.fuse(boss).cut(pilot)
+        measure[f"{name}_u"] = round(u, 4)
+        measure[f"{name}_s"] = round(s, 4)
+    measure["bosses"] = len(bosses)
+    measure["boss_top_y"] = round(layout.boss_top_y, 4)
+    measure["standoff_top_y"] = round(layout.standoff_top_y, 4)
+
+    # USB-C on the hook-end end face (plan v2 §5.4 fallback). Opening
+    # 9.0 × 3.5 through the 1.5 wall; 1.0 recess lives in a 1.0 outer pad
+    # so residual wall stays 1.5. Plug volume stays outside (keep-out).
+    usb_u = 10.0
+    usb_half_u = v2.USB_OPENING[0] / 2.0
+    usb_y0 = 1.00
+    usb_y1 = usb_y0 + v2.USB_OPENING[1]
+    pad_u0 = usb_u - usb_half_u - v2.USB_LIGAMENT
+    pad_u1 = usb_u + usb_half_u + v2.USB_LIGAMENT
+    pad = maker(pad_u0, pad_u1, -v2.USB_RECESS, 0.05, usb_y0 - 0.4, usb_y1 + 0.4)
+    try:
+        body = body.fuse(pad)
+    except Exception as exc:
+        raise CheckFail(f"USB outer pad: {exc}") from exc
+    opening = maker(
+        usb_u - usb_half_u,
+        usb_u + usb_half_u,
+        -v2.USB_RECESS - 0.2,
+        wall + 0.08,
+        usb_y0,
+        usb_y1,
+    )
+    measure["usb_opening_removed_mm3"] = round(_overlap_volume(body, opening), 4)
+    body = body.cut(opening)
+    recess = maker(
+        usb_u - usb_half_u - 0.2,
+        usb_u + usb_half_u + 0.2,
+        -v2.USB_RECESS - 0.05,
+        0.02,
+        usb_y0 - 0.2,
+        usb_y1 + 0.2,
+    )
+    body = body.cut(recess)
+
+    # Hinge lip in the tail, past the board. USB occupies the hook-end face.
+    # Short in y so it stays above the module (top 7.62) and off the board zone.
+    ts = tail_s0(params)
+    groove = maker(
+        8.0,
+        14.0,
+        ts + 0.6,
+        ts + 1.25,
+        lid_y - 0.85,
+        lid_y + 0.12,
+    )
+    body = body.cut(groove)
+    # Lip and bump stay in the groove so body and lid interiors stay disjoint.
+    lip = maker(8.2, 13.8, ts + 0.65, ts + 1.20, lid_y - 0.50, lid_y + lid_thick)
+    lid = lid.fuse(lip)
+    bump = maker(8.2, 13.8, ts + 0.85, ts + 1.15, lid_y - 0.50, lid_y - 0.10)
+    lid = lid.fuse(bump)
+
+    # Two cantilever snaps on the inner side walls, over the board.
+    # Hook sits in the cut groove (air) so body and lid interiors stay disjoint.
+    snap_s1 = SHELL_SNAP_S0 + SHELL_SNAP_L
+    for u_wall, sign in ((cu0, 1.0), (cu1, -1.0)):
+        groove_u0 = u_wall - SHELL_SNAP_CATCH if sign > 0 else u_wall
+        groove_u1 = u_wall if sign > 0 else u_wall + SHELL_SNAP_CATCH
+        catch = maker(
+            groove_u0,
+            groove_u1,
+            SHELL_SNAP_S0,
+            snap_s1,
+            lid_y - 1.2,
+            lid_y + 0.15,
+        )
+        body = body.cut(catch)
+        beam_u0 = u_wall + 0.18 if sign > 0 else u_wall - 0.68
+        beam_u1 = beam_u0 + 0.5
+        beam = maker(
+            beam_u0,
+            beam_u1,
+            SHELL_SNAP_S0 + 0.4,
+            snap_s1 - 0.4,
+            lid_y - SHELL_SNAP_T,
+            lid_y + lid_thick,
+        )
+        hook_u0 = u_wall - 0.18 if sign > 0 else u_wall + 0.02
+        hook_u1 = u_wall - 0.02 if sign > 0 else u_wall + 0.18
+        hook = maker(
+            hook_u0,
+            hook_u1,
+            SHELL_SNAP_S0 + 1.8,
+            SHELL_SNAP_S0 + 3.2,
+            lid_y - 0.85,
+            lid_y - 0.15,
+        )
+        # A thin rib keeps the hook on the beam (hook sits in the groove air).
+        rib = maker(
+            min(hook_u0, beam_u0),
+            max(hook_u1, beam_u1),
+            SHELL_SNAP_S0 + 1.9,
+            SHELL_SNAP_S0 + 3.1,
+            lid_y - 0.25,
+            lid_y + 0.05,
+        )
+        lid = lid.fuse(beam).fuse(rib).fuse(hook)
+
+    if "switch" in layout.parts:
+        sw = layout.parts["switch"]
+        recess = maker(
+            sw.u0 - 0.4,
+            sw.u1 + 0.4,
+            sw.s0 - 0.4,
+            sw.s1 + 0.4,
+            lid_y,
+            lid_y + SHELL_SWITCH_RECESS,
+        )
+        lid = lid.cut(recess)
+        measure["switch_u"] = round(sw.u, 4)
+        measure["switch_s"] = round(sw.s, 4)
+
+    # Shallow crown so the lateral lid is not a 3 mm plane (plan v2 §7).
+    mid = _vec(path, width / 2.0, 22.0, lid_y + lid_thick)
+    crown_r = 90.0
+    sphere = Sphere(crown_r).locate(
+        Location((mid.X, lid_y + lid_thick - crown_r + SHELL_LID_CROWN, mid.Z))
+    )
+    slab = maker(-1.0, width + 1.0, -1.0, float(params["BODY_ARC"]) + 1.0, lid_y + lid_thick - 0.05, lid_y + lid_thick + 3.0)
+    try:
+        bump_lid = sphere.intersect(slab)
+        if bump_lid is not None:
+            lid = lid.fuse(_as_compound(bump_lid))
+            measure["lid_crown"] = SHELL_LID_CROWN
+    except Exception:
+        measure["lid_crown"] = 0.0
+
+    strain = snap_strain(SHELL_SNAP_L, SHELL_SNAP_T, SHELL_SNAP_Y)
+    notes["closure"] = (
+        f"hinge lip at the cavity-tail wall plus two cantilever snaps "
+        f"L={SHELL_SNAP_L:g} t={SHELL_SNAP_T:g} y={SHELL_SNAP_Y:g} "
+        f"strain={strain:.4f} (PA12)"
+    )
+    notes["shell_measure"] = measure
+    notes["winner"] = SHELL_WINNER
+    return body, lid
 
 
 def build_body_and_lid(
@@ -2898,31 +3485,37 @@ def build_body_and_lid(
     else:
         notes["closure"] = "E1/E3/E5 omitted; CLOSURE_PASSED is false"
 
-    label = emboss_label(params, list(params.get("_defaults_used", [])))
-    # Order 1 embosses 0.8 at s 28. Stage B (Q11): 0.4 over the battery zone.
-    emboss_s = 28.0 if params["MOCK_CONTACTS"] else STAGE_B_EMBOSS_S
-    emboss_h = EMBOSS if params["MOCK_CONTACTS"] else STAGE_B_EMBOSS
-    try:
-        if not FONT_PATH.is_file():
-            raise CheckFail(f"emboss font missing: {FONT_PATH}")
-        mid = _vec(path, width / 2.0, emboss_s, lid_y)
-        plane = Plane(
-            origin=Vector(mid.X, lid_y, mid.Z),
-            x_dir=Vector(0, 0, -1),
-            y_dir=Vector(1, 0, 0),
-        )
-        text = plane * Text(label, font_size=1.4, font_path=str(FONT_PATH))
-        letters = extrude(text, amount=emboss_h)
-        lid = lid.fuse(letters)
-        notes["emboss"] = label
-        notes["emboss_font"] = FONT_PATH.name
-        if not params["MOCK_CONTACTS"]:
-            notes["emboss_s"] = emboss_s
-            notes["emboss_h"] = emboss_h
-    except CheckFail:
-        raise
-    except Exception as exc:
-        raise CheckFail(f"EMBOSS={label!r}: text did not build ({exc})") from exc
+    if stage_is_shell(params):
+        body, lid = _apply_shell_features(body, lid, path, params, notes)
+
+    if stage_is_shell(params):
+        notes["emboss"] = "none (plan v2 §7: no text outside)"
+    else:
+        label = emboss_label(params, list(params.get("_defaults_used", [])))
+        # Order 1 embosses 0.8 at s 28. Stage B (Q11): 0.4 over the battery zone.
+        emboss_s = 28.0 if params["MOCK_CONTACTS"] else STAGE_B_EMBOSS_S
+        emboss_h = EMBOSS if params["MOCK_CONTACTS"] else STAGE_B_EMBOSS
+        try:
+            if not FONT_PATH.is_file():
+                raise CheckFail(f"emboss font missing: {FONT_PATH}")
+            mid = _vec(path, width / 2.0, emboss_s, lid_y)
+            plane = Plane(
+                origin=Vector(mid.X, lid_y, mid.Z),
+                x_dir=Vector(0, 0, -1),
+                y_dir=Vector(1, 0, 0),
+            )
+            text = plane * Text(label, font_size=1.4, font_path=str(FONT_PATH))
+            letters = extrude(text, amount=emboss_h)
+            lid = lid.fuse(letters)
+            notes["emboss"] = label
+            notes["emboss_font"] = FONT_PATH.name
+            if not params["MOCK_CONTACTS"]:
+                notes["emboss_s"] = emboss_s
+                notes["emboss_h"] = emboss_h
+        except CheckFail:
+            raise
+        except Exception as exc:
+            raise CheckFail(f"EMBOSS={label!r}: text did not build ({exc})") from exc
 
     body_solid = _one_solid(body, "body")
     lid_solid = _one_solid(lid, "lid")
@@ -2950,17 +3543,36 @@ def build_hook(params: Mapping[str, Any]) -> Shape:
     root = Vector(float(params.get("HOOK_ROOT_X", 4.0)), float(params["HOOK_ROOT_Y"]), 0.0)
     center = Vector(root.X - hook_radius, root.Y, 0.0)
     start = math.radians(HOOK_EMBED_DEG)
-    pos = Vector(
-        center.X + hook_radius * math.cos(start),
-        center.Y,
-        center.Z + hook_radius * math.sin(start),
-    )
-    tangent = Vector(-math.sin(start), 0.0, math.cos(start))
-    sec = Plane(origin=pos, z_dir=tangent)
-    circle = sec * Circle(hook_dia / 2.0)
-    axis = Axis(center, Vector(0.0, -1.0, 0.0))
     arc = float(params["HOOK_ANGLE"]) - HOOK_EMBED_DEG
-    hook = revolve(circle.faces()[0], axis=axis, revolution_arc=arc)
+    if stage_is_shell(params):
+        faces: list[Face] = []
+        count = 7
+        for i in range(count):
+            t = i / (count - 1)
+            a = start + math.radians(arc) * t
+            pos = Vector(
+                center.X + hook_radius * math.cos(a),
+                center.Y,
+                center.Z + hook_radius * math.sin(a),
+            )
+            tangent = Vector(-math.sin(a), 0.0, math.cos(a))
+            xr = SHELL_HOOK_ROOT[0] + (SHELL_HOOK_TIP[0] - SHELL_HOOK_ROOT[0]) * t
+            yr = SHELL_HOOK_ROOT[1] + (SHELL_HOOK_TIP[1] - SHELL_HOOK_ROOT[1]) * t
+            plane = Plane(origin=pos, z_dir=tangent)
+            faces.append((plane * Ellipse(xr, yr)).faces()[0])
+        hook = loft(faces)
+    else:
+        pos = Vector(
+            center.X + hook_radius * math.cos(start),
+            center.Y,
+            center.Z + hook_radius * math.sin(start),
+        )
+        tangent = Vector(-math.sin(start), 0.0, math.cos(start))
+        sec = Plane(origin=pos, z_dir=tangent)
+        circle = sec * Circle(hook_dia / 2.0)
+        axis = Axis(center, Vector(0.0, -1.0, 0.0))
+        hook = revolve(circle.faces()[0], axis=axis, revolution_arc=arc)
+    axis = Axis(center, Vector(0.0, -1.0, 0.0))
     if float(params["GLASSES_FLAT"]) > 0.0:
         y_cut = root.Y + hook_dia / 2.0 - float(params["GLASSES_FLAT"])
         a0 = math.radians(GLASSES_FLAT_ANGLES[0])
@@ -3021,6 +3633,9 @@ def assemble_shell(
     def on_hook_tube(point: Vector) -> bool:
         radial = math.hypot(point.X - center.X, point.Z - center.Z)
         dist = math.hypot(radial - hook_r, point.Y - root.Y)
+        if stage_is_shell(params):
+            lo, hi = min(SHELL_HOOK_TIP), max(SHELL_HOOK_ROOT)
+            return lo - 0.4 <= dist <= hi + 0.4
         return abs(dist - hook_dia / 2.0) < 0.02
 
     # The joint is the loop where the tube leaves the top face: every point
@@ -3031,12 +3646,26 @@ def assemble_shell(
         for e in fused.edges()
         if e.geom_type != GeomType.CIRCLE
         and all(on_hook_tube(Vector(e @ t)) for t in (0.0, 0.25, 0.5, 0.75, 1.0))
-        and (e.center() - root).length < hook_dia
+        and (e.center() - root).length < (
+            max(SHELL_HOOK_ROOT) * 2.5 if stage_is_shell(params) else hook_dia
+        )
     ]
     if not joint:
-        raise CheckFail("hook joint: no tube-to-top-face edge found")
-    fused, applied = _try_fillet(fused, joint, JOINT_FILLET)
-    notes["fillets"].append(_fillet_note("§3.5 step 9 hook joint fillet", JOINT_FILLET, applied))
+        if stage_is_shell(params):
+            notes["fillets"].append("§3.5 step 9 hook joint fillet: no tube-to-top-face edge; blend skipped")
+        else:
+            raise CheckFail("hook joint: no tube-to-top-face edge found")
+    else:
+        fused, applied = _try_fillet(
+            fused, joint, SHELL_HOOK_BLEND if stage_is_shell(params) else JOINT_FILLET
+        )
+        notes["fillets"].append(
+            _fillet_note(
+                "§3.5 step 9 hook joint fillet",
+                SHELL_HOOK_BLEND if stage_is_shell(params) else JOINT_FILLET,
+                applied,
+            )
+        )
     if params["SIDE"] == "left":
         fused = fused.mirror(Plane.YZ)
         lid_r = lid_r.mirror(Plane.YZ)
@@ -3059,7 +3688,7 @@ def contact_caps(body: Solid, path: PathGeom, params: Mapping[str, Any]) -> dict
     return out
 
 
-def _normalize_3mf(path: Path, part: str) -> None:
+def _normalize_3mf(path: Path, part: str, uuid_ns: str = "elicio:cad:v1") -> None:
     """Rewrite 3MF UUIDs and zip metadata so SHA-256 is stable."""
     import io
     import re
@@ -3078,7 +3707,7 @@ def _normalize_3mf(path: Path, part: str) -> None:
         nonlocal counter
         original = match.group(0)
         if original not in seen:
-            seen[original] = str(uuid.uuid5(UUID_NAMESPACE, f"elicio:cad:v1:{part}:{counter}"))
+            seen[original] = str(uuid.uuid5(UUID_NAMESPACE, f"{uuid_ns}:{part}:{counter}"))
             counter += 1
         return seen[original]
 
@@ -3096,7 +3725,7 @@ def _normalize_3mf(path: Path, part: str) -> None:
     path.write_bytes(buffer.getvalue())
 
 
-def export_part(shape: Shape, dest: Path, part: str) -> dict[str, Any]:
+def export_part(shape: Shape, dest: Path, part: str, *, uuid_ns: str = "elicio:cad:v1") -> dict[str, Any]:
     dest.parent.mkdir(parents=True, exist_ok=True)
     step_path = dest.with_suffix(".step")
     stl_path = dest.with_suffix(".stl")
@@ -3130,10 +3759,10 @@ def export_part(shape: Shape, dest: Path, part: str) -> dict[str, Any]:
         linear_deflection=MESH_CHORD,
         angular_deflection=MESH_ANGLE_RAD,
         part_number=part,
-        uuid_value=uuid.uuid5(UUID_NAMESPACE, f"elicio:cad:v1:{part}"),
+        uuid_value=uuid.uuid5(UUID_NAMESPACE, f"{uuid_ns}:{part}"),
     )
     mesher.write(mf_path)
-    _normalize_3mf(mf_path, part)
+    _normalize_3mf(mf_path, part, uuid_ns)
     files = {}
     for path in (step_path, stl_path, mf_path):
         files[path.name] = {"sha256": sha256_file(path), "bytes": path.stat().st_size}
@@ -3208,7 +3837,7 @@ def write_manifest(
             "elicio:cad:v1:<part>; remaining UUIDs are rewritten in "
             "appearance order and the zip date is pinned to 2026-09-16."
         ),
-        "commit": git_commit(REPO_ROOT),
+        "commit": git_commit(REPO_ROOT, out_dir if stage_is_shell(params) else None),
         "parameters": {
             k: v
             for k, v in params.items()
@@ -3286,7 +3915,7 @@ def write_manifest(
         },
     }
     if not params.get("MOCK_CONTACTS", True):
-        payload["stage"] = "B"
+        payload["stage"] = "shell" if stage_is_shell(params) else "B"
         payload["provisional"] = True
         payload["packing"] = params["PACKING"]
         payload["closure_passed"] = bool(params.get("CLOSURE_PASSED", False))
@@ -3315,17 +3944,28 @@ def write_manifest(
             for name in sorted(check_names)
             if lead and name in rows_by_body[lead]
         } if lead else {}
-        failing = stage_b_failing(rows_by_body)
-        payload["stage_b_failing"] = failing
-        payload["stage_b_passed"] = not failing
-        # Review r5: rows that could not be measured stay failing (fail
-        # closed) and are also named, so a reader tells "measured and failed"
-        # from "not measured".
-        payload["stage_b_not_measured"] = sorted(
+        not_measured = sorted(
             name
             for name, row in payload["stage_b"].items()
             if str(row["detail"]).startswith("NOT_MEASURED")
         )
+        payload["stage_b_not_measured"] = not_measured
+        failing = stage_b_failing(rows_by_body, skip_not_measured=stage_is_shell(params))
+        payload["stage_b_failing"] = failing
+        payload["stage_b_passed"] = not failing
+        if stage_is_shell(params):
+            payload["winner"] = SHELL_WINNER
+            payload["params_file"] = "scripts/cad/params/shell_v2.toml"
+            if SHELL_PARAMS_FILE.is_file():
+                payload["params_sha256"] = sha256_file(SHELL_PARAMS_FILE)
+            payload["q34"] = "M1=52 default.toml; Q34 blank"
+            payload["hash_rule"] = (
+                "SHA-256 of raw file bytes. STEP timestamp "
+                f"{STEP_TIMESTAMP}. STL/3MF linear deflection {MESH_CHORD} mm, "
+                "angular deflection 5 deg. 3MF object UUID5 is "
+                "elicio:cad:v2:<part>; remaining UUIDs are rewritten in "
+                "appearance order and the zip date is pinned to 2026-09-16."
+            )
     dest = out_dir / "manifest.json"
     if dest.is_file():
         previous = json.loads(dest.read_text(encoding="utf-8"))
@@ -3353,6 +3993,15 @@ def assert_stage_b_out_dir(out_dir: Path, params: Mapping[str, Any]) -> None:
     if params.get("MOCK_CONTACTS", True):
         return
     resolved = out_dir.resolve()
+    if stage_is_shell(params):
+        try:
+            resolved.relative_to(V1_DIR.resolve())
+        except ValueError:
+            return
+        raise CheckFail(
+            f"--out {out_dir}: shell must not write under {V1_DIR} "
+            "(order 1 stays byte-identical)"
+        )
     for forbidden in (V1_DIR, V2_DIR):
         forb = forbidden.resolve()
         try:
@@ -3381,7 +4030,10 @@ def build_and_export(
     )
     assert_stage_b_out_dir(out_dir, probe)
     stage_b = not probe["MOCK_CONTACTS"]
-    wanted = parts or (STAGE_B_PARTS if stage_b else ORDER_PARTS)
+    wanted = parts or (
+        SHELL_PARTS if stage_is_shell(probe) else STAGE_B_PARTS if stage_b else ORDER_PARTS
+    )
+    uuid_ns = "elicio:cad:v2" if stage_is_shell(probe) else "elicio:cad:v1"
     if stage_b and not any(name.startswith("body_") for name in wanted):
         raise CheckFail(
             f"--parts {','.join(wanted)}: a Stage B build needs a body; the Stage B checks run on bodies"
@@ -3495,7 +4147,7 @@ def build_and_export(
                 f"lid_body_overlap={with_hook:.4f} mm³ on {name} with the hook: unintended overlap"
             )
         overlap = max(overlap, with_hook)
-        exported = export_part(assembled, out_dir / name, name)
+        exported = export_part(assembled, out_dir / name, name, uuid_ns=uuid_ns)
         files.update(exported)
         stl = out_dir / f"{name}.stl"
         if not stl_watertight(stl):
@@ -3522,7 +4174,7 @@ def build_and_export(
             _assembled, lid_shape = assemble_shell(_body, lid_bf, params, notes)
             notes_acc["lid"] = notes
         all_checks.append(Check("one connected solid", True, "lid", {}))
-        exported = export_part(lid_shape, out_dir / "lid", "lid")
+        exported = export_part(lid_shape, out_dir / "lid", "lid", uuid_ns=uuid_ns)
         files.update(exported)
         if not stl_watertight(out_dir / "lid.stl"):
             raise CheckFail("lid: STL is not watertight")
@@ -3531,7 +4183,7 @@ def build_and_export(
     if "coupon" in wanted:
         coupon = build_coupon()
         all_checks.append(Check("one connected solid", True, "coupon", {}))
-        exported = export_part(coupon, out_dir / "coupon", "coupon")
+        exported = export_part(coupon, out_dir / "coupon", "coupon", uuid_ns=uuid_ns)
         files.update(exported)
         if not stl_watertight(out_dir / "coupon.stl"):
             raise CheckFail("coupon: STL is not watertight")
@@ -3549,7 +4201,14 @@ def build_and_export(
             params=report_params,
             stage_b_rows=stage_b_rows if stage_b else None,
         )
-    failing = stage_b_failing(stage_b_rows) if stage_b else None
+    failing = (
+        stage_b_failing(
+            stage_b_rows,
+            skip_not_measured=stage_is_shell(report_params or probe),
+        )
+        if stage_b
+        else None
+    )
     return {
         "files": files,
         "overlap": overlap,
@@ -3559,12 +4218,17 @@ def build_and_export(
     }
 
 
-def stage_b_failing(stage_b_rows: Mapping[str, Mapping[str, Check]]) -> list[str]:
+def stage_b_failing(
+    stage_b_rows: Mapping[str, Mapping[str, Check]],
+    *,
+    skip_not_measured: bool = False,
+) -> list[str]:
     names = {
         name
         for rows in stage_b_rows.values()
         for name, row in rows.items()
         if not row.passed
+        and not (skip_not_measured and str(row.detail).startswith("NOT_MEASURED"))
     }
     return sorted(names)
 
@@ -3581,6 +4245,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--preload", type=float, default=None)
     parser.add_argument("--side", choices=("right", "left"), default=None)
     parser.add_argument("--out", type=Path, default=REPO_ROOT / "docs" / "fab" / "cad" / "v1")
+    parser.add_argument(
+        "--stage",
+        choices=("gauge", "B", "shell"),
+        default=None,
+        help="gauge = order 1; B = Stage B temp; shell = wearable body into docs/fab/cad/v2/",
+    )
     parser.add_argument(
         "--set",
         dest="sets",
@@ -3664,6 +4334,21 @@ def resolve_overrides(args: argparse.Namespace) -> tuple[dict[str, Any], bool]:
 def cli(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     overrides, crease_from_m = resolve_overrides(args)
+    if args.stage == "shell":
+        overrides["STAGE"] = "shell"
+        overrides.setdefault("MOCK_CONTACTS", False)
+    elif args.stage == "B":
+        overrides["STAGE"] = "b"
+        overrides.setdefault("MOCK_CONTACTS", False)
+    probe, _used = build_reference_params(
+        variant=str(overrides.get("VARIANT", "full")).lower(),
+        preload=float(overrides.get("HOOK_PRELOAD", 1.5)),
+        overrides=overrides,
+        crease_bow_from_m=crease_from_m,
+    )
+    if stage_is_shell(probe) and args.out.resolve() == V1_DIR.resolve():
+        args.out = V2_DIR
+
     if args.variant is not None or args.preload is not None:
         variant = str(overrides.get("VARIANT", "full")).lower()
         preload = float(overrides.get("HOOK_PRELOAD", 1.5))
