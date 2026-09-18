@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -392,22 +393,8 @@ def run_group(board, pcb: Path, group: str) -> tuple[int, int, list[str]]:
         route_vbus_p4(board)
     if group == "j4":
         route_j4(board)
-        board.Save(str(pcb))
-        routed += 1
-        report = drc_report(pcb)
-        errs = sum(1 for v in (report.get("violations") or []) if v.get("severity") == "error")
-        print("after explicit j4 drc_errors", errs, "unconnected", len(report.get("unconnected_items") or []))
-        if errs:
-            return errs, len(report.get("unconnected_items") or []), failed
     if group == "j3":
         route_j3(board)
-        board.Save(str(pcb))
-        routed += 1
-        report = drc_report(pcb)
-        errs = sum(1 for v in (report.get("violations") or []) if v.get("severity") == "error")
-        print("after explicit j3 drc_errors", errs, "unconnected", len(report.get("unconnected_items") or []))
-        if errs:
-            return errs, len(report.get("unconnected_items") or []), failed
     for _ in range(80):
         board.Save(str(pcb))
         report = drc_report(pcb)
@@ -425,7 +412,9 @@ def run_group(board, pcb: Path, group: str) -> tuple[int, int, list[str]]:
             failed.append(f"{r['net']} missing net")
             skipped.add(pair_key(r))
             continue
-        n_before = len(list(board.GetTracks()))
+        good = pcb.with_name(pcb.stem + ".good.kicad_pcb")
+        board.Save(str(pcb))
+        shutil.copy2(pcb, good)
         ok = route_pair(board, net, r["ax"], r["ay"], r["al"], r["bx"], r["by"], r["bl"])
         if not ok:
             failed.append(
@@ -437,13 +426,12 @@ def run_group(board, pcb: Path, group: str) -> tuple[int, int, list[str]]:
         report2 = drc_report(pcb)
         errs_after = sum(1 for v in (report2.get("violations") or []) if v.get("severity") == "error")
         if errs_after > errs_before:
-            for t in list(board.GetTracks())[n_before:]:
-                board.Remove(t)
+            shutil.copy2(good, pcb)
+            board = pcbnew.LoadBoard(str(pcb))
             failed.append(
                 f"{r['net']} DRC {errs_before}->{errs_after} {r['a'][:40]} @({r['ax']:.3f},{r['ay']:.3f})"
             )
             skipped.add(pair_key(r))
-            board.Save(str(pcb))
             continue
         routed += 1
     board.Save(str(pcb))
