@@ -135,11 +135,18 @@ on a removed key.
   report `.reports/WP16-report.md` (absent on main, untracked in
   `.worktrees/w9`).
 - **w5** (agy, `lane/w5`, main merged in at `305fe1f`): WP17 research v3
-  (`tasks/WP17-research-v3.md`), prompted ~20:20 by `pane run` + enter;
-  it answered one permission dialog (enter) and is reading the brief.
-  Writes `docs/fab/L6-research-v3.md` (expected) and fixes two identifiers
-  in `docs/fab/L5-research-v2.md` (absent on main). agy status is unreliable; its DONE push
-  is the only signal. Report `.reports/WP17-report.md` (expected).
+  (`tasks/WP17-research-v3.md`). Prompted ~20:20; found at ~21:20 sitting
+  on permission dialogs because Rolf's herdr restart had relaunched it as
+  bare `agy --conversation <id>` without its flags (no BLOCKED push came
+  for agy). Exited it (esc, ctrl+c twice) and restarted it on the same
+  conversation with `--dangerously-skip-permissions --add-dir
+  /Users/rolfie/projects/elicio --effort high --model
+  gemini-3.8-flash-high`, re-prompted at ~21:25. One accepted edit to
+  `docs/fab/L5-research-v2.md` (absent on main) is uncommitted in its
+  worktree. Writes `docs/fab/L6-research-v3.md` (expected) and its report
+  `.reports/WP17-report.md` (expected). agy status is unreliable; its
+  DONE push is the only signal; if it is quiet for two hours, one
+  `agent read`.
 
 Round 5 review: when WP12 and WP17 have also landed (WP11, WP13 and WP16 have) (a lane that pushes WAITING is recorded and the review opens
 without it), create the round 5 review branch (expected, not created yet) from `main`,
@@ -186,6 +193,13 @@ and gates G1–G8 for the build. Outside those:
   or pushed WAITING, open the round 5 review as described under In flight.
 
 ## Traps
+
+- After a herdr restart, a non-Claude lane comes back as its bare resume
+  line (`agy --conversation <id>`) without the flags it was started
+  with; agy then asks for every URL, edit and command and no BLOCKED
+  push arrives for it. Check `herdr pane process-info --pane <id>` after
+  a restart and restart such an agent with its recorded start line plus
+  `--conversation <id>` (the conversation survives).
 
 - zsh does not word-split an unquoted variable: `set -- $pkg` with
   `pkg="w2 WP12-board"` gives `$1` = the whole string, and
