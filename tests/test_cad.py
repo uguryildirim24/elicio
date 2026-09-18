@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import math
 import shutil
 import subprocess
 import sys
@@ -235,7 +236,7 @@ class CadOverlayTests(unittest.TestCase):
             self.assertTrue(names[name].passed, name)
 
 
-@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadRegenTests(unittest.TestCase):
     def test_reference_regen_matches_committed_hashes(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
@@ -303,7 +304,7 @@ class ManifestSchemaTests(unittest.TestCase):
         self.assertIn("missing key", str(ctx.exception))
 
 
-@unittest.skipUnless(HAS_RENDER, "matplotlib/trimesh is not installed")
+@unittest.skipUnless(HAS_RENDER, "needs the cad extra: matplotlib/trimesh is not installed")
 class CadRenderTests(unittest.TestCase):
     def test_renders_and_drawing_regen_byte_identical(self) -> None:
         render = load_render_mod()
@@ -337,7 +338,7 @@ class CadRenderTests(unittest.TestCase):
                     )
 
 
-@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadBuildGuardTests(unittest.TestCase):
     def test_clamp_limits_build_one_solid(self) -> None:
         for bow in (1.0, 8.0):
@@ -547,7 +548,7 @@ class CadStageBTests(unittest.TestCase):
             mod.validate(payload)
 
 
-@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadStageBBuildTests(unittest.TestCase):
     """Stage B checks measured on solids: one passing body, then each check's
     failing case with the parameter that breaks it and the number it reports."""
@@ -788,7 +789,7 @@ class CadStageBV2Tests(unittest.TestCase):
 STAGE_B_V2_FILE = ROOT / "scripts" / "cad" / "params" / "stageb_v2.toml"
 
 
-@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadStageBV2BuildTests(unittest.TestCase):
     """Winner layout measured on the order-1 construction path."""
 
@@ -873,6 +874,162 @@ class CadStageBV2BuildTests(unittest.TestCase):
                 self.assertEqual(payload["packing"], "v2")
                 load_manifest_mod().validate(payload)
         self.assertEqual(hashes[0], hashes[1])
+
+
+SHELL_FILE = ROOT / "scripts" / "cad" / "params" / "shell_v2.toml"
+
+
+class CadShellV2Tests(unittest.TestCase):
+    def test_snap_strain_is_below_four_percent(self) -> None:
+        strain = CAD.snap_strain(CAD.SHELL_SNAP_L, CAD.SHELL_SNAP_T, CAD.SHELL_SNAP_Y)
+        self.assertAlmostEqual(strain, 1.5 * 1.0 * 0.5 / 64.0, places=6)
+        self.assertLessEqual(strain, 0.04)
+
+    def test_shell_overlay_sets_stage_and_winner_layout(self) -> None:
+        args = CAD.parse_args(["--params", str(SHELL_FILE), "--stage", "shell"])
+        overrides, _from_m = CAD.resolve_overrides(args)
+        overrides["STAGE"] = "shell"
+        overrides.setdefault("MOCK_CONTACTS", False)
+        params, _used = CAD.build_reference_params(
+            variant="full", preload=1.5, overrides=overrides
+        )
+        self.assertTrue(CAD.stage_is_shell(params))
+        self.assertEqual(params["PACKING"], "v2")
+        self.assertEqual(params["V2_IFACE"], "II")
+        self.assertAlmostEqual(params["V2_STANDOFF"], 3.0)
+        self.assertAlmostEqual(params["LID_Y"], 8.0)
+        self.assertAlmostEqual(params["BODY_WIDTH"], 20.0)
+        header = SHELL_FILE.read_text(encoding="utf-8")
+        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0"):
+            self.assertIn(token, header)
+
+    def test_shell_refuses_v1_and_allows_v2(self) -> None:
+        params = stage_b_params(
+            {
+                "PACKING": "v2",
+                "STAGE": "shell",
+                "V2_ARCH": "A",
+                "V2_CELL": "501015",
+                "V2_LAYOUT": "series",
+                "V2_WIDTH": 20.0,
+                "V2_LID_Y": 8.0,
+                "V2_IFACE": "II",
+                "V2_STANDOFF": 3.0,
+            }
+        )
+        with self.assertRaises(CAD.CheckFail) as ctx:
+            CAD.assert_stage_b_out_dir(CAD.V1_DIR, params)
+        self.assertIn("v1", str(ctx.exception).lower())
+        CAD.assert_stage_b_out_dir(CAD.V2_DIR, params)
+
+
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
+class CadShellV2BuildTests(unittest.TestCase):
+    """Wearable body on the round 5 winner. Same construction path as Stage B v2."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.params = stage_b_params(
+            {
+                "PACKING": "v2",
+                "STAGE": "shell",
+                "V2_ARCH": "A",
+                "V2_CELL": "501015",
+                "V2_LAYOUT": "series",
+                "V2_WIDTH": 20.0,
+                "V2_LID_Y": 8.0,
+                "V2_IFACE": "II",
+                "V2_STANDOFF": 3.0,
+            }
+        )
+        cls.body, cls.lid, cls.path, cls.notes = CAD.build_body_and_lid(cls.params)
+
+    def test_q59_and_new_checks_on_the_solid(self) -> None:
+        checks = CAD.run_stage_b_solid_checks(
+            self.body,
+            self.lid,
+            self.path,
+            self.params,
+            self.notes["stage_b_cuts"],
+            raise_on_fail=False,
+        )
+        rows = {c.name: c for c in checks}
+        self.assertTrue(rows["V2_TAB_envelope"].passed, rows["V2_TAB_envelope"].detail)
+        self.assertTrue(rows["REF_WIRE_envelope"].passed, rows["REF_WIRE_envelope"].detail)
+        self.assertLessEqual(rows["V2_TAB_envelope"].numbers["REF_body_mm3"], 0.005)
+        self.assertLessEqual(rows["REF_WIRE_envelope"].numbers["body_mm3"], 0.005)
+        for name in ("V2_BOSS", "V2_RING_seat", "V2_SWITCH_reach", "V2_STANDOFF"):
+            self.assertIn(name, rows)
+            self.assertTrue(rows[name].passed, f"{name}: {rows[name].detail} {rows[name].numbers}")
+            self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
+        # Review r6: measured on the solid, and failing until the decisions
+        # in tasks/reviews/code-r6.md are taken. A pass here needs a design
+        # change, not a constant.
+        for name in ("V2_USB_end", "V2_CLOSURE", "V2_EDGE_radii", "V2_WALL_minima"):
+            self.assertIn(name, rows)
+            self.assertFalse(rows[name].passed, f"{name}: {rows[name].numbers}")
+            self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
+        usb = rows["V2_USB_end"].numbers
+        self.assertLess(usb["ligament_hook"], 0.0)  # the hook fills the opening's anterior edge
+        self.assertLess(usb["mouth_recess"], 0.0)  # packing places the receptacle outside the face
+        closure = rows["V2_CLOSURE"].numbers
+        self.assertEqual(closure["ant_undercut"], 0.0)
+        self.assertEqual(closure["post_undercut"], 0.0)
+        self.assertEqual(closure["hinge_lip_undercut"], 0.0)
+        self.assertLess(closure["ant_beam_t"], CAD.JLC_MIN_WALL)
+        stand = rows["V2_STANDOFF"].numbers
+        for site in ("SIG1", "SIG2", "REF"):
+            self.assertAlmostEqual(stand[f"{site}_well_af"], CAD.SHELL_HEX_AF, delta=0.01)
+            self.assertLess(stand[f"{site}_well_af"] + CAD.PRINT_TOL, 2.0 * CAD.STANDOFF_AF / math.sqrt(3.0))
+            self.assertAlmostEqual(rows["V2_RING_seat"].numbers[f"{site}_seat_d"], CAD.SHELL_RING_SEAT_D, delta=0.01)
+        for name in ("CLOSURE_PASSED", "KEEPOUT_SIGNAL_air", "KEEPOUT_REF_air", "CABLE_EXIT_cavity"):
+            self.assertFalse(rows[name].passed, name)
+            self.assertTrue(rows[name].detail.startswith("NOT_MEASURED"), name)
+        self.assertEqual(sum(1 for c in checks if c.name == "V2_STANDOFF"), 1)
+        self.assertEqual(self.notes["stage_b_cuts"]["exit_removed_mm3"], 0.0)
+        wall = rows["V2_WALL_minima"].numbers
+        self.assertGreaterEqual(wall["slot_wall_s_left"], 1.0)
+        self.assertGreaterEqual(wall["slot_wall_s_right"], 1.0)
+        self.assertGreaterEqual(wall["slot_floor_y"], 1.0)
+        self.assertGreaterEqual(wall["slot_clear_u"], 0.15)
+        self.assertIn("q59", self.notes)
+        self.assertIn("REF_end_wall_slot", self.notes["q59"])
+        self.assertIn("packing-v2.md", self.notes["q59"])
+
+    def test_two_consecutive_shell_runs_are_identical(self) -> None:
+        cmd = [
+            sys.executable,
+            str(SCRIPT),
+            "--params",
+            str(SHELL_FILE),
+            "--stage",
+            "shell",
+        ]
+        hashes = []
+        for _ in range(2):
+            with tempfile.TemporaryDirectory() as temp_dir:
+                dest = Path(temp_dir)
+                done = subprocess.run(
+                    cmd + ["--out", str(dest)], capture_output=True, text=True
+                )
+                self.assertEqual(done.returncode, 3, done.stderr + done.stdout)
+                payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+                hashes.append(payload["files"])
+                self.assertEqual(
+                    payload["stage_b_failing"],
+                    ["V2_CLOSURE", "V2_EDGE_radii", "V2_USB_end", "V2_WALL_minima"],
+                )
+                for part in ("body_full_p15.step", "lid.step", "body_full_p15.stl", "lid.stl"):
+                    self.assertEqual(
+                        (dest / part).read_bytes(), (CAD.V2_DIR / part).read_bytes(), part
+                    )
+                self.assertEqual(payload["stage"], "shell")
+                self.assertEqual(payload["winner"], CAD.SHELL_WINNER)
+                self.assertTrue(payload["provisional"])
+                load_manifest_mod().validate(payload)
+        self.assertEqual(hashes[0], hashes[1])
+        committed = json.loads((CAD.V2_DIR / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(hashes[0], committed["files"])
 
 
 if __name__ == "__main__":

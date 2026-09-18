@@ -2049,7 +2049,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Draw a Stage B packing option or a v2 architecture.")
     parser.add_argument("--option", choices=OPTION_NAMES, default="A")
     parser.add_argument("--arch", choices=("A", "B", "C"), default=None)
-    parser.add_argument("--cell", choices=("dtp", "501015"), default=None)
+    parser.add_argument("--cell", choices=("dtp", "501015", "jauch", "pack501015", "pack501012"), default=None)
     parser.add_argument("--layout", choices=("series", "stacked"), default=None)
     parser.add_argument("--width", type=float, default=None)
     parser.add_argument("--lid-y", type=float, default=None)
@@ -2070,11 +2070,85 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--out-dir", type=Path, default=None, help="folder for --all/--kept-drawings/--all-drawings")
     parser.add_argument("--packing-doc", action="store_true", help="regenerate docs/fab/packing-v2.md from the v2 matrix")
+    parser.add_argument(
+        "--dtp-arc",
+        action="store_true",
+        help="run WP11b DTP301120 arc-plus series under interface II and print first conflicts",
+    )
+    parser.add_argument(
+        "--jauch",
+        action="store_true",
+        help="run WP11b Jauch LP501218JH series under interface II (BODY_ARC and arc-plus)",
+    )
+    parser.add_argument(
+        "--buyable-ext",
+        action="store_true",
+        help="run WP11b bigger-box series for DTP301120 and LP501218JH",
+    )
+    parser.add_argument(
+        "--pack-cells",
+        action="store_true",
+        help="run WP11b 501015-pack and 501012-pack series under interface II (L7 §7)",
+    )
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
     if args.packing_doc:
         path = _v2().write_packing_doc()
         print(f"wrote {path}")
+        return 0
+    v2_missing = all(
+        v is None for v in (args.arch, args.cell, args.layout, args.width, args.lid_y)
+    )
+    run_dtp = args.dtp_arc or (v2_missing and args.arc_plus in (1.5, 3.0) and not args.all and not args.kept_drawings and not args.all_drawings)
+    if run_dtp:
+        v2 = _v2()
+        rows = v2.run_dtp_arc_plus()
+        if not args.dtp_arc or args.arc_plus in (1.5, 3.0):
+            if args.arc_plus in (1.5, 3.0):
+                rows = [r for r in rows if abs(r.spec.arc_plus - args.arc_plus) < 1e-9]
+        closed = sum(1 for r in rows if r.closes)
+        print(f"dtp-arc runs={len(rows)} closed={closed}")
+        for row in rows:
+            print(
+                f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
+                f"first={row.first_conflict}"
+            )
+        return 0
+    if args.jauch:
+        v2 = _v2()
+        rows = v2.run_jauch_series()
+        if args.arc_plus in (0.0, 1.5, 3.0) and args.arc_plus != 0.0:
+            rows = [r for r in rows if abs(r.spec.arc_plus - args.arc_plus) < 1e-9]
+        closed = sum(1 for r in rows if r.closes)
+        print(f"jauch runs={len(rows)} closed={closed}")
+        for row in rows:
+            print(
+                f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
+                f"first={row.first_conflict}"
+            )
+        return 0
+    if args.buyable_ext:
+        v2 = _v2()
+        rows = v2.run_buyable_ext()
+        packed = sum(1 for r in rows if v2.packs_outside_brief_box(r))
+        print(f"buyable-ext runs={len(rows)} packed={packed} closed={sum(1 for r in rows if r.closes)}")
+        for row in rows:
+            pc = v2.packing_conflicts(row)
+            first = "—" if not pc else pc[0]
+            print(
+                f"{row.spec.tag} packs={int(not pc)} chord={row.total_chord:.2f} "
+                f"outer={row.outer_at_lid:.1f} first={first}"
+            )
+        return 0
+    if args.pack_cells:
+        v2 = _v2()
+        rows = v2.run_pack_cells()
+        print(f"pack-cells runs={len(rows)} closed={sum(1 for r in rows if r.closes)}")
+        for row in rows:
+            print(
+                f"{row.spec.tag} closes={int(row.closes)} chord={row.total_chord:.2f} "
+                f"outer={row.outer_at_lid:.1f} first={row.first_conflict or '—'}"
+            )
         return 0
     if args.all or args.kept_drawings or args.all_drawings:
         v2 = _v2()
