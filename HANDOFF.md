@@ -134,21 +134,20 @@ on a removed key.
   two files differ from `401f92d`. Waits for the round 5 reviewer. Its
   report `.reports/WP16-report.md` (absent on main, untracked in
   `.worktrees/w9`).
-- **w5** (agy, `lane/w5`, main merged in at `305fe1f`): WP17 research v3
-  (`tasks/WP17-research-v3.md`). Prompted ~20:20; found at ~21:20 sitting
-  on permission dialogs because Rolf's herdr restart had relaunched it as
-  bare `agy --conversation <id>` without its flags (no BLOCKED push came
-  for agy). Exited it (esc, ctrl+c twice) and restarted it on the same
-  conversation with `--dangerously-skip-permissions --add-dir
-  /Users/rolfie/projects/elicio --effort high --model
-  gemini-3.8-flash-high`, re-prompted at ~21:25. One accepted edit to
-  `docs/fab/L5-research-v2.md` (absent on main) is uncommitted in its
-  worktree. Writes `docs/fab/L6-research-v3.md` (expected) and its report
-  `.reports/WP17-report.md` (expected). agy status is unreliable; its
-  DONE push is the only signal; if it is quiet for two hours, one
-  `agent read`.
+- **w5** (agy, `lane/w5`): WP17 research v3 landed, `DONE WP17` at
+  `f395e70` (~21:45) after the restart with its flags: `docs/fab/L6-research-v3.md`
+  (absent on main; seven sections, 2,654 words) and the two identifier
+  fixes in `docs/fab/L5-research-v2.md` (absent on main) at `c902ed0`;
+  tree clean; 129 tests OK with 22 CAD skips. Findings that changed the
+  reading: SparkFun's page says JST-SH but the pack drawing says
+  JST-PHR (G1b), no 3.5 mm standoff exists (3.0 Spacer Express per 100 or
+  4.0 Harwin stocked), Raytac out of stock at JLC while E73 is stocked
+  (Q54), JLC programming is $7.86 setup plus $7.86 per hour, JLC standard
+  PCBA wants 70 × 70 panels with rails for small boards. WP10 (`832ef28`)
+  and WP17 are reviewed together. Its report `.reports/WP17-report.md` (absent on main)
+  is untracked in `.worktrees/w5`.
 
-Round 5 review: when WP12 and WP17 have also landed (WP11, WP13 and WP16 have) (a lane that pushes WAITING is recorded and the review opens
+Round 5 review: when WP12 has also landed (WP11, WP13, WP16 and WP17 have) (a lane that pushes WAITING is recorded and the review opens
 without it), create the round 5 review branch (expected, not created yet) from `main`,
 a fresh Opus 5 high reviewer from `tasks/review-code-template.md` as
 `tasks/review-r5.md` (expected), merging `lane/w1`, `lane/w5`, `lane/w2`, `lane/w4`,
@@ -189,7 +188,7 @@ and gates G1–G8 for the build. Outside those:
 ## Next
 
 - Idle until a DONE lands (check report file and clean tree, read the
-  report); WP11, WP13 and WP16 have landed; when WP12 and WP17 have landed
+  report); WP11, WP13, WP16 and WP17 have landed; when WP12 has landed
   or pushed WAITING, open the round 5 review as described under In flight.
 
 ## Traps

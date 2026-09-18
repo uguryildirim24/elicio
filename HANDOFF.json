@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-17T20:34:13-04:00",
+ "generated": "2026-09-17T20:40:35-04:00",
  "herdr_version": "0.9.0",
  "session": "default",
  "workspace": {
@@ -94,14 +94,16 @@
    ],
    "name": "w5",
    "kind": "agy",
-   "status": "idle",
+   "status": "done",
    "pane_id": "w1B:pD",
    "tab_id": "w1B:tD",
    "tab_label": "w5",
    "pane_label": null,
    "cwd": "/Users/rolfie/projects/elicio/.worktrees/w5",
-   "session_id": null,
+   "session_id": "18235bfb-f5b8-4365-9383-d66c69251f4b",
    "tokens": {
+    "done": "1",
+    "lane": "WP17",
     "parent": "w1B:p1"
    },
    "title": null
@@ -145,21 +147,21 @@
   "repo": "/Users/rolfie/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "343a336 HANDOFF: w5 restarted with its flags after the herdr restart dropped them; trap recorded",
    "ae4b6b3 Q52, Q53: Arduino confirmed for the firmware, WP13's tool installs; HANDOFF after WP13 landed",
    "c1bdb1d HANDOFF: WP11 complete on lane/w1 (864 runs; only interface II closes)",
    "c1df29b HANDOFF: WP16 landed on lane/w9",
    "ac35231 Q50, Q51: interface I closes nowhere, the build switches to interface II; HANDOFF after WP11's first DONE",
-   "a3b5428 HANDOFF: mark expected files and the review branch so the checker passes",
-   "c057aba HANDOFF: plan v2 signed off; round 5 lanes WP11, WP12, WP13, WP16, WP17 in flight; pro closed"
+   "a3b5428 HANDOFF: mark expected files and the review branch so the checker passes"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/Users/rolfie/projects/elicio",
     "branch": "main",
-    "head": "ae4b6b3",
-    "subject": "Q52, Q53: Arduino confirmed for the firmware, WP13's tool installs; HANDOFF after WP13 landed",
-    "dirty": 1
+    "head": "343a336",
+    "subject": "HANDOFF: w5 restarted with its flags after the herdr restart dropped them; trap recorded",
+    "dirty": 2
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w1",
@@ -185,9 +187,9 @@
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w5",
     "branch": "lane/w5",
-    "head": "305fe1f",
-    "subject": "Merge branch 'main' into lane/w5",
-    "dirty": 1
+    "head": "f395e70",
+    "subject": "research(v3): facts for the build rounds",
+    "dirty": 0
    },
    {
     "path": "/Users/rolfie/projects/elicio/.worktrees/w9",
@@ -198,11 +200,11 @@
    }
   ],
   "branches": [
+   "lane/w5",
    "main",
    "lane/w4",
    "lane/w1",
    "lane/w9",
-   "lane/w5",
    "lane/w2",
    "review/r4",
    "review/r3",
