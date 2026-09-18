@@ -49,7 +49,7 @@ class TemplateConstantTests(unittest.TestCase):
         self.assertEqual(sheets.SHEET_NAMES, SHEET_NAMES)
 
 
-@unittest.skipUnless(HAS_SHEETS, "matplotlib/pypdf is not installed")
+@unittest.skipUnless(HAS_SHEETS, "needs the sheets extra: matplotlib/pypdf is not installed")
 class TemplateRegenTests(unittest.TestCase):
     def test_script_run_twice_is_byte_identical(self) -> None:
         with tempfile.TemporaryDirectory() as first, tempfile.TemporaryDirectory() as second:

@@ -235,7 +235,7 @@ class CadOverlayTests(unittest.TestCase):
             self.assertTrue(names[name].passed, name)
 
 
-@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadRegenTests(unittest.TestCase):
     def test_reference_regen_matches_committed_hashes(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
@@ -303,7 +303,7 @@ class ManifestSchemaTests(unittest.TestCase):
         self.assertIn("missing key", str(ctx.exception))
 
 
-@unittest.skipUnless(HAS_RENDER, "matplotlib/trimesh is not installed")
+@unittest.skipUnless(HAS_RENDER, "needs the cad extra: matplotlib/trimesh is not installed")
 class CadRenderTests(unittest.TestCase):
     def test_renders_and_drawing_regen_byte_identical(self) -> None:
         render = load_render_mod()
@@ -337,7 +337,7 @@ class CadRenderTests(unittest.TestCase):
                     )
 
 
-@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadBuildGuardTests(unittest.TestCase):
     def test_clamp_limits_build_one_solid(self) -> None:
         for bow in (1.0, 8.0):
@@ -547,7 +547,7 @@ class CadStageBTests(unittest.TestCase):
             mod.validate(payload)
 
 
-@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadStageBBuildTests(unittest.TestCase):
     """Stage B checks measured on solids: one passing body, then each check's
     failing case with the parameter that breaks it and the number it reports."""
@@ -788,7 +788,7 @@ class CadStageBV2Tests(unittest.TestCase):
 STAGE_B_V2_FILE = ROOT / "scripts" / "cad" / "params" / "stageb_v2.toml"
 
 
-@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadStageBV2BuildTests(unittest.TestCase):
     """Winner layout measured on the order-1 construction path."""
 
@@ -922,7 +922,7 @@ class CadShellV2Tests(unittest.TestCase):
         CAD.assert_stage_b_out_dir(CAD.V2_DIR, params)
 
 
-@unittest.skipUnless(CAD.HAS_BUILD123D, "build123d is not installed")
+@unittest.skipUnless(CAD.HAS_BUILD123D, "needs the cad extra: build123d is not installed")
 class CadShellV2BuildTests(unittest.TestCase):
     """Wearable body on the round 5 winner. Same construction path as Stage B v2."""
 
