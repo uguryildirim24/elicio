@@ -354,6 +354,15 @@ Outside those:
 
 ## Traps
 
+- Herdr fork durability build (from the w1F coordinator, 2026-09-18
+  afternoon, no action asked): Rolf installs it into the live server by
+  a live handoff when he chooses. That first bounce keeps every pane,
+  agent name and process but drops every parent link and lane/round
+  token, and returns any armed `herdr agent wait`. Afterwards run
+  `python3 ~/.claude/skills/save-state/state.py restore --from
+  HANDOFF.json` from this pane (or `herdr agent set-parent` per lane) and
+  re-apply the round token. Restarts on the new binary keep links and
+  tokens.
 - A Cursor lane can die quietly: "Error: Agent stopped retrying" after
   repeated connection drops leaves the pane idle, the edit uncommitted,
   queued follow-ups unsent and no DONE or WAITING push. herdr shows plain
