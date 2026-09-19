@@ -160,8 +160,10 @@ stay. **herdr server restarted ~14:50** ("server had to restart
 recalibrate"): `state.py restore` re-linked w1, my pane was renamed back
 to `elicio` (the name the common file's closing steps push to), the round
 token was re-applied, w1's tab closed after its WIP was read (its GONE
-received). No lane is live. Resume, only when Rolf says the machine has
-room: for w1 and w2 `herdr tab create` in this workspace at their
+received). No lane is live. **herdr live handoff to 0.9.1 ~15:20**: my
+pane, name and conversation survived; `restore` had nothing to re-link
+(no lane recorded); the round token was re-applied; hcoord got READY and
+RELINKED. Resume, only when Rolf says the machine has room: for w1 and w2 `herdr tab create` in this workspace at their
 worktrees, `herdr agent start` from the start lines in their briefs
 (Cursor resume ids in `HANDOFF.json` at git `c817086`), then prompt
 "Read HANDOFF.md, then your brief; continue from the wip commit and its
@@ -484,21 +486,21 @@ Outside those:
 checkpoint with:  python3 ~/.claude/skills/save-state/state.py snapshot
 Do not hand-edit ids into it. -->
 
-## Herdr (generated 2026-09-18T14:53:36-04:00 by state.py, herdr 0.9.0, session `default`)
+## Herdr (generated 2026-09-18T21:50:46-04:00 by state.py, herdr 0.9.1, session `default`)
 Workspace `w1B` (elicio), 1 tabs. Coordinator: pane `w1B:p1` in tab `w1B:t1`, agent name `elicio`, kind claude, status working, cwd `/Users/rolfie/projects/elicio`.
 Coordinator session id `61ba63c7-8fd8-497e-b665-c65cc34e72f6`; transcript `/Users/rolfie/.claude/projects/-Users-rolfie-projects-elicio/61ba63c7-8fd8-497e-b665-c65cc34e72f6.jsonl`.
 
 ### Workers nested under the coordinator
 _none_
 
-Other workspaces on this server (not yours to touch): `w16` flyonenomics (working), `w1E` jevtest (working), `w1F` adeherdr (working)
+Other workspaces on this server (not yours to touch): `w16` flyonenomics (working), `w1E` venator (working), `w1F` adeherdr (working)
 
 ### Git
 Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behind origin/main).
 
 | worktree | branch | head | dirty files | last commit |
 |---|---|---|---|---|
-| `/Users/rolfie/projects/elicio` | `main` | f308eba | 0 | handoff: WP12i paused at 3a27ffd (v3 vendored and re-pinned, strips locked, island Contact runs failed by hand, router loop interrupted); w2 tab closed |
+| `/Users/rolfie/projects/elicio` | `main` | 5b3be32 | 0 | handoff: note from the herdr fork coordinator on the coming live handoff (links and tokens drop once; restore re-links) |
 | `/Users/rolfie/projects/elicio/.worktrees/w1` | `lane/w1-r6` | 938984e | 0 | wip(WP14f): wall P4/P5 CAD and §5e checks against pin table v3 ab9ce95 |
 | `/Users/rolfie/projects/elicio/.worktrees/w2` | `lane/w2` | 3a27ffd | 1 | wip(WP12i): v3 land locked; hand_route interrupted |
 | `/Users/rolfie/projects/elicio/.worktrees/w3` | `lane/w3` | ab9ce95 | 0 | packing(v3): pin table v3 Q98 keep-outs, H1/H2 1.42 mm gap, well at 16.50 |
@@ -509,12 +511,12 @@ Repo `/Users/rolfie/projects/elicio`, integration branch `main` (0 ahead, 0 behi
 Last commits on the integration branch:
 
 ```
+5b3be32 handoff: note from the herdr fork coordinator on the coming live handoff (links and tokens drop once; restore re-links)
+8228fe9 handoff: herdr server restarted, coordinator re-linked and renamed elicio; WP14f paused at 938984e (wall pads built, temp build exit 3 on wall_around and board envelope); w1 tab closed; no lane live
 f308eba handoff: WP12i paused at 3a27ffd (v3 vendored and re-pinned, strips locked, island Contact runs failed by hand, router loop interrupted); w2 tab closed
 ee00fe1 handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps
 c817086 handoff: WP11g landed at ab9ce95 with the Q98 channels (H1 13.23, J4 16.52 rot 90, keep-out list); w1 and w2 released on v3; w3 tab closed; fresh snapshot
 2113b6d handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded
-b424478 handoff: WP11g first DONE at 78ab3f7 (pin table v3: posterior-wall pads, J2 inside, J3 break-off, R9/R10 out); second turn running for the Q98 channels; w1/w2 held until then
-06a317d handoff: w4, w5, w9 tabs closed (Rolf: close out agents not running); lane/w4 dbeeafa kept unmerged for r8; fresh herdr snapshot
 ```
 
 ### Record files (newest first)
