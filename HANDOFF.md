@@ -160,7 +160,7 @@ stay. **herdr server restarted ~14:50** ("server had to restart
 recalibrate"): `state.py restore` re-linked w1, my pane was renamed back
 to `elicio` (the name the common file's closing steps push to), the round
 token was re-applied, w1's tab closed after its WIP was read (its GONE
-received). No lane is live. **herdr live handoff to 0.9.1 ~15:20**: my
+received). No lane is live. **herdr live handoff to 0.9.1 ~21:45**: my
 pane, name and conversation survived; `restore` had nothing to re-link
 (no lane recorded); the round token was re-applied; hcoord got READY and
 RELINKED. Resume, only when Rolf says the machine has room: for w1 and w2 `herdr tab create` in this workspace at their
