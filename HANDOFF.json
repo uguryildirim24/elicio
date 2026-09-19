@@ -1,6 +1,6 @@
 {
- "generated": "2026-09-18T14:53:36-04:00",
- "herdr_version": "0.9.0",
+ "generated": "2026-09-18T21:50:46-04:00",
+ "herdr_version": "0.9.1",
  "session": "default",
  "workspace": {
   "id": "w1B",
@@ -28,7 +28,7 @@
   },
   {
    "workspace_id": "w1E",
-   "label": "jevtest",
+   "label": "venator",
    "status": "working"
   },
   {
@@ -41,20 +41,20 @@
   "repo": "/home/user/projects/elicio",
   "integration_branch": "main",
   "integration_log": [
+   "5b3be32 handoff: note from the herdr fork coordinator on the coming live handoff (links and tokens drop once; restore re-links)",
+   "8228fe9 handoff: herdr server restarted, coordinator re-linked and renamed elicio; WP14f paused at 938984e (wall pads built, temp build exit 3 on wall_around and board envelope); w1 tab closed; no lane live",
    "f308eba handoff: WP12i paused at 3a27ffd (v3 vendored and re-pinned, strips locked, island Contact runs failed by hand, router loop interrupted); w2 tab closed",
    "ee00fe1 handoff: PAUSED by Rolf (machine out of memory); w1 and w2 told to wip-commit and stop; resume steps",
    "c817086 handoff: WP11g landed at ab9ce95 with the Q98 channels (H1 13.23, J4 16.52 rot 90, keep-out list); w1 and w2 released on v3; w3 tab closed; fresh snapshot",
-   "2113b6d handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded",
-   "b424478 handoff: WP11g first DONE at 78ab3f7 (pin table v3: posterior-wall pads, J2 inside, J3 break-off, R9/R10 out); second turn running for the Q98 channels; w1/w2 held until then",
-   "06a317d handoff: w4, w5, w9 tabs closed (Rolf: close out agents not running); lane/w4 dbeeafa kept unmerged for r8; fresh herdr snapshot"
+   "2113b6d handoff: w3 stopped on Cursor connection errors mid-addendum, re-prompted to continue from its tree; trap recorded"
   ],
   "remote": "0 ahead, 0 behind origin/main",
   "worktrees": [
    {
     "path": "/home/user/projects/elicio",
     "branch": "main",
-    "head": "f308eba",
-    "subject": "handoff: WP12i paused at 3a27ffd (v3 vendored and re-pinned, strips locked, island Contact runs failed by hand, router loop interrupted); w2 tab closed",
+    "head": "5b3be32",
+    "subject": "handoff: note from the herdr fork coordinator on the coming live handoff (links and tokens drop once; restore re-links)",
     "dirty": 0
    },
    {
