@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Run the elicio-v2 board release job (ERC, DRC, BOM, CPL, gerbers, STEP).
+"""Run a board release job (ERC, DRC, BOM, CPL, gerbers, STEP).
+
+``--board`` names the KiCad project stem in ``--board-dir`` (default
+``elicio-v2``; the v4 board is ``elicio-v4``).
 
 Fails closed on any ERC error or any missing output. The board is not routed
 this round: DRC runs and its counts go into summary.json with
@@ -157,13 +160,18 @@ def main() -> int:
         "--board-dir",
         type=Path,
         default=BOARD_DIR,
-        help="Directory that holds elicio-v2.kicad_*",
+        help="Directory that holds <board>.kicad_*",
+    )
+    parser.add_argument(
+        "--board",
+        default="elicio-v2",
+        help="KiCad project stem, e.g. elicio-v2 or elicio-v4",
     )
     parser.add_argument(
         "--out",
         type=Path,
         default=None,
-        help="Release output directory (default: <board-dir>/release)",
+        help="Release output directory (default: <board-dir>/release, or release/<board> for other boards)",
     )
     parser.add_argument(
         "--routed",
@@ -174,9 +182,12 @@ def main() -> int:
     configure_kicad_env()
     cli = kicad_cli()
     board_dir = args.board_dir.resolve()
-    sch = board_dir / "elicio-v2.kicad_sch"
-    pcb = board_dir / "elicio-v2.kicad_pcb"
-    out = (args.out or (board_dir / "release")).resolve()
+    sch = board_dir / f"{args.board}.kicad_sch"
+    pcb = board_dir / f"{args.board}.kicad_pcb"
+    default_out = board_dir / "release"
+    if args.board != "elicio-v2":
+        default_out = default_out / args.board
+    out = (args.out or default_out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     gerber_dir = out / "gerbers"
     gerber_dir.mkdir(exist_ok=True)
@@ -191,7 +202,7 @@ def main() -> int:
     bom_csv = out / "bom.csv"
     pos_csv = out / "pos.csv"
     cpl_csv = out / "cpl.csv"
-    step = out / "elicio-v2.step"
+    step = out / f"{args.board}.step"
     summary = out / "summary.json"
 
     erc = run(
@@ -323,7 +334,7 @@ def main() -> int:
         "drc.json": drc_json.is_file(),
         "bom.csv": bom_csv.is_file(),
         "cpl.csv": cpl_csv.is_file(),
-        "elicio-v2.step": step.is_file() and step.stat().st_size > 0,
+        step.name: step.is_file() and step.stat().st_size > 0,
         "gerbers": len(gerber_files) > 0,
     }
     missing_outputs = [name for name, ok in outputs.items() if not ok]
@@ -345,6 +356,7 @@ def main() -> int:
     # Review r6: "routed" is true only for a --routed release that passed.
     # A refused release says so; the request is recorded separately.
     payload = {
+        "board": args.board,
         "routed": bool(args.routed) and not refused,
         "routed_requested": bool(args.routed),
         "refused": refused,
