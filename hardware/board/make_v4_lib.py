@@ -190,11 +190,107 @@ def wall_ring_footprint() -> str:
     return text
 
 
+WALL_RING_FP = "RING_1S_D4.6_NPTH2.7"
+
+
+def wall_ring_1s_footprint() -> str:
+    """P4/P5 wall ring, one copper face only (placed on B).
+
+    Copper annulus Ø3.1-Ø4.6 on the standoff face, NPTH Ø2.7 for the M2.5
+    shank, no copper on the other face. The other net's charge trace can
+    then pass the ring on the far layer, outside the Q84/Q88 1.0 mm
+    same-layer creepage (board-v4-design.md §5.4). The pad anchor sits on
+    the annulus; the gr_circle primitive draws the ring about the origin.
+    """
+    r_mid, width = 1.925, 0.75
+    return (
+        f'(footprint "{WALL_RING_FP}"\n'
+        "\t(version 20260206)\n"
+        '\t(generator "elicio")\n'
+        '\t(layer "F.Cu")\n'
+        '\t(descr "Wall charge ring (P4/P5, board v4): one-face ENIG annulus 3.1-4.6 mm, NPTH 2.7 mm for an '
+        'M2.5 shank, clamped under a brass hex standoff. The standoff face is the contact. No copper on the '
+        'other face.")\n'
+        '\t(tags "ring pad charge wall")\n'
+        + _text_prop("Reference", "REF**", -3.3, "F.SilkS")
+        + _text_prop("Value", "WALL_RING", 3.3, "F.Fab")
+        + "\t(attr smd exclude_from_pos_files exclude_from_bom)\n"
+        "\t(duplicate_pad_numbers_are_jumpers no)\n"
+        "\t(fp_circle\n\t\t(center 0 0)\n\t\t(end 2.6 0)\n\t\t(stroke\n\t\t\t(width 0.05)\n\t\t\t(type solid)\n"
+        '\t\t)\n\t\t(fill no)\n\t\t(layer "F.CrtYd")\n\t)\n'
+        "\t(fp_circle\n\t\t(center 0 0)\n\t\t(end 2.3 0)\n\t\t(stroke\n\t\t\t(width 0.1)\n\t\t\t(type solid)\n"
+        '\t\t)\n\t\t(fill no)\n\t\t(layer "F.Fab")\n\t)\n'
+        f'\t(pad "1" smd custom\n\t\t(at {r_mid} 0)\n\t\t(size 0.4 0.4)\n'
+        '\t\t(layers "F.Cu" "F.Mask")\n'
+        "\t\t(options\n\t\t\t(clearance outline)\n\t\t\t(anchor circle)\n\t\t)\n"
+        "\t\t(primitives\n"
+        f"\t\t\t(gr_circle\n\t\t\t\t(center {-r_mid} 0)\n\t\t\t\t(end 0 0)\n\t\t\t\t(width {width})\n"
+        "\t\t\t\t(fill no)\n\t\t\t)\n\t\t)\n\t)\n"
+        '\t(pad "" np_thru_hole circle\n\t\t(at 0 0)\n\t\t(size 2.7 2.7)\n\t\t(drill 2.7)\n'
+        '\t\t(layers "*.Cu" "*.Mask")\n\t)\n'
+        "\t(embedded_fonts no)\n)\n"
+    )
+
+
+SW_FP = "SW_HRO_1TS015A"
+YFP_V4 = "Texas_YFP0006_V4"
+
+
+def hro_switch_footprint() -> str:
+    """HRO 1TS015A-1200-0600-CT (LCSC C398746), 3.0 × 2.0 × 0.6, top actuated.
+
+    Land = the maker's recommended P.C.B. layout (drawing 1TS015A rev B,
+    LCSC datasheet, read 2026-09-23): two 1.50 × 0.55 pads, 2.70 inner /
+    3.80 outer, so centres ±1.625. The 2.00 × 1.90 middle is no-solder.
+    """
+    out = [
+        f'(footprint "{SW_FP}"\n',
+        "\t(version 20260206)\n",
+        '\t(generator "elicio")\n',
+        '\t(layer "F.Cu")\n',
+        '\t(descr "HRO 1TS015A tact switch 3.0x2.0x0.6, top actuated; land per maker drawing 1TS015A rev B '
+        '(pads 1.50x0.55, centres +/-1.625); LCSC C398746")\n',
+        '\t(tags "switch tactile HRO 1TS015A")\n',
+        _text_prop("Reference", "REF**", -2.6, "F.SilkS"),
+        _text_prop("Value", "1TS015A", 2.6, "F.Fab"),
+        "\t(attr smd)\n",
+        "\t(duplicate_pad_numbers_are_jumpers no)\n",
+        _rect(-1.0, -1.5, 1.0, 1.5, "F.Fab", 0.1),
+        _rect(-1.0, -0.95, 1.0, 0.95, "Cmts.User", 0.05),
+        _rect(-1.25, -2.15, 1.25, 2.15, "F.CrtYd", 0.05),
+    ]
+    for num, y in (("1", -1.625), ("2", 1.625)):
+        out.append(
+            f'\t(pad "{num}" smd rect\n\t\t(at 0 {y})\n\t\t(size 1.5 0.55)\n'
+            '\t\t(layers "F.Cu" "F.Mask" "F.Paste")\n\t)\n'
+        )
+    out.append("\t(embedded_fonts no)\n)\n")
+    return "".join(out)
+
+
+def yfp_v4_footprint() -> str:
+    """BQ25100 DSBGA-6: v2 land, courtyard cut to the silk outline + 0.2 mm."""
+    text = (LIB_FP / "Texas_YFP0006.kicad_mod").read_text(encoding="utf-8")
+    swaps = [
+        ('"Texas_YFP0006"', f'"{YFP_V4}"'),
+        ("(start -1.48 -1.75)", "(start -0.8 -1.06)"),
+        ("(end 1.48 1.75)", "(end 0.8 1.06)"),
+    ]
+    for old, new in swaps:
+        if old not in text:
+            raise ValueError(f"YFP template changed: {old!r} missing")
+        text = text.replace(old, new)
+    return text
+
+
 def main() -> None:
     (LIB_FP / f"{ISP_FP}.kicad_mod").write_text(isp1807_footprint(), encoding="utf-8")
     (LIB_FP / "RING_PAD_D4.6_H2.7.kicad_mod").write_text(wall_ring_footprint(), encoding="utf-8")
+    (LIB_FP / f"{SW_FP}.kicad_mod").write_text(hro_switch_footprint(), encoding="utf-8")
+    (LIB_FP / f"{WALL_RING_FP}.kicad_mod").write_text(wall_ring_1s_footprint(), encoding="utf-8")
+    (LIB_FP / f"{YFP_V4}.kicad_mod").write_text(yfp_v4_footprint(), encoding="utf-8")
     write_symbols()
-    print("wrote", LIB_FP / f"{ISP_FP}.kicad_mod", "and", ", ".join(NEW_SYMBOLS))
+    print("wrote", LIB_FP / f"{ISP_FP}.kicad_mod", SW_FP, YFP_V4, "and", ", ".join(NEW_SYMBOLS))
 
 
 if __name__ == "__main__":
