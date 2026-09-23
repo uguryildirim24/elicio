@@ -594,7 +594,7 @@ def render_medial(out_dir: Path, *, manifest: dict[str, Any], commit: str, date:
             "Skin hides the head. Lateral lid is unbroken.\n"
             "M2.5×8 into a lid boss in the tail pocket (Q89).",
             xy=(p[0] + dx, p[1]),
-            xytext=(p[0] + dx + 18.0, p[1] + 10.0),
+            xytext=(p[0] + dx + 25.0, p[1] + 4.0),
             fontsize=8,
             arrowprops={"arrowstyle": "->", "lw": 0.7},
             zorder=8,
