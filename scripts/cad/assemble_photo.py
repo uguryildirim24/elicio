@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Assemble the committed v2 preview in Blender; see scripts/cad/README.md.
+"""Preview the committed v2 shell with the current v3 board in Blender.
 
-Run with Python 3.11+; this file re-executes itself under Blender's Python.
-No downloads or hand-positioned device parts. Units throughout are millimetres.
+See scripts/cad/README.md. Run with Python 3.11+; this file re-executes
+itself under Blender's Python. Units throughout are millimetres.
 """
 from __future__ import annotations
 
@@ -57,15 +57,15 @@ def balanced(text: str, needle: str):
 
 
 def parse_packing(text: str):
-    section = text.split("## 5d. Flat pattern and pin table", 1)[1]
-    folded = section.split("### Folded sites for the shell", 1)[1].split("### Shell extras", 1)[0]
+    section = text.split("## 5e. Flat pattern v3 and pin table v3", 1)[1]
+    folded = section.split("### Shell table — floor sites and wall sites", 1)[1].split("### Shell extras", 1)[0]
     sites = {}
     for line in folded.splitlines():
         m = re.match(r"\| (P[1-5]) \|[^|]*\|\s*(" + NUMBER + r")\s*\|\s*(" + NUMBER + r")\s*\|\s*(" + NUMBER + r")\s*\|", line)
         if m:
             sites[m[1]] = tuple(map(float, m.groups()[1:]))
     if len(sites) != 5:
-        raise ValueError("packing §5d folded site table not found")
+        raise ValueError("packing §5e shell-site table not found")
     return sites
 
 
@@ -94,13 +94,27 @@ def parse_footprints(text: str):
 
 
 def pin_table(text: str):
-    section = text.split("### Pin table v2.1", 1)[1].split("### Folded sites for the shell", 1)[0]
+    section = text.split("### Pin table v3 — flat PCB coordinates", 1)[1].split("### Shell table — floor sites and wall sites", 1)[0]
     rows = {}
     for line in section.splitlines():
-        m = re.match(r"\| ([A-Z]+\d+) \| (top|bottom|floor|both) \|\s*(" + NUMBER + r")\s*\|\s*(" + NUMBER + r")\s*\|\s*(" + NUMBER + r")\s*\|\s*(" + NUMBER + r") × (" + NUMBER + r") \|", line)
+        m = re.match(r"\| ([A-Z]+\d+) \| (top|bottom|floor|wall|both) \|\s*(" + NUMBER + r")\s*\|\s*(" + NUMBER + r")\s*\|\s*(" + NUMBER + r")\s*\|\s*(" + NUMBER + r") × (" + NUMBER + r") \|", line)
         if m:
             rows[m[1]] = (m[2], *map(float, m.groups()[2:]))
+    if len(rows) != 66:
+        raise ValueError(f"expected 66 v3 pin-table rows, got {len(rows)}")
     return rows
+
+
+def check_board_positions(pins: dict, footprints: dict):
+    """Never caption a changed board as though its components match the table."""
+    for ref, (side, u, s, _, _, _) in pins.items():
+        if ref.startswith("H"):
+            continue  # Board mounting holes are not footprints.
+        fp = footprints.get(ref)
+        if fp is None or abs(fp["u"] - u) > .1 or abs(fp["s"] - s) > .1 or (
+            side in ("top", "bottom") and fp["side"] != side
+        ):
+            raise ValueError(f"board {ref} differs from packing §5e; update the preview before rendering")
 
 
 def body_point(u: float, s: float, y: float, params: dict) -> tuple[float, float, float]:
@@ -184,6 +198,7 @@ def render(out: Path, samples: int, only: str | None):
     sites = parse_packing(pack)
     pins = pin_table(pack)
     footprints = parse_footprints(BOARD.read_text())
+    check_board_positions(pins, footprints)
     shell_sha = source_commit(SHELL / "body_full_p15.step")
     board_sha = source_commit(BOARD)
     bpy.ops.object.select_all(action="SELECT")
@@ -288,7 +303,8 @@ def render(out: Path, samples: int, only: str | None):
     island_s = params["BOARD_ZONE_S"]
     curved_rect("folded PI flex / populated island", *island_u, *island_s,
                 underside, top, flex)
-    # Two Eco1.User stiffener rectangles are drawn by the committed PCB.
+    # Three Eco1.User FR4 rectangles; the five Eco2.User ring stiffeners
+    # are represented separately at the folded sites below.
     pcb_text = BOARD.read_text()
     for idx, rect in enumerate(balanced(pcb_text, "gr_rect"), 1):
         if '(layer "Eco1.User")' not in rect:
@@ -299,8 +315,7 @@ def render(out: Path, samples: int, only: str | None):
             u0, s0 = float(a[1]), float(a[2]); u1, s1 = float(b[1]), float(b[2])
             curved_rect(f"FR4 stiffener {idx} / KiCad Eco1.User", u0, u1, s0, s1,
                         underside, underside + .4, pcb)
-    # The leftover / pocket island is the board's second stiffener outline;
-    # there is no committed 3D folded STEP. It stays at the packing board datum.
+    # Pocket flex is approximated under its parts; there is no folded STEP.
     for ref in ("U2", "SW1", "J2"):
         if ref in pins and ref in footprints:
             _, u, s, _, wu, ws = pins[ref]
@@ -308,7 +323,8 @@ def render(out: Path, samples: int, only: str | None):
                       (underside+top)/2, top-underside, flex)
 
     for ref, (side, u, s, rot, wu, ws) in pins.items():
-        if ref.startswith(("P", "H")) or ref not in footprints:
+        # J3 is a break-off programming tab, cut away before lid closure (§5e).
+        if ref.startswith(("P", "H")) or ref == "J3":
             continue
         fp = footprints[ref]
         u, s = fp["u"], fp["s"]  # KiCad is the position authority, not the pin table
@@ -318,8 +334,6 @@ def render(out: Path, samples: int, only: str | None):
             height = 1.0  # packing §5 ADS1292
         elif ref == "SW1":
             height = 1.6  # board-v2 §18
-        elif ref == "J3":
-            height = 2.5  # packing §5
         elif ref == "J2":
             height = 3.0  # simplified JST-SH envelope, not manufacturer STEP
         else:
@@ -330,36 +344,32 @@ def render(out: Path, samples: int, only: str | None):
         site_rect(ref + " | KiCad courtyard proxy", u, s, wu, ws, cy, height,
                   silicon if ref not in ("J2", "J3") else metal)
 
-    # Source §5d: folded pad centres, ring seat and neck-end folded runs.
-    strip_w = float(re.search(r"Tab strip width ("+NUMBER+r") mm", (ROOT / "docs/fab/board-v2.md").read_text())[1])
-    for pad, (u, s, y) in sites.items():
+    # §5e folded seats. The old shell has no wall holes for P4/P5. Keep
+    # those charge parts out of the old solid rather than imply a fitted joint.
+    strip_w = 2.5  # §5e flat-pattern SIG/REF strip widths
+    for pad in ("P1", "P2", "P3"):
+        u, s, y = sites[pad]
         if pad in ("P1", "P2"):
             curved_rect(pad + " | folded PI strip", u-strip_w/2, u+strip_w/2,
                         min(s, island_s[0]), max(s, island_s[0]), y, y+.11, flex)
-        elif pad == "P3":
+        else:
             curved_rect("P3 | REF end-wall flex", u-strip_w/2, u+strip_w/2,
                         island_s[1], s, y, y+.11, flex)
         cyl(pad + " | gold ring / folded site", u, s, y+.06, 2.5, .12, gold)
-        if pad in ("P1", "P2", "P3"):
-            # Shell v2 §3: FR4 .2 at rings is assumed by packing but NOT drawn
-            # in the board; show it as a distinct missing-fabrication proxy.
-            cyl(pad + " | assumed ring backing (undrawn)", u, s, y+.21, 3, .2, pcb)
-            cyl(pad + " | brass female 5 AF standoff", u, s, y+.31+1.5, 2.89, 3, brass, 6)
-            cyl(pad + " | Ti M2.5x4 shaft", u, s, 2, 1.25, 4, titanium)
-            cyl(pad + " | Ti button head rim", u, s, -.23, 2.35, .46, titanium)
-            bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=12,
-                location=body_point(u, s, -.65, params))
-            cap = bpy.context.object
-            cap.name = pad + " | titanium button crown"
-            cap.scale = (2.17, .70, 2.17)
-            assign(cap, titanium)
-            cyl(pad + " | hex socket", u, s, -1.34, .68, .035, ink, 6)
-    # CHARGE folded rectangle is not attached to its flat KiCad root in 3D:
-    # the committed Gerber root is outside the body (board-v2 §11).
-    p4, p5 = sites["P4"], sites["P5"]
-    curved_rect("CHARGE folded tab proxy / disconnected root", min(p4[0], p5[0])-strip_w/2,
-                max(p4[0], p5[0])+strip_w/2, min(p4[1], p5[1]), max(p4[1], p5[1]),
-                floor+.14, floor+.25, flex)
+        cyl(pad + " | Eco2.User FR4 ring stiffener", u, s, y+.21, 3, .2, pcb)
+        cyl(pad + " | brass female 5 AF standoff", u, s, y+.31+1.5, 2.89, 3, brass, 6)
+        cyl(pad + " | Ti M2.5x4 shaft", u, s, 2, 1.25, 4, titanium)
+        cyl(pad + " | Ti button head rim", u, s, -.23, 2.35, .46, titanium)
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=12,
+            location=body_point(u, s, -.65, params))
+        cap = bpy.context.object
+        cap.name = pad + " | titanium button crown"
+        cap.scale = (2.17, .70, 2.17)
+        assign(cap, titanium)
+        cyl(pad + " | hex socket", u, s, -1.34, .68, .035, ink, 6)
+
+    # Wall-site assembly is deferred until the shell's P4/P5 through-holes
+    # are exported. The v3 PCB has these lands but the committed v2 solid does not.
 
     # Cell dimensions from packing §5 and §7: 501012 13 x 10.1 x 5.1;
     # pocket u,s from manifest's measured V2_CHARGE_pads (not hand positions).
@@ -451,7 +461,7 @@ def render(out: Path, samples: int, only: str | None):
     # Backdrop is replaced per view to stay behind the object.
     labelmat = material("print caption", (.16, .18, .19), roughness=1)
     caption = bpy.data.curves.new("caption lettering", "FONT")
-    caption.body = f"PREVIEW · PREVIOUS SHELL  |  shell {shell_sha[:9]} · board {board_sha[:9]}"
+    caption.body = f"PREVIEW · v2 SHELL / v3 BOARD · WALL PADS NOT FITTED  |  shell {shell_sha[:9]} · board {board_sha[:9]}"
     caption.size = .74
     caption.space_character = 1.15
     capobj = bpy.data.objects.new("render caption (not in GLB)", caption)
@@ -497,29 +507,28 @@ def render(out: Path, samples: int, only: str | None):
             bpy.data.objects.remove(coin, do_unlink=True)
 
     metadata = {
-        "label": "preview, previous shell; natural grey PA12 with unplated titanium",
+        "label": "incomplete preview: v2 shell with v3 board proxies; P4/P5 wall parts omitted; natural grey PA12 and unplated titanium",
         "shell_commit": shell_sha, "board_commit": board_sha,
         "shell_manifest_commit": manifest["commit"],
         "board_source": str(BOARD.relative_to(ROOT)),
         "shell_source": "docs/fab/cad/v2/{body_full_p15,lid}.stl (same assembled positions as STEP)",
-        "site_source": "docs/fab/packing-v2.md §5d folded sites / §7 cell; docs/fab/cad/v2/manifest.json frame and checks",
+        "site_source": "docs/fab/packing-v2.md §5e v3 pin table and shell sites / §7 cell; docs/fab/cad/v2/manifest.json frame and checks",
         "renderer": "Blender " + bpy.app.version_string + " Cycles CPU, 4 threads",
         "samples": samples,
-        "pictures": list(views),
+        "pictures": [only] if only else list(views),
         "simplifications": [
-            "No folded board STEP is committed: KiCad footprints become boxes at KiCad centres with §5d courtyards; heights for U1/U2/SW1/J3 from packing/board and remaining parts .55 mm illustrative proxies.",
-            "Island approximated by manifest board zone; leftover flex beneath U2/SW1/J2 by their KiCad courtyards; PI tabs follow folded packing sites, not a manufacturing bend simulation.",
-            "FR4 0.2 ring pieces are in packing but missing from the board Gerber; modelled distinctly; board tabs have no traces, pads, vias, silkscreen or solder joints.",
-            "Charging flex pad pair is folded to packing sites, but its flat PCB tab root is disconnected per board-v2 §11; shown as separate tab, not concealed with invented routing.",
+            "No folded board STEP is committed: KiCad footprints become boxes at KiCad centres with §5e courtyards; heights for U1/U2/SW1 from packing/board and remaining parts .55 mm illustrative proxies.",
+            "Island approximated by old shell manifest board zone; leftover flex beneath U2/SW1/J2 by §5e courtyards; PI SIG/REF tabs follow folded sites, not a manufacturing bend simulation.",
+            "FR4 0.2 ring pieces are drawn on the board Eco2.User layer; only P1–P3 are shown. No traces, pads, vias, silkscreen or solder joints are modelled.",
+            "The v3 P4/P5 board pads and their wall hardware are omitted: the v2 shell has no wall holes. J3 is a break-off programming tab removed before lid closure (§5e). The GLB is NOT a fully assembled v3 device.",
             "Nylon STL is the exact committed STEP's tessellation (0.02 mm export deflection); titanium screw threads/drive and standoff female bore omitted; coin has exact diameter but no relief detail.",
             "Cell is the §7 501012 pack envelope, centred in manifest pocket with foil proxy; foam and harness are not modelled.",
             "Closure length comes from committed open-questions.md Q89 (x8); shell manifest records x4 with no lid boss. The preview x8 shaft intersects old body; it is not falsely fitted.",
         ],
         "clashes": [
             f"Shell V2_CLOSURE: documented x{documented_length:g} seat y={seat:.2f}, tip y={closure['screw_tip_y']:.2f}; lid underside y={closure['lid_underside_y']:.2f}, lid engagement {closure['lid_engagement']:.2f} mm. Q89 x{requested_length:g} preview tip y={seat+requested_length:.2f} intersects previous body tail (no lid boss).",
-            "Board-v2 §11: ring backing FR4 0.20 mm assumed by shell, absent from committed Gerber: without it standoff tops land y=4.61 vs island underside y=4.81, gap 0.20 mm.",
-            "Board-v2 §11: charging rectangle root starts on off-body J2 hang u=25.8 rather than packing leftover s=16.00; not joined in 3D.",
-            "KiCad J3 courtyard u=19.955–32.265 versus body outer width u=0–22: overhang 10.265 mm; visibly exposed on the lateral edge. R24 KiCad centre (18.75, 22.37) versus §5d table (18.49, 22.57): 0.26 mm u / -0.20 mm s disagreement; board is shown at KiCad centre.",
+            "v3 P4/P5 require posterior wall holes at u=20.50, s=4.35/12.35, y=4.35; v2 STL has only medial floor charging holes. They cannot be shown assembled until the new shell solid is committed.",
+            "The current v3 board is partly routed: board-v2.md §15 reports 84 unconnected items. This visual cannot verify electrical function or manufacture.",
         ],
     }
     (out / "captions.json").write_text(json.dumps(metadata, indent=2) + "\n")
