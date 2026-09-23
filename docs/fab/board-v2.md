@@ -447,28 +447,29 @@ Displayed JLC stock and unit price: **UNVERIFIED** on partdetail widgets. LCSC.c
 | Interface II ring pads Ø5.0 / hole Ø2.7, ENIG, clamped under standoff | Plan §5.3 fallback after WP11 I = 0/720 |
 | 8 × 8 mm ENIG pads | Rejected; see §11a |
 
-## 15. What DRC says
+## 15. What DRC says — WP12i v3 stop (2026-09-23)
 
-Command: `kicad-cli pcb drc --format json` (also via `scripts/board/release.py`). Redo: `hardware/board/route.md` §12.
+`kicad-cli pcb drc --format json -o /tmp/t0002-owned-drc.json hardware/board/elicio-v2.kicad_pcb`:
 
-WP12h kept the WP12g copper (421 tracks, 33 vias). Hand-route by script (`hardware/board/hand_route.py`) tried VBUS P4→island, J4 SWD, J3 Contact, and U2 QFN escapes. Every new channel that joined a named pad produced DRC errors. No WP12g trace was moved. Freerouting 2.4.1 with the JLC extreme via 0.10/0.30 (`scripts/board/route_v2.py --via-extreme`) wrote a copy at 56 unconnected and 63 via-size DRC errors; that SES was not imported. **Order release is not green. `routed`: false.**
+```text
+Found 11 violations
+Found 84 unconnected items
+0 errors; 11 warnings (8 via_dangling, 2 track_dangling, 1 lib_footprint_mismatch); 0 shorts
+```
 
-Owned PCB (WP12g copper, WP12h stop):
+| Item | Final board |
+|---|---:|
+| DRC errors / shorts | 0 / 0 |
+| Warnings / unconnected | 11 / 84 |
+| Pads without net | 0 |
+| pcb_tracks / vias | 278 / 26 |
+| BOM / CPL parts | 55 / 55 |
+| ERC errors / warnings | 0 / 0 |
+| Foreign-net strip tracks (SES import) | 0 |
 
-| Item | Result |
-|---|---|
-| DRC errors | 0 |
-| DRC warnings | 3 (2 `via_dangling`, 1 `track_dangling`) |
-| Unconnected items | 63 |
-| Pads without a net | 0 |
-| pcb_tracks | 421 |
-| Vias | 33 |
-| Shorts | 0 |
-| Foreign nets in strips | 0 |
+The interrupted VBUS/nRESET copper at `3a27ffd` passed DRC before routing: 0 errors, 140 unconnected, 2 dangling Contact ends plus 1 U2 library warning; it was not discarded. Locked Contact copper stayed. Freerouting 2.4.1 (Java 25, `-Xmx4g`, 0.55/0.30 vias) on a copy reached 96 unconnected and 0 DRC errors. Hand A* groups `j3`, `vbus`, `j4`, `u2`, `stitch` tried more links with DRC rollback on each failure; twelve closed, reaching 84. The remaining contacts and U2 escapes cannot be closed by this run; the Q98 channels alone did not solve them. `hardware/board/unrouted-v3.md` names **all 84 remaining KiCad airwires**, pads or isolated trace ends and millimetre endpoint distances; `hardware/board/route.md` §13 gives the run and examples of failed geometry. An airwire's straight-line gap is not a routable width. Trace 0.10 + 2 × 0.10 clearance = 0.30 mm (Default); Contact 0.15 + 2 × 0.20 = 0.55 mm.
 
-**First structural reason DRC 0 with 0 unconnected cannot land:** named pads and geometry in `hardware/board/route.md` §12. Trace 0.10 mm + 2 × 0.10 mm clearance = 0.30 mm (Default). Contact 0.15 mm + 2 × 0.20 mm = 0.55 mm.
-
-`release.py --routed` fails closed on unconnected items (Q62). The non-`--routed` job still exits 0 if ERC is 0 and outputs exist.
+`scripts/board/release.py --routed --out hardware/board/release` exited 1 and wrote `routed: false`, `refused: {"unconnected_items": 84}`. Gerbers, BOM, CPL and STEP exist as **review artefacts only, not order files**. STEP `hardware/board/release/elicio-v2.step` omits models `SW_Push_1P1T_XKB_TS-1187A.step`, `Texas_DSBGA-6_0.95x1.488mm_Layout2x3_P0.4mm.step`, `Texas_RSM0032.step`. Do not order this board.
 
 ## 16. ERC
 
@@ -525,7 +526,7 @@ Packing SW1 centre is (16.25, 4.45) on the pocket island.
 
 1. **G1b** — SparkFun's pack page says JST-SH; a linked drawing has said JST-PHR. SH is placed; PH is in the library. Cell is **501015** with a 100 ± 3 mm harness (**NOT_MEASURED**).
 2. **SIG1/SIG2/CHARGE unfold** — Gerber rings are the flat sites. WP14 folds them onto the shell sites (rib-slot for CHARGE, Q86).
-3. **Order route** — `--routed` is fail-closed: 63 unconnected after WP12h hand-route attempts on the WP12g copper. Named pads and geometry are in `hardware/board/route.md` §12. Packing must move H1/H2, J4, or the east-edge 0402 row on facts; this lane does not move packing.
+3. **Order route** — WP12i v3 is still unorderable: 84 unconnected, full pad/trace inventory in `hardware/board/unrouted-v3.md`. In particular, SIG2 P2.1→R2.1 and REF P3.1→R3.1 remain open across the island, and J3.1–3 remain open across the break-off neck. A packing decision must open continuous Contact-safe passages or relocate R2/R3 and/or J3; do not move packing sites from the board lane. JLC stiffener fee amount remains UNVERIFIED.
 4. **3.3 V probe vs 1.8 V first-load** — Q64: this board cannot set REGOUT0 through a 3.3 V probe. WP17b kit.
 5. **E73 land** — pad geometry copied from E73-2G4M04S; confirm M08S1C drawing before any B build.
 6. **YFP0006 land** — copied from KiCad DSBGA-6 0.40 mm; confirm TI 4223410/A before order.

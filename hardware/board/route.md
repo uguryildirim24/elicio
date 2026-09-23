@@ -486,5 +486,33 @@ The other rats in the 63 are F.Cu↔B.Cu stitches of the same nets (GND, +3V0, +
 
 63 unconnected after scripted hand-route attempts on the WP12g copper. Packing must move H1/H2 (hole gap), J4 (via slot vs SIG2), or the east 0402 row (R16 vs AFE_DRDY and GND). This lane does not move packing. Step 5: stop **un-shorted**, `routed: false`.
 
+## 13. WP12i v3 routing attempt (2026-09-23)
+
+Merged `origin/lane/w2` 3a27ffd then `origin/lane/w3` ab9ce95; no conflicts. Initial committed board DRC 0 errors, 140 unconnected, 2 Contact dangling ends and 1 U2 library mismatch warning. Interrupted VBUS/nRESET tracks passed the DRC, so they stayed. No WP12g copper was transplanted from the old v2 pin positions. Pin table v3's Q98 channels and locked Contact paths stayed at their flat sites.
+
+`uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e .`. `scripts/board/route_v2.py --work /tmp/t0002-route1 --route` exported a checked DSN (Default 100/100 µm, Contact 150/200 µm, via 550:300 µm). Freerouting 2.4.1 with OpenJDK 25, `-Xmx4g`, `-mp 20`, `-mt 4`: 3m33s, 715.5 MB peak heap, 96 unrouted / 32 router violations. The router's '2223 GB allocated' counter is cumulative allocation, **not** peak RAM. KiCad import on the copy: 0 DRC errors, 96 airwires, 0 foreign-net tracks in strips (223 tracks / 25 vias). No router violations were accepted into the PCB; KiCad DRC is the gate.
+
+Then KiCad-Python `hand_route.py --pcb /tmp/t0002-route1/elicio-v2-copy.kicad_pcb --group GROUP` (0.55/0.30 vias) tried in order; each candidate was rolled back if the DRC error count rose:
+
+| Group | Clean new links | Rejected attempts | Airwires after |
+|---|---:|---:|---:|
+| j3 | 0 | 5 | 96 |
+| vbus | 1 | 5 | 95 |
+| j4 | 1 | 9 | 94 |
+| u2 | 3 | 23 | 91 |
+| stitch | 7 | 73 | 84 |
+
+The named Contact failures remain: the SIG2 strip copper end (11.270, 16.500) → R2.1 (19.070, 33.340), 18.559 mm straight; R2.1 → J3.2 (28.410, 29.340), 10.160 mm. REF R3.1 (19.070, 31.340) → strip end (8.500, 39.350), 13.262 mm; R3.1 → J3.3 (28.410, 31.880), 9.356 mm. SIG1 R1.1 island anchor (10.190, 20.120) → J3.1 (28.410, 26.800), DRC endpoint gap 19.628 mm. A* tried each and added 2–29 DRC errors, then reverted the copper; the J3 PTH pad layout and narrow cut-neck still constrain Contact. Q98's slot is insufficient on this copper: U1.51 → J4.2 SWDIO 3.622 mm and U1.53 → J4.4 SWDCLK 3.857 mm both failed A* DRC. U2.21 → R8.1 AFE_MISO_AFE 19.397 mm failed A* search (no path at 0.10 track/0.10 clearance). Relocating packing sites is a decision for packing, not a board-side silent fix. These are not assertions that no alternative route can ever exist.
+
+Owned board DRC paste:
+
+```text
+Found 11 violations
+Found 84 unconnected items
+0 errors, 0 shorts; 8 via_dangling + 2 track_dangling + 1 lib_footprint_mismatch warnings
+```
+
+`hardware/board/unrouted-v3.md` is the **complete** 84-airwire list from that exact board and DRC, with both endpoints, pad anchors when connected, and straight-line millimetre gaps. Generate it with KiCad Python `scripts/board/unrouted.py PCB DRC.json OUT.md`; do not mistake the endpoint gap for channel width. `release.py --routed` exited 1, `routed: false`, refused only on 84 unconnected. ERC 0, BOM/CPL 55 each, Gerber/drill and STEP generated but **not orderable**. STEP misses the SW1, U2 and U3 models listed in board-v2 §15. No purchases or uploads.
+
 
 
