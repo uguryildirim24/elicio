@@ -129,6 +129,7 @@ def freeroute(dsn: Path, ses: Path) -> None:
     cmd = [
         str(JAVA),
         "-Djava.awt.headless=true",
+        "-Xmx4g",  # Bound router memory on the Mac.
         "-jar",
         str(JAR),
         f"--user_data_path={home}",

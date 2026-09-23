@@ -69,6 +69,8 @@ class BoardReleaseTests(unittest.TestCase):
             self.assertTrue((out / "cpl.csv").is_file())
             self.assertTrue((out / "elicio-v2.step").is_file())
             self.assertTrue(any((out / "gerbers").iterdir()))
+            # Q94 PI 0.1 piece lives on User.1; a missing layer loses the drawing at order.
+            self.assertTrue((out / "gerbers" / "elicio-v2-User_1.gbr").is_file())
             with (out / "bom.csv").open(newline="") as fh:
                 rows = [r for r in csv.DictReader(fh) if any(r.values())]
             self.assertEqual(len(rows), summary["bom_rows"])
@@ -538,7 +540,7 @@ class Wp12iFootprintAndDnpTests(unittest.TestCase):
         chunk = self._u2_block()
         self.assertIn("elicio:Texas_RSM0032", "\t(footprint " + chunk)
         pads = re.findall(
-            r'\(pad "(\d+)" smd roundrect\s+\(at ([-\d.]+) ([-\d.]+)\)\s+\(size ([-\d.]+) ([-\d.]+)\)',
+            r'\(pad "(\d+)" smd roundrect\s+\(at ([-\d.]+) ([-\d.]+)(?: [-\d.]+)?\)\s+\(size ([-\d.]+) ([-\d.]+)\)',
             chunk,
         )
         numbered = [(int(n), float(x), float(y), float(sx), float(sy)) for n, x, y, sx, sy in pads]
@@ -564,7 +566,7 @@ class Wp12iFootprintAndDnpTests(unittest.TestCase):
             self.assertAlmostEqual(sy, 0.55, places=3)
         for _n, _x, y, sx, sy in north:
             self.assertAlmostEqual(y, -1.925, places=3)
-        ep = re.search(r'\(pad "33" smd rect\s+\(at 0 0\)\s+\(size ([-\d.]+) ([-\d.]+)\)', chunk)
+        ep = re.search(r'\(pad "33" smd rect\s+\(at 0 0(?: [-\d.]+)?\)\s+\(size ([-\d.]+) ([-\d.]+)\)', chunk)
         self.assertIsNotNone(ep)
         self.assertAlmostEqual(float(ep.group(1)), 2.8, places=2)
         self.assertAlmostEqual(float(ep.group(2)), 2.8, places=2)
@@ -770,15 +772,18 @@ class PinTableV3ParserTests(unittest.TestCase):
 
     def test_vendor_writes_only_when_5e_has_66_rows(self) -> None:
         sys.path.insert(0, str(ROOT / "hardware" / "board"))
-        from placement_table import extract_section5e, vendor_pin_table
+        from placement_table import extract_section5e, parse_pin_table_v3, vendor_pin_table
 
         packing_doc = ROOT / "docs" / "fab" / "packing-v2.md"
-        self.assertIsNone(extract_section5e(packing_doc.read_text(encoding="utf-8")))
+        source = packing_doc.read_text(encoding="utf-8")
+        self.assertIsNotNone(extract_section5e(source))
         with tempfile.TemporaryDirectory() as tmp:
             dest = Path(tmp) / "packing_v2_flat.md"
             dest.write_text("keep\n", encoding="utf-8")
-            self.assertFalse(vendor_pin_table(packing_doc.read_text(encoding="utf-8"), dest))
+            self.assertFalse(vendor_pin_table("no section 5e\n", dest))
             self.assertEqual(dest.read_text(encoding="utf-8"), "keep\n")
+            self.assertTrue(vendor_pin_table(source, dest))
+            self.assertEqual(len(parse_pin_table_v3(dest.read_text(encoding="utf-8"))), 66)
             dest2 = Path(tmp) / "v3.md"
             self.assertTrue(vendor_pin_table(self.SAMPLE, dest2))
             self.assertIn("Pin table v3", dest2.read_text(encoding="utf-8"))
