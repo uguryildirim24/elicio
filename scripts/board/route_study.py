@@ -11,6 +11,7 @@ import argparse
 import collections
 import json
 import math
+import re
 import shutil
 import subprocess
 import sys
@@ -33,11 +34,12 @@ J2_TRIAL = (14.30, 11.35)  # mm: 0.85 inward; P5 shell gap exactly 0.30
 GROUPS = ("j3", "vbus", "j4", "u2", "stitch")
 
 
-def run(cmd: list[str], log: Path, *, allow_failure: bool = False) -> None:
+def run(cmd: list[str], log: Path, *, allow_failure: bool = False) -> int:
     with log.open("w") as out:
         p = subprocess.run(cmd, stdout=out, stderr=subprocess.STDOUT, text=True)
     if p.returncode and not allow_failure:
         raise RuntimeError(f"exit {p.returncode}: {' '.join(cmd)}; see {log}")
+    return p.returncode
 
 
 def drc(pcb: Path, path: Path) -> dict:
@@ -98,12 +100,17 @@ def route(option: str, work: Path) -> None:
     board = pcbnew.LoadBoard(str(pcb))
     dsn = work / "trial.dsn"
     pcbnew.ExportSpecctraDSN(board, str(dsn))
-    from route_v2 import sanitize_dsn, check_dsn_classes, FREEROUTE_FLAGS
+    from route_v2 import DSN_VIA, FREEROUTE_FLAGS, check_dsn_classes, sanitize_dsn
     sanitize_dsn(dsn)
-    if option == "A":
-        missing = check_dsn_classes(dsn)
-        if missing:
-            raise RuntimeError(f"DSN classes: {missing}")
+    missing = check_dsn_classes(dsn)
+    if option in ("B", "C"):
+        # The shared checker expects a two-layer Via[0-1] padstack. A through
+        # via in this four-layer trial spans layers 0..3 instead.
+        missing = [fact for fact in missing if fact != DSN_VIA]
+        if not re.search(r"Via\[0-3\]_550:300_um", dsn.read_text()):
+            missing.append("four-layer regular through-via 550:300 um")
+    if missing:
+        raise RuntimeError(f"DSN classes: {missing}")
     cmd = [JAVA, "-Djava.awt.headless=true", "-Xmx4g", "-jar", str(JAR),
            f"--user_data_path={work / 'fr-home'}", "-de", str(dsn),
            "-do", str(work / "trial.ses"), *FREEROUTE_FLAGS]
@@ -162,8 +169,13 @@ def hand_pass(work: Path, results: dict) -> None:
     for group in GROUPS:
         if group in results:
             continue
-        run([KICAD_PY, str(HAND), "--pcb", str(pcb), "--group", group],
-            work / f"hand-{group}.log", allow_failure=True)
+        log = work / f"hand-{group}.log"
+        status = run([KICAD_PY, str(HAND), "--pcb", str(pcb), "--group", group],
+                     log, allow_failure=True)
+        # hand_route returns 1 for rejected paths on an already-invalid board;
+        # any other failure or an incomplete pass is not a measurement.
+        if status not in (0, 1) or f"group {group} routed " not in log.read_text():
+            raise RuntimeError(f"hand route failed (exit {status}); see {log}")
         results[group] = drc(pcb, work / f"after-{group}.json")
         (work / "measure.json").write_text(json.dumps(results, indent=2) + "\n")
     print("DONE", work / "measure.json", flush=True)
@@ -217,12 +229,15 @@ def main() -> None:
     parser.add_argument("--width-screen", type=int, choices=(18, 20))
     args = parser.parse_args()
     if args.strip_only:
-        board = pcbnew.LoadBoard(str(args.strip_only))
+        copy = args.strip_only.resolve()
+        if copy.name != "trial.kicad_pcb" or copy == SOURCE or ROOT in copy.parents:
+            raise ValueError("--strip-only requires an outside-repository trial.kicad_pcb")
+        board = pcbnew.LoadBoard(str(copy))
         for track in list(board.GetTracks()):
             if track.IsLocked() and track.GetNetname() in ("SIG1", "SIG2", "REF"):
                 continue
             board.Remove(track)
-        board.Save(str(args.strip_only))
+        board.Save(str(copy))
         return
     if args.option is None or args.work is None:
         parser.error("option and --work required")
