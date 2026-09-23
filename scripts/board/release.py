@@ -35,7 +35,7 @@ REQUIRED_ENV = {
 GERBER_LAYERS = (
     "F.Cu,B.Cu,"
     "F.SilkS,B.SilkS,F.Mask,B.Mask,F.Paste,B.Paste,Edge.Cuts,"
-    "Eco1.User,Eco2.User,Dwgs.User,Cmts.User"
+    "Eco1.User,Eco2.User,User.1,Dwgs.User,Cmts.User"
 )
 
 
