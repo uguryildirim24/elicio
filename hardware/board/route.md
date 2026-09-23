@@ -513,6 +513,3 @@ Found 84 unconnected items
 ```
 
 `hardware/board/unrouted-v3.md` is the **complete** 84-airwire list from that exact board and DRC, with both endpoints, pad anchors when connected, and straight-line millimetre gaps. Generate it with KiCad Python `scripts/board/unrouted.py PCB DRC.json OUT.md`; do not mistake the endpoint gap for channel width. `release.py --routed` exited 1, `routed: false`, refused only on 84 unconnected. ERC 0, BOM/CPL 55 each, Gerber/drill and STEP generated but **not orderable**. STEP misses the SW1, U2 and U3 models listed in board-v2 §15. No purchases or uploads.
-
-
-

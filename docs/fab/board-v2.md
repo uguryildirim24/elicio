@@ -479,7 +479,7 @@ The interrupted VBUS/nRESET copper at `3a27ffd` passed DRC before routing: 0 err
 
 `scripts/board/release.py` runs ERC, DRC, JLC-column BOM, JLC CPL (the BOM's designators, SMD and the THT header J3; review r6), gerbers+drill, STEP, and `release/summary.json`. Non-zero exit on any ERC error, any missing output, or a BOM part without a CPL row; with `--routed`, also on DRC errors, unconnected items, pads without a net, or no tracks.
 
-`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks > 0, R24 within 0.50 mm of the v2 table (v2.1 pose), Q88 (no 1.0 mm at the strip roots; foreign strip copper fails), and other named SMT centres within 0.1 mm of `packing_v2_flat.md`. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
+`tests/test_board_release.py` asserts ERC 0, BOM rows = placed parts, CPL designators = BOM designators, `"routed": false` without the flag, `--routed` still refused on this copper, pcb_tracks > 0, Q88 (no 1.0 mm at the strip roots; foreign strip copper fails), and pin table v3 sites including R24 within 0.1 mm of `packing_v2_flat.md`. If `kicad-cli` is missing the tests fail with `brew install --cask kicad`.
 
 ## 18. Assembler consequences and C7 (quote only)
 

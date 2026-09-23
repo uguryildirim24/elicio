@@ -35,14 +35,10 @@ def main() -> None:
     nstiff = draw_q94_stiffeners(board)
     board.SetFileName(str(pcb_path))
     board.Save(str(pcb_path))
-    text = pcb_path.read_text(encoding="utf-8")
-    after = text.count("\n\t(segment")
-    print("removed", sorted(gone), "stiffeners", nstiff, "tracks", ntracks, "->", after)
-    if after != ntracks:
-        raise SystemExit("track count changed; refuse to keep the save")
-    after = len([t for t in board.GetTracks() if t.GetClass() in {"PCB_TRACK", "PCB_ARC"}])
-    print("removed", sorted(gone), "stiffeners", nstiff, "tracks", ntracks, "->", after)
-    if after != ntracks:
+    saved = pcb_path.read_text(encoding="utf-8")
+    saved_tracks = saved.count("\n\t(segment") + saved.count("\n\t(arc")
+    print("removed", sorted(gone), "stiffeners", nstiff, "tracks", ntracks, "->", saved_tracks)
+    if saved_tracks != ntracks:
         raise SystemExit("track count changed; refuse to keep the save")
 
 

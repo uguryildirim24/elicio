@@ -15,7 +15,7 @@ from pathlib import Path
 
 import wx
 
-wx.App(False)
+_APP = wx.App(False)
 import pcbnew
 
 
@@ -68,8 +68,10 @@ def main(pcb: Path, drc: Path, output: Path) -> None:
         "when the DRC endpoint is a track or via, its named pad is only a "
         "connected island anchor, not necessarily the trace end. 'No pad' "
         "means an isolated copper stub. Endpoint distance is straight-line, "
-        "not available channel width or routed length. F/B sides and actual "
-        "copper obstructions must be checked before routing. Do not order.\n\n"
+        "not available channel width or routed length. KiCad may choose different "
+        "endpoints for an equivalent airwire on a repeat DRC; the rows are a "
+        "snapshot, not stable identifiers. F/B sides and actual copper obstructions "
+        "must be checked before routing. Do not order.\n\n"
         "| # | Net | Endpoint A / pad anchor | Endpoint B / pad anchor | Endpoint gap (mm) |\n"
         "|---:|---|---|---|---:|\n" + "\n".join(rows) + "\n",
         encoding="utf-8",
