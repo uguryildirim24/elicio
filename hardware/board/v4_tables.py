@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Print the v4 flat PCB table and the folded shell-site table (markdown).
+"""Print the v4 flat PCB table (markdown).
 
 Plain python: reads elicio-v4.kicad_pcb as text, no pcbnew. The flat table
-is what the Gerber carries (PCB x, y = packing u, s). The folded table is the
-shell's: where each ring and the hang parts sit once the strips and the P4/P5
-plate are folded (docs/fab/board-v4-design.md §10).
+is what the Gerber carries (PCB x, y = packing u, s). The folded shell-site
+table (docs/fab/board-v4-design.md §10.2) is not generated yet.
 
 Run: python3 hardware/board/v4_tables.py [--pads]
 """
