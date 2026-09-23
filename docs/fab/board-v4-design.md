@@ -1,6 +1,6 @@
 # Board v4 — design note (smaller body)
 
-Draft. Routing status: see §9.
+Draft. **Not routed**: every net but GND is routed with 0 DRC errors; GND is in 37 pieces (§9).
 Date: 2026-09-23. Lane t-0012.
 
 ## 1. Size levers
@@ -241,7 +241,7 @@ The full table is `PLACE` in `hardware/board/build_v4.py`; §10 lists every part
 | J2 Pico-EZmate Slim | F | (5.45, 18.90) rot 270 | Courtyard u 2.29–8.43 × s 16.11–21.70. Cell leads come in at u < 8.43 |
 | AFE decoupling, RESET pull-down | F | u 7.75–10.2 × s 18.45–24.10 | C6, C7, C9, C10, R23 |
 | Charger pulls | F | (12.60, 18.15), (12.60, 18.95) | R12 (PRETERM), R13 (TS) |
-| CS/DRDY series, pad-23 decoupling, charge LED | F | u 11.1–14.65 × s 25.15–28.0 | R7, R27, C15, D2, R22, Q4, R28 |
+| CS/DRDY series, pad-23 decoupling, charge LED | F | u 11.05–14.65 × s 25.15–28.0 | R7, R27, C15, D2, R22, Q4, R28. R7 at u 11.05 and R27 turned so MOSI and CS leave U2's south row without a via (§9) |
 | SPI series | F | u 11.40 × s 29.6–32.6 | R6, R5, R8 in U2's pad order |
 | SW1 | F | (14.45, 31.10) rot 180 | Top 5.72 |
 | J4 TC2030-NL | F | (10.00, 35.40) | Just outside the RF band (u ≥ 6.455) |
@@ -249,8 +249,8 @@ The full table is `PLACE` in `hardware/board/build_v4.py`; §10 lists every part
 | Contact resistors R1, R2, C4 | B | s 17.25–17.45 | At the strip roots |
 | Charger | B | U3 (13.90, 17.75) rot 90 | U3, R11, C2, R25, C3, D1 at the joint. Both charge nets arrive on B |
 | AFE gate | B | u 9.4–9.95 × s 19.95–24.65 | R15, Q3, R14, Q1, C5, R24 |
-| AFE LDO and bulk | B | u 11.65–13.3 × s 21.25–24.6 | U4, C8, C14, C11, R4, C1 |
-| REF resistor, dividers, interlock | B | u 11.45–14.55 × s 25.6–28.0 | R3, R16–R21, Q2 |
+| AFE LDO and bulk | B | u 11.65–13.3 × s 21.25–24.6 | U4, C8, C14, C11, R4, C1. C14's VBAT pad faces east (§9) |
+| REF resistor, dividers, interlock | B | u 11.45–14.60 × s 25.6–28.6 | R3, R16–R21, Q2. Kept east of u 11.1 so a via column at u 10.72 fits beside U1's east pads; R16/R17 sit at Q2's gate (§9) |
 
 The same features seen from the Contact side are in §5: landings P1 (5.9, 22.0) and P2 (10.4, 33.1), R 3.2; lid posts at (5.9, 23.0) and (9.4, 32.1).
 
@@ -487,17 +487,224 @@ Pin map A (as built). Every fast SPI line is on a full-speed pin; the low-freque
 
 ## 9. Routing status
 
-Filled in after routing.
+**Not routed. Don't order this board.** `hardware/board/elicio-v4.kicad_pcb` as committed:
+
+- Every net except GND is routed: 961 track segments and 45 vias, locked pre-routes included.
+- The two GND pours (F and B, over the whole island) are filled and saved.
+- DRC (kicad-cli 10.0.6, `--schematic-parity`):
+  - 0 shorts, 0 clearance errors.
+  - 13 `starved_thermal` errors, all on GND pads.
+  - 36 unconnected items, all GND.
+  - Warnings: 21 `lib_footprint_mismatch`, 1 `via_dangling` (a +VDD pre-route via at (7.60, 36.70)), and 2 parity warnings (J2's MP pad has no schematic pin).
+- `release.py --routed` was not run. It would refuse on the unconnected count.
+
+### 9.1 What each router did
+
+| Router | Placement | Result |
+|---|---|---|
+| Freerouting 2.4.1 on OpenJDK 25, `-Xmx4g`, locked Contact copper exported as fixed wires (`scripts/board/route_v4.py --route`) | W18 as placed at 9fc962b | 18 connections open; it never closed them. Its analytics and telemetry flags were passed off; I didn't confirm the effect |
+| `v4_route_pf.py`: negotiated congestion (PathFinder) on a 0.025 grid. 0.10 tracks, 0.40/0.15 vias, rule areas and locked copper kept, GND skipped | Reliefs 1–3 (§9.2) | Nets still in conflict at the last round: 13 → 9 → 5 → 2 (AFE_VIN and VBAT) |
+| Same | Relief 4 (C14 turned) | 0 conflicts at round 30, 926 items, about 6 minutes |
+| `v4_route_fix.py`: drops the unlocked copper named in DRC clearance and short errors, reconnects with A*, then does local rip-up | Output of each run above | Reliefs 1–3: one net left open each time (AFE_VIN, then Q2_G). Relief 4: nothing left to do |
+
+Freerouting stalled at this density: 0.10/0.10 rules, locked Contact copper, and B mostly keep-out. That's why I built my own router. Early on, the negotiated router lets nets share cells; overlap and history costs then rise until the nets separate. When nets still fight at the end, the fight points at a placement block, and the four reliefs below came from reading those points.
+
+### 9.2 Placement reliefs that made it route
+
+1. **Via column at u 10.72 beside U1's east pads** (pads at u 10.14). R7 and R27 moved, R18/R20/R21 went to u 11.80, and R19 and Q2 were re-placed.
+2. **Crossings removed:**
+   - C9 and C10 swapped (VREFP and VCAP1 crossed).
+   - R12 turned 180° (PRETERM needed a via).
+   - R15 turned 180° (VBAT hops on F).
+   - C14 and R19 turned.
+3. **Q2_G cluster.** R16 and R17 moved beside Q2's gate.
+4. **C14 turned so its VBAT pad faces east.** With the pad facing west, VBAT ran R14 → Q1 → C14 → R20 on B. That walls off AFE_VIN's path from U4 to C5 and Q1.3, so neither net could close without crossing the other.
+
+### 9.3 Open connections (all GND)
+
+GND is in 37 pieces. Pour islands join through stitching vias. Lone pads need a short track or a via. Piece list, from the board text with fills counted as copper:
+
+| Piece | Copper | GND pads in it |
+|---|---|---|
+| 0 | F pour, u 6.5–7.4 × s 30.7–34.0 | U1.21, U1.23, U1.24, U1.25 |
+| 1 | F + B pours and 1 via, u 6.5–12.1 × s 26.8–37.6 | J4.3, J4.5 |
+| 2 | B pour, u 12.5–15.1 × s 16.3–18.1 | — |
+| 3 | B pour, u 2.6–5.0 × s 17.1–21.8 | C12.2, C13.2, U5.2, U5.5 |
+| 4 | F pour, u 9.9–13.4 × s 20.5–24.0 (under U2) | U2.10, U2.13, U2.24, U2.33 |
+| 5 | B pour, u 11.6–12.3 × s 21.2–22.1 | U4.2, U4.5 |
+| 6 | F pour, u 12.1–15.4 × s 27.5–32.4 | Q4.2, SW1.2 |
+| 7 | B pour, u 11.2–15.1 × s 27.5–36.9 | Q2.2, R17.2 |
+| 8 | B pour, u 10.3–11.8 × s 16.0–17.6 | C2.2, R11.2 |
+| 9 | F pour, u 11.4–14.1 × s 17.3–18.7 | R12.2 |
+| 10 | F pour, u 12.3–14.1 × s 18.8–20.2 | R13.2 |
+| 11 | F pour sliver at (14.1, 25.15) | C15.2 |
+| 12 | F pour, u 12.5–13.7 × s 25.8–27.9 | R28.2 |
+| 13 | F pour, u 7.1–7.8 × s 18.8–19.2 | J2.2 |
+| 14 | F pour, u 2.6–7.9 × s 16.0–21.8 | J2.MP (one of two) |
+| 15 | F pour, u 8.0–11.0 × s 17.3–18.6 | C9.2 |
+| 16 | F pour, u 8.9–10.8 × s 24.5–25.9 | U1.1 |
+| 17 | B pour, u 11.8–13.1 × s 19.4–20.6 | D1.2 |
+| 18 | B pour sliver, u 11.1–11.3 × s 23.2–23.6 | C14.2 |
+| 19 | B pour, u 6.3–6.9 × s 17.4–17.8 | C4.2 |
+| 20 | B pour, u 11.1–11.8 × s 24.6–25.3 | C11.2 |
+| 21 | B pour, u 13.8–15.1 × s 18.7–19.8 | C3.2 |
+| 22 | B pour, u 10.6–11.4 × s 21.6–22.8 | C8.2 |
+| 23 | B pour, u 12.9–14.3 × s 25.9–27.2 | R19.2 |
+| 24 | B pour, u 4.3–5.6 × s 16.0–17.1 | C16.2 |
+| 25–36 | Lone pads, no pour reaches them | C7.2, J2.MP (the other), R23.2, C6.2, C10.2, U1.7, U1.31, C5.2, Q3.2, R24.2, U3.C2, R21.2 |
+
+KiCad's 36 unconnected items are the 36 joins between those pieces. Sixteen are pour island to pour island at 0.00 mm (an F island over a B island; one via each). The other 20 name a pad:
+
+| From | To | Gap mm |
+|---|---|---:|
+| C12.2 (B) at (2.78, 18.30) | J2.MP (F) at (3.42, 20.80) | 2.58 |
+| GND_POUR_B island | C4.2 (B) at (6.93, 17.45) | — |
+| U1.7 (F) at (6.85, 25.56) | R23.2 (F) at (7.63, 24.10) | 1.66 |
+| GND_POUR_F island | U1.7 (F) at (6.85, 25.56) | — |
+| GND_POUR_F island | U1.31 (F) at (9.94, 32.54) | — |
+| J2.2 (F) at (7.45, 19.50) | C10.2 (F) at (9.10, 18.28) | 2.05 |
+| J2.2 (F) at (7.45, 19.50) | C4.2 (B) at (6.93, 17.45) | 2.11 |
+| C7.2 (F) at (8.78, 22.34) | C6.2 (F) at (7.75, 22.18) | 1.04 |
+| GND_POUR_F island | C10.2 (F) at (9.10, 18.28) | — |
+| R24.2 (B) at (9.08, 24.65) | C5.2 (B) at (9.63, 23.75) | 1.05 |
+| R24.2 (B) at (9.08, 24.65) | R23.2 (F) at (7.63, 24.10) | 1.55 |
+| U2.13 (F) at (9.93, 22.28) | C5.2 (B) at (9.63, 23.75) | 1.50 |
+| GND_POUR_F island | C7.2 (F) at (8.78, 22.34) | — |
+| U1.1 (F) at (9.94, 25.56) | R24.2 (B) at (9.08, 24.65) | 1.25 |
+| J4.3's locked GND stub (F) | U1.31 (F) at (9.94, 32.54) | 3.50 |
+| Q3.2 (B) at (10.30, 21.12) | U2.10 (F) at (9.93, 21.08) | 0.38 |
+| C11.2 (B) at (11.33, 24.60) | GND_POUR_B island | — |
+| R28.2 (F) at (13.35, 27.38) | R21.2 (B) at (11.48, 27.20) | 1.88 |
+| U3.C2 (B) at (13.50, 17.55) | R12.2 (F) at (12.28, 18.15) | 1.36 |
+| GND_POUR_B island | U3.C2 (B) at (13.50, 17.55) | — |
+
+"—": KiCad reports a pour at its outline's first corner, so a pad-to-pour distance has no meaning here. The gap is a straight line, not a routable width.
+
+Starved thermals (fewer than 2 spokes reach the pour): C2.2, C4.2, C8.2, C11.2, C13.2 (B); U5.5, U4.5 (B, exposed pads); C15.2, J2.2, J2.MP, U2.10, U2.13, U2.24 (F).
+
+### 9.4 Next, in order
+
+1. **Stitch GND.** Run `v4_route_fix.py --nets GND --ripup 4` on the filled board; it reads filled pours as copper, but I haven't tried it on GND. Otherwise place vias by hand where F and B islands overlap. Vias stay out of LAND_P1/LAND_P2 (R 3.2) and the RF band; the finisher reads those rule areas.
+2. **Refill and DRC** (`kicad-cli pcb drc --refill-zones --save-board`). The release DRC doesn't refill, so the board must be saved filled.
+3. **Starved thermals.** Allow 1 spoke on GND pads with a custom rule (`min_resolved_spokes`), and give U2's and U4's exposed pads a solid connection. Keep reliefs on the 0201s so they don't tombstone. The alternative is a track to each of those pads.
+4. **Q97 on the filled board.** `tests/test_board_v4.py` checks for foreign pour in each land zone.
+5. **Release.** `scripts/board/release.py --board elicio-v4 --routed` writes Gerbers, BOM, CPL and STEP; only a pass makes them order files.
+6. **§10.2** folded table.
+
+### 9.5 Rebuild and re-route
+
+```bash
+cd hardware/board
+KP=/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/3.9/bin/python3
+W=/path/to/scratch            # DRC needs <stem>.kicad_pro and <stem>.kicad_dru beside each board copy
+$KP build_v4.py               # placed board, locked pre-routes, GND pour outlines -> elicio-v4.kicad_pcb (overwrites the routed one)
+cp elicio-v4.kicad_pcb $W/in.kicad_pcb
+for s in a b c; do cp elicio-v4.kicad_pro $W/$s.kicad_pro; cp elicio-v4.kicad_dru $W/$s.kicad_dru; done
+../../.venv/bin/python -u v4_route_pf.py --pcb $W/in.kicad_pcb --out $W/a.kicad_pcb --fresh --skip GND --rounds 45 --debug $W/conf.json
+kicad-cli pcb drc --format json --severity-error --schematic-parity -o $W/drc_a.json $W/a.kicad_pcb
+../../.venv/bin/python -u v4_route_fix.py --pcb $W/a.kicad_pcb --drop-drc $W/drc_a.json --skip GND --ripup 4 --out $W/b.kicad_pcb
+cp $W/b.kicad_pcb $W/c.kicad_pcb
+kicad-cli pcb drc --refill-zones --save-board --format json --schematic-parity -o $W/drc_c.json $W/c.kicad_pcb
+```
+
+The committed board is `c` from this sequence; the finisher found nothing to do on `a`. Freerouting instead: `scripts/board/route_v4.py --work DIR --route`. It needs one run at a time and `-Xmx4g`.
 
 ## 10. Flat and folded tables
 
 ### 10.1 Flat PCB coordinates (u, s)
 
-Generated after routing.
+From `python3 hardware/board/v4_tables.py --pads` on the committed board. Part centres, then pad by pad for the connectors, rings, J4 and SW1. The Gerber carries these (PCB x, y = u, s).
+
+| ref | side | x (u) | y (s) | rot | footprint |
+|---|---|---:|---:|---:|---|
+| C1 | bottom | 13.30 | 23.65 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
+| C2 | bottom | 11.95 | 17.55 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
+| C3 | bottom | 14.40 | 19.95 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
+| C4 | bottom | 7.25 | 17.45 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
+| C5 | bottom | 9.95 | 23.75 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
+| C6 | top | 7.75 | 22.66 | 90 | `Capacitor_SMD:C_0402_1005Metric` |
+| C7 | top | 8.78 | 22.66 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
+| C8 | bottom | 11.65 | 22.55 | 180 | `Capacitor_SMD:C_0402_1005Metric` |
+| C9 | top | 10.20 | 18.50 | 90 | `Capacitor_SMD:C_0402_1005Metric` |
+| C10 | top | 9.10 | 18.60 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
+| C11 | bottom | 11.65 | 24.60 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
+| C12 | bottom | 3.10 | 18.30 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
+| C13 | bottom | 4.60 | 18.30 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
+| C14 | bottom | 11.65 | 23.60 | 180 | `Capacitor_SMD:C_0402_1005Metric` |
+| C15 | top | 13.60 | 25.15 | 0 | `Capacitor_SMD:C_0201_0603Metric` |
+| C16 | bottom | 4.70 | 17.15 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
+| D1 | bottom | 12.60 | 19.70 | 180 | `Diode_SMD:D_SOD-523` |
+| D2 | top | 14.65 | 26.10 | 0 | `LED_SMD:LED_0402_1005Metric` |
+| J2 | top | 5.45 | 18.90 | -90 | `Connector_Molex:Molex_Pico-EZmate_Slim_202656-0021_1x02-1MP_P1.20mm_Vertical` |
+| J3 | top | 21.35 | 18.61 | 0 | `Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Horizontal` |
+| J4 | top | 10.00 | 35.40 | 0 | `Connector:Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical` |
+| P1 | top | 5.90 | 5.29 | 0 | `elicio:RING_PAD_D5_H2.7` |
+| P2 | top | 10.40 | -5.81 | 0 | `elicio:RING_PAD_D5_H2.7` |
+| P3 | top | 8.50 | 43.00 | 0 | `elicio:RING_PAD_D5_H2.7` |
+| P4 | bottom | 16.51 | 4.35 | 180 | `elicio:RING_1S_D4.6_NPTH2.7` |
+| P5 | bottom | 16.51 | 12.10 | 180 | `elicio:RING_1S_D4.6_NPTH2.7` |
+| Q1 | bottom | 9.95 | 22.80 | 180 | `Package_TO_SOT_SMD:SOT-883` |
+| Q2 | bottom | 13.35 | 27.60 | 180 | `Package_TO_SOT_SMD:SOT-883` |
+| Q3 | bottom | 9.95 | 20.90 | 180 | `Package_TO_SOT_SMD:SOT-883` |
+| Q4 | top | 14.60 | 28.00 | 0 | `Package_TO_SOT_SMD:SOT-883` |
+| R1 | bottom | 5.90 | 17.30 | -90 | `Resistor_SMD:R_0402_1005Metric` |
+| R2 | bottom | 9.39 | 17.25 | 180 | `Resistor_SMD:R_0402_1005Metric` |
+| R3 | bottom | 14.55 | 25.60 | 180 | `Resistor_SMD:R_0402_1005Metric` |
+| R4 | bottom | 13.30 | 22.15 | 90 | `Resistor_SMD:R_0201_0603Metric` |
+| R5 | top | 11.40 | 31.12 | 90 | `Resistor_SMD:R_0201_0603Metric` |
+| R6 | top | 11.40 | 29.63 | 90 | `Resistor_SMD:R_0201_0603Metric` |
+| R7 | top | 11.05 | 25.50 | 90 | `Resistor_SMD:R_0201_0603Metric` |
+| R8 | top | 11.40 | 32.61 | 90 | `Resistor_SMD:R_0201_0603Metric` |
+| R11 | bottom | 12.00 | 16.75 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R12 | top | 12.60 | 18.15 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R13 | top | 12.60 | 18.95 | 0 | `Resistor_SMD:R_0201_0603Metric` |
+| R14 | bottom | 9.95 | 21.85 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R15 | bottom | 9.95 | 19.95 | 0 | `Resistor_SMD:R_0201_0603Metric` |
+| R16 | bottom | 14.60 | 27.10 | -90 | `Resistor_SMD:R_0201_0603Metric` |
+| R17 | bottom | 14.60 | 28.55 | -90 | `Resistor_SMD:R_0201_0603Metric` |
+| R18 | bottom | 11.80 | 25.60 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R19 | bottom | 13.30 | 26.52 | 0 | `Resistor_SMD:R_0201_0603Metric` |
+| R20 | bottom | 11.80 | 26.40 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R21 | bottom | 11.80 | 27.20 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R22 | top | 14.60 | 27.02 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R23 | top | 7.95 | 24.10 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R24 | bottom | 9.40 | 24.65 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R25 | bottom | 11.95 | 18.35 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R27 | top | 12.45 | 25.50 | -90 | `Resistor_SMD:R_0201_0603Metric` |
+| R28 | top | 13.35 | 27.70 | 90 | `Resistor_SMD:R_0201_0603Metric` |
+| SW1 | top | 14.45 | 31.10 | 180 | `elicio:SW_HRO_1TS015A` |
+| U1 | top | 6.45 | 29.05 | -90 | `elicio:InsightSiP_ISP1807` |
+| U2 | top | 11.85 | 22.08 | -90 | `elicio:Texas_RSM0032` |
+| U3 | bottom | 13.90 | 17.75 | 90 | `elicio:Texas_YFP0006_V4` |
+| U4 | bottom | 11.65 | 21.25 | 180 | `Package_SON:Texas_X2SON-4_1x1mm_P0.65mm` |
+| U5 | bottom | 3.30 | 17.10 | 180 | `Package_SON:Texas_X2SON-4_1x1mm_P0.65mm` |
+
+| pad | kind | net | x (u) | y (s) |
+|---|---|---|---:|---:|
+| J2.1 | smd | VBAT | 7.45 | 18.30 |
+| J2.2 | smd | GND | 7.45 | 19.50 |
+| J2.MP | smd | GND | 3.42 | 17.00 |
+| J2.MP | smd | GND | 3.42 | 20.80 |
+| J3.1 | thru_hole | REF | 21.35 | 18.61 |
+| J3.2 | thru_hole | SIG2 | 21.35 | 21.15 |
+| J3.3 | thru_hole | SIG1 | 21.35 | 23.69 |
+| J4.1 | connect | +VDD | 8.73 | 36.03 |
+| J4.2 | connect | SWDIO | 8.73 | 34.77 |
+| J4.3 | connect | GND | 10.00 | 36.03 |
+| J4.4 | connect | SWDCLK | 10.00 | 34.77 |
+| J4.5 | connect | GND | 11.27 | 36.03 |
+| J4.6 | connect | nRESET | 11.27 | 34.77 |
+| P1.1 | thru_hole | SIG1 | 5.90 | 5.29 |
+| P2.1 | thru_hole | SIG2 | 10.40 | -5.81 |
+| P3.1 | thru_hole | REF | 8.50 | 43.00 |
+| P4.1 | smd | VBUS | 14.59 | 4.35 |
+| P5.1 | smd | GND | 14.59 | 12.10 |
+| SW1.1 | smd | nRESET | 14.45 | 32.73 |
+| SW1.2 | smd | GND | 14.45 | 29.48 |
 
 ### 10.2 Folded shell sites (u, s, y)
 
-Generated after routing.
+Not generated yet; `v4_tables.py` prints only the flat table. The fold sites and cavity tests exist by numbers in §4.4 (P4/P5 plate), §4.5 (strips and rings), §4.8 (cavity tests) and §4.9 (J2 against the P5 well). A generated table with a cavity test for every courtyard, hang and tab root is still owed.
 
 ## 11. UNVERIFIED and sources
 
