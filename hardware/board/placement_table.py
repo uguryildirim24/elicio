@@ -1,13 +1,15 @@
 """Parse packing pin tables with a copper side column.
 
 §5c uses ``ref | side | u | s | rot``. Pin table v2 is the same plus a
-folded-site table (ignored) and J4 hole keep-outs. ``face`` is an alias
+folded-site table (ignored) and J4 hole keep-outs. Pin table v3 is §5e:
+66 rows (R9/R10 out) plus channel keep-out rows. ``face`` is an alias
 only when its cell is ``top`` or ``bottom`` (pocket/floor are regions).
 Flat PCB columns ``x`` / ``y`` alias ``u`` / ``s``.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 SIDES = frozenset({"top", "bottom"})
 BACK_LAYERS = frozenset({"both", "bottom", "b.cu", "bcu", "*.cu"})
@@ -31,6 +33,17 @@ class KeepoutZone:
     s: float
     radius: float
     layers: str
+
+
+@dataclass(frozen=True)
+class ChannelBox:
+    """Q98 routing channel as a rectangle in packing (u, s)."""
+
+    name: str
+    u0: float
+    s0: float
+    u1: float
+    s1: float
 
 
 def normalize_side(raw: str) -> str:
@@ -168,9 +181,9 @@ def parse_pin_table_v2(text: str) -> list[PlacementRow]:
     """Flat-coordinate pin table. Skip the folded shell-site table."""
     rows: list[PlacementRow] = []
     for heading, header, data in iter_markdown_tables(text):
-        if _is_folded_table(heading, header) or _is_keepout_table(heading, header):
-            continue
         if not _is_pin_table(header):
+            continue
+        if _is_folded_table(heading, header):
             continue
         for cells in data:
             rec = {key: cells[i] if i < len(cells) else "" for i, key in enumerate(header)}
@@ -189,6 +202,8 @@ def parse_j4_keepouts(text: str) -> list[KeepoutZone]:
         if not _is_keepout_table(heading, header):
             continue
         keys = set(header)
+        if "ref" in keys and "hole" not in keys:
+            continue
         for cells in data:
             rec = {key: cells[i] if i < len(cells) else "" for i, key in enumerate(header)}
             name = (rec.get("name") or rec.get("hole") or rec.get("keepout") or rec.get("ref") or "j4_holes").strip()
@@ -231,6 +246,100 @@ def forbids_back_copper(zone: KeepoutZone) -> bool:
     if "b.cu" in blob:
         return True
     return blob in BACK_LAYERS
+
+
+def _section_from(text: str, *markers: str) -> str | None:
+    lower = text.lower()
+    for marker in markers:
+        idx = lower.find(marker.lower())
+        if idx < 0:
+            continue
+        rest = text[idx:]
+        nxt = rest.find("\n## ", 4)
+        if nxt < 0:
+            nxt = rest.find("\n# ", 4)
+        return rest if nxt < 0 else rest[:nxt]
+    return None
+
+
+def extract_section5e(text: str) -> str | None:
+    """Return packing-v2.md §5e (pin table v3) or None if it has not landed."""
+    return _section_from(
+        text,
+        "## 5e",
+        "### 5e",
+        "### pin table v3",
+        "## pin table v3",
+    )
+
+
+def parse_pin_table_v3(text: str) -> list[PlacementRow]:
+    """§5e pin table v3. Same columns as v2; 66 footprint rows when complete."""
+    section = extract_section5e(text) or text
+    rows = parse_pin_table_v2(section)
+    if not rows:
+        raise ValueError("pin table v3 has no flat-coordinate footprint rows")
+    return rows
+
+
+def _channel_box_from_rec(rec: dict[str, str], keys: set[str]) -> tuple[float, float, float, float] | None:
+    for u0k, s0k, u1k, s1k in (
+        ("u0", "s0", "u1", "s1"),
+        ("u_min", "s_min", "u_max", "s_max"),
+    ):
+        if {u0k, s0k, u1k, s1k} <= keys:
+            u0, s0, u1, s1 = (float(rec[k]) for k in (u0k, s0k, u1k, s1k))
+            return (min(u0, u1), min(s0, s1), max(u0, u1), max(s0, s1))
+    u_raw = _coord(rec, "u", "x")
+    s_raw = _coord(rec, "s", "y")
+    if not u_raw or not s_raw:
+        return None
+    if rec.get("width") and rec.get("height"):
+        w, h = float(rec["width"]), float(rec["height"])
+        u, s = float(u_raw), float(s_raw)
+        return (u - w / 2.0, s - h / 2.0, u + w / 2.0, s + h / 2.0)
+    return None
+
+
+def parse_channel_keepouts(text: str) -> list[ChannelBox]:
+    """Q98 channel rows in §5e: heading contains channel or Q98."""
+    section = extract_section5e(text) or text
+    zones: list[ChannelBox] = []
+    for heading, header, data in iter_markdown_tables(section):
+        blob = heading + " " + " ".join(header)
+        if "channel" not in blob and "q98" not in blob:
+            continue
+        keys = set(header)
+        for cells in data:
+            rec = {key: cells[i] if i < len(cells) else "" for i, key in enumerate(header)}
+            name = (rec.get("name") or rec.get("channel") or rec.get("keepout") or rec.get("ref") or "").strip()
+            if not name or name.lower() in {"name", "channel", "keepout", "ref"}:
+                continue
+            box = _channel_box_from_rec(rec, keys)
+            if box is None:
+                continue
+            zones.append(ChannelBox(name=name, u0=box[0], s0=box[1], u1=box[2], s1=box[3]))
+    return zones
+
+
+def vendor_pin_table(packing_doc: str, dest: Path, source_sha: str = "") -> bool:
+    """Write packing_v2_flat.md from §5e when that section exists. Return True if written."""
+    section = extract_section5e(packing_doc)
+    if section is None:
+        return False
+    rows = parse_pin_table_v3(packing_doc)
+    if len(rows) < 66:
+        raise ValueError(f"pin table v3 has {len(rows)} rows, need 66")
+    header = (
+        "# Pin table v3 — flat PCB coordinates (WP12i)\n\n"
+        "Copied from packing-v2.md §5e"
+        + (f" at `{source_sha}`" if source_sha else "")
+        + ".\n"
+        "Board pins this table. The folded-site table is the shell's and is not copied.\n"
+        "§5d in packing-v2.md is the frozen v2.1 table. §5e is live.\n\n"
+    )
+    dest.write_text(header + section.strip() + "\n", encoding="utf-8")
+    return True
 
 
 def wants_back_copper(row: PlacementRow) -> bool:
