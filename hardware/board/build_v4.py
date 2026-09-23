@@ -7,7 +7,7 @@ packing (u, s) in mm. Folded shell sites are in the note's §10 tables.
 Run with KiCad's python:
   build_v4.py                     build elicio-v4.kicad_pcb (unrouted, pre-routes locked)
   build_v4.py --export-dsn OUT    Specctra DSN for Freerouting
-  build_v4.py --import-ses SES    import a Freerouting session, clamp widths
+  build_v4.py --import-ses SES [PCB]  import a Freerouting session, clamp widths
 """
 from __future__ import annotations
 
@@ -151,13 +151,17 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "C7": ("top", 8.78, 22.66, 90),
     "R23": ("top", 7.95, 24.10, 180),
     # F above U2 (south of the SIG corridors): AFE references, TS/PRETERM pulls.
-    "C9": ("top", 9.10, 18.45, 90),
-    "C10": ("top", 10.20, 18.60, 90),
-    "R12": ("top", 12.60, 18.15, 0),
+    # C9 (VREFP) beside U2 pad 9 and C10 (VCAP1) west of it, so the two don't
+    # cross; R12 turns PRETERM's pad toward its via east of the pulls.
+    "C9": ("top", 10.20, 18.50, 90),
+    "C10": ("top", 9.10, 18.60, 90),
+    "R12": ("top", 12.60, 18.15, 180),
     "R13": ("top", 12.60, 18.95, 0),
     # F corner above SW1: CS/DRDY series, pad-23 decoupling, charge LED.
-    "R7": ("top", 11.14, 25.50, 90),
-    "R27": ("top", 12.45, 25.50, 90),
+    # R7 sits against U1's courtyard so three SPI tracks pass between R7
+    # and R27; R27 faces DRDY_AFE north, straight at U2 pad 22.
+    "R7": ("top", 11.05, 25.50, 90),
+    "R27": ("top", 12.45, 25.50, 270),
     "C15": ("top", 13.60, 25.15, 0),
     "D2": ("top", 14.65, 26.10, 0),
     "R22": ("top", 14.60, 27.02, 180),
@@ -183,7 +187,7 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "C3": ("bottom", 14.40, 19.95, 90),
     "D1": ("bottom", 12.60, 19.70, 0),
     # B under U2: AFE supply switch, LDO, bulk, RLD network.
-    "R15": ("bottom", 9.95, 19.95, 0),
+    "R15": ("bottom", 9.95, 19.95, 180),  # VBAT west (J2 side), AFE_EN_HW over Q3.1
     "Q3": ("bottom", 9.95, 20.90, 0),
     "R14": ("bottom", 9.95, 21.85, 0),
     "Q1": ("bottom", 9.95, 22.80, 0),
@@ -191,19 +195,21 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "R24": ("bottom", 9.40, 24.65, 0),
     "U4": ("bottom", 11.65, 21.25, 0),
     "C8": ("bottom", 11.65, 22.55, 0),
-    "C14": ("bottom", 11.65, 23.60, 0),
+    "C14": ("bottom", 11.65, 23.60, 0),  # VBAT pad east: fed past U4's east side, never across AFE_VIN
     "C11": ("bottom", 11.65, 24.60, 0),
     "R4": ("bottom", 13.30, 22.15, 90),
     "C1": ("bottom", 13.30, 23.65, 90),
     # B pocket right of the stiffener: REF resistor, dividers, charge interlock.
+    # Kept east of u 11.1 so a via column at u 10.72 fits beside U1's pads.
     "R3": ("bottom", 14.55, 25.60, 0),
-    "R18": ("bottom", 11.45, 25.60, 0),
-    "R19": ("bottom", 12.95, 26.52, 0),
-    "R20": ("bottom", 11.45, 26.40, 0),
-    "R21": ("bottom", 11.45, 27.20, 0),
-    "Q2": ("bottom", 13.00, 27.60, 0),
-    "R16": ("bottom", 14.40, 27.10, 90),
-    "R17": ("bottom", 11.45, 28.00, 0),
+    "R18": ("bottom", 11.80, 25.60, 0),
+    "R19": ("bottom", 13.30, 26.52, 180),  # VBUS_DET pad west
+    "R20": ("bottom", 11.80, 26.40, 0),
+    "R21": ("bottom", 11.80, 27.20, 0),
+    "Q2": ("bottom", 13.35, 27.60, 0),
+    # Interlock: R16 (VBUS pull) and R17 (GND pull) stacked on Q2's gate side.
+    "R16": ("bottom", 14.60, 27.10, 270),
+    "R17": ("bottom", 14.60, 28.55, 270),
 }
 
 RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
@@ -316,6 +322,56 @@ def add_rule_areas(board) -> None:
     # J3 neck: cut line crosses it; no vias.
     add_poly_area(board, [(U1_EDGE, J3_NECK_S0), (J3_TAB_U0, J3_NECK_S0), (J3_TAB_U0, J3_NECK_S1), (U1_EDGE, J3_NECK_S1)],
                   "J3_NECK", all_cu, tracks=True, vias=False, fills=False, pads=False, footprints=True)
+
+
+def stamp_aperture_pad_nets(path: Path) -> None:
+    """X2SON (U4, U5) draw mask and paste apertures as numberless pads. Give
+    each the net of the copper pad under it, so DRC's solder-mask bridge test
+    doesn't read a pad's own aperture as a second net."""
+    text = path.read_text()
+    pad_re = re.compile(r'\n\t\t\(pad "([^"]*)" smd \w+\n\t\t\t\(at ([-\d.]+) ([-\d.]+)[^\n]*\n([\s\S]*?)\n\t\t\)')
+    out, n = [], 0
+    for chunk in text.split("\n\t(footprint ")[1:]:
+        copper = {}
+        for m in pad_re.finditer(chunk):
+            net = re.search(r'\(net "([^"]+)"\)', m.group(4))
+            if m.group(1) and net and '.Cu"' in m.group(4):
+                copper[(m.group(2), m.group(3))] = net.group(1)
+        out.append((chunk, copper))
+    head = text.split("\n\t(footprint ")[0]
+    parts = [head]
+    for chunk, copper in out:
+        def repl(m: re.Match) -> str:
+            nonlocal n
+            net = copper.get((m.group(2), m.group(3)))
+            if m.group(1) or not net or '(net 0 "")' not in m.group(4):
+                return m.group(0)
+            n += 1
+            return m.group(0).replace('(net 0 "")', f'(net "{net}")')
+        parts.append(pad_re.sub(repl, chunk))
+    path.write_text("\n\t(footprint ".join(parts))
+    print("aperture pads given their pad's net:", n)
+
+
+def add_gnd_pours(board) -> None:
+    """GND pour on both layers over the island. Filled after routing
+    (kicad-cli pcb drc --refill-zones), never from pcbnew. The rule areas
+    already forbid fills in the RF band, landings, strips, bend and J3 neck."""
+    net = board.FindNet("GND")
+    for layer, tag in ((pcbnew.F_Cu, "F"), (pcbnew.B_Cu, "B")):
+        zone = pcbnew.ZONE(board)
+        board.Add(zone)
+        zone.SetLayer(layer)
+        zone.SetNet(net)
+        zone.SetZoneName(f"GND_POUR_{tag}")
+        zone.SetLocalClearance(pcbnew.FromMM(0.15))
+        zone.SetMinThickness(pcbnew.FromMM(0.15))
+        zone.SetThermalReliefGap(pcbnew.FromMM(0.15))
+        zone.SetThermalReliefSpokeWidth(pcbnew.FromMM(0.20))
+        poly = zone.Outline()
+        poly.NewOutline()
+        for x, y in ((U0, S0), (U1_EDGE, S0), (U1_EDGE, S1), (U0, S1)):
+            poly.Append(pcbnew.FromMM(x), pcbnew.FromMM(y))
 
 
 def draw_stiffeners(board) -> None:
@@ -617,11 +673,13 @@ def build() -> None:
     assign_nets(board, nets)
     configure_rules(board)
     pre_routes(board)
+    add_gnd_pours(board)
     configure_rules(board)
     board.SetFileName(str(out))
     board.Save(str(out))
     hide_silk_in_file(out)
     stamp_paste_pad_nets(out)
+    stamp_aperture_pad_nets(out)
     board = pcbnew.LoadBoard(str(out))
     probs = check_keepouts(board)
     print("saved", out, "footprints", len(list(board.GetFootprints())))
@@ -640,8 +698,8 @@ def export_dsn(dsn: Path) -> None:
     print("dsn", dsn, "ok", ok)
 
 
-def import_ses(ses: Path) -> None:
-    pcb = BOARD.with_suffix(".kicad_pcb")
+def import_ses(ses: Path, pcb: Path | None = None) -> None:
+    pcb = pcb or BOARD.with_suffix(".kicad_pcb")
     board = pcbnew.LoadBoard(str(pcb))
     ok = pcbnew.ImportSpecctraSES(board, str(ses))
     configure_rules(board)
@@ -658,7 +716,7 @@ if __name__ == "__main__":
     if args and args[0] == "--export-dsn":
         export_dsn(Path(args[1]))
     elif args and args[0] == "--import-ses":
-        import_ses(Path(args[1]))
+        import_ses(Path(args[1]), Path(args[2]) if len(args) > 2 else None)
     else:
         build()
     # Leave without interpreter teardown: SWIG frees of board-held items at
