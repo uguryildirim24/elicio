@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="655" height="739" viewBox="0 0 654.7 739.2">
+<title>v2c body norec w20 c47.90 two 37/64</title>
+<rect width="100%" height="100%" fill="#f7f4ef"/>
+<rect x="195.0" y="96.0" width="186.0" height="259.2" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<rect x="390.0" y="365.2" width="67.7" height="163.7" fill="#fff7e8" stroke="#a67c00" stroke-width="0.7"/>
+<rect x="385.4" y="456.6" width="76.8" height="76.8" fill="#c45c26" stroke="#7a2e0b" stroke-width="0.7"/>
+<text x="423.8" y="495.0" font-size="7" text-anchor="middle" fill="#fff">P4flat</text>
+<rect x="385.4" y="360.6" width="76.8" height="76.8" fill="#c45c26" stroke="#7a2e0b" stroke-width="0.7"/>
+<text x="423.8" y="399.0" font-size="7" text-anchor="middle" fill="#fff">P5flat</text>
+<rect x="223.8" y="355.2" width="30.0" height="128.5" fill="#f3d27a" stroke="#a67c00" stroke-width="0.7"/>
+<rect x="200.4" y="445.3" width="76.8" height="76.8" fill="#c45c26" stroke="#7a2e0b" stroke-width="0.7"/>
+<text x="238.8" y="483.7" font-size="7" text-anchor="middle" fill="#fff">P1flat</text>
+<rect x="277.8" y="355.2" width="30.0" height="261.7" fill="#f3d27a" stroke="#a67c00" stroke-width="0.7"/>
+<rect x="254.4" y="578.5" width="76.8" height="76.8" fill="#c45c26" stroke="#7a2e0b" stroke-width="0.7"/>
+<text x="292.8" y="616.9" font-size="7" text-anchor="middle" fill="#fff">P2flat</text>
+<rect x="255.0" y="31.2" width="30.0" height="64.8" fill="#f3d27a" stroke="#a67c00" stroke-width="0.7"/>
+<rect x="219.0" y="120.0" width="138.0" height="198.0" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
+<text x="288.0" y="219.0" font-size="7" text-anchor="middle" fill="#fff">U1</text>
+<rect x="200.4" y="244.8" width="76.8" height="76.8" fill="#888" stroke="#111" stroke-width="0.7"/>
+<text x="238.8" y="283.2" font-size="7" text-anchor="middle" fill="#fff">P1</text>
+<rect x="254.4" y="111.6" width="76.8" height="76.8" fill="#888" stroke="#111" stroke-width="0.7"/>
+<text x="292.8" y="150.0" font-size="7" text-anchor="middle" fill="#fff">P2</text>
+<rect x="231.6" y="-7.2" width="76.8" height="76.8" fill="#888" stroke="#111" stroke-width="0.7"/>
+<text x="270.0" y="31.2" font-size="7" text-anchor="middle" fill="#fff">P3</text>
+<rect x="372.0" y="456.6" width="36.0" height="76.8" fill="#c45c26" stroke="#111" stroke-width="0.7"/>
+<text x="390.0" y="495.0" font-size="7" text-anchor="middle" fill="#fff">P4</text>
+<rect x="372.0" y="360.6" width="36.0" height="76.8" fill="#c45c26" stroke="#111" stroke-width="0.7"/>
+<text x="390.0" y="399.0" font-size="7" text-anchor="middle" fill="#fff">P5</text>
+<rect x="289.8" y="280.8" width="35.5" height="42.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="307.6" y="301.8" font-size="7" text-anchor="middle" fill="#fff">U3</text>
+<rect x="225.0" y="198.0" width="49.2" height="40.8" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="249.6" y="218.4" font-size="7" text-anchor="middle" fill="#fff">U4</text>
+<rect x="411.0" y="173.9" width="147.7" height="103.4" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
+<text x="484.9" y="225.6" font-size="7" text-anchor="middle" fill="#fff">J3</text>
+<rect x="277.8" y="222.0" width="30.0" height="16.8" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="292.8" y="230.4" font-size="7" text-anchor="middle" fill="#fff">D1</text>
+<rect x="277.8" y="202.1" width="35.5" height="17.5" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="295.6" y="210.8" font-size="7" text-anchor="middle" fill="#fff">L1</text>
+<rect x="343.2" y="475.1" width="11.3" height="22.3" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
+<text x="348.8" y="486.2" font-size="7" text-anchor="middle" fill="#fff">D2</text>
+<rect x="285.2" y="324.1" width="22.3" height="11.3" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
+<text x="296.4" y="329.8" font-size="7" text-anchor="middle" fill="#fff">R1</text>
+<rect x="362.4" y="170.9" width="11.3" height="22.3" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
+<text x="368.0" y="182.0" font-size="7" text-anchor="middle" fill="#fff">R2</text>
+<rect x="367.2" y="122.9" width="11.3" height="22.3" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
+<text x="372.8" y="134.0" font-size="7" text-anchor="middle" fill="#fff">R3</text>
+<rect x="343.2" y="451.6" width="11.0" height="21.8" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
+<text x="348.7" y="462.5" font-size="7" text-anchor="middle" fill="#fff">C1</text>
+<rect x="343.2" y="427.6" width="11.0" height="21.8" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
+<text x="348.7" y="438.5" font-size="7" text-anchor="middle" fill="#fff">C2</text>
+<rect x="343.2" y="403.6" width="11.0" height="21.8" fill="#6b4c9a" stroke="#111" stroke-width="0.7"/>
+<text x="348.7" y="414.5" font-size="7" text-anchor="middle" fill="#fff">C3</text>
+<rect x="225.0" y="184.6" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="235.9" y="190.1" font-size="7" text-anchor="middle" fill="#fff">C4</text>
+<rect x="225.0" y="170.2" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="235.9" y="175.7" font-size="7" text-anchor="middle" fill="#fff">C5</text>
+<rect x="282.6" y="259.7" width="35.5" height="17.5" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="300.4" y="268.4" font-size="7" text-anchor="middle" fill="#fff">C6</text>
+<rect x="282.6" y="240.5" width="35.5" height="17.5" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="300.4" y="249.2" font-size="7" text-anchor="middle" fill="#fff">C7</text>
+<rect x="311.4" y="221.3" width="35.5" height="17.5" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="329.2" y="230.0" font-size="7" text-anchor="middle" fill="#fff">C8</text>
+<rect x="225.0" y="131.3" width="17.5" height="35.5" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="233.8" y="149.0" font-size="7" text-anchor="middle" fill="#fff">C9</text>
+<rect x="316.2" y="208.6" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="327.1" y="214.1" font-size="7" text-anchor="middle" fill="#fff">C10</text>
+<rect x="316.2" y="194.2" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="327.1" y="199.7" font-size="7" text-anchor="middle" fill="#fff">C11</text>
+<rect x="321.0" y="266.2" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="331.9" y="271.7" font-size="7" text-anchor="middle" fill="#fff">C12</text>
+<rect x="321.0" y="251.8" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="331.9" y="257.3" font-size="7" text-anchor="middle" fill="#fff">C13</text>
+<rect x="328.2" y="314.2" width="21.8" height="11.0" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="339.1" y="319.7" font-size="7" text-anchor="middle" fill="#fff">C14</text>
+<rect x="328.2" y="299.5" width="22.3" height="11.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="339.4" y="305.2" font-size="7" text-anchor="middle" fill="#fff">R4</text>
+<rect x="328.2" y="285.1" width="22.3" height="11.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="339.4" y="290.8" font-size="7" text-anchor="middle" fill="#fff">R5</text>
+<rect x="337.8" y="168.5" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="343.4" y="179.6" font-size="7" text-anchor="middle" fill="#fff">R6</text>
+<rect x="337.8" y="144.5" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="343.4" y="155.6" font-size="7" text-anchor="middle" fill="#fff">R7</text>
+<rect x="343.2" y="475.1" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="348.8" y="486.2" font-size="7" text-anchor="middle" fill="#fff">R8</text>
+<rect x="343.2" y="451.1" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="348.8" y="462.2" font-size="7" text-anchor="middle" fill="#fff">R11</text>
+<rect x="343.2" y="427.1" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="348.8" y="438.2" font-size="7" text-anchor="middle" fill="#fff">R12</text>
+<rect x="343.2" y="403.1" width="11.3" height="22.3" fill="#2a6f97" stroke="#111" stroke-width="0.7"/>
+<text x="348.8" y="414.2" font-size="7" text-anchor="middle" fill="#fff">R13</text>
+<rect x="282.6" y="273.6" width="49.9" height="56.4" fill="none" stroke="#2a6f97" stroke-width="0.7"/>
+<line x1="411.0" y1="161.9" x2="411.0" y2="289.3" stroke="#b33" stroke-width="1.4" stroke-dasharray="4 3"/>
+<text x="415.0" y="225.6" font-size="8" fill="#b33">CUT</text>
+<text x="12" y="16" font-size="11" fill="#111">body norec w20 chord 47.90 two 37/64 fold neck</text>
+</svg>
