@@ -85,7 +85,9 @@ the delayed loft plus the REF dome (Q17, provisional).
 
 ## 2. Closure (measured, Q89): lid boss and M2.5×8
 
-No snaps. A hinge lip in the hook-end wall plus one concealed ISO 7380
+No snaps. The v2f build remeasured the Q89 joint on the current §5e
+body and lid; moving P4/P5 to the posterior wall did not change this
+closure. A hinge lip in the hook-end wall plus one concealed ISO 7380
 M2.5×8 titanium button-head screw on the medial tail (u 16.50, s 41.00).
 The head sits in the Ø5.0 well at y 1.55. A lid boss drops 3.2 mm from
 the lid underside (y 8.00) into a tail pocket. The screw passes the
