@@ -123,8 +123,8 @@ head sits in a Ø5.0 well through the medial floor at u 16.50, s 41.00
 boss on the floor meets a tail pocket; the lid boss drops 3.2 mm into
 that pocket. The M2.5×8 is the standard length that puts 4.75 mm of
 thread in the lid (3.2 mm of hanging boss plus the plate and a closed
-outer pad so the tip at y 9.55 stays in nylon). Rolf buys that length
-instead of the ×4. S4 two-finger pull and 0.5 m drop stay
+outer pad so the tip at y 9.55 stays in nylon). The ×8 length needs
+sourcing and Rolf's explicit approval; none has been ordered. S4 two-finger pull and 0.5 m drop stay
 **qualitative** (plan v2 §7). Insertion and retention forces stay
 **NOT_MEASURED** until a printed PA12 part is in the hand.
 
@@ -169,8 +169,10 @@ board package.
 
 ## 4. §7 checklist (measured on this solid)
 
-Build exit 0. `stage_b_failing` is empty. `V2_USB_end` is NOT_APPLICABLE
-by name (Q81: no receptacle at M1 52) and does not fail the build.
+Build exit 0. `stage_b_failing` is empty. This only clears shell checks:
+`V2_CAVITY_v3` checks pin centres, not assembled hardware clearance; its
+J2/P5 overlap is still open. `V2_USB_end` is NOT_APPLICABLE by name
+(Q81: no receptacle at M1 52) and does not fail the build.
 
 | Item | Answer | Check / number |
 |---|---|---|
@@ -245,9 +247,10 @@ is no copper, not air; the check reports it and does not fail.
 Review r6 moved these to `tasks/reviews/code-r6.md` (decisions 69 on).
 Still open from the lane: M1 (Q34), colour (Q30), Q17 REF dome, the S4
 pull and drop, standoff 3.0 vs Harwin 4.0 (a parameter change, not a
-fork). Q59 is closed as the slot. Q81 is built: no USB opening. Q86 is
-built: two open pad holes on the hook-end floor, rib slot and drop channel.
-Q89 is built: lid boss into a tail pocket, M2.5×8, `V2_CLOSURE` passes.
+fork). Q59 is closed as the slot. Q81 is built: no USB opening. The Q86
+floor pads, rib slot and drop channel were superseded by the Q90 posterior
+wall pads; none is cut on this solid. Q89 is built: lid boss into a tail
+pocket, M2.5×8, `V2_CLOSURE` passes.
 Q82, Q83, Q90 and Q93 are built on this solid. The posterior pad heads
 are not bare on the skin face. L8 lists titanium button lengths 4 mm and
 6 mm; the closure geometry uses ×8 (Rolf must buy ×8). **Packing decision:**
