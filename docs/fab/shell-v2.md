@@ -1,6 +1,6 @@
 # Shell v2 — the wearable body on packing §5d (width 22)
 
-WP14 then WP14b then WP14c then WP14d then WP14e. The plan is not
+WP14 then WP14b then WP14c then WP14d then WP14e then WP14f. The plan is not
 changed. Nothing is ordered. The body is provisional until Rolf
 measures M1 (Q34) and approves the two renders.
 
@@ -51,7 +51,8 @@ bosses at §5c hole sites (13.45, 17.70) and (17.95, 17.70) stop 0.5
 below those tops so the board lands on the standoffs first.
 `V2_BOSS_sites` reads those sites from the packing table (no hard-coded
 coordinates). Each island boss and the tail closure boss carries a CAD
-pilot Ø2.10 and OD ≥ 5.0 (L8 §4). The 3.30 keep box around each hole is
+pilot Ø2.10 and OD ≥ 5.0 (L8 §4). The lid closure boss is the same
+rule. The 3.30 keep box around each hole is
 clear of every courtyard (measured gap 0.15).
 
 SIG1 and SIG2 are neck-end strips (Q83): floor channels from the rings
@@ -71,7 +72,7 @@ both holes with a 0.3 web plus a nylon dome). Nylon between the pads is
 the cell pocket (u 1.80–11.90, s 1.50–14.50) is 0.30 mm at P4 and 3.30
 mm at P5. Nylon under the 1.0 mm creepage zone (Q84) is present at
 every sample. Distance to the REF dome is 33.49 / 26.90 mm; to the
-medial screw well 31.70 / 24.45 mm. There is no USB opening.
+medial screw well 31.74 / 24.30 mm. There is no USB opening.
 `V2_USB_end` is NOT_APPLICABLE by name: "Q81: no receptacle at M1 52".
 
 The 501012 pack sits in the pocket in series with the board, foam 0.5
@@ -85,40 +86,46 @@ and to a 3.0 × 2.2 tip (Q76). Radius from M8 (HOOK_RADIUS on the
 default set). The tube-to-body joint fillet 1.5 builds. The tail is
 the delayed loft plus the REF dome (Q17, provisional).
 
-## 2. Closure (measured, Q71): the screw does not reach the lid
+## 2. Closure (measured, Q89): lid boss and M2.5×8
 
 No snaps. A hinge lip in the hook-end wall plus one concealed ISO 7380
-M2.5×4 titanium screw on the medial tail (u 14.50, s 41.00). The head
-well is in the 1.5 floor. The lateral lid is not cut. E1 tongue/web is
+M2.5×8 titanium button-head screw on the medial tail (u 16.50, s 41.00).
+The head sits in the Ø5.0 well at y 1.55. A lid boss drops 3.2 mm from
+the lid underside (y 8.00) into a tail pocket. The screw passes the
+body's tail boss and threads into the lid boss. The lateral lid is not
+cut; a closed outer pad keeps the tip inside nylon. E1 tongue/web is
 omitted (Q28). `V2_CLOSURE` and `V2_LATERAL_unbroken` measure the built
-lid and body. `V2_BOSS_pilot` measures the tail boss and the two island
-bosses (L8 §4: CAD pilot Ø2.10, boss OD ≥ 5.0, radial wall ≥ 1.4).
+lid and body. `V2_BOSS_pilot` measures the tail boss, the lid boss, and
+the two island bosses (L8 §4: CAD pilot Ø2.10, boss OD ≥ 5.0, radial
+wall ≥ 1.4).
 
 | Number | Measured |
 |---|---:|
 | Body nylon over the lip (undercut) | yes (1) |
 | Lid lip in the groove | yes (1) |
-| Screw engagement in the tail boss | 4.30 mm |
-| Screw tip (head at the well bottom y 1.55, M2.5×4) | y 5.55 |
-| Lid underside at the screw | y 8.00 |
-| Screw thread in the lid (`lid_engagement`) | **0.00 mm: fails** |
-| Boss wall beside the Ø2.10 pilot (`V2_CLOSURE`, +u) | 6.45 mm |
+| Screw engagement in the tail boss (off-axis, to the pocket) | 3.15 mm |
+| Screw tip (head at the well bottom y 1.55, M2.5×8) | y 9.55 |
+| Lid-boss underside (`lid_underside_y`) | y 4.80 |
+| Screw thread in the lid (`lid_engagement`) | 4.75 mm |
+| Boss wall beside the Ø2.10 pilot (`V2_CLOSURE`, +u) | 4.45 mm |
 | Screw well air on the medial face | yes (1) |
-| Lateral lid pits | 0 (`V2_LATERAL_unbroken`, 20 samples) |
-| Old lid-well site nylon | yes (1) |
-| Tail CAD pilot / wall / OD (`V2_BOSS_pilot`) | Ø2.10 / 1.92 / 5.94 |
+| Lateral lid pits | 0 (`V2_LATERAL_unbroken`, 19 samples) |
+| Lid-boss wall nylon / closed outer pad | yes (1) / yes (1) |
+| Tail CAD pilot / wall / OD (`V2_BOSS_pilot`) | Ø2.10 / 3.92 / 9.94 |
+| Lid CAD pilot / wall / OD | Ø2.10 / 1.45 / 5.00 |
 | Island boss 1 CAD pilot / wall / OD | Ø2.10 / 1.45 / 5.00 |
 | Island boss 2 CAD pilot / wall / OD | Ø2.10 / 2.40 / 6.90 |
 
 The hinge groove is s 1.00–1.48, y 7.25–7.70, u 7.5–14.5 (centred on
 width 22). That leaves 1.00 mm of outer end wall and 0.30 mm of body
 nylon over the lip, so the lid cannot lift straight off. The screw
-head sits in a Ø5.0 well through the medial floor, onto a Ø2.10 pilot
-in a Ø5.0 boss on the floor. The screw ends in the body's own solid
-tail, 2.45 below the lid, and the lid has no boss over it, so the screw
-holds nothing and only the hinge lip retains the lid. `V2_CLOSURE` now
-measures the thread in the lid and fails (review r7, decision 89 in
-`tasks/reviews/code-r7.md`). S4 two-finger pull and 0.5 m drop stay
+head sits in a Ø5.0 well through the medial floor at u 16.50, s 41.00
+(clear of the Ø7.5 REF pocket at 8.50, 43.00). A Ø2.10 pilot in a Ø5.0
+boss on the floor meets a tail pocket; the lid boss drops 3.2 mm into
+that pocket. The M2.5×8 is the standard length that puts 4.75 mm of
+thread in the lid (3.2 mm of hanging boss plus the plate and a closed
+outer pad so the tip at y 9.55 stays in nylon). Rolf buys that length
+instead of the ×4. S4 two-finger pull and 0.5 m drop stay
 **qualitative** (plan v2 §7). Insertion and retention forces stay
 **NOT_MEASURED** until a printed PA12 part is in the hand.
 
@@ -163,8 +170,7 @@ board package.
 
 ## 4. §7 checklist (measured on this solid)
 
-Build exit 3. `stage_b_failing` is `["V2_CLOSURE"]` (review r7: the
-tail screw does not reach the lid). `V2_USB_end` is NOT_APPLICABLE
+Build exit 0. `stage_b_failing` is empty. `V2_USB_end` is NOT_APPLICABLE
 by name (Q81: no receptacle at M1 52) and does not fail the build.
 
 | Item | Answer | Check / number |
@@ -174,11 +180,11 @@ by name (Q81: no receptacle at M1 52) and does not fail the build.
 | Nothing else through the skin | Pass. The v1 bench-cable exit and REF wire channel are not cut on the shell | `CABLE_EXIT_cavity` NOT_MEASURED, wall_closed 1 |
 | Seam ≤ 0.3 | NOT_MEASURED. Lid inset 0.15 laps the wall tops; print and close at S4 | — |
 | No planar facet over 3 mm | Pass. Lofted lid, 0 of 7 stations flat; min rise over 3 mm 0.025 | `V2_EDGE_radii` flat_stations 0 |
-| Outside edges R ≥ 1.0 | Pass. Rim R 1.08 measured on the solid (3-point fit on the outer profile) | `V2_EDGE_radii` lid_rim_R 1.08 |
+| Outside edges R ≥ 1.0 | Pass. Rim R 1.05 measured on the solid (3-point fit on the outer profile) | `V2_EDGE_radii` lid_rim_R 1.05 |
 | Medial face flat, R0.5 | Pass. FILLET_MEDIAL 1.5 applied on the outline; the face is the floor | FILLET_MEDIAL |
-| Closure | **Fail.** Hinge undercut 1; screw engagement 4.30 in the body tail, 0.00 in the lid (tip y 5.55, lid 8.00); boss wall 6.45; well on the medial tail | `V2_CLOSURE` |
-| Lateral lid unbroken | Pass. 0 pits in 20 samples; old lid-well site is nylon | `V2_LATERAL_unbroken` |
-| Boss pilots Ø2.10, OD ≥ 5.0, wall ≥ 1.4 | Pass. Tail Ø2.10 / 1.92 / 5.94; island 1 Ø2.10 / 1.45 / 5.00; island 2 Ø2.10 / 2.40 / 6.90 | `V2_BOSS_pilot` |
+| Closure | **Pass.** Hinge undercut 1; M2.5×8 from the well (tip y 9.55) into a lid boss (underside y 4.80); `lid_engagement` 4.75; boss wall 4.45; well on the medial tail | `V2_CLOSURE` |
+| Lateral lid unbroken | Pass. 0 pits in 19 samples; lid-boss wall nylon; outer pad closed | `V2_LATERAL_unbroken` |
+| Boss pilots Ø2.10, OD ≥ 5.0, wall ≥ 1.4 | Pass. Tail Ø2.10 / 3.92 / 9.94; lid Ø2.10 / 1.45 / 5.00; island 1 Ø2.10 / 1.45 / 5.00; island 2 Ø2.10 / 2.40 / 6.90 | `V2_BOSS_pilot` |
 | Bosses at §5c hole sites | Pass. Centres (13.45, 17.70) and (17.95, 17.70), error 0, keep gap 0.15 vs every courtyard | `V2_BOSS_sites` |
 | Neck-end tabs, no side pockets | Pass. SIG1 10.71, SIG2 21.81; side walls 1.50 at both rings; channels air; rib slot and drop channel air | `V2_TAB_envelope` |
 | Two hook-end charging contacts | Pass. Open Ø5 holes over the ring copper at §5d P4/P5, no cap; nylon between 3.00; floor 1.50 around each; cell gap 0.30 / 3.30; creepage nylon 1.0 | `V2_CHARGE_pads` |
@@ -202,7 +208,8 @@ The two renders in `docs/fab/cad/v2/`:
   bought hardware), two open hook-end charging-pad holes over gold ring
   copper (Q86), medial-tail screw well, hook.
 - `render_lateral.png` — lofted lid, circular-root hook, hinge at the
-  hook-end wall, unbroken lateral face. No USB opening.
+  hook-end wall, closed pad over the lid boss, unbroken lateral face.
+  No USB opening.
 
 One drawing page `drawing.pdf` in the v1 sheet style. His yes is the
 gate before any shell order (plan v2 §7). Nothing is uploaded.
@@ -232,6 +239,7 @@ Still open from the lane: M1 (Q34), colour (Q30), Q17 REF dome, the S4
 pull and drop, standoff 3.0 vs Harwin 4.0 (a parameter change, not a
 fork). Q59 is closed as the slot. Q81 is built: no USB opening. Q86 is
 built: two open pad holes on the hook-end floor, rib slot and drop channel.
-Review r7 adds decision 89: the tail screw closes nothing.
-Q82 and Q83 are built on this solid. The render stamp is the manifest
-commit that built the solids.
+Q89 is built: lid boss into a tail pocket, M2.5×8, `V2_CLOSURE` passes.
+Q82 and Q83 are built on this solid. L8 lists titanium button lengths
+4 mm and 6 mm; this geometry uses ×8 (Needs a decision: Rolf buys ×8).
+The render stamp is the manifest commit that built the solids.

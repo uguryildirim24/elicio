@@ -322,6 +322,7 @@ SHELL_CHECKS = (
     "V2_BOSS",
     "V2_BOSS_pilot",
     "V2_BOSS_sites",
+    "V2_CAVITY_v3",
     "V2_CHARGE_pads",
     "V2_CLOSURE",
     "V2_EDGE_radii",
