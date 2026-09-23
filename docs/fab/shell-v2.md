@@ -124,7 +124,8 @@ boss on the floor meets a tail pocket; the lid boss drops 3.2 mm into
 that pocket. The M2.5×8 is the standard length that puts 4.75 mm of
 thread in the lid (3.2 mm of hanging boss plus the plate and a closed
 outer pad so the tip at y 9.55 stays in nylon). The ×8 length needs
-sourcing and Rolf's explicit approval; none has been ordered. S4 two-finger pull and 0.5 m drop stay
+sourcing and Rolf's explicit approval; none has been ordered. S4 two-finger
+pull and 0.5 m drop stay
 **qualitative** (plan v2 §7). Insertion and retention forces stay
 **NOT_MEASURED** until a printed PA12 part is in the hand.
 
@@ -253,7 +254,8 @@ wall pads; none is cut on this solid. Q89 is built: lid boss into a tail
 pocket, M2.5×8, `V2_CLOSURE` passes.
 Q82, Q83, Q90 and Q93 are built on this solid. The posterior pad heads
 are not bare on the skin face. L8 lists titanium button lengths 4 mm and
-6 mm; the closure geometry uses ×8 (Rolf must buy ×8). **Packing decision:**
+6 mm; the closure geometry uses ×8, which has not been sourced or approved.
+**Packing decision:**
 §5e J2's 5.80 × 6.56 courtyard at (15.15, 11.35) overlaps the P5
 standoff's 3.0 × 5.30 hex-well box by 4.93 mm (`V2_CAVITY_v3`). Moving
 or reorienting J2/its tab is a packing/board change; the shell alone
