@@ -8,7 +8,7 @@
 		(title "elicio-v2")
 		(date "2026-09-17")
 		(rev "0")
-		(comment 1 "WP12d board v2d. No USB-C receptacle (Q81). P4/P5 tail pads feed VBUS/GND. D1 PESD on VBUS. Not for order.")
+		(comment 1 "WP12i. U2 RSM land 4219108/B. U3 YFP kept. R9/R10 DNP (Q95). Not for order.")
 	)
 	(lib_symbols
 	(symbol "elicio:ADS1292"
@@ -37,7 +37,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Package_DFN_QFN:VQFN-32-1EP_4x4mm_P0.4mm_EP2.8x2.8mm"
+		(property "Footprint" "elicio:Texas_RSM0032"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6790,7 +6790,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Package_DFN_QFN:VQFN-32-1EP_4x4mm_P0.4mm_EP2.8x2.8mm"
+		(property "Footprint" "elicio:Texas_RSM0032"
 			(at 127.0 88.9 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10261,10 +10261,10 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp yes)
 		(uuid "b750ffb9-5366-4799-8df3-e23280612ba6")
 		(property "Reference" "R9"
 			(at 215.9 25.4 0)
@@ -10356,10 +10356,10 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp yes)
 		(uuid "98f44132-45fe-4b00-baab-23f5dde96cd7")
 		(property "Reference" "R10"
 			(at 228.6 25.4 0)
