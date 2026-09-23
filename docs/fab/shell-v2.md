@@ -1,13 +1,13 @@
-# Shell v2 — the wearable body on packing §5d (width 22)
+# Shell v2f — the wearable body on packing §5e (width 22)
 
 WP14 then WP14b then WP14c then WP14d then WP14e then WP14f. The plan is not
 changed. Nothing is ordered. The body is provisional until Rolf
 measures M1 (Q34) and approves the two renders.
 
-Winner: `A_pack501012_series_w22_y8_iII_s3` (`packing-v2.md` §5d on
-`lane/w3` at `408a4765ec953d6cc84210fd3e5632185ff95cbb`). Same order-1
-construction path as Stage B v2 (`STAGE = "shell"` adds the wearable
-cuts; it is not a fork). Overlay: `scripts/cad/params/shell_v2.toml`.
+Winner: `A_pack501012_series_w22_y8_iII_s3` (`packing-v2.md` §5e pin table v3
+at `ab9ce95`; §5d is frozen history). Same order-1 construction path as
+Stage B v2 (`STAGE = "shell"` adds wearable cuts; it is not a fork).
+Overlay: `scripts/cad/params/shell_v2.toml`.
 Solids and views: `docs/fab/cad/v2/`. Stage B v2 still uses packing C
 at width 20 (`stageb_v2.toml`, no `STAGE=shell`).
 
@@ -16,11 +16,9 @@ route): no REF tab route stays inside the cavity. Q59 is the slot
 `REF_end_wall_slot`: u 7.25–9.75 (centre 8.50), s 38.20–39.25,
 y 1.50–1.81, width 2.50, through 1.05, height 0.31, rectangular volume
 0.814 mm³. This shell cuts that box plus 0.20 mm flex clearance per side
-in u, 0.20 mm in s, and 0.15 mm in y. `V2_BOSS_sites` and
-`V2_CHARGE_pads` parse the §5c/§5d tables from this repository with
-`git show e4b857c:docs/fab/packing-v2.md` (review r7; the lane read the w3
-worktree). The folded sites and shell extras are the same as at 408a476,
-and a test pins them to the working-tree §5d.
+in u, 0.20 mm in s, and 0.15 mm in y. The live `V2_BOSS_sites` and `V2_CHARGE_pads` read §5e at `ab9ce95`
+from this repository; §5d at `e4b857c` is retained only for older
+placement readers. No other worktree is consulted.
 
 Rebuild:
 
@@ -38,8 +36,8 @@ zone) u 2.25–19.75 × s 16.00–37.60, 501012 pack in the pocket, rib s
 14.90–15.70. The tail loft starts at s 45.5. P4/P5 are not on the tail.
 
 The medial face is the skin face: three ISO 7380 M2.5×4 titanium EMG
-heads (SIG1, SIG2, REF) plus two charging pads at §5d folded P4
-(14.70, 4.30) and P5 (17.70, 11.72), y 1.50, beside the cell. The
+heads (SIG1, SIG2, REF) and the concealed closure well only. Charging
+heads P4/P5 face +u on the posterior wall, away from skin. The
 titanium head is the dome; the print has only the Ø2.7 hole (plan v1 §4:
 only the gauge prints domes; review r7 removed the nylon domes the lane
 fused over the holes). Each EMG
@@ -47,32 +45,30 @@ screw goes through the 1.5 floor and a Ø2.7 hole, through a Ø5 ring-pad
 on a flex tab, into a brass female hex standoff 5 AF and 3.0 mm tall.
 The standoff sits in a printed hex collar on the floor. The flex board
 rests on the standoff tops (underside y 4.81, top y 5.32). Two printed
-bosses at §5c hole sites (13.45, 17.70) and (17.95, 17.70) stop 0.5
+bosses at §5e H1 (13.23, 17.70) and H2 (17.95, 17.70) stop 0.5
 below those tops so the board lands on the standoffs first.
 `V2_BOSS_sites` reads those sites from the packing table (no hard-coded
 coordinates). Each island boss and the tail closure boss carries a CAD
 pilot Ø2.10 and OD ≥ 5.0 (L8 §4). The lid closure boss is the same
 rule. The 3.30 keep box around each hole is
-clear of every courtyard (measured gap 0.15).
+clear of every courtyard; the H1/H2 keep-out gap is 1.42.
 
 SIG1 and SIG2 are neck-end strips (Q83): floor channels from the rings
 to island s 16.00, lengths 10.71 mm and 21.81 mm as packing states.
 Side walls at those s stations stay 1.50 (no side-wall pockets). REF
-still uses `REF_end_wall_slot`. A rib slot (u 11.90–20.50, s 14.90–15.70,
-height 0.31) and a drop channel at leftover s 16.00 (two 90° at R 1.5,
-drop 3.31, flex 0.31) carry the charge tab from the leftover to the
-floor pads. Both are air on the built solid.
+still uses `REF_end_wall_slot`. The old rib slot and drop channel are
+not cut: the charge tab now folds 90° onto the posterior wall from the
+pocket island's high-u edge (§5e).
 
-P4 and P5 left the tail corners (those sites sat in the 1.5 side walls).
-The shell uses RING_PAD Ø5 under open Ø5 holes through the hook-end
-medial floor; the ring copper sits 1.50 below the skin face, so the
-charger's pogo pins reach 1.5 into the hole (review r7: the lane capped
-both holes with a 0.3 web plus a nylon dome). Nylon between the pads is
-3.00 mm edge-to-edge. Floor around each hole is 1.50 mm. Clearance to
-the cell pocket (u 1.80–11.90, s 1.50–14.50) is 0.30 mm at P4 and 3.30
-mm at P5. Nylon under the 1.0 mm creepage zone (Q84) is present at
-every sample. Distance to the REF dome is 33.49 / 26.90 mm; to the
-medial screw well 31.74 / 24.30 mm. There is no USB opening.
+P4 (20.50, 4.35, y 4.35) and P5 (20.50, 12.35, y 4.35) use open Ø2.7
+holes through the posterior wall u 20.50–22.00. Titanium heads face +u;
+Ø5 ring pads sit on the inner face and are clamped in 5.30 AF hex wells
+with printed collars 3.0 mm into the bay. The P5 collar is trimmed only
+where it would intersect the island board thickness, y 4.81–5.32.
+Built-solid checks measure 3.4448 mm of remaining u-direction nylon
+at the seat offset samples, 3.00 mm between head edges, 3.10 mm to the
+cell pocket, and zero board-zone nylon. The end wall and the skin face
+have no charging holes. There is no USB opening.
 `V2_USB_end` is NOT_APPLICABLE by name: "Q81: no receptacle at M1 52".
 
 The 501012 pack sits in the pocket in series with the board, foam 0.5
@@ -157,7 +153,7 @@ Pocket, seat, hole:
 | Screw | ISO 7380 M2.5 × 4, Grade 5 titanium | Head Ø4.7, h 1.35 (bought; the only dome) |
 | Through-hole in the 1.5 wall | Ø2.7 | Open at the skin face; `V2_RING_seat` face_open |
 | Tab strip | 2.5 × 0.31, neck-end | SIG1 10.71 mm, SIG2 21.81 mm to island s 16.00; REF uses `REF_end_wall_slot` |
-| Charging pads (Q86) | P4 (14.70, 4.30), P5 (17.70, 11.72), y 1.50 | RING_PAD Ø5 under an open Ø5 hole, copper 1.50 below the skin; `V2_CHARGE_pads` |
+| Charging pads (Q90/Q93) | P4 (20.50, 4.35, y 4.35), P5 (20.50, 12.35, y 4.35) | Ø2.7 open through posterior wall, +u titanium heads, RING_PAD Ø5 on inner face in a clamped 3.0 standoff; `V2_CHARGE_pads` |
 | Print tolerance | ±0.3 mm under 100 mm | JLC PA12-HP page, plan v2 §12 (2026-07-30) |
 | Placement on the printed floor | ±0.3 | `packing-v2.md` |
 
@@ -175,7 +171,7 @@ by name (Q81: no receptacle at M1 52) and does not fail the build.
 
 | Item | Answer | Check / number |
 |---|---|---|
-| Stranger's glance: no lateral screws | Pass on the drawing. Three EMG heads plus two hook-end charging pads on the medial face. The lid-screw well is on the medial tail. `V2_LATERAL_unbroken` reports no lid pit | renders, `V2_LATERAL_unbroken` |
+| Stranger's glance: no lateral screws | Pass on the drawing. Three EMG heads and the tail well on the medial face; P4/P5 only on the posterior side wall. `V2_LATERAL_unbroken` reports no lid pit | renders, `V2_LATERAL_unbroken` |
 | No text outside | Pass. Stage B emboss is skipped when `STAGE=shell` | notes.emboss |
 | Nothing else through the skin | Pass. The v1 bench-cable exit and REF wire channel are not cut on the shell | `CABLE_EXIT_cavity` NOT_MEASURED, wall_closed 1 |
 | Seam ≤ 0.3 | NOT_MEASURED. Lid inset 0.15 laps the wall tops; print and close at S4 | — |
@@ -185,28 +181,37 @@ by name (Q81: no receptacle at M1 52) and does not fail the build.
 | Closure | **Pass.** Hinge undercut 1; M2.5×8 from the well (tip y 9.55) into a lid boss (underside y 4.80); `lid_engagement` 4.75; boss wall 4.45; well on the medial tail | `V2_CLOSURE` |
 | Lateral lid unbroken | Pass. 0 pits in 19 samples; lid-boss wall nylon; outer pad closed | `V2_LATERAL_unbroken` |
 | Boss pilots Ø2.10, OD ≥ 5.0, wall ≥ 1.4 | Pass. Tail Ø2.10 / 3.92 / 9.94; lid Ø2.10 / 1.45 / 5.00; island 1 Ø2.10 / 1.45 / 5.00; island 2 Ø2.10 / 2.40 / 6.90 | `V2_BOSS_pilot` |
-| Bosses at §5c hole sites | Pass. Centres (13.45, 17.70) and (17.95, 17.70), error 0, keep gap 0.15 vs every courtyard | `V2_BOSS_sites` |
-| Neck-end tabs, no side pockets | Pass. SIG1 10.71, SIG2 21.81; side walls 1.50 at both rings; channels air; rib slot and drop channel air | `V2_TAB_envelope` |
-| Two hook-end charging contacts | Pass. Open Ø5 holes over the ring copper at §5d P4/P5, no cap; nylon between 3.00; floor 1.50 around each; cell gap 0.30 / 3.30; creepage nylon 1.0 | `V2_CHARGE_pads` |
+| Bosses at §5e hole sites | Pass. H1 (13.23, 17.70), H2 (17.95, 17.70); keep-out gap 1.42; checked against §5e courtyards | `V2_BOSS_sites` |
+| Neck-end tabs, no side pockets | Pass. SIG1 10.71, SIG2 21.81; side walls 1.50; channels air; old rib slot and drop channel no longer cut | `V2_TAB_envelope` |
+| Posterior-wall charging contacts | Pass. P4/P5 Ø2.7 through holes, outer faces open, no caps; u-wall around each 3.4448, nylon between heads 3.00, cell gap 3.10, hinge gaps 3.5422 / 9.0811 | `V2_CHARGE_pads`, `V2_WALL_minima` |
 | Hook circular root, ellipse, fillet, M8 radius | Circular root r 1.75, then 4.4 × 3.0 / 3.0 × 2.2. Joint fillet 1.5 applied. Radius from default HOOK_RADIUS | assemble_shell, Q76 |
 | Tail blended, REF dome | Delayed tail loft from s 45.5; REF dome on the tail (Q17 provisional) | Q17 |
 | Colour | NOT_MEASURED. Grey or dyed black is Q30 | Q30 |
 | USB ligament ≥ 1.5 to the hook | NOT_APPLICABLE. No receptacle at M1 52 | `V2_USB_end` |
 | USB receptacle recessed ≥ 1.0 | NOT_APPLICABLE. Same row | `V2_USB_end` |
-| Wall ≥ 1.0 at slot and ligaments, ≥ 1.5 elsewhere | Pass. Hinge outer wall 1.00; side walls 1.50; floor under the slot 1.50; flex clearance 0.20 per side in u (slot width 2.90) | `V2_WALL_minima` |
+| Wall ≥ 1.0 at slot and ligaments, ≥ 1.5 elsewhere | Pass. Hinge outer wall 1.00; side walls 1.50; floor under REF slot 1.50; posterior seat offset samples 3.4448; flex clearance 0.20 per side in u (slot width 2.90) | `V2_WALL_minima` |
 | Captive standoff | Pass. 5 AF prism holds no nylon; wells AF 5.30 | `V2_STANDOFF` |
 | `V2_TAB_envelope` | Pass. REF_body_mm3 0, SIG1 0, SIG2 0 | `V2_TAB_envelope` |
 | `REF_WIRE_envelope` | Pass. body_mm3 0, lid_mm3 0 | `REF_WIRE_envelope` |
+| Island board envelope | Pass. P5 collar trimmed at board zone; body_mm3 0, lid_mm3 0 (was 0.0467) | `V2_BOARD_envelope` |
+| §5e cavity | Pin centres declared inside or exterior; J2 inside at (15.15, 11.35), but its courtyard overlaps the P5 well by 4.93 mm. Not an assembly fit claim | `V2_CAVITY_v3` |
 
 Matte / vapour smoothing is a finish on the order, not this solid.
+
+| Before (paused WP14f trial) | After (v2f built solid) |
+|---|---|
+| `V2_CHARGE_pads` and `V2_WALL_minima`: P4/P5 `wall_around` −1.0 (probe had no boundary) | Both pass: 3.4448 mm at each seat; inner probe now starts in the cavity beyond the hex collar, outer probe crosses the wall |
+| `V2_BOARD_envelope`: 0.0467 mm³ nylon at P5 collar | Pass: 0.0000 mm³ after trimming the collar at the board zone |
+| `V2_CAVITY_v3`: J2/P5 well gap −4.93 mm | Still −4.93 mm; a packing decision is needed before assembly |
+| Q89-era committed solids showed medial floor P4/P5 | New solids cut wall P4/P5; skin-face pads, rib slot and drop channel absent |
 
 ## 5. What Rolf must approve
 
 The two renders in `docs/fab/cad/v2/`:
 
-- `render_medial.png` — skin face, three titanium EMG heads (drawn as
-  bought hardware), two open hook-end charging-pad holes over gold ring
-  copper (Q86), medial-tail screw well, hook.
+- `render_medial.png` — skin face with three titanium EMG heads and the
+  medial-tail screw well; an edge-on posterior view shows the side-wall
+  P4 VBUS and P5 GND heads (drawn hardware, not nylon).
 - `render_lateral.png` — lofted lid, circular-root hook, hinge at the
   hook-end wall, closed pad over the lid boss, unbroken lateral face.
   No USB opening.
@@ -240,6 +245,12 @@ pull and drop, standoff 3.0 vs Harwin 4.0 (a parameter change, not a
 fork). Q59 is closed as the slot. Q81 is built: no USB opening. Q86 is
 built: two open pad holes on the hook-end floor, rib slot and drop channel.
 Q89 is built: lid boss into a tail pocket, M2.5×8, `V2_CLOSURE` passes.
-Q82 and Q83 are built on this solid. L8 lists titanium button lengths
-4 mm and 6 mm; this geometry uses ×8 (Needs a decision: Rolf buys ×8).
+Q82, Q83, Q90 and Q93 are built on this solid. The posterior pad heads
+are not bare on the skin face. L8 lists titanium button lengths 4 mm and
+6 mm; the closure geometry uses ×8 (Rolf must buy ×8). **Packing decision:**
+§5e J2's 5.80 × 6.56 courtyard at (15.15, 11.35) overlaps the P5
+standoff's 3.0 × 5.30 hex-well box by 4.93 mm (`V2_CAVITY_v3`). Moving
+or reorienting J2/its tab is a packing/board change; the shell alone
+cannot make the connector clear while keeping the pinned wall seat.
+Do not order or claim assembly fit until that collision is resolved.
 The render stamp is the manifest commit that built the solids.

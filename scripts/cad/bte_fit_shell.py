@@ -3837,6 +3837,8 @@ def _record_shell_checks(
     hu0, hu1 = shell_hinge_u(params)
 
     def _posterior_u_thick(ss: float, yy: float) -> float:
+        # At the seat offset the hex collar extends past width - 3.0.
+        # Start in cavity air, then cross the collar and the outer wall.
         try:
             outer = _bisect(
                 lambda uu: _inside_uys(body, path, uu, ss, yy),
@@ -3845,8 +3847,8 @@ def _record_shell_checks(
             )
             inner = _bisect(
                 lambda uu: _inside_uys(body, path, uu, ss, yy),
-                width - 3.0,
-                width - 0.75,
+                width - 6.0,
+                width - 0.3,
             )
             return outer - inner
         except CheckFail:
@@ -3870,7 +3872,7 @@ def _record_shell_checks(
             if fs < 1.2 or fs > 20.0:
                 continue
             around_samples.append(_posterior_u_thick(fs, fy))
-        wall_around = min((v for v in around_samples if v >= 0.0), default=-1.0)
+        wall_around = min(around_samples) if around_samples else -1.0
         stand_u = u - spec.standoff
         du0 = (stand_u - pad_r) - cell_u1
         du1 = cell_u0 - (u + pad_r)
@@ -4126,7 +4128,8 @@ def _record_shell_checks(
         minima_ok = False
         wall_nums["slot_width"] = -1.0
         wall_nums["slot_clear_u"] = -1.0
-    # Q90: remaining nylon of the posterior wall around each charge seat.
+    # Q90: section the posterior wall at the charge-seat offsets. The
+    # inner bound must lie beyond the collar in cavity air.
     mid_wall_u = 0.5 * (S5E_WALL_U + width)
     for name, (u, s), py in (
         ("P4", s5e.p4, s5e.p4_y),
@@ -4149,13 +4152,13 @@ def _record_shell_checks(
                 )
                 inner = _bisect(
                     lambda uu, ss=fs, yy=fy: _inside_uys(body, path, uu, ss, yy),
-                    width - 3.0,
-                    width - 0.75,
+                    width - 6.0,
+                    width - 0.3,
                 )
                 remain.append(outer - inner)
             except CheckFail:
                 remain.append(-1.0)
-        around = min((v for v in remain if v >= 0.0), default=-1.0)
+        around = min(remain) if remain else -1.0
         wall_nums[f"{name}_wall_around"] = round(around, 4)
         minima_ok = minima_ok and seat_air and outer_air and around >= wall - 0.05
     record(
@@ -4674,6 +4677,14 @@ def _apply_shell_features(
     lid_clip = maker(-1.0, width + 1.0, -2.0, 55.0, lid_y - 0.05, lid_y + 4.0)
     well_h = spec.standoff + 0.2
     wall_overlap = 0.08
+    # P5's collar reaches the edge of the island near s=16. Remove only
+    # collar nylon in the board thickness; the solid board envelope check
+    # below will catch any remaining interference.
+    board_clearance = maker(
+        layout.board_u[0], layout.board_u[1],
+        layout.board_s[0], layout.board_s[1],
+        layout.board_underside, layout.board_top,
+    )
     for name, site, pad_y in (
         ("P4", s5e.p4, s5e.p4_y),
         ("P5", s5e.p5, s5e.p5_y),
@@ -4700,7 +4711,7 @@ def _apply_shell_features(
             rotation=30.0,
         )
         try:
-            collar = collar.cut(floor_clip).cut(lid_clip)
+            collar = collar.cut(floor_clip).cut(lid_clip).cut(board_clearance)
             well = well.cut(floor_clip).cut(lid_clip)
             ring_seat = _u_cylinder(
                 path, u - 0.02, s, pad_y, SHELL_RING_SEAT_D / 2.0, ring_t + 0.05
