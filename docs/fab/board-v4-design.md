@@ -1,6 +1,6 @@
 # Board v4 — design note (smaller body)
 
-Draft. **Not routed**: every net but GND is routed with 0 DRC errors; GND is in 37 pieces (§9).
+Draft. **Not routed**: every net but GND is routed; GND is in 37 pieces and DRC reports 13 starved-thermal errors (§9).
 Date: 2026-09-23. Lane t-0012.
 
 ## 1. Size levers
