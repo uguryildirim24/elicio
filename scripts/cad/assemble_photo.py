@@ -378,7 +378,8 @@ def render(out: Path, samples: int, only: str | None):
     shell_closure_note = manifest["notes"]["body_full_p15"]["closure"]
     documented_length = float(re.search(r"M2\.5[×x](\d+)", shell_closure_note)[1])
     next_note = (ROOT / "docs/fab/open-questions.md").read_text()
-    requested_length = float(re.search(r"M2\.5×(\d+) from the medial well", next_note)[1])
+    q89_built = next_note.split("WP14f, first half", 1)[1]
+    requested_length = float(re.search(r"\bthe M2\.5×(\d+) from the medial well", q89_built)[1])
     uc, sc = closure["screw_u"], closure["screw_s"]
     seat = closure["screw_tip_y"] - documented_length
     cyl(f"closure | Ti M2.5x{requested_length:g} Q89 / fit UNVERIFIED", uc, sc,
