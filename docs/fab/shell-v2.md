@@ -66,7 +66,8 @@ holes through the posterior wall u 20.50–22.00. Titanium heads face +u;
 with printed collars 3.0 mm into the bay. The P5 collar is trimmed only
 where it would intersect the island board thickness, y 4.81–5.32.
 Built-solid checks measure 3.4448 mm of remaining u-direction nylon
-at the seat offset samples, 3.00 mm between head edges, 3.10 mm to the
+at the eligible seat offset samples (excluding sections through the
+solid end wall or rib), 3.00 mm between head edges, 3.10 mm to the
 cell pocket, and zero board-zone nylon. The end wall and the skin face
 have no charging holes. There is no USB opening.
 `V2_USB_end` is NOT_APPLICABLE by name: "Q81: no receptacle at M1 52".
@@ -200,7 +201,7 @@ Matte / vapour smoothing is a finish on the order, not this solid.
 
 | Before (paused WP14f trial) | After (v2f built solid) |
 |---|---|
-| `V2_CHARGE_pads` and `V2_WALL_minima`: P4/P5 `wall_around` −1.0 (probe had no boundary) | Both pass: 3.4448 mm at each seat; inner probe now starts in the cavity beyond the hex collar, outer probe crosses the wall |
+| `V2_CHARGE_pads` and `V2_WALL_minima`: P4/P5 `wall_around` −1.0 (probe had no boundary) | Both pass: 3.4448 mm at each seat; inner probe now starts in the cavity beyond the hex collar; sections through the solid end wall and rib are excluded |
 | `V2_BOARD_envelope`: 0.0467 mm³ nylon at P5 collar | Pass: 0.0000 mm³ after trimming the collar at the board zone |
 | `V2_CAVITY_v3`: J2/P5 well gap −4.93 mm | Still −4.93 mm; a packing decision is needed before assembly |
 | Q89-era committed solids showed medial floor P4/P5 | New solids cut wall P4/P5; skin-face pads, rib slot and drop channel absent |

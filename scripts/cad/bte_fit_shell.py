@@ -3869,7 +3869,9 @@ def _record_shell_checks(
             fs, fy = s + ds, py + dy
             if fy < floor_y + 0.4 or fy > lid_y - 0.4:
                 continue
-            if fs < 1.2 or fs > 20.0:
+            # At the end wall and the full-height rib there is no inner
+            # u-boundary: these are not side-wall thickness sections.
+            if fs < cavity_s(params)[0] or fs > 20.0 or rib_s(params)[0] <= fs <= rib_s(params)[1]:
                 continue
             around_samples.append(_posterior_u_thick(fs, fy))
         wall_around = min(around_samples) if around_samples else -1.0
@@ -4142,7 +4144,9 @@ def _record_shell_checks(
         remain: list[float] = []
         for ds, dy in ((3.0, 0.0), (-3.0, 0.0), (0.0, 3.0)):
             fs, fy = s + ds, py + dy
-            if fy < floor_y + 0.4 or fy > lid_y - 0.4 or fs < 1.2:
+            if (fy < floor_y + 0.4 or fy > lid_y - 0.4
+                    or fs < cavity_s(params)[0]
+                    or rib_s(params)[0] <= fs <= rib_s(params)[1]):
                 continue
             try:
                 outer = _bisect(
