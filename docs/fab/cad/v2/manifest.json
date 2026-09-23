@@ -542,7 +542,7 @@
       "passed": true
     },
     {
-      "detail": "Q83: neck-end strips SIG1 10.71 mm, SIG2 21.81 mm from packing \u00a75d sha e4b857c2b2b9c48a36afada114372556d3a3d874; floor channels in the neck hold no nylon; no side-wall pockets; REF uses REF_end_wall_slot; rib slot and drop channel air",
+      "detail": "Q83: neck-end strips SIG1 10.71 mm, SIG2 21.81 mm from packing \u00a75e sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c; floor channels in the neck hold no nylon; no side-wall pockets; REF uses REF_end_wall_slot; rib slot and drop channel left solid",
       "name": "V2_TAB_envelope",
       "numbers": {
         "REF_body_mm3": 0.0,
@@ -556,8 +556,8 @@
         "SIG2_side_wall": 1.5,
         "SIG2_strip": 21.8124,
         "SIG2_table": 21.81,
-        "drop_channel_air": 1.0,
-        "rib_slot_air": 1.0,
+        "drop_channel_air": 0.0,
+        "rib_slot_air": 0.0,
         "rib_slot_h": 0.31,
         "rib_slot_s0": 14.9,
         "rib_slot_s1": 15.7,
@@ -591,9 +591,15 @@
       "passed": true
     },
     {
-      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0; hinge outer wall \u2265 1.0; no USB opening (Q81)",
+      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0; hinge outer wall \u2265 1.0; no USB opening (Q81); P4/P5 wall seats open with \u2265 1.5 remaining posterior wall around each",
       "name": "V2_WALL_minima",
       "numbers": {
+        "P4_outer_open": 1.0,
+        "P4_seat_open": 1.0,
+        "P4_wall_around": 3.4448,
+        "P5_outer_open": 1.0,
+        "P5_seat_open": 1.0,
+        "P5_wall_around": 3.4448,
         "WALL_MEDIAL": 1.5,
         "anterior_wall": 1.5,
         "hinge_outer_wall": 1.0,
@@ -814,9 +820,9 @@
         "boss_1_od": 5.0,
         "boss_1_pilot_d": 2.0999,
         "boss_1_wall": 1.45,
-        "boss_2_od": 6.9,
+        "boss_2_od": 7.34,
         "boss_2_pilot_d": 2.0999,
-        "boss_2_wall": 2.4,
+        "boss_2_wall": 2.62,
         "lid_od": 5.0,
         "lid_pilot_d": 2.0999,
         "lid_wall": 1.45,
@@ -827,7 +833,7 @@
       "passed": true
     },
     {
-      "detail": "Q82: island bosses at packing \u00a75c hole sites; P1\u2013P5 from \u00a75d folded-site table at docs/fab/packing-v2.md sha e4b857c2b2b9c48a36afada114372556d3a3d874; centre error \u2264 0.05; 3.30 keep box clear of every courtyard",
+      "detail": "Q82/Q98: island bosses at packing \u00a75e H1/H2; keep-out gap 1.42 mm; P4/P5 from the \u00a75e wall-site table at docs/fab/packing-v2.md sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c; centre error \u2264 0.05; 3.30 keep box clear of every island courtyard",
       "name": "V2_BOSS_sites",
       "numbers": {
         "boss_1_courtyard_hits": 0.0,
@@ -835,57 +841,76 @@
         "boss_1_keep_gap": 0.15,
         "boss_1_s": 17.7,
         "boss_1_table_s": 17.7,
-        "boss_1_table_u": 13.45,
-        "boss_1_u": 13.45,
+        "boss_1_table_u": 13.23,
+        "boss_1_u": 13.23,
         "boss_2_courtyard_hits": 0.0,
         "boss_2_err": 0.0,
         "boss_2_keep_gap": 0.15,
         "boss_2_s": 17.7,
         "boss_2_table_s": 17.7,
         "boss_2_table_u": 17.95,
-        "boss_2_u": 17.95
+        "boss_2_u": 17.95,
+        "h1_h2_keep_gap": 1.42
       },
       "passed": true
     },
     {
-      "detail": "Q86: two RING_PAD charging contacts at \u00a75d folded P4/P5 (sha e4b857c2b2b9c48a36afada114372556d3a3d874); \u00d85 holes open through the hook-end medial floor, no nylon cap, ring copper 1.50 below the skin face; nylon between \u2265 3; floor around each \u2265 1; cell pocket clearance stated; nylon under 1 mm creepage (Q84); clear of REF and the medial screw well \u2265 2",
+      "detail": "Q90/Q93: two RING_PAD clamped button-heads at \u00a75e wall sites P4/P5 (sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c) in the posterior side wall (u 20.50\u201322.00), head axis +u; \u00d82.7 through the wall, outer face open, ring on the inner face, 3 standoff into the bay; nylon between \u2265 3; wall around each \u2265 1.5; clear of the cell pocket and the hinge lip",
       "name": "V2_CHARGE_pads",
       "numbers": {
         "P4_cap": 0.0,
-        "P4_cell_gap": 0.3,
-        "P4_creepage_nylon": 1.0,
-        "P4_d_ref": 33.4935,
-        "P4_d_screw": 31.7441,
-        "P4_floor_t": 1.5,
+        "P4_cell_gap": 3.1,
+        "P4_hinge_gap": 3.5422,
         "P4_hole": 1.0,
-        "P4_nylon_around": 1.5,
-        "P4_s": 4.3,
-        "P4_u": 14.7,
-        "P4_y": 1.5,
+        "P4_outer_open": 1.0,
+        "P4_s": 4.35,
+        "P4_u": 20.5,
+        "P4_wall_around": 3.4448,
+        "P4_y": 4.35,
         "P5_cap": 0.0,
-        "P5_cell_gap": 3.3,
-        "P5_creepage_nylon": 1.0,
-        "P5_d_ref": 26.9049,
-        "P5_d_screw": 24.3046,
-        "P5_floor_t": 1.5,
+        "P5_cell_gap": 3.1,
+        "P5_hinge_gap": 9.0811,
         "P5_hole": 1.0,
-        "P5_nylon_around": 1.5,
-        "P5_s": 11.72,
-        "P5_u": 17.7,
-        "P5_y": 1.5,
+        "P5_outer_open": 1.0,
+        "P5_s": 12.35,
+        "P5_u": 20.5,
+        "P5_wall_around": 3.4448,
+        "P5_y": 4.35,
         "cell_s0": 1.5,
         "cell_s1": 14.5,
         "cell_u0": 1.8,
         "cell_u1": 11.9,
-        "floor_holes_d": 5.0,
-        "nylon_between": 3.0035,
+        "nylon_between": 3.0,
         "p1_s": 22.0,
         "p1_u": 5.9,
         "p2_s": 33.1,
         "p2_u": 10.4,
         "p3_s": 43.0,
         "p3_u": 8.5,
-        "pad_recess": 1.5
+        "pad_d": 5.0,
+        "standoff": 3.0,
+        "through_hole_d": 2.7,
+        "wall_name_posterior": 1.0
+      },
+      "passed": true
+    },
+    {
+      "detail": "Q91: pin table v3 centres inside cavity u 1.50\u201320.50 or on a declared exterior (J3 break-off, SIG/CHARGE flats outside the cavity, P3 on the tail); J2 inside at (15.15, 11.35); sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c",
+      "name": "V2_CAVITY_v3",
+      "numbers": {
+        "cavity_u0": 1.5,
+        "cavity_u1": 20.5,
+        "j2_inside": 1.0,
+        "j2_p5_standoff_gap": -4.93,
+        "j2_s": 11.35,
+        "j2_u": 15.15,
+        "j2_ws": 6.56,
+        "j2_wu": 5.8,
+        "n_exterior": 5.0,
+        "n_illegal": 0.0,
+        "n_inside": 61.0,
+        "p4_wall_u": 20.5,
+        "p5_wall_u": 20.5
       },
       "passed": true
     },
@@ -908,7 +933,7 @@
       "detail": "body_full_p15",
       "name": "watertight",
       "numbers": {
-        "bytes": 2223884.0
+        "bytes": 2243284.0
       },
       "passed": true
     },
@@ -931,7 +956,7 @@
     "total_chord": 47.900523407445874
   },
   "closure_passed": false,
-  "commit": "825793e58b7e4dfc48d4b6751053703843f7caa8",
+  "commit": "f7675ec099ffa9e1b5bab14fad3920c5d666262e",
   "contact_source": "interface II flex tabs under standoffs (WP11 turn 07)",
   "contact_stack": {
     "board_underside_y": 4.3,
@@ -1032,16 +1057,16 @@
   },
   "files": {
     "body_full_p15.3mf": {
-      "bytes": 594764,
-      "sha256": "3149007f4ece6290367af59d428d764e4dd8030d8b046cfdd87e502f224f74ec"
+      "bytes": 605369,
+      "sha256": "c74f76c6ec8c993e8ac88b6b3bff95b65f39372157492795b597290cf8f559b0"
     },
     "body_full_p15.step": {
-      "bytes": 1223003,
-      "sha256": "c9258972c7cee502aa1003ae23bc12ad1b0e2608c489ecd51213ea06a63915b2"
+      "bytes": 1413545,
+      "sha256": "22d48ca47d12a2391a5a7183bcf917c37f0e3f99b813fe9ad0c002001c6e0596"
     },
     "body_full_p15.stl": {
-      "bytes": 2223884,
-      "sha256": "881452b8e0bda2f4f104cf4f862cad6ca0d397e72ce8975af12c4039da84e952"
+      "bytes": 2243284,
+      "sha256": "6ae8c0a0fd79b78841251237029063c938d5410b069da4f70ac48a662b7b2c75"
     },
     "lid.3mf": {
       "bytes": 75843,
@@ -1170,7 +1195,7 @@
   },
   "notes": {
     "body_full_p15": {
-      "charge": "Q86: charging pads at \u00a75d folded sites P4 (14.70, 4.30) and P5 (17.70, 11.72), y 1.50, RING_PAD under an open \u00d85 hole through the hook-end medial floor. Tail-corner pads removed. Rib slot u 11.90\u201320.50, s 14.90\u201315.70, height 0.31. Drop channel at leftover s=16.00, two 90\u00b0 at R 1.5, drop 3.31, flex 0.31. V2_USB_end is NOT_APPLICABLE (no receptacle at M1 52).",
+      "charge": "Q90: clamped button-heads in the posterior side wall (u 20.50\u201322.00) at P4 (20.50, 4.35, y 4.35) and P5 (20.50, 12.35, y 4.35), head axis +u; \u00d82.7 through the 1.50 wall, RING_PAD on the inner face, 3 standoff into the bay. Floor holes, rib slot and drop channel removed. V2_USB_end is NOT_APPLICABLE (no receptacle at M1 52).",
       "closure": "Q89: hinge lip at the hook-end wall plus one concealed ISO 7380 M2.5\u00d78 on the medial tail at u=16.5 s=41; head in the well at y 1.55; lid boss drops 3.2 mm into a tail pocket; pilot \u00d82.1, boss OD 5, \u2265 3 mm of thread in the lid boss. S4 pull and drop qualitative",
       "emboss": "none (plan v2 \u00a77: no text outside)",
       "fillets": [
@@ -1182,19 +1207,19 @@
       "q59": "packing-v2.md \u00a75 on lane/w3 at 284ec05 (git show 284ec05): no in-cavity REF tab route; REF_end_wall_slot u 7.25\u20139.75, s 38.20\u201339.25, y 1.50\u20131.81, width 2.50, through 1.05, height 0.31, 0.814 mm\u00b3, plus flex clearance 0.2 mm per side in u, 0.2 mm in s, 0.15 mm in y",
       "q76": "circular root r=1.75 blended 1.5",
       "shell_measure": {
-        "P4_s": 4.3,
-        "P4_u": 14.7,
-        "P4_y": 1.5,
-        "P5_s": 11.72,
-        "P5_u": 17.7,
-        "P5_y": 1.5,
+        "P4_s": 4.35,
+        "P4_u": 20.5,
+        "P4_y": 4.35,
+        "P5_s": 12.35,
+        "P5_u": 20.5,
+        "P5_y": 4.35,
         "boss_1_s": 17.7,
-        "boss_1_u": 13.45,
+        "boss_1_u": 13.23,
         "boss_2_s": 17.7,
         "boss_2_u": 17.95,
         "boss_top_y": 4.31,
         "bosses": 2,
-        "charge_construction": "open_holes_hook_end_floor",
+        "charge_construction": "clamped_button_heads_posterior_wall",
         "lid_boss_h": 3.2,
         "lid_boss_y0": 4.8,
         "lid_crown": 0.9,
@@ -1210,7 +1235,7 @@
         "q59_pack_vol_mm3": 0.814,
         "q59_removed_mm3": 1.8135,
         "q59_slot": "REF_end_wall_slot",
-        "rib_slot_removed_mm3": 36.6481,
+        "rib_slot_removed_mm3": 0.0,
         "screw_boss_od": 5.0,
         "screw_engage": 4.0,
         "screw_face": "medial",
@@ -1354,7 +1379,7 @@
     ]
   },
   "params_file": "scripts/cad/params/shell_v2.toml",
-  "params_sha256": "2288910d47a116aea488d75612473cf18d475a74e0018419c562f2e17aefb2f9",
+  "params_sha256": "45c00fb84a5fc96215a9236f0ec3cf08dff1442cefd31c706e9bbaf222fa11cb",
   "parts": [
     "body_full_p15",
     "lid"
@@ -1658,9 +1683,9 @@
             "boss_1_od": 5.0,
             "boss_1_pilot_d": 2.0999,
             "boss_1_wall": 1.45,
-            "boss_2_od": 6.9,
+            "boss_2_od": 7.34,
             "boss_2_pilot_d": 2.0999,
-            "boss_2_wall": 2.4,
+            "boss_2_wall": 2.62,
             "lid_od": 5.0,
             "lid_pilot_d": 2.0999,
             "lid_wall": 1.45,
@@ -1676,9 +1701,9 @@
         "boss_1_od": 5.0,
         "boss_1_pilot_d": 2.0999,
         "boss_1_wall": 1.45,
-        "boss_2_od": 6.9,
+        "boss_2_od": 7.34,
         "boss_2_pilot_d": 2.0999,
-        "boss_2_wall": 2.4,
+        "boss_2_wall": 2.62,
         "lid_od": 5.0,
         "lid_pilot_d": 2.0999,
         "lid_wall": 1.45,
@@ -1698,35 +1723,77 @@
             "boss_1_keep_gap": 0.15,
             "boss_1_s": 17.7,
             "boss_1_table_s": 17.7,
-            "boss_1_table_u": 13.45,
-            "boss_1_u": 13.45,
+            "boss_1_table_u": 13.23,
+            "boss_1_u": 13.23,
             "boss_2_courtyard_hits": 0.0,
             "boss_2_err": 0.0,
             "boss_2_keep_gap": 0.15,
             "boss_2_s": 17.7,
             "boss_2_table_s": 17.7,
             "boss_2_table_u": 17.95,
-            "boss_2_u": 17.95
+            "boss_2_u": 17.95,
+            "h1_h2_keep_gap": 1.42
           },
           "passed": true
         }
       },
-      "detail": "Q82: island bosses at packing \u00a75c hole sites; P1\u2013P5 from \u00a75d folded-site table at docs/fab/packing-v2.md sha e4b857c2b2b9c48a36afada114372556d3a3d874; centre error \u2264 0.05; 3.30 keep box clear of every courtyard",
+      "detail": "Q82/Q98: island bosses at packing \u00a75e H1/H2; keep-out gap 1.42 mm; P4/P5 from the \u00a75e wall-site table at docs/fab/packing-v2.md sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c; centre error \u2264 0.05; 3.30 keep box clear of every island courtyard",
       "numbers": {
         "boss_1_courtyard_hits": 0.0,
         "boss_1_err": 0.0,
         "boss_1_keep_gap": 0.15,
         "boss_1_s": 17.7,
         "boss_1_table_s": 17.7,
-        "boss_1_table_u": 13.45,
-        "boss_1_u": 13.45,
+        "boss_1_table_u": 13.23,
+        "boss_1_u": 13.23,
         "boss_2_courtyard_hits": 0.0,
         "boss_2_err": 0.0,
         "boss_2_keep_gap": 0.15,
         "boss_2_s": 17.7,
         "boss_2_table_s": 17.7,
         "boss_2_table_u": 17.95,
-        "boss_2_u": 17.95
+        "boss_2_u": 17.95,
+        "h1_h2_keep_gap": 1.42
+      },
+      "numbers_from": "body_full_p15",
+      "passed": true
+    },
+    "V2_CAVITY_v3": {
+      "bodies": {
+        "body_full_p15": {
+          "numbers": {
+            "cavity_u0": 1.5,
+            "cavity_u1": 20.5,
+            "j2_inside": 1.0,
+            "j2_p5_standoff_gap": -4.93,
+            "j2_s": 11.35,
+            "j2_u": 15.15,
+            "j2_ws": 6.56,
+            "j2_wu": 5.8,
+            "n_exterior": 5.0,
+            "n_illegal": 0.0,
+            "n_inside": 61.0,
+            "p4_wall_u": 20.5,
+            "p5_wall_u": 20.5
+          },
+          "passed": true
+        }
+      },
+      "detail": "Q91: pin table v3 centres inside cavity u 1.50\u201320.50 or on a declared exterior (J3 break-off, SIG/CHARGE flats outside the cavity, P3 on the tail); J2 inside at (15.15, 11.35); sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c",
+      "numbers": {
+        "cavity_u0": 1.5,
+        "cavity_u1": 20.5,
+        "j2_inside": 1.0,
+        "j2_p5_standoff_gap": -4.93,
+        "j2_s": 11.35,
+        "j2_u": 15.15,
+        "j2_ws": 6.56,
+        "j2_wu": 5.8,
+        "n_exterior": 5.0,
+        "n_illegal": 0.0,
+        "n_inside": 61.0,
+        "p4_wall_u": 20.5,
+        "p5_wall_u": 20.5
       },
       "numbers_from": "body_full_p15",
       "passed": true
@@ -1780,81 +1847,77 @@
         "body_full_p15": {
           "numbers": {
             "P4_cap": 0.0,
-            "P4_cell_gap": 0.3,
-            "P4_creepage_nylon": 1.0,
-            "P4_d_ref": 33.4935,
-            "P4_d_screw": 31.7441,
-            "P4_floor_t": 1.5,
+            "P4_cell_gap": 3.1,
+            "P4_hinge_gap": 3.5422,
             "P4_hole": 1.0,
-            "P4_nylon_around": 1.5,
-            "P4_s": 4.3,
-            "P4_u": 14.7,
-            "P4_y": 1.5,
+            "P4_outer_open": 1.0,
+            "P4_s": 4.35,
+            "P4_u": 20.5,
+            "P4_wall_around": 3.4448,
+            "P4_y": 4.35,
             "P5_cap": 0.0,
-            "P5_cell_gap": 3.3,
-            "P5_creepage_nylon": 1.0,
-            "P5_d_ref": 26.9049,
-            "P5_d_screw": 24.3046,
-            "P5_floor_t": 1.5,
+            "P5_cell_gap": 3.1,
+            "P5_hinge_gap": 9.0811,
             "P5_hole": 1.0,
-            "P5_nylon_around": 1.5,
-            "P5_s": 11.72,
-            "P5_u": 17.7,
-            "P5_y": 1.5,
+            "P5_outer_open": 1.0,
+            "P5_s": 12.35,
+            "P5_u": 20.5,
+            "P5_wall_around": 3.4448,
+            "P5_y": 4.35,
             "cell_s0": 1.5,
             "cell_s1": 14.5,
             "cell_u0": 1.8,
             "cell_u1": 11.9,
-            "floor_holes_d": 5.0,
-            "nylon_between": 3.0035,
+            "nylon_between": 3.0,
             "p1_s": 22.0,
             "p1_u": 5.9,
             "p2_s": 33.1,
             "p2_u": 10.4,
             "p3_s": 43.0,
             "p3_u": 8.5,
-            "pad_recess": 1.5
+            "pad_d": 5.0,
+            "standoff": 3.0,
+            "through_hole_d": 2.7,
+            "wall_name_posterior": 1.0
           },
           "passed": true
         }
       },
-      "detail": "Q86: two RING_PAD charging contacts at \u00a75d folded P4/P5 (sha e4b857c2b2b9c48a36afada114372556d3a3d874); \u00d85 holes open through the hook-end medial floor, no nylon cap, ring copper 1.50 below the skin face; nylon between \u2265 3; floor around each \u2265 1; cell pocket clearance stated; nylon under 1 mm creepage (Q84); clear of REF and the medial screw well \u2265 2",
+      "detail": "Q90/Q93: two RING_PAD clamped button-heads at \u00a75e wall sites P4/P5 (sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c) in the posterior side wall (u 20.50\u201322.00), head axis +u; \u00d82.7 through the wall, outer face open, ring on the inner face, 3 standoff into the bay; nylon between \u2265 3; wall around each \u2265 1.5; clear of the cell pocket and the hinge lip",
       "numbers": {
         "P4_cap": 0.0,
-        "P4_cell_gap": 0.3,
-        "P4_creepage_nylon": 1.0,
-        "P4_d_ref": 33.4935,
-        "P4_d_screw": 31.7441,
-        "P4_floor_t": 1.5,
+        "P4_cell_gap": 3.1,
+        "P4_hinge_gap": 3.5422,
         "P4_hole": 1.0,
-        "P4_nylon_around": 1.5,
-        "P4_s": 4.3,
-        "P4_u": 14.7,
-        "P4_y": 1.5,
+        "P4_outer_open": 1.0,
+        "P4_s": 4.35,
+        "P4_u": 20.5,
+        "P4_wall_around": 3.4448,
+        "P4_y": 4.35,
         "P5_cap": 0.0,
-        "P5_cell_gap": 3.3,
-        "P5_creepage_nylon": 1.0,
-        "P5_d_ref": 26.9049,
-        "P5_d_screw": 24.3046,
-        "P5_floor_t": 1.5,
+        "P5_cell_gap": 3.1,
+        "P5_hinge_gap": 9.0811,
         "P5_hole": 1.0,
-        "P5_nylon_around": 1.5,
-        "P5_s": 11.72,
-        "P5_u": 17.7,
-        "P5_y": 1.5,
+        "P5_outer_open": 1.0,
+        "P5_s": 12.35,
+        "P5_u": 20.5,
+        "P5_wall_around": 3.4448,
+        "P5_y": 4.35,
         "cell_s0": 1.5,
         "cell_s1": 14.5,
         "cell_u0": 1.8,
         "cell_u1": 11.9,
-        "floor_holes_d": 5.0,
-        "nylon_between": 3.0035,
+        "nylon_between": 3.0,
         "p1_s": 22.0,
         "p1_u": 5.9,
         "p2_s": 33.1,
         "p2_u": 10.4,
         "p3_s": 43.0,
         "p3_u": 8.5,
-        "pad_recess": 1.5
+        "pad_d": 5.0,
+        "standoff": 3.0,
+        "through_hole_d": 2.7,
+        "wall_name_posterior": 1.0
       },
       "numbers_from": "body_full_p15",
       "passed": true
@@ -2212,8 +2275,8 @@
             "SIG2_side_wall": 1.5,
             "SIG2_strip": 21.8124,
             "SIG2_table": 21.81,
-            "drop_channel_air": 1.0,
-            "rib_slot_air": 1.0,
+            "drop_channel_air": 0.0,
+            "rib_slot_air": 0.0,
             "rib_slot_h": 0.31,
             "rib_slot_s0": 14.9,
             "rib_slot_s1": 15.7,
@@ -2224,7 +2287,7 @@
           "passed": true
         }
       },
-      "detail": "Q83: neck-end strips SIG1 10.71 mm, SIG2 21.81 mm from packing \u00a75d sha e4b857c2b2b9c48a36afada114372556d3a3d874; floor channels in the neck hold no nylon; no side-wall pockets; REF uses REF_end_wall_slot; rib slot and drop channel air",
+      "detail": "Q83: neck-end strips SIG1 10.71 mm, SIG2 21.81 mm from packing \u00a75e sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c; floor channels in the neck hold no nylon; no side-wall pockets; REF uses REF_end_wall_slot; rib slot and drop channel left solid",
       "numbers": {
         "REF_body_mm3": 0.0,
         "SIG1_body_mm3": 0.0,
@@ -2237,8 +2300,8 @@
         "SIG2_side_wall": 1.5,
         "SIG2_strip": 21.8124,
         "SIG2_table": 21.81,
-        "drop_channel_air": 1.0,
-        "rib_slot_air": 1.0,
+        "drop_channel_air": 0.0,
+        "rib_slot_air": 0.0,
         "rib_slot_h": 0.31,
         "rib_slot_s0": 14.9,
         "rib_slot_s1": 15.7,
@@ -2309,6 +2372,12 @@
       "bodies": {
         "body_full_p15": {
           "numbers": {
+            "P4_outer_open": 1.0,
+            "P4_seat_open": 1.0,
+            "P4_wall_around": 3.4448,
+            "P5_outer_open": 1.0,
+            "P5_seat_open": 1.0,
+            "P5_wall_around": 3.4448,
             "WALL_MEDIAL": 1.5,
             "anterior_wall": 1.5,
             "hinge_outer_wall": 1.0,
@@ -2327,8 +2396,14 @@
           "passed": true
         }
       },
-      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0; hinge outer wall \u2265 1.0; no USB opening (Q81)",
+      "detail": "side walls 1.5; Q59 slot open with remaining end wall and floor \u2265 1.0; hinge outer wall \u2265 1.0; no USB opening (Q81); P4/P5 wall seats open with \u2265 1.5 remaining posterior wall around each",
       "numbers": {
+        "P4_outer_open": 1.0,
+        "P4_seat_open": 1.0,
+        "P4_wall_around": 3.4448,
+        "P5_outer_open": 1.0,
+        "P5_seat_open": 1.0,
+        "P5_wall_around": 3.4448,
         "WALL_MEDIAL": 1.5,
         "anterior_wall": 1.5,
         "hinge_outer_wall": 1.0,
@@ -2368,19 +2443,19 @@
   },
   "views": {
     "drawing.pdf": {
-      "bytes": 77731,
-      "sha256": "33771d35efbb02e9bc85b3717c955d455fe5fc299ab0a76c073a3ff4f7bc0c96"
+      "bytes": 79110,
+      "sha256": "287f108c08eed5fbb3d1957c4be5c3d47dab401997a470ac77bb21b9f5e52e60"
     },
     "render_lateral.png": {
-      "bytes": 136278,
-      "sha256": "db152a0035d73ea90a136661595f1ad655de0a72ecadeb854cdc752edcba3362"
+      "bytes": 135826,
+      "sha256": "689e68d8fcc91f65744d435b3067aa36e17877395d89babe23dc15cc6912060e"
     },
     "render_medial.png": {
-      "bytes": 164757,
-      "sha256": "3202b9138e1e96c25b2255a7e4adaed74378690f27f7339bb2c6b22fc5f6e27b"
+      "bytes": 168740,
+      "sha256": "3a0550096bc785626070d99c2380b1e5f21de5afb87b26f776fb962d557605b2"
     }
   },
-  "views_commit": "825793e58b7e4dfc48d4b6751053703843f7caa8",
+  "views_commit": "f7675ec099ffa9e1b5bab14fad3920c5d666262e",
   "views_hash_rule": "SHA-256 of raw file bytes. PNG tIME/tEXt/zTXt/iTXt/eXIf rewritten; Creation Time text and PDF CreationDate/ModDate/ID pinned to 2026-09-16T00:00:00Z. Same pin as the solids hash_rule timestamp.",
   "walls": {
     "anterior side wall": 1.5,
