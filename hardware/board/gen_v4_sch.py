@@ -35,6 +35,13 @@ def blocks() -> dict[str, str]:
 def write_project() -> None:
     pro = json.loads(V2.with_suffix(".kicad_pro").read_text(encoding="utf-8"))
     pro["meta"]["filename"] = "elicio-v4.kicad_pro"
+    # v2 ignored courtyard overlaps; v4 packs by courtyard, so they are errors.
+    pro["board"]["design_settings"]["rule_severities"]["courtyards_overlap"] = "error"
+    # JLC flex standard via: 0.15 hole, 0.35 pad minimum; 0.40 pad used (§4).
+    pro["board"]["design_settings"]["rules"]["min_via_diameter"] = 0.40
+    pro["board"]["design_settings"]["rules"]["min_through_hole_diameter"] = 0.15
+    for cls in pro["net_settings"]["classes"]:
+        cls["via_diameter"], cls["via_drill"] = 0.40, 0.15
     V4.with_suffix(".kicad_pro").write_text(json.dumps(pro, indent=2) + "\n", encoding="utf-8")
     dru = V2.with_suffix(".kicad_dru").read_text(encoding="utf-8")
     V4.with_suffix(".kicad_dru").write_text(dru, encoding="utf-8")
@@ -45,7 +52,7 @@ def main() -> None:
     write_schematic(
         V4.with_suffix(".kicad_sch"),
         "elicio-v4",
-        "Elicio board v4 (ISP1807, W17 body)",
+        "Elicio board v4 (ISP1807, W18 body)",
         "Design record docs/fab/board-v4-design.md. Not for order.",
         parts(),
         blocks(),
