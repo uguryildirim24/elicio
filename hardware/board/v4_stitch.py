@@ -12,7 +12,6 @@ hole 0.05 mm outside the copper. It never enters another net's pad.
   .venv/bin/python hardware/board/v4_stitch.py PCB NET OUT [maxlen]
 """
 import sys, math, uuid
-sys.path.insert(0, '/Users/rolfie/projects/elicio/.worktrees/t-0014/hardware/board')
 import numpy as np
 from v4_route_fix import parse_board, Grid, components, LAYERS, STEP, VIA_D, TRACK_W, clear_line, Shape, seg_text
 import v4_route_fix

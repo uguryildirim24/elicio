@@ -487,7 +487,7 @@ Pin map A (as built). Every fast SPI line is on a full-speed pin; the low-freque
 
 **NFC pins as GPIO.** Set UICR NFCPINS.PROTECT = Disabled (Zephyr `CONFIG_NFCT_PINS_AS_GPIOS`). PS §6.14.3: "some increased leakage current between the two pins is to be expected if they are used in GPIO mode, and are driven to different logical values. To save power, the two pins should always be set to the same logical value whenever entering one of the device power saving modes". INFC_LEAK is 1–10 µA. Pad 2 (P0.09/NFC1) is left open. Firmware should drive it to START's level before sleep.
 
-**Isolated VSS 14/16/18.** Unconnected on purpose (§3.1). Whether the module ties them inside is UNVERIFIED.
+**VSS 14/16/18.** Connected to the B-side GND pour through two vias between the pads (§3.1). Whether the module ties them inside is UNVERIFIED and not relied on.
 
 **VBUS (pad 12) and D± (8/10) are unconnected.**
 
