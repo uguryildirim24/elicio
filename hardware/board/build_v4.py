@@ -193,37 +193,42 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "R11": ("bottom", 12.00, 16.75, 0),
     "C2": ("bottom", 11.95, 17.55, 0),
     "R25": ("bottom", 11.95, 18.35, 0),
-    "C3": ("bottom", 14.40, 19.95, 90),
-    "D1": ("bottom", 12.60, 19.70, 0),
+    "C3": ("bottom", 14.55, 19.60, 270),  # closed up to U3.A2, 0.31 from the joint notch edge
+    "D1": ("bottom", 14.45, 23.75, 270),  # east column on the VBUS trunk, which passes it on the edge side
     # B under U2: AFE supply switch, LDO, bulk, RLD network.
     # Relief 5 (t-0014, §9.2): the west stack sits 0.10 further west than 815ca29 (9.95 ->
     # 9.85, R24 9.40 -> 9.30), as far as R14's and Q1's courtyards clear LAND_P1, and C8, C14
     # and C11 are turned so their GND pads face east, away from the B corridor between the
     # stacks. The corridor pinch beside Q1 grows from 0.42 to 0.52 mm and carries no GND: the
     # east-side GND pads sit under U2's exposed pad and reach it by stitching vias.
-    "R15": ("bottom", 9.85, 19.95, 0),  # AFE_EN_HW west over Q3.1, VBAT east
-    "Q3": ("bottom", 9.85, 20.90, 180),  # GND and AFE_EN_HW west (away from the corridor), AFE_GATE east
-    "R14": ("bottom", 9.85, 21.85, 0),
-    "Q1": ("bottom", 9.85, 22.80, 0),
+    "R14": ("bottom", 9.85, 21.85, 180),  # VBAT west, AFE_GATE east under Q3.3
+    "Q1": ("bottom", 9.85, 22.80, 180),  # AFE_GATE and VBAT west, AFE_VIN east toward U4
     "C5": ("bottom", 9.85, 23.75, 0),
     "R24": ("bottom", 9.30, 24.65, 0),
     "U4": ("bottom", 11.65, 21.25, 0),
-    "C8": ("bottom", 11.65, 22.55, 180),  # GND pad east (under U2's exposed pad)
-    "C14": ("bottom", 11.65, 23.60, 180),  # GND pad east; VBAT pad west, one hop from Q1.2
-    "C11": ("bottom", 11.65, 24.60, 180),  # GND pad east, in line with C14.2
+    "C8": ("bottom", 11.65, 22.55, 0),  # +3V0 pad east under U4.1, GND pad west
+    "C14": ("bottom", 14.15, 27.20, 180),  # east pocket: VBAT pad west beside R20.1
+    "C11": ("top", 15.10, 23.20, 270),  # F beside U2's east row: VCAP2 pad north toward U2.27
     "R4": ("bottom", 13.30, 22.15, 90),
     "C1": ("bottom", 13.30, 23.65, 90),
     # B pocket right of the stiffener: REF resistor, dividers, charge interlock.
     # Kept east of u 11.1 so a via column at u 10.72 fits beside U1's pads.
     "R3": ("bottom", 14.55, 25.60, 0),
-    "R18": ("bottom", 11.80, 25.60, 0),
-    "R19": ("bottom", 13.30, 26.52, 180),  # VBUS_DET pad west
-    "R20": ("bottom", 11.80, 26.40, 0),
-    "R21": ("bottom", 11.80, 27.20, 0),
-    "Q2": ("bottom", 13.35, 27.60, 0),
-    # Interlock: R16 (VBUS pull) and R17 (GND pull) stacked on Q2's gate side.
-    "R16": ("bottom", 14.60, 27.10, 270),
-    "R17": ("bottom", 14.60, 28.55, 270),
+    # One row further east than 815ca29 (11.80 -> 12.40) so U1's east pads get a second via
+    # column at u 11.3; U1-side pads face west; the VBAT_SENSE pair sits above the VBUS_DET
+    # pair in U1's pad order; s 25.05-26.5 stays free for AFE_DRDY's hop to R27 on B.
+    "R20": ("bottom", 12.40, 26.90, 0),  # VBAT east, VBAT_SENSE west
+    "R21": ("bottom", 12.40, 27.70, 180),  # VBAT_SENSE west, GND east
+    "R18": ("bottom", 12.40, 28.50, 0),  # VBUS east, VBUS_DET west
+    "R19": ("bottom", 12.40, 29.30, 180),  # VBUS_DET west, GND east
+    # Interlock beside the charger (t-0016): Q2.3 faces R15.2 across the corridor's north end,
+    # so AFE_EN_HW is a short hop and no longer runs south past U1; R16 (VBUS pull) and
+    # R17 (GND pull) sit at Q2's gate side.
+    "Q3": ("bottom", 10.65, 19.90, 0),  # AFE_EN_HW (north) and GND east, AFE_GATE west over R14.2
+    "R15": ("bottom", 10.80, 18.60, 270),  # VBAT north on the trunk, AFE_EN_HW south onto Q3.1
+    "Q2": ("bottom", 12.50, 19.55, 0),  # AFE_EN_HW west toward Q3.1; Q2_G and GND east
+    "R16": ("bottom", 13.75, 19.35, 270),  # VBUS north, Q2_G south
+    "R17": ("bottom", 14.45, 20.80, 180),  # Q2_G west, GND east
 }
 
 RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
