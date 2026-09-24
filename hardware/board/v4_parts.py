@@ -28,6 +28,9 @@ C0201 = "Capacitor_SMD:C_0201_0603Metric"
 DFN1006 = "Package_TO_SOT_SMD:SOT-883"  # DFN1006-3: 1 G, 2 S, 3 D
 
 # (value, size) -> (LCSC, MPN). Filled from research; "" = not yet read.
+# Parts JLC cannot supply carry CONSIGNED in the LCSC field, so the BOM says
+# so plainly (design note §2): U1 ISP1807, U5 TPS7A0230, J2 Molex 202656.
+CONSIGNED = "CONSIGNED"
 LCSC: dict[tuple[str, str], tuple[str, str]] = {
     ("220k", "0402"): ("C881401", ""),
     ("10uF", "0402"): ("C15525", "CL05A106MQ5NUNC"),
@@ -61,7 +64,8 @@ def c(ref: str, value: str, a: str, b: str, size: str = "0201") -> Part:
 
 
 # ISP1807 pad -> net. Every other pad is a no-connect (pads 65-78 are the
-# mechanical NC pads; 14/16/18 are the isolated row-6 VSS, §3.1).
+# mechanical NC pads). VSS 14/16/18 on the antenna-side row reach GND
+# through two vias in the gaps between them (§3.1).
 U1_NETS = {
     "26": "+VDD",
     "28": "SWDIO",
@@ -76,6 +80,9 @@ U1_NETS = {
     "24": "GND",
     "25": "GND",
     "31": "GND",
+    "14": "GND",
+    "16": "GND",
+    "18": "GND",
     # East column, pads facing +u toward U2 and the corner (§4, pin map §8).
     # P0.28-P0.31, P0.02, P0.03 are "low frequency I/O only" (nRF52840 PS
     # v1.11 pin table): CS, DRDY and the slow nets there; the three SPI data
@@ -100,7 +107,7 @@ def parts() -> list[Part]:
     u1.update(U1_NETS)
     out = [
         Part("U1", "elicio:ISP1807", "ISP1807-LR", "elicio:InsightSiP_ISP1807", u1,
-             lcsc="", mpn="ISP1807-LR-RS"),
+             lcsc=CONSIGNED, mpn="ISP1807-LR-RS"),
         Part(
             "U2", "elicio:ADS1292", "ADS1292IRSMT", "elicio:Texas_RSM0032",
             {
@@ -127,7 +134,7 @@ def parts() -> list[Part]:
         Part(
             "U5", "elicio:TPS7A0230PDQN", "TPS7A0230PDQNR", "Package_SON:Texas_X2SON-4_1x1mm_P0.65mm",
             {"4": "VBAT", "3": "VBAT", "1": "+VDD", "2": "GND", "5": "GND"},
-            lcsc="", mpn="TPS7A0230PDQNR",
+            lcsc=CONSIGNED, mpn="TPS7A0230PDQNR",
         ),
         Part("Q1", "elicio:AO3401A", "WPM3027-3", DFN1006, {"1": "AFE_GATE", "2": "VBAT", "3": "AFE_VIN"},
              lcsc="C240195", mpn="WPM3027-3/TR"),
@@ -141,11 +148,14 @@ def parts() -> list[Part]:
              {"1": "CHG_LED_K", "2": "D2_A"}, lcsc="C72043", mpn="19-217/GHC-YR1S2/3T"),
         Part("J2", "Connector:Conn_01x02_Pin", "202656-0021",
              "Connector_Molex:Molex_Pico-EZmate_Slim_202656-0021_1x02-1MP_P1.20mm_Vertical",
-             {"1": "VBAT", "2": "GND"}, lcsc="", mpn="202656-0021"),
+             {"1": "VBAT", "2": "GND"}, lcsc=CONSIGNED, mpn="202656-0021"),
         Part("J3", "Connector:Conn_01x03_Pin", "HDR-3-RA",
              "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Horizontal",
-             # Symmetric header, reversed so the branches don't cross (§5.4).
-             {"1": "REF", "2": "SIG2", "3": "SIG1"}, lcsc="C49257"),
+             # Bench nets: each pin has its own 220 kOhm (R31-R33) on the tab
+             # side of the cut, so no Contact copper crosses the cut (§5.4, Q97).
+             # Pin 1 SIG1 side, 2 SIG2 side, 3 REF side (v2's order): the
+             # AFE inputs enter the island north of RLD_FB, as U2's pads sit.
+             {"1": "BENCH_SIG1", "2": "BENCH_SIG2", "3": "BENCH_REF"}, lcsc="C49257"),
         Part("J4", "Connector:TC2030", "TC2030-NL",
              "Connector:Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical",
              {"1": "+VDD", "2": "SWDIO", "3": "GND", "4": "SWDCLK", "5": "GND", "6": "nRESET"},
@@ -162,6 +172,13 @@ def parts() -> list[Part]:
         r("R1", "220k", "SIG1", "AFE_IN1P", "0402"),
         r("R2", "220k", "SIG2", "AFE_IN1N", "0402"),
         r("R3", "220k", "REF", "RLD_FB", "0402"),
+        # Bench header's own 220 kOhm per path (plan v2 R7: "every gel-header
+        # path is protected by its own 220 kOhm, checked on the board"). On
+        # the J3 tab, cut off with it; the neck carries only AFE-side nets.
+        # Pad 1 (west) faces the neck: AFE side. Pad 2 (east): bench pin.
+        r("R31", "220k", "AFE_IN1P", "BENCH_SIG1", "0402"),
+        r("R32", "220k", "AFE_IN1N", "BENCH_SIG2", "0402"),
+        r("R33", "220k", "RLD_FB", "BENCH_REF", "0402"),
         r("R4", "1M", "RLD_FB", "RLDINV"),
         r("R5", "10k", "AFE_SCLK", "AFE_SCLK_AFE"),
         r("R6", "10k", "AFE_MOSI", "AFE_MOSI_AFE"),

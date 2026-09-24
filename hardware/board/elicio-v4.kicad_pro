@@ -574,6 +574,18 @@
       {
         "netclass": "Contact",
         "pattern": "REF"
+      },
+      {
+        "netclass": "Contact",
+        "pattern": "BENCH_SIG1"
+      },
+      {
+        "netclass": "Contact",
+        "pattern": "BENCH_SIG2"
+      },
+      {
+        "netclass": "Contact",
+        "pattern": "BENCH_REF"
       }
     ]
   },

@@ -21,7 +21,11 @@ sys.path.insert(0, str(BOARD))
 from v4_tables import footprints  # noqa: E402
 
 CONTACT = {"SIG1", "SIG2", "REF"}
+# Bench header nets: J3's pins, each behind its own 220 kOhm (R31-R33) on the break-off tab (§5.4).
+BENCH = {"BENCH_SIG1": ("R31", "AFE_IN1P"), "BENCH_SIG2": ("R32", "AFE_IN1N"), "BENCH_REF": ("R33", "RLD_FB")}
+ELECTRODE = {"R1": ("SIG1", "AFE_IN1P"), "R2": ("SIG2", "AFE_IN1N"), "R3": ("REF", "RLD_FB")}
 ISLAND = (2.25, 16.0, 15.75, 37.6)
+J3_CUT_U = 16.20
 ZONE_HALF = 3.5  # Q84/Q88 7 x 7 zone around each flat land
 LANDS = {
     "P1": ("SIG1", (5.90, 5.29)),
@@ -81,23 +85,45 @@ class BoardV4Tests(unittest.TestCase):
             if net in CONTACT
         ]
 
-    def test_contact_nets_only_on_rings_resistors_and_j3(self) -> None:
+    def value(self, ref: str) -> str:
+        chunk = self.text.split(f'(property "Reference" "{ref}"', 1)[1].split("\n\t(footprint ", 1)[0]
+        return field(chunk, "property \"Value\"")
+
+    def test_contact_nets_only_on_rings_and_resistors(self) -> None:
         refs = {ref for ref, *_ in self.contact_pads()}
-        self.assertLessEqual(refs, {"P1", "P2", "P3", "R1", "R2", "R3", "J3"})
-        self.assertLessEqual({"P1", "P2", "P3", "R1", "R2", "R3", "J3"}, refs)
+        self.assertEqual(refs, {"P1", "P2", "P3", "R1", "R2", "R3"})
 
     def test_island_exposed_contact_copper_is_r1_r3_pads_only(self) -> None:
-        # Q97(d): vias are tented; pads are the exposed copper.
+        # Q97(d): vias are tented; pads are the exposed copper. Nothing Contact leaves the island
+        # toward the J3 tab, so the cut edge carries no Contact copper.
         on_island = {ref for ref, _p, ax, ay, _n in self.contact_pads() if inside((ax, ay), ISLAND)}
         self.assertEqual(on_island, {"R1", "R2", "R3"})
+        east = [s for s in self.segments if s[3] in CONTACT and max(s[0][0], s[1][0]) > ISLAND[2]]
+        self.assertEqual(east, [])
+        self.assertEqual([v for v in self.vias if v[1] in CONTACT and v[0][0] > ISLAND[2]], [])
 
     def test_each_electrode_path_has_220k(self) -> None:
-        for ref, net in (("R1", "SIG1"), ("R2", "SIG2"), ("R3", "REF")):
-            chunk = self.text.split(f'(property "Reference" "{ref}"', 1)[1].split("\n\t(footprint ", 1)[0]
-            self.assertIn('(property "Value" "220k"', chunk, ref)
-            nets = {n for *_x, n in self.fps[ref]["pads"]}
-            self.assertIn(net, nets, ref)
-            self.assertEqual(len(nets - CONTACT), 1, f"{ref} must bridge its Contact net to one AFE net")
+        for ref, (net, afe) in ELECTRODE.items():
+            self.assertEqual(self.value(ref), "220k", ref)
+            self.assertEqual({n for *_x, n in self.fps[ref]["pads"]}, {net, afe}, ref)
+
+    def test_bench_header_sits_behind_its_own_220k(self) -> None:
+        # R7: every gel-header path has its own 220 kOhm. J3's pins carry bench nets, each bridged
+        # to the electrode's AFE node by R31-R33 on the tab side of the cut, never by R1-R3.
+        self.assertEqual({n for *_x, n in self.fps["J3"]["pads"]}, set(BENCH))
+        for net, (ref, afe) in BENCH.items():
+            self.assertEqual(self.value(ref), "220k", ref)
+            self.assertEqual({n for *_x, n in self.fps[ref]["pads"]}, {net, afe}, ref)
+            self.assertGreaterEqual(self.fps[ref]["x"], J3_CUT_U, f"{ref} must leave with the tab")
+            on_island = [s for s in self.segments if s[3] == net and min(s[0][0], s[1][0]) < J3_CUT_U]
+            self.assertEqual(on_island, [], f"{net} copper west of the cut")
+        afe_nets = {afe for _r, afe in BENCH.values()}
+        self.assertEqual(afe_nets, {afe for _n, afe in ELECTRODE.values()})
+
+    def test_u1_vss_pads_are_ground(self) -> None:
+        nets = {num: net for num, _k, _x, _y, net in self.fps["U1"]["pads"]}
+        for pad in ("14", "16", "18"):
+            self.assertEqual(nets[pad], "GND", pad)
 
     def test_each_strip_carries_one_contact_net_on_one_layer(self) -> None:
         # Q97(a): anything with an end on a strip body is that strip's net, on that strip's layer.

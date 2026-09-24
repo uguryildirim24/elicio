@@ -42,9 +42,18 @@ def write_project() -> None:
     pro["board"]["design_settings"]["rules"]["min_through_hole_diameter"] = 0.15
     for cls in pro["net_settings"]["classes"]:
         cls["via_diameter"], cls["via_drill"] = 0.40, 0.15
+    # The bench nets on the J3 tab take the Contact class (design note §5.4).
+    patterns = pro["net_settings"]["netclass_patterns"]
+    have = {(p["netclass"], p["pattern"]) for p in patterns}
+    for net in ("BENCH_SIG1", "BENCH_SIG2", "BENCH_REF"):
+        if ("Contact", net) not in have:
+            patterns.append({"netclass": "Contact", "pattern": net})
     V4.with_suffix(".kicad_pro").write_text(json.dumps(pro, indent=2) + "\n", encoding="utf-8")
-    dru = V2.with_suffix(".kicad_dru").read_text(encoding="utf-8")
-    V4.with_suffix(".kicad_dru").write_text(dru, encoding="utf-8")
+    # elicio-v4.kicad_dru is v4's own (Q84 areas plus the v4 zone-connection
+    # rules); it starts as a copy of v2's and is not overwritten after that.
+    if not V4.with_suffix(".kicad_dru").exists():
+        dru = V2.with_suffix(".kicad_dru").read_text(encoding="utf-8")
+        V4.with_suffix(".kicad_dru").write_text(dru, encoding="utf-8")
 
 
 def main() -> None:
