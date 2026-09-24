@@ -103,7 +103,7 @@ J3_R32 = (17.00 + DW, 21.15)   # AFE_IN1N <- BENCH_SIG2, on the neck
 # (U2's input pads sit north of its RLD pads, so the runs don't cross).
 J3_S_IN1P, J3_S_IN1N, J3_S_REF = 20.40, 21.15, 21.90
 J3_LANE_IN1P_U, J3_LANE_REF_U = 19.50 + DW, 19.90 + DW  # F columns in the tab's west margin
-J3_ISLAND_U = 14.40 + DW  # the locked neck runs end here, inside the island; the finisher joins them
+J3_ISLAND_U = 14.75 + DW  # the locked neck runs end at the neck root (island edge); the router takes them on
 # Contact corridor (design note §5.4), Contact class 0.15 / 0.20: strips to
 # R1-R3 only. SIG2 crosses to B at the strip root (P2 is plated, so its
 # strip copper is F); REF runs along the +s edge and down the +u edge on B.
@@ -196,16 +196,21 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "C3": ("bottom", 14.40, 19.95, 90),
     "D1": ("bottom", 12.60, 19.70, 0),
     # B under U2: AFE supply switch, LDO, bulk, RLD network.
-    "R15": ("bottom", 9.95, 19.95, 180),  # VBAT west (J2 side), AFE_EN_HW over Q3.1
-    "Q3": ("bottom", 9.95, 20.90, 0),
-    "R14": ("bottom", 9.95, 21.85, 0),
-    "Q1": ("bottom", 9.95, 22.80, 0),
-    "C5": ("bottom", 9.95, 23.75, 0),
-    "R24": ("bottom", 9.40, 24.65, 0),
+    # Relief 5 (t-0014, §9.2): the west stack sits 0.10 further west than 815ca29 (9.95 ->
+    # 9.85, R24 9.40 -> 9.30), as far as R14's and Q1's courtyards clear LAND_P1, and C8, C14
+    # and C11 are turned so their GND pads face east, away from the B corridor between the
+    # stacks. The corridor pinch beside Q1 grows from 0.42 to 0.52 mm and carries no GND: the
+    # east-side GND pads sit under U2's exposed pad and reach it by stitching vias.
+    "R15": ("bottom", 9.85, 19.95, 0),  # AFE_EN_HW west over Q3.1, VBAT east
+    "Q3": ("bottom", 9.85, 20.90, 180),  # GND and AFE_EN_HW west (away from the corridor), AFE_GATE east
+    "R14": ("bottom", 9.85, 21.85, 0),
+    "Q1": ("bottom", 9.85, 22.80, 0),
+    "C5": ("bottom", 9.85, 23.75, 0),
+    "R24": ("bottom", 9.30, 24.65, 0),
     "U4": ("bottom", 11.65, 21.25, 0),
-    "C8": ("bottom", 11.65, 22.55, 0),
-    "C14": ("bottom", 11.65, 23.60, 0),  # VBAT pad east: fed past U4's east side, never across AFE_VIN
-    "C11": ("bottom", 11.65, 24.60, 0),
+    "C8": ("bottom", 11.65, 22.55, 180),  # GND pad east (under U2's exposed pad)
+    "C14": ("bottom", 11.65, 23.60, 180),  # GND pad east; VBAT pad west, one hop from Q1.2
+    "C11": ("bottom", 11.65, 24.60, 180),  # GND pad east, in line with C14.2
     "R4": ("bottom", 13.30, 22.15, 90),
     "C1": ("bottom", 13.30, 23.65, 90),
     # B pocket right of the stiffener: REF resistor, dividers, charge interlock.
@@ -616,6 +621,11 @@ def pre_routes(board) -> None:
     gnd_u1 = [pad_center(board, "U1", n) for n in ("21", "23", "25")]
     add_locked_path(board, gnd_u1, gnd, fcu, 0.12)
     add_locked_path(board, [pad_center(board, "U1", "24"), gnd_u1[-1]], gnd, fcu, 0.12)
+    # VCAP1 from C10 to U2.11 on F, west of U2's west row (t-0014, §9.2): the
+    # routers put +3V0's hop from B across this line every time.
+    vcap1 = ensure_net(board, "VCAP1")
+    add_locked_path(board, [pad_center(board, "C10", "1"), (9.10, 19.35), (9.45, 21.30), pad_center(board, "U2", "11")],
+                    vcap1, fcu, FLEX_TRACK)
     # Antenna-side VSS 14/16/18 (0.4 pads at 0.65 pitch on the RF band's
     # edge, 0.25 from the staggered inner row): a 0.40 via in each 0.25 gap
     # between two of them overlaps both pads and drops to the B pour. The
