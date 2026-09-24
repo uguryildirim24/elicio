@@ -138,7 +138,11 @@ def pcb_stats(pcb: Path) -> dict[str, int]:
     """Tracks, declared nets and pads with no net on the PCB (not the schematic)."""
     text = pcb.read_text(encoding="utf-8")
     pads = re.findall(r"\(pad \"[^\"]*\" (?:smd|thru_hole|connect)\b(.*?)\n\t\t\)", text, re.S)
-    no_net = sum(1 for body in pads if "(net " not in body)
+    # Only a pad with copper can carry a net. KiCad's footprints also hold
+    # paste-only pads (blank number, layers "F.Paste" or "B.Paste") for the
+    # stencil; those are not the "pad without a net" review r5 meant.
+    copper = [body for body in pads if re.search(r"\(layers [^)]*\.Cu", body)]
+    no_net = sum(1 for body in copper if "(net " not in body)
     return {
         "pcb_tracks": len(re.findall(r"\n\t\((?:segment|arc)\b", text)),
         "pcb_nets": len(set(re.findall(r"\(net \"([^\"]+)\"\)", text))),

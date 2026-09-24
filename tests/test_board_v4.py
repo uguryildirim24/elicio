@@ -55,7 +55,8 @@ def num(block: str, key: str) -> list[float]:
 
 
 def field(block: str, key: str) -> str:
-    m = re.search(r"\(" + key + r' "([^"]*)"\)', block)
+    # A property KiCad saved continues on the next line: (property "Value" "220k"\n(at ...)).
+    m = re.search(r"\(" + key + r' "([^"]*)"', block)
     return m.group(1) if m else ""
 
 
