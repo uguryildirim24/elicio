@@ -1,0 +1,27 @@
+(version 1)
+
+# Q88: 1.0 mm is creepage for exposed copper on the Ø5 lands plus 1.0 mm
+# (7 × 7 of board-v2 §12). Coverlaid strips use Contact 0.20 mm. Island
+# Contact nets use the Contact netclass (0.20 mm). Board min stays 0.10 mm.
+
+(rule "Q84 tabs Contact creepage"
+  (constraint clearance (min 1.0mm))
+  (condition "A.NetClass == 'Contact' && A.intersectsArea('tabs')"))
+
+(rule "Q84 tail_pads Contact creepage"
+  (constraint clearance (min 1.0mm))
+  (condition "A.NetClass == 'Contact' && A.intersectsArea('tail_pads')"))
+
+(rule "Q84 tail_pads exposed creepage"
+  (constraint clearance (min 1.0mm))
+  (condition "A.intersectsArea('tail_pads')"))
+
+# Thermal connections (design note §9.3). Every GND pad keeps the board
+# default, a thermal relief with at least two spokes, and the starved-thermal
+# check is not relaxed. Where the pour reaches a pad from one side only, a
+# locked 0.10 GND track from the pad into the pour is its second connection
+# (the list is in §9.3). Exposed pads and J2's mounting pads connect solid:
+# they are reflowed, not hand-soldered, and want the copper under them.
+(rule "GND exposed and mounting pads solid"
+  (constraint zone_connection solid)
+  (condition "A.NetName == 'GND' && ((A.Reference == 'U2' && A.Pad_Number == '33') || (A.Reference == 'U4' && A.Pad_Number == '5') || (A.Reference == 'U5' && A.Pad_Number == '5') || (A.Reference == 'J2' && A.Pad_Number == 'MP'))"))
