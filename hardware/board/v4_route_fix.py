@@ -39,6 +39,7 @@ EDGE_CLEAR = 0.30
 # by far less than this; two staircase tracks can sit 0.3 cell (0.007) closer
 # than their cell centres.
 MARGIN = 0.008
+VIA_IN_OWN_PAD: set[str] = set()  # nets whose own pads may carry a stitching via (v4_stitch.py)
 VIA_COST = 1.2  # mm of track a via is worth
 CONTACT = {"SIG1", "SIG2", "REF"}
 NO_ROUTE_AREAS = {"tabs", "tail_pads"}
@@ -259,8 +260,15 @@ def touches(a: Shape, b: Shape) -> bool:
             n = max(2, int(math.hypot(x1 - x0, y1 - y0) / 0.02) + 1)
             pts.append((np.linspace(x0, x1, n), np.linspace(y0, y1, n), s.r))
         else:
-            cx, cy, hw, hh, _ = s.box
-            pts.append((np.array([cx]), np.array([cy]), min(hw, hh)))
+            # A box: its inscribed circle plus its corners and edge midpoints, so a fill
+            # that meets one edge of a rectangular pad counts as touching it.
+            cx, cy, hw, hh, ang = s.box
+            c, sn = math.cos(ang), math.sin(ang)
+            px, py = [cx], [cy]
+            for u, v in ((hw, hh), (hw, -hh), (-hw, hh), (-hw, -hh), (hw, 0), (-hw, 0), (0, hh), (0, -hh)):
+                px.append(cx + u * c - v * sn)
+                py.append(cy + u * sn + v * c)
+            pts.append((np.array(px), np.array(py), np.array([min(hw, hh)] + [0.0] * 8)))
     ax, ay, ar = pts[0]
     bx, by, br = pts[1]
     return bool((b.dist(ax, ay) <= ar + 1e-3).any() or (a.dist(bx, by) <= br + 1e-3).any())
@@ -394,8 +402,16 @@ class Grid:
             self._claim(self.track[l], win, d < grow_t, k)
             self._claim(self.via[l], win, d < grow_v, k)
             if s.kind == "pad":
-                # No via in any pad, own net included.
-                self.via[l][j0:j1, i0:i1][d < VIA_D / 2 + 0.02] = -2
+                if s.net in VIA_IN_OWN_PAD:
+                    # Stitching (v4_stitch.py): a via may sit fully inside a big own-net pad
+                    # (an exposed or mounting pad, 0.20 in from its edge) or touch a small
+                    # own-net pad's edge with its hole 0.05 outside the copper. It still
+                    # stays out of every other pad.
+                    sub = self.via[l][j0:j1, i0:i1]
+                    sub[(d > -(VIA_D / 2 + 0.20)) & (d < VIA_DRILL / 2 + 0.05)] = -2
+                else:
+                    # No via in any pad, own net included.
+                    self.via[l][j0:j1, i0:i1][d < VIA_D / 2 + 0.02] = -2
         if s.kind == "via":
             # Hole to hole 0.25 for any net's via.
             (x, y), _ = s.seg
@@ -645,6 +661,10 @@ def main() -> int:
     ap.add_argument("--skip", nargs="*", default=[], help="nets left alone (e.g. GND, left to pours)")
     ap.add_argument("--ripup", type=int, default=0, help="rounds of local rip-up and reroute for what stays open")
     ap.add_argument("--pen", type=float, default=12.0, help="rip-up: extra cells per cell of other copper crossed")
+    ap.add_argument("--soft-fills", action="store_true",
+                    help="a filled pour blocks only its own net's routing (it is copper for GND, a source and a "
+                         "target); every other net routes through it as if the board were unfilled, since the "
+                         "pour yields on the next refill. Use on a filled board; refill and re-join GND after.")
     args = ap.parse_args()
     text = args.pcb.read_text(encoding="utf-8")
     drop = set(args.drop)
@@ -671,11 +691,18 @@ def main() -> int:
         c = [np.mean([s.center() for s in cp], axis=0) for cp in comps]
         return min(math.dist(a, b) for a in c for b in c if a is not b)
 
+    def mkgrid(net, items=None):
+        """The routing grid for net: with --soft-fills, other nets' pours are left out."""
+        src = cur if items is None else items
+        if args.soft_fills:
+            src = [s for s in src if not (s.kind == "fill" and s.net != net)]
+        return Grid(src, holes, edges, zones)
+
     todo = [n for n in nets if len(components(cur, n)) > 1]
     todo.sort(key=gap)
     grid = Grid(cur, holes, edges, zones)
     for net in todo:
-        items, _ = route_open(grid, cur, net)
+        items, _ = route_open(mkgrid(net) if args.soft_fills else grid, cur, net)
         cur += items
 
     def open_nets():
@@ -692,8 +719,8 @@ def main() -> int:
             before = len(open_nets())
             snap_cur, snap_removed = list(cur), set(removed)
             keep = {net}
-            hard = Grid([s for s in cur if s.locked or s.kind in ("pad", "fill") or s.net == net], holes, edges, zones)
-            full = Grid(cur, holes, edges, zones)
+            hard = mkgrid(net, [s for s in cur if s.locked or s.kind in ("pad", "fill") or s.net == net])
+            full = mkgrid(net)
             k = hard.nid(net)
             comps = components(cur, net)
             comps.sort(key=lambda cp: -len(cp))
@@ -709,10 +736,12 @@ def main() -> int:
             vids = {s.uid for s in vic}
             removed |= vids
             cur = [s for s in cur if s.uid not in vids or not s.uid]
-            grid = Grid(cur, holes, edges, zones)
+            grid = mkgrid(net)
             items, left = route_open(grid, cur, net, log=False)
             cur += items
             for vn in vnets:
+                if args.soft_fills:
+                    grid = mkgrid(vn)
                 items, _ = route_open(grid, cur, vn, log=False)
                 cur += items
             after = len(open_nets())

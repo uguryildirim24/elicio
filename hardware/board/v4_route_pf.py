@@ -393,6 +393,13 @@ def main() -> int:
     ap.add_argument("--drop-drc", type=Path, help="DRC json: drop unlocked items named in clearance errors")
     ap.add_argument("--debug", type=Path, help="write the last round's conflict cells here (json)")
     ap.add_argument("--skip", nargs="*", default=[], help="nets not routed here (e.g. GND, left to pours)")
+    ap.add_argument("--rip-near", type=Path,
+                    help="a previous run's --debug json: rip up every net with unlocked copper within --radius "
+                         "of a conflict cell and re-route those together (a knot needs a third net to move)")
+    ap.add_argument("--radius", type=float, default=1.0)
+    ap.add_argument("--all-after", type=int, default=0,
+                    help="from this round on, rip up and re-route every live net each round (PathFinder proper), "
+                         "not only the nets in conflict; slower, but a conflict can then be solved by a third net moving")
     args = ap.parse_args()
     text = args.pcb.read_text(encoding="utf-8")
     drop: set[str] = set()
@@ -402,9 +409,26 @@ def main() -> int:
             if v["severity"] == "error" and v["type"] in ("clearance", "shorting_items", "tracks_crossing",
                                                           "hole_clearance", "copper_edge_clearance"):
                 drop |= {i["uuid"] for i in v["items"] if i["description"].startswith(("Track", "Via"))}
+    ripnets: set[str] = set()
+    if args.rip_near:
+        import json
+        cells = json.loads(args.rip_near.read_text())
+        pre_shapes, _, _, _ = parse_board(text)
+        cx = np.array([c["x"] for c in cells]); cy = np.array([c["y"] for c in cells])
+        for s in pre_shapes:
+            if s.kind == "pad" or s.locked or not s.net or s.net in args.skip:
+                continue
+            (x0, y0), (x1, y1) = s.seg
+            n = max(2, int(math.hypot(x1 - x0, y1 - y0) / 0.1) + 1)
+            px, py = np.linspace(x0, x1, n), np.linspace(y0, y1, n)
+            d = np.hypot(px[:, None] - cx[None, :], py[:, None] - cy[None, :]).min()
+            if d <= args.radius:
+                ripnets.add(s.net)
+        print("rip-near:", len(cells), "conflict cells;", len(ripnets), "nets ripped:", " ".join(sorted(ripnets)), flush=True)
     for kind in ("segment", "via"):
         for b in blocks(text, kind):
-            if "(locked yes)" not in b and (args.fresh or sval(b, "uuid") in drop or sval(b, "net") in args.skip):
+            if "(locked yes)" not in b and (args.fresh or sval(b, "uuid") in drop or sval(b, "net") in args.skip
+                                           or sval(b, "net") in ripnets):
                 text = text.replace(f"\n\t({kind}{b}", "", 1)
     shapes, holes, edges, zones = parse_board(text)
     fixed = [s for s in shapes if s.kind == "pad" or s.locked]
@@ -469,6 +493,8 @@ def main() -> int:
         for net in bad:
             router.mark_history(net, hist_step)
         dirty = sorted(set(bad) | failed, key=span)
+        if args.all_after and rnd + 1 >= args.all_after:
+            dirty = sorted(live, key=span)
         pres *= 1.3
     if args.debug:
         dump_conflicts(router, bad, args.debug)
