@@ -110,13 +110,14 @@ v2 list from the v2 netlist (board-v2.md G2/BOM). v4 list from `hardware/board/v
 | D1 | PESD5V0L1UL SOD-523, C24109 | same | keep | VBUS TVS |
 | D2 | LED 0402, C72043 | same | keep | Charge LED |
 | J2 | SM02B-SRSS-TB, C160402 | Molex 202656-0021 Pico-EZmate Slim | change | Mated 1.20. Not in the JLC library. The cell needs the matching plug (L4) |
-| J3 | HDR-3-RA, C49257 | same, on a break-off tab | keep | Q91. Pin order reversed: J3.1 REF, J3.2 SIG2, J3.3 SIG1, so the three branches reach it without crossing |
+| J3 | HDR-3-RA, C49257 | same, on a break-off tab behind R31–R33 | keep | Q91. Pin order as v2 (J3.1 SIG1 side, J3.2 SIG2, J3.3 REF). Each pin has its own 220 kΩ on the tab (§5.4) |
 | J4 | TC2030-NL | same | keep | Not in BOM |
 | SW1 | TS-1187A, C318884 | HRO 1TS015A, C398746 | change | 3.0 × 2.0 × 0.6 |
 | P1–P3 | RING_PAD_D5_H2.7 | same | keep | |
 | P4, P5 | RING_PAD_D5_H2.7 on the CHARGE tab | RING_1S_D4.6_NPTH2.7, copper on B only | change | Wall rings (Q90) |
 | H1, H2 | island holes Ø2.7 | — | **remove** | Stops nothing electrical. Lid posts hold the island (§5.3) |
 | R1–R3 | 220 kΩ 0402, C881401 | same | keep | Contact, not shrunk |
+| — | — | R31–R33 220 kΩ 0402, C881401 | **add** | The bench header's own 220 kΩ per pin (R7), on the break-off tab; they leave with it |
 | R4, R17, R20, R21 | 1 MΩ 0402, C26083 | 0201, C473482 | change | |
 | R5–R8, R13, R25, R27, R28 | 10 kΩ 0402, C25744 | 0201, C473048 | change | |
 | R26 | 10 kΩ 0402, nRESET pull-up | — | **remove** | Stops nothing: P0.18 as RESET has its own pull-up (L10). Firmware sets UICR PSELRESET (§8) |
@@ -138,7 +139,7 @@ v2 list from the v2 netlist (board-v2.md G2/BOM). v4 list from `hardware/board/v
 
 J1 (USB-C) and USBLC6 were already absent in v2 (Q81).
 
-v4 placement: 56 parts plus P1–P5. On the island, 22 are on F (J4 included) and 33 on B; J3 is on the tab. J4 and P1–P5 are not in the BOM, which leaves 55 lines.
+v4 placement: 59 parts plus P1–P5. On the island, 22 are on F (J4 included) and 33 on B; J3, R31 and R33 are on the tab and R32 on its neck. J4 and P1–P5 are not in the BOM, which leaves 58 lines.
 
 **No removal changes function.** Every removed part was DNP, or is replaced by the SiP (L1), by the lid posts (H1/H2) or by the nRF's own reset pull-up (R26). The charger, charge interlock, AFE supply gate, VBUS_DET, VBAT_SENSE, CHG_MON, LED, SW1, J3 and J4 all stay.
 
@@ -152,9 +153,9 @@ Source: https://jlcpcb.com/capabilities/flex-pcb-capabilities, read 2026-09-23 (
 - nRESET leaves through a locked F.Cu 0.10 channel between pads 25 and 26. The path in module coordinates: pad 13 → (3.025, 2.7625) → (6.80, 2.7625) → (6.80, 3.05) → (8.35, 3.05).
 - The RF bridge from pad 20 to pad 22 is F.Cu 0.25 (net RF_ANT).
 - VSS 21 → 23 → 25 and 24 → 25 are bridged at 0.12 inside the module field.
-- VSS pads 14, 16 and 18 are left **unconnected on purpose**. They sit on the row at u 6.65 beside the RF band and can't be reached without via-in-pad or copper in the band.
-  - The datasheet says every VSS pad "Should be connected to ground plane on application PCB".
-  - The claim that the module ties all VSS pads together inside is **UNVERIFIED** (not quoted in the datasheet).
+- VSS pads 14, 16 and 18 sit on the row at u 6.65 beside the RF band. No track reaches them (the inner-row gaps are 0.25 against the 0.30 a 0.10 track needs, and the band is to the west). They are tied to the B pour by two locked GND vias **between** the pads, at (6.70, 28.725) and (6.70, 29.375): 0.40/0.15, drill in the 0.25 gap between neighbouring pads, ring edge at u 6.50, 0.05 outside the band (u ≤ 6.45). On F each ring overlaps the two pads beside it (same net), so 14, 16 and 18 are one piece; on B the rings land in the pour, which reaches u 6.45 there. Every VSS pad is on GND, as the datasheet asks ("Should be connected to ground plane on application PCB"), with no copper in the band.
+  - Not via-in-pad: the drills are between pads. The coverlay window over the U1 land and solder wicking into the two 0.15 holes at reflow are UNVERIFIED (§11.1).
+  - The claim that the module ties all VSS pads together inside stays UNVERIFIED and is no longer needed.
 - VBUS (pad 12) and D+/D− (8/10) sit on the same row and stay unconnected (§8).
 - No via-in-pad. The datasheet allows "a small number of internal pads … by placing normal vias in the centre of the device … vias tented". v4 doesn't need it.
 
@@ -296,10 +297,11 @@ All strips are 2.5 wide with cap R 3.2, one Contact net each.
 
 ### 4.6 J3 break-off tab
 
-- Neck: s 19.9–22.4. Tab: u 19.6–32.4 × s 16.55–25.75. Cut line: u 16.20.
-- Pins, THT Ø1.5 (pin order reversed, §2): REF J3.1 (21.35, 18.61), SIG2 J3.2 (21.35, 21.15), SIG1 J3.3 (21.35, 23.69).
-- Traces cross the neck at s 20.30 (SIG2, F), 20.65 (SIG1, F) and 21.20 (REF, B). Edge gap 0.325 on the −s side.
-- The tab is cut before closing (Q91). The assembly sheet must show the cut line.
+- Neck: u 15.75–20.10 × s 19.9–22.4. Tab: u 20.10–33.40 × s 16.0–28.0. Cut line: u 16.20. The tab's west edge keeps 1.0 from the P4/P5 flap (flap u ≤ 19.114).
+- Pins, THT Ø1.5, order as v2: J3.1 BENCH_SIG1 (22.40, 19.40), J3.2 BENCH_SIG2 (22.40, 21.94), J3.3 BENCH_REF (22.40, 24.48).
+- Bench 220 kΩ (0402, C881401), pad 1 (west) on the AFE side: R31 (22.40, 16.80) north of the header, R33 (22.40, 27.10) south of it, R32 (18.00, 21.15) on the neck.
+- Three AFE-side runs cross the neck on F, 0.10 wide, 0.75 apart: AFE_IN1P at s 20.40, AFE_IN1N 21.15, RLD_FB 21.90. Edge gap 0.50 on both sides.
+- The tab is cut before closing (Q91). The assembly sheet must show the cut line. After the cut the stub (u 15.75–16.20) carries the three bare AFE-side ends and no Contact copper (§5.4).
 
 ### 4.7 Stiffener map
 
@@ -352,18 +354,23 @@ Gaps: u 4.76, s 0.95, box distance 4.85. **J2 clears P5 by ≥ 4.76 in u (≥ 0.
 
 Contact runs are 0.15 track at 0.20 clearance. Each strip run is split at the zone exit, site ± (3.5 + 0.10). So the Q84 1.0 mm rule covers only the land segment, and the rest of the strip is under the 0.20 strip rule (Q88).
 
-The J3 branches of SIG1 and SIG2 run on **F** along the −s edge and up the +u side. That leaves B free for both charge nets to cross the joint, and the charger sits on B. The first layout had the branches on B and the charge nets on F, which boxed the charger's nets in at the joint corner.
+Contact copper stays on the island: each Contact net ends at its 220 kΩ (R1–R3) and nothing Contact goes to the tab. J3's pins carry the bench nets BENCH_SIG1, BENCH_SIG2 and BENCH_REF (Contact class) and reach the AFE nodes through their own 220 kΩ, R31–R33, on the tab side of the cut (R7: every gel-header path is protected by its own 220 kΩ). What crosses the neck and the cut is AFE-side copper only. Opus's first layout ran SIG1/SIG2/REF branches to J3 and left their ends bare on the stub after the cut; that is gone.
 
 | Net | Layer | Path |
 |---|---|---|
 | SIG1 | B | P1 → zone exit (5.90, 8.89) → (5.90, 16.40) → R1.1 |
-| SIG1 branch | B → F | (5.90, 16.40) → via (6.75, 16.60) → F (7.20, 17.05) → (14.35, 17.05) → (14.35, 20.65) → (20.00, 20.65) → (20.00, 23.69) → J3.3 |
 | SIG2 | F | P2 → zone exit (10.40, −2.21) → via (10.40, 16.50). B: via → R2.1 |
-| SIG2 branch | F | via (10.40, 16.50) → (14.70, 16.50) → (14.70, 20.30) → (20.60, 20.30) → (20.60, 21.15) → J3.2 |
-| REF | B | P3 → zone exit (8.50, 39.40) → (8.50, 37.20) → (15.35, 37.20) → (15.35, 21.20) → (20.05, 21.20) → (20.05, 18.61) → J3.1. Branch (15.35, 25.60) → R3.1 |
+| REF | B | P3 → zone exit (8.50, 39.40) → (8.50, 37.20) → (15.35, 37.20) → (15.35, 25.60) → R3.1 |
+| BENCH_SIG1 | F, 0.15 | J3.1 (22.40, 19.40) → (22.91, 18.30) → R31.2 (22.91, 16.80) |
+| BENCH_SIG2 | F, 0.15 | J3.2 (22.40, 21.94) → (21.61, 21.15) → R32.2 (18.51, 21.15) |
+| BENCH_REF | F, 0.15 | J3.3 (22.40, 24.48) → (22.91, 25.58) → R33.2 (22.91, 27.10) |
+| AFE_IN1P | F, 0.10 | R31.1 (21.89, 16.80) → (20.50, 16.80) → (20.50, 20.40) → (15.40, 20.40); the router joins it to R1.2 and U2 pad 4 |
+| AFE_IN1N | F, 0.10 | R32.1 (17.49, 21.15) → (15.40, 21.15); the router joins it to R2.2 and U2 pad 3 |
+| RLD_FB | F, 0.10 | R33.1 (21.89, 27.10) → (20.90, 27.10) → (20.90, 21.90) → (15.40, 21.90); the router joins it to R3.2 and U2 pads 29/30 |
 
-- SIG2's strip copper is on F because P2 is plated. Each strip carries one net on one layer; the two Contact vias are on the island at the strip roots, not in a strip.
-- SIG2's branch runs outside SIG1's (u 14.70 against 14.35, s 16.50 against 17.05), so they never cross.
+- SIG2's strip copper is on F because P2 is plated. Each strip carries one net on one layer; the one Contact via is on the island at SIG2's strip root, not in a strip. SIG1 and REF have no via.
+- With the tab on (bench use), a gel lead on J3.n sees pin → 0.15 track → 220 kΩ (R31–R33) → AFE node, and the dome on the same node sees dome → strip → 220 kΩ (R1–R3) → AFE node: two independent 220 kΩ per node. The bench nets are in the Contact netclass (0.15/0.20) and R31–R33 sit at u ≥ 17.49, east of the cut.
+- The cut at u 16.20 crosses only the three AFE-side 0.10 runs.
 
 Charge copper, 0.20 track. It is only where skin can't reach: plate, flap and joint.
 
@@ -388,10 +395,10 @@ Charge copper, 0.20 track. It is only where skin can't reach: plate, flap and jo
 | Q97(a) one Contact net per strip, one layer | ✓ (SIG2 on F, SIG1 and REF on B) |
 | Q97(b) class clearance under coverlay | ✓ |
 | Q97(c) no foreign via or pour inside a land's zone | ✓ (P4's own-net via only) |
-| Q97(d) R1–R3's pads the only exposed Contact copper on the island | ✓ until the J3 cut; see below |
-| Q97 "away from U1's antenna edge" | ✓: SIG1's branch runs at s ≤ 17.05 west of u 14.35 and the RF band starts at 21.8; REF runs at u ≥ 8.5 |
+| Q97(d) R1–R3's pads the only exposed Contact copper on the island | ✓: Contact nets end at R1–R3; J3 carries bench nets behind R31–R33; the stub after the cut carries AFE-side copper only (§5.4). `tests/test_board_v4.py` checks that Contact nets sit only on P1–P3 and R1–R3 and that no Contact copper lies east of u 15.75 |
+| Q97 "away from U1's antenna edge" | ✓: SIG1 stays at u 5.90, s ≤ 16.40; SIG2 at u 10.40, s ≤ 16.50; REF runs along s 37.20 (u 8.5–15.35) and u 15.35. None of it is in the RF band (u ≤ 6.45, s 21.8–37.6) |
 
-**Flag, stated once:** cutting J3 at u 16.20 leaves three Contact trace ends exposed on the stub (u 15.75–16.20), inside the cavity: SIG2 and SIG1 on F 0.20 apart, REF on B. That is Contact copper exposed beyond R1–R3 (Q97(d)). The cut edge needs a cover or a drawn exception.
+The r12 flag (Contact ends bare on the stub after the cut) is closed by R31–R33: no Contact copper crosses the cut, so no cover and no drawn exception is needed.
 
 ## 6. Target W / T / L
 
@@ -441,8 +448,12 @@ I didn't edit plan-v2. Each clause below is one v4 departs from, or one that sto
 | §5.5 supply gate | — | Kept | Refused as a lever |
 | §5.6 bench header | — | Kept on the break-off tab | Q91 |
 | Q90 P5 site | s 12.35 | s 12.10 | Flap clears the rib at s 14.9 |
-| Closure | M2.5×8 at (u 16.50, s 41.00) | Must move (shell change) | On the W18 cavity wall (u ≤ 16.5) |
-| Rib | s 14.9–15.7 | Needs a slot for the P4/P5 flap (shell change) | §4.4 |
+| Closure | M2.5×8 at (u 16.50, s 41.00) | Redesign, not a move (shell change) | At W18 the tail is u 0–18. Beside the Ø7.5 REF pocket (u 4.75–12.25) a Ø5.0 head well with 1.0 walls needs 7.0 of u: 12.25 + 1.0 + 5.0 + 1.0 = 19.25 > 18 on the +u side, and 4.75 − 7.0 < 0 on the −u side. So either the well goes past the pocket into the tail loft (centre s ≥ 43 + 3.75 + 1.0 + 2.5 = 50.25, which is beyond the loft start 45.5 and needs the tongue slot moved) or the closure becomes a latch |
+| Rib | s 14.9–15.7 | Slot for the P4/P5 flap (shell change) | Cut the rib back 0.50 from the posterior wall over its full height: remove u 16.00–16.50 × s 14.90–15.70 × y 1.50–4.50. The flap (0.31 thick on the wall face, y 1.695–3.905) then has 0.19 of air (§4.4, §10.2) |
+| P4/P5 wall collars | r9: hex sockets 2.08 proud of the wall face, wells 3.28 deep | Must go (shell change) | The plate lies on the wall face (u 16.19–16.50 × s 1.75–14.85 × y 1.695–6.895); a socket proud of the face would sit on the plate. Key each standoff instead with two floor-standing walls: u 13.19–16.19, s = site ± (2.65 + 0.15) outward, 1.0 thick, y 1.50–4.30 (up to the hex axis; AF 5.0). The standoff's −u end stays open; the cell (u ≤ 11.90) is 1.29 away |
+| Lid posts | none | Two posts on the lid (shell change) | Ø2.0 at (5.90, 23.00), 1.98 long onto the island's F face at y 5.12; and at (9.40, 32.10), 0.98 long onto U1's top at 6.12 (§5.3) |
+| LID_Y | 8.0 | 7.1 | Set by the cell (§1.2); T 8.1 |
+| Cavity width | u 1.5–20.5 (W22) | u 1.5–16.5 (W18) | §4.1. Everything else of the r9 shell (SIG fold pockets, REF slot, hinge, hook) is used unchanged in §10.2 |
 | Foam 0.5 (decision 57; plan §3 says 0.3) | — | 0.5 kept | 0.3 would give T 7.9 with a plate re-cut (N6) |
 
 ## 8. Firmware pin map (for WP13)
@@ -704,7 +715,95 @@ From `python3 hardware/board/v4_tables.py --pads` on the committed board. Part c
 
 ### 10.2 Folded shell sites (u, s, y)
 
-Not generated yet; `v4_tables.py` prints only the flat table. The fold sites and cavity tests exist by numbers in §4.4 (P4/P5 plate), §4.5 (strips and rings), §4.8 (cavity tests) and §4.9 (J2 against the P5 well). A generated table with a cavity test for every courtyard, hang and tab root is still owed.
+From `python3 hardware/board/v4_tables.py --folded` on the committed board. Shell u, s = flat u, s for everything that stays flat (the island and its parts); y comes from the thickness chain (§1.2) and the fold math (§4.4). Courtyards are line-centre boxes from the footprint text (the drawn line is 0.05 wide). The v4 target body is the r9 shell (branch `hp/elicio/t-0001-finish-the-earpiece-shell-v2f-wp14f-from`, 252afbb, not merged) with §7's changes on paper: walls u 1.5/16.5, floor 1.5, LID_Y 7.1, rib s 14.9–15.7 (y ≤ 4.5), bay s 15.7–38.2, EMG hex collars AF 8.4 (top y 3.5) at the P1/P2 sites, standoff landings R 3.2, lid posts Ø2.0, r9's SIG fold pockets and REF end-wall slot. Margins are in mm; a row passes when every margin is ≥ 0. F parts stand on the island top (y 5.12) under the lid; B parts hang from the island underside (y 5.01) over the collar top (3.5) where a collar box is below them, else over the floor (1.5). Heights are maxima from the sources in the table; the ones marked UNVERIFIED are package maxima (§11.1). The P2 lid post on U1 is by design (§5.3).
+
+#### Courtyards on the island (flat u, s = shell u, s; y from the fold math)
+
+| ref | side | courtyard u | courtyard s | h (source) | y | wall u | rib/end s | lid or floor y | lid post | landing | test |
+|---|---|---:|---:|---|---|---:|---:|---:|---:|---:|---|
+| C1 | bottom | 12.95-13.65 | 22.95-24.35 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.85 | 7.25 | 3.16 (floor) | - | 3.91 | ok |
+| C2 | bottom | 11.25-12.65 | 17.20-17.90 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.85 | 1.50 | 3.16 (floor) | - | 3.54 | ok |
+| C3 | bottom | 14.05-14.75 | 19.25-20.65 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.75 | 3.55 | 3.16 (floor) | - | 5.06 | ok |
+| C4 | bottom | 6.55-7.95 | 17.10-17.80 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.05 | 1.40 | 1.16 (collar) | - | 1.05 | ok |
+| C5 | bottom | 9.25-10.65 | 23.40-24.10 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.85 | 7.70 | 1.16 (collar) | - | 0.43 | ok |
+| C6 | top | 7.29-8.21 | 21.75-23.57 | 0.60 (0402 C max, UNVERIFIED) | 5.12-5.72 | 5.79 | 6.05 | 1.38 (lid) | 0.39 | - | ok |
+| C7 | top | 8.43-9.13 | 21.96-23.36 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 6.93 | 6.26 | 1.63 (lid) | 1.53 | - | ok |
+| C8 | bottom | 10.74-12.56 | 22.09-23.01 | 0.60 (0402 C max, UNVERIFIED) | 4.41-5.01 | 3.94 | 6.39 | 2.91 (floor) | - | 1.64 | ok |
+| C9 | top | 9.74-10.66 | 17.59-19.41 | 0.60 (0402 C max, UNVERIFIED) | 5.12-5.72 | 5.84 | 1.89 | 1.38 (lid) | 4.26 | - | ok |
+| C10 | top | 8.75-9.45 | 17.90-19.30 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 7.05 | 2.20 | 1.63 (lid) | 3.67 | - | ok |
+| C11 | bottom | 10.95-12.35 | 24.25-24.95 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 4.15 | 8.55 | 3.16 (floor) | - | 2.33 | ok |
+| C12 | bottom | 2.40-3.80 | 17.95-18.65 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 0.90 | 2.25 | 1.16 (collar) | - | 0.75 | ok |
+| C13 | bottom | 3.90-5.30 | 17.95-18.65 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.40 | 2.25 | 1.16 (collar) | - | 0.20 | ok |
+| C14 | bottom | 10.74-12.56 | 23.14-24.06 | 0.60 (0402 C max, UNVERIFIED) | 4.41-5.01 | 3.94 | 7.44 | 2.91 (floor) | - | 1.77 | ok |
+| C15 | top | 12.90-14.30 | 24.80-25.50 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 2.20 | 9.10 | 1.63 (lid) | 6.23 | - | ok |
+| C16 | bottom | 4.35-5.05 | 16.45-17.85 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.85 | 0.75 | 1.16 (collar) | - | 1.04 | ok |
+| D1 | bottom | 11.35-13.85 | 19.00-20.40 | 0.80 (SOD-523 max, UNVERIFIED) | 4.21-5.01 | 2.65 | 3.30 | 2.71 (floor) | - | 2.48 | ok |
+| D2 | top | 13.72-15.58 | 25.63-26.57 | 0.55 (0402 LED, UNVERIFIED) | 5.12-5.67 | 0.92 | 9.93 | 1.43 (lid) | 6.02 | - | ok |
+| J2 | top | 2.34-8.38 | 16.15-21.65 | 1.20 (§1.2 mated) | 5.12-6.32 | 0.84 | 0.45 | 0.78 (lid) | 0.35 | - | ok |
+| J3 | top | 20.63-32.94 | 17.63-26.25 | 0.00 (no height: UNVERIFIED) | cut off with the tab (Q91) | - | - | - | - | - | exterior |
+| J4 | top | 6.50-13.50 | 33.40-37.40 | 0.00 (pads only) | 5.12-5.12 | 3.00 | 0.80 | 1.98 (lid) | 0.30 | - | ok |
+| Q1 | bottom | 9.25-10.65 | 22.30-23.30 | 0.40 (DFN1006 max, UNVERIFIED) | 4.61-5.01 | 5.85 | 6.60 | 1.11 (collar) | - | 0.16 | ok |
+| Q2 | bottom | 12.65-14.05 | 27.10-28.10 | 0.40 (DFN1006 max, UNVERIFIED) | 4.61-5.01 | 2.45 | 10.10 | 3.11 (floor) | - | 2.28 | ok |
+| Q3 | bottom | 9.25-10.65 | 20.40-21.40 | 0.40 (DFN1006 max, UNVERIFIED) | 4.61-5.01 | 5.85 | 4.70 | 1.11 (collar) | - | 0.20 | ok |
+| Q4 | top | 13.90-15.30 | 27.50-28.50 | 0.40 (DFN1006 max, UNVERIFIED) | 5.12-5.52 | 1.20 | 9.70 | 1.58 (lid) | 4.76 | - | ok |
+| R1 | bottom | 5.43-6.37 | 16.37-18.23 | 0.45 (0402 R max, UNVERIFIED) | 4.56-5.01 | 3.93 | 0.67 | 1.06 (collar) | - | 0.57 | ok |
+| R2 | bottom | 8.46-10.32 | 16.78-17.72 | 0.45 (0402 R max, UNVERIFIED) | 4.56-5.01 | 6.18 | 1.08 | 1.06 (collar) | - | 1.79 | ok |
+| R3 | bottom | 13.62-15.48 | 25.13-26.07 | 0.45 (0402 R max, UNVERIFIED) | 4.56-5.01 | 1.02 | 9.43 | 3.06 (floor) | - | 4.53 | ok |
+| R4 | bottom | 12.95-13.65 | 21.45-22.85 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.85 | 5.75 | 3.16 (floor) | - | 3.85 | ok |
+| R5 | top | 11.05-11.75 | 30.42-31.82 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 4.75 | 6.38 | 1.63 (lid) | 0.67 | - | ok |
+| R6 | top | 11.05-11.75 | 28.93-30.33 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 4.75 | 7.87 | 1.63 (lid) | 1.42 | - | ok |
+| R7 | top | 10.70-11.40 | 24.80-26.20 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 5.10 | 9.10 | 1.63 (lid) | 4.13 | - | ok |
+| R8 | top | 11.05-11.75 | 31.91-33.31 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 4.75 | 4.89 | 1.63 (lid) | 0.65 | - | ok |
+| R11 | bottom | 11.30-12.70 | 16.40-17.10 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.80 | 0.70 | 3.16 (floor) | - | 4.09 | ok |
+| R12 | top | 11.90-13.30 | 17.80-18.50 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 3.20 | 2.10 | 1.63 (lid) | 6.50 | - | ok |
+| R13 | top | 11.90-13.30 | 18.60-19.30 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 3.20 | 2.90 | 1.63 (lid) | 6.05 | - | ok |
+| R14 | bottom | 9.25-10.65 | 21.50-22.20 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.85 | 5.80 | 1.16 (collar) | - | 0.15 | ok |
+| R15 | bottom | 9.25-10.65 | 19.60-20.30 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.85 | 3.90 | 1.16 (collar) | - | 0.56 | ok |
+| R16 | bottom | 14.25-14.95 | 26.40-27.80 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.55 | 10.40 | 3.16 (floor) | - | 3.35 | ok |
+| R17 | bottom | 14.25-14.95 | 27.85-29.25 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.55 | 8.95 | 1.16 (collar) | - | 2.24 | ok |
+| R18 | bottom | 11.10-12.50 | 25.25-25.95 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 4.00 | 9.55 | 3.16 (floor) | - | 2.93 | ok |
+| R19 | bottom | 12.60-14.00 | 26.17-26.87 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.50 | 10.47 | 3.16 (floor) | - | 3.41 | ok |
+| R20 | bottom | 11.10-12.50 | 26.05-26.75 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 4.00 | 10.35 | 3.16 (floor) | - | 3.19 | ok |
+| R21 | bottom | 11.10-12.50 | 26.85-27.55 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 4.00 | 10.65 | 3.16 (floor) | - | 2.39 | ok |
+| R22 | top | 13.90-15.30 | 26.67-27.37 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 1.20 | 10.83 | 1.63 (lid) | 5.53 | - | ok |
+| R23 | top | 7.25-8.65 | 23.75-24.45 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 5.75 | 8.05 | 1.63 (lid) | 0.54 | - | ok |
+| R24 | bottom | 8.70-10.10 | 24.30-25.00 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 6.40 | 8.60 | 1.16 (collar) | - | 0.42 | ok |
+| R25 | bottom | 11.25-12.65 | 18.00-18.70 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.85 | 2.30 | 3.16 (floor) | - | 3.09 | ok |
+| R27 | top | 12.10-12.80 | 24.80-26.20 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 3.70 | 9.10 | 1.63 (lid) | 5.46 | - | ok |
+| R28 | top | 13.00-13.70 | 27.00-28.40 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 2.80 | 9.80 | 1.63 (lid) | 4.16 | - | ok |
+| R31 | top | 21.47-23.33 | 16.33-17.27 | 0.45 (0402 R max, UNVERIFIED) | cut off with the tab (Q91) | - | - | - | - | - | exterior |
+| R32 | top | 17.07-18.93 | 20.68-21.62 | 0.45 (0402 R max, UNVERIFIED) | cut off with the tab (Q91) | - | - | - | - | - | exterior |
+| R33 | top | 21.47-23.33 | 26.63-27.57 | 0.45 (0402 R max, UNVERIFIED) | cut off with the tab (Q91) | - | - | - | - | - | exterior |
+| SW1 | top | 13.20-15.70 | 28.95-33.25 | 0.60 (§1.2) | 5.12-5.72 | 0.80 | 4.95 | 1.38 (lid) | 2.80 | - | ok |
+| U1 | top | 2.20-10.70 | 24.80-33.30 | 1.00 (§1.2) | 5.12-6.12 | 0.70 | 4.90 | 0.98 (lid) | -1.00 (post on the part) | - | ok |
+| U2 | top | 9.22-14.48 | 19.45-24.71 | 1.00 (TI RSM) | 5.12-6.12 | 2.02 | 3.75 | 0.98 (lid) | 2.32 | - | ok |
+| U3 | bottom | 12.84-14.96 | 16.95-18.55 | 0.63 (TI YFP, UNVERIFIED) | 4.38-5.01 | 1.54 | 1.25 | 2.88 (floor) | - | 4.55 | ok |
+| U4 | bottom | 10.74-12.56 | 20.50-22.00 | 0.40 (TI DQN) | 4.61-5.01 | 3.94 | 4.80 | 3.11 (floor) | - | 1.64 | ok |
+| U5 | bottom | 2.39-4.21 | 16.35-17.85 | 0.40 (TI DQN) | 4.61-5.01 | 0.89 | 0.65 | 1.11 (collar) | - | 1.28 | ok |
+
+Smallest courtyard margin: 0.45 mm.
+
+#### Rings, strip roots and tab roots
+
+| item | flat (u, s) | folded site (u, s, y) | body feature | margin | test |
+|---|---|---|---|---|---|
+| P1 ring (SIG1) | (5.90, 5.29) | (5.90, 22.00), floor 1.50-1.81 under the P1 standoff | standoff R 3.2 landing under the island | site as §4.5 | ok |
+| SIG1 root | u 4.65-7.15 at s 16.00 | 180° fold R 1.5 under the island, stand-out to s 14.40, drop 3.31 | r9 fold pocket u 4.15-7.65 × s 14.40-16.00 × 3.00 tall (decision 74) | u 0.50 each side, s 0.00 at the island, stand-out 0.00 | ok |
+| P2 ring (SIG2) | (10.40, -5.81) | (10.40, 33.10), floor 1.50-1.81 under the P2 standoff | standoff R 3.2 landing under the island | site as §4.5 | ok |
+| SIG2 root | u 9.15-11.65 at s 16.00 | 180° fold R 1.5 under the island, stand-out to s 14.40, drop 3.31 | r9 fold pocket u 8.65-12.15 × s 14.40-16.00 × 3.00 tall (decision 74) | u 0.50 each side, s 0.00 at the island, stand-out 0.00 | ok |
+| P3 ring (REF) | (8.50, 43.00) | (8.50, 43.00), floor 1.50-1.81 in the REF pocket | REF pocket Ø7.5 | site as §4.5 | ok |
+| REF root | u 7.25-9.75 at s 37.60 | drops 3.20 to the floor in the 0.60 gap before the end wall (bare PI, v2 geometry) | r9 end-wall slot u 7.05-9.95 × s 38.20-39.25 × y 1.50-1.96 | u 0.20 each side, y 0.15 over the 0.31 ring stack | ok (drop UNVERIFIED) |
+| P4 ring (VBUS) | (16.51, 4.35) | (16.245, 4.35, 4.295), copper on B facing the standoff | wall face u 16.19-16.50, standoff u 13.19-16.19 | plate y 1.695-6.895: lid 0.205, floor 0.195 | ok |
+| P5 ring (GND) | (16.51, 12.10) | (16.245, 12.10, 4.295), copper on B facing the standoff | wall face u 16.19-16.50, standoff u 13.19-16.19 | plate y 1.695-6.895: lid 0.205, floor 0.195 | ok |
+| P4/P5 joint root | u 15.09-16.904, s 16.30-19.30 | bend to u 16.30 (outer), y 3.80-5.12 | wall face 16.50; rib s 14.90-15.70 | wall 0.20 (FR4 side on the wall by design), rib 0.60 | ok |
+| P4/P5 flap | u 16.904-19.114, s 14.85-19.30 | on the wall face, y 1.695-3.905 | crosses the rib s 14.90-15.70 (rib y 1.50-4.50) | none without a slot: cut the rib back 0.50 from the wall (u 16.00-16.50, full rib height) | shell change (§7) |
+| J2 against the P5 well | courtyard u 2.34-8.38, s 16.15-21.65 | y 5.12-6.32 | standoff end u 13.19, well s 9.04-15.16 | u 4.81, s 0.99 (need ≥ 0.3) | ok |
+| J3 stub after the cut | u 15.75-16.20, s 19.90-22.40 | island plane y 5.01-5.12 | wall face 16.50 | u 0.30; no Contact copper on the stub (§5.4) | ok |
+| Island edges | u 2.25-15.75, s 16.00-37.60 | y 4.81-5.12 on the P1/P2 standoffs | walls u 1.50/16.50, rib face 15.70, end wall 38.20 | u 0.75/0.75, s 0.30/0.60 | ok |
+| Lid post P1 | (5.90, 23.00) Ø2.0 | from the lid 7.10 onto the island F face 5.12 (1.98 long) | over the P1 standoff | see the lid-post column above | ok |
+| Lid post P2 | (9.40, 32.10) Ø2.0 | from the lid 7.10 onto U1 (top 6.12, 0.98 long; load UNVERIFIED) | over the P2 standoff | see the lid-post column above | ok |
+
+Shell changes this table needs, with numbers (all in §7): the rib cut back 0.50 from the posterior wall (u 16.00–16.50 × s 14.90–15.70 × y 1.50–4.50) for the flap; the P4/P5 wall sockets replaced by floor-standing keying walls (u 13.19–16.19, 1.0 thick, y 1.50–4.30); the closure moved off the W18 tail side or changed to a latch; two lid posts; LID_Y 7.1; cavity u 1.5–16.5. J2 clears the P5 well by 4.81 in u (need ≥ 0.3), provided the well does not reach past the standoff end at u 13.19 in −u.
 
 ## 11. UNVERIFIED and sources
 
@@ -725,6 +824,10 @@ Not generated yet; `v4_tables.py` prints only the flat table. The fold sites and
 - **ADS1292 frame size** (72 bits), used in the MISO argument.
 - **Measures:** the SOT-23, SOT-23-5, TS-1187A, JST SH and 0603 courtyards are line-centre measures from footprint text, not pcbnew courtyards.
 - **Cell with plug:** supply of a 501012 with the Pico-EZmate Slim plug fitted.
+- **Part heights** in §10.2 beyond U1, J2, SW1 (§1.2) and the TI outlines: package maxima, no page read.
+- **U1 VSS vias:** the coverlay window over the U1 land and solder wicking into the two 0.15 holes between pads 14/16/18 at reflow (§3.1).
+- **REF drop:** the strip's descent from the island (y 5.01) to the end-wall slot (y 1.50–1.96) inside the 0.60 gap is v2's geometry, not re-derived here.
+- **P4/P5 keying walls and the closure** (§7): proposals by numbers; the r9 shell has not been rebuilt with them.
 
 ### 11.2 Sources
 

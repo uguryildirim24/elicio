@@ -5,7 +5,8 @@ docs/fab/board-v4-design.md §4-§6. The flex is drawn flat: PCB (x, y) =
 packing (u, s) in mm. Folded shell sites are in the note's §10 tables.
 
 Run with KiCad's python:
-  build_v4.py                     build elicio-v4.kicad_pcb (unrouted, pre-routes locked)
+  build_v4.py [--out PCB]         build elicio-v4.kicad_pcb (unrouted, pre-routes locked);
+                                  --out writes elsewhere and leaves the routed board alone
   build_v4.py --export-dsn OUT    Specctra DSN for Freerouting
   build_v4.py --import-ses SES [PCB]  import a Freerouting session, clamp widths
 """
@@ -59,6 +60,9 @@ VIA_DRILL = 0.15
 CONTACT_TRACK = 0.15
 CONTACT_CLEAR = 0.20
 CONTACT_NETS = ("SIG1", "SIG2", "REF")
+# Bench nets live on the J3 tab only, behind their own 220 kOhm (R31-R33);
+# they take the Contact class rules there.
+BENCH_NETS = ("BENCH_SIG1", "BENCH_SIG2", "BENCH_REF")
 CHARGE_TRACK = 0.20
 TAB_RULE_HALF = 3.50  # Q84/Q88 7 x 7 zones
 
@@ -82,28 +86,30 @@ CAP_R = 3.20
 SIG1_ATTACH, SIG1_SITE = (5.90, S0), (5.90, 5.29)
 SIG2_ATTACH, SIG2_SITE = (10.40, S0), (10.40, -5.81)
 REF_ATTACH, REF_SITE = (8.50, S1), (8.50, 43.00)
-# J3 break-off tab (bench header, Contact nets). Cut before closing.
+# J3 break-off tab (bench header). Cut before closing. The tab carries the
+# bench nets behind their own 220 kOhm (R31-R33, design note §5.4), so the
+# copper crossing the cut is AFE-side and no Contact copper leaves the
+# island (Q97(d)). R32 sits on the neck; R31 and R33 sit south and north of
+# J3's courtyard. The tab's west edge keeps 1.0 from the P4/P5 flap.
 J3_NECK_S0, J3_NECK_S1 = 19.90, 22.40
 J3_CUT_U = 15.20 + DW
-J3_TAB_U0, J3_TAB_U1 = 18.60 + DW, 31.40 + DW
-J3_TAB_S0, J3_TAB_S1 = 16.55, 25.75
-J3_PIN1 = (20.35 + DW, 18.61)
-# Contact corridor (design note §5.4), Contact class 0.15 / 0.20. The J3
-# branches of SIG1/SIG2 run on F along the -s and +u edges, so the charge
-# nets can cross the joint on B and the charger sits on B (no net boxed in).
+J3_TAB_U0, J3_TAB_U1 = 19.10 + DW, 32.40 + DW
+J3_TAB_S0, J3_TAB_S1 = 16.00, 28.00
+J3_PIN1 = (21.40 + DW, 19.40)
+J3_R31 = (21.40 + DW, 16.80)   # AFE_IN1P <- BENCH_SIG1, north of the header
+J3_R33 = (21.40 + DW, 27.10)   # RLD_FB <- BENCH_REF, south of the header
+J3_R32 = (17.00 + DW, 21.15)   # AFE_IN1N <- BENCH_SIG2, on the neck
+# Neck runs, all F, 0.75 apart: AFE_IN1P north, AFE_IN1N middle, RLD_FB south
+# (U2's input pads sit north of its RLD pads, so the runs don't cross).
+J3_S_IN1P, J3_S_IN1N, J3_S_REF = 20.40, 21.15, 21.90
+J3_LANE_IN1P_U, J3_LANE_REF_U = 19.50 + DW, 19.90 + DW  # F columns in the tab's west margin
+J3_ISLAND_U = 14.40 + DW  # the locked neck runs end here, inside the island; the finisher joins them
+# Contact corridor (design note §5.4), Contact class 0.15 / 0.20: strips to
+# R1-R3 only. SIG2 crosses to B at the strip root (P2 is plated, so its
+# strip copper is F); REF runs along the +s edge and down the +u edge on B.
 SIG1_CORR_S = 16.40
-SIG1_VIA = (6.75, 16.60)
-SIG1_F_S = 17.05
 SIG2_VIA = (10.40, 16.50)
-SIG1_CORR_U = 13.35 + DW
-SIG2_CORR_U = 13.70 + DW
 REF_CORR_U = 14.35 + DW
-# J3 is a symmetric 1 x 3 header: pin 1 (-s end) is REF, pin 3 is SIG1, so the
-# three branches reach it without crossing on one layer (REF on B).
-J3_S2_S, J3_S1_S, J3_REF_S = 20.30, 20.65, 21.20
-J3_SIG1_U = 19.00 + DW
-J3_SIG2_U = 19.60 + DW
-J3_REF_U = 19.05 + DW
 # Charge nets cross the joint on B: GND north, VBUS south (VBUS goes F -> B
 # on the flap, clear of the bend and 1.0 mm clear of GND inside P5's zone).
 VBUS_FLAP_VIA = (17.40 + DW, 17.00)
@@ -139,6 +145,9 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "J2": ("top", 5.45, 18.90, 270),
     "J4": ("top", 10.00, 35.40, 0),
     "J3": ("top", *J3_PIN1, 0),
+    "R31": ("top", *J3_R31, 0),
+    "R32": ("top", *J3_R32, 0),
+    "R33": ("top", *J3_R33, 0),
     "P1": ("top", *SIG1_SITE, 0),
     "P2": ("top", *SIG2_SITE, 0),
     "P3": ("top", *REF_SITE, 0),
@@ -213,6 +222,7 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
 }
 
 RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
+TAB_REFS = {"J3", "R31", "R32", "R33"}  # on the break-off tab or its neck
 NO_BOM = {"J4"} | RING_REFS
 
 
@@ -319,9 +329,9 @@ def add_rule_areas(board) -> None:
     # Joint bend and the plate: no vias in the bend, no parts anywhere on it.
     add_poly_area(board, [(BEND_U0, JOINT_S0), (BEND_U1, JOINT_S0), (BEND_U1, JOINT_S1), (BEND_U0, JOINT_S1)],
                   "BEND_P45", all_cu, tracks=True, vias=False, fills=False, pads=False, footprints=False)
-    # J3 neck: cut line crosses it; no vias.
+    # J3 neck: cut line crosses it; no vias, no fills. R32 (pads) sits on it.
     add_poly_area(board, [(U1_EDGE, J3_NECK_S0), (J3_TAB_U0, J3_NECK_S0), (J3_TAB_U0, J3_NECK_S1), (U1_EDGE, J3_NECK_S1)],
-                  "J3_NECK", all_cu, tracks=True, vias=False, fills=False, pads=False, footprints=True)
+                  "J3_NECK", all_cu, tracks=True, vias=False, fills=False, pads=True, footprints=True)
 
 
 def stamp_aperture_pad_nets(path: Path) -> None:
@@ -397,7 +407,7 @@ def add_fab_notes(board) -> None:
         s.SetEnd(v2(J3_CUT_U, J3_NECK_S1 + 0.4))
         s.SetWidth(pcbnew.FromMM(0.12))
         board.Add(s)
-    add_text(board, 24.0 + DW, 27.0, f"J3 BREAK-OFF: CUT u={J3_CUT_U:.2f}", pcbnew.Dwgs_User, 0.5)
+    add_text(board, 27.5 + DW, 27.3, f"J3 BREAK-OFF: CUT u={J3_CUT_U:.2f}", pcbnew.Dwgs_User, 0.5)
     add_text(board, 15.0 + DW, 17.8, f"90 DEG FOLD R1.1 u {BEND_U0:.2f}-{BEND_U1:.2f}", pcbnew.Dwgs_User, 0.4)
     add_text(board, 8.2, 12.0, "SIG FOLDS 180 DEG R1.5 AT s=16", pcbnew.Dwgs_User, 0.4)
     add_text(board, 3.2, 30.0, "RF KEEP-OUT", pcbnew.Dwgs_User, 0.5)
@@ -489,7 +499,7 @@ def configure_rules(board) -> None:
         contact.SetClearance(pcbnew.FromMM(CONTACT_CLEAR))
         contact.SetViaDiameter(pcbnew.FromMM(VIA_D))
         contact.SetViaDrill(pcbnew.FromMM(VIA_DRILL))
-        for name in CONTACT_NETS:
+        for name in CONTACT_NETS + BENCH_NETS:
             net = board.FindNet(name)
             if net is not None:
                 net.SetNetClass(contact)
@@ -511,35 +521,43 @@ def add_locked_via(board, pos: tuple[float, float], net) -> None:
 
 
 def pre_routes(board) -> None:
-    """Locked: rings along the strips to R1-R3, the J3 branches (§5.4), the
-    P4/P5 charge runs, U1 pad 13 (nRESET) out of the pad field and round J4
-    to J4.6 and SW1, +VDD into U1.26 and J4.1, and J4's GND via (§4.3)."""
+    """Locked: rings along the strips to R1-R3, the J3 tab and neck (§5.4),
+    the P4/P5 charge runs, U1 pad 13 (nRESET) out of the pad field and round
+    J4 to J4.6 and SW1, +VDD into U1.26 and J4.1, J4's GND via (§4.3) and the
+    two vias that join U1's antenna-side VSS pads (§3.1)."""
     bcu, fcu = pcbnew.B_Cu, pcbnew.F_Cu
     sig1, sig2, ref = (ensure_net(board, n) for n in CONTACT_NETS)
     # Every strip run breaks where it leaves its land's 7 x 7 zone, so the Q84
     # 1.0 mm rule covers the land segment only (Q88: strips use Contact 0.20).
-    # SIG1: strip on B to R1; its J3 branch goes to F by the strip root and
-    # runs east inside SIG2's branch, then down the +u edge.
-    r1 = pad_center(board, "R1", "1")
-    add_locked_path(board, [pad_center(board, "P1", "1"), zone_exit(SIG1_SITE, +1), (SIG1_SITE[0], SIG1_CORR_S), r1],
-                    sig1, bcu, CONTACT_TRACK)
-    add_locked_path(board, [(SIG1_SITE[0], SIG1_CORR_S), SIG1_VIA], sig1, bcu, CONTACT_TRACK)
-    add_locked_via(board, SIG1_VIA, sig1)
-    j3 = {net: pad_center(board, "J3", n) for n, net in (("1", "REF"), ("2", "SIG2"), ("3", "SIG1"))}
-    add_locked_path(board, [SIG1_VIA, (SIG1_VIA[0] + 0.45, SIG1_F_S), (SIG1_CORR_U, SIG1_F_S), (SIG1_CORR_U, J3_S1_S),
-                            (J3_SIG1_U, J3_S1_S), (J3_SIG1_U, j3["SIG1"][1]), j3["SIG1"]], sig1, fcu, CONTACT_TRACK)
-    # SIG2: strip on F (P2 is plated) to its via; R2 on B, J3 branch on F.
+    # SIG1: strip on B to R1.
+    add_locked_path(board, [pad_center(board, "P1", "1"), zone_exit(SIG1_SITE, +1), (SIG1_SITE[0], SIG1_CORR_S),
+                            pad_center(board, "R1", "1")], sig1, bcu, CONTACT_TRACK)
+    # SIG2: strip on F (P2 is plated) to its via at the root; R2 on B.
     add_locked_path(board, [pad_center(board, "P2", "1"), zone_exit(SIG2_SITE, +1), SIG2_VIA], sig2, fcu, CONTACT_TRACK)
     add_locked_via(board, SIG2_VIA, sig2)
     add_locked_path(board, [SIG2_VIA, pad_center(board, "R2", "1")], sig2, bcu, CONTACT_TRACK)
-    add_locked_path(board, [SIG2_VIA, (SIG2_CORR_U, SIG2_VIA[1]), (SIG2_CORR_U, J3_S2_S), (J3_SIG2_U, J3_S2_S),
-                            (J3_SIG2_U, j3["SIG2"][1]), j3["SIG2"]], sig2, fcu, CONTACT_TRACK)
-    # REF: strip on B, along the +s edge and up the +u edge on B.
+    # REF: strip on B, along the +s edge and down the +u edge on B to R3.
     r3 = pad_center(board, "R3", "1")
     add_locked_path(board, [pad_center(board, "P3", "1"), zone_exit(REF_SITE, -1), (REF_ATTACH[0], 37.20), (REF_CORR_U, 37.20),
-                            (REF_CORR_U, J3_REF_S), (J3_REF_U, J3_REF_S), (J3_REF_U, j3["REF"][1]), j3["REF"]],
-                    ref, bcu, CONTACT_TRACK)
-    add_locked_path(board, [(REF_CORR_U, r3[1]), r3], ref, bcu, CONTACT_TRACK)
+                            (REF_CORR_U, r3[1]), r3], ref, bcu, CONTACT_TRACK)
+
+    # J3 tab (all F). Bench side, Contact class: each pin to its own 220 kOhm.
+    # AFE side, default class: the resistors to the neck, into the island,
+    # where the finisher joins them to AFE_IN1P, AFE_IN1N and RLD_FB.
+    bench_ref, bench_sig2, bench_sig1 = (ensure_net(board, n) for n in ("BENCH_REF", "BENCH_SIG2", "BENCH_SIG1"))
+    afe_in1p, afe_in1n, rld_fb = (ensure_net(board, n) for n in ("AFE_IN1P", "AFE_IN1N", "RLD_FB"))
+    j3 = {n: pad_center(board, "J3", n) for n in ("1", "2", "3")}
+    r31 = {n: pad_center(board, "R31", n) for n in ("1", "2")}
+    r32 = {n: pad_center(board, "R32", n) for n in ("1", "2")}
+    r33 = {n: pad_center(board, "R33", n) for n in ("1", "2")}
+    add_locked_path(board, [j3["1"], (r31["2"][0], j3["1"][1] - 1.10), r31["2"]], bench_sig1, fcu, CONTACT_TRACK)
+    add_locked_path(board, [j3["2"], (r32["2"][0] + 3.10, J3_S_IN1N), r32["2"]], bench_sig2, fcu, CONTACT_TRACK)
+    add_locked_path(board, [j3["3"], (r33["2"][0], j3["3"][1] + 1.10), r33["2"]], bench_ref, fcu, CONTACT_TRACK)
+    add_locked_path(board, [r31["1"], (J3_LANE_IN1P_U, r31["1"][1]), (J3_LANE_IN1P_U, J3_S_IN1P), (J3_ISLAND_U, J3_S_IN1P)],
+                    afe_in1p, fcu, FLEX_TRACK)
+    add_locked_path(board, [r32["1"], (J3_ISLAND_U, J3_S_IN1N)], afe_in1n, fcu, FLEX_TRACK)
+    add_locked_path(board, [r33["1"], (J3_LANE_REF_U, r33["1"][1]), (J3_LANE_REF_U, J3_S_REF), (J3_ISLAND_U, J3_S_REF)],
+                    rld_fb, fcu, FLEX_TRACK)
 
     # Charge: both nets cross the joint on B. P4 (VBUS) goes to F in its own
     # 7 x 7 zone, passes P5 on F (P5 has no F copper), and returns to B on the
@@ -598,6 +616,14 @@ def pre_routes(board) -> None:
     gnd_u1 = [pad_center(board, "U1", n) for n in ("21", "23", "25")]
     add_locked_path(board, gnd_u1, gnd, fcu, 0.12)
     add_locked_path(board, [pad_center(board, "U1", "24"), gnd_u1[-1]], gnd, fcu, 0.12)
+    # Antenna-side VSS 14/16/18 (0.4 pads at 0.65 pitch on the RF band's
+    # edge, 0.25 from the staggered inner row): a 0.40 via in each 0.25 gap
+    # between two of them overlaps both pads and drops to the B pour. The
+    # via sits 0.05 east of the pads' axis, so its copper starts 0.05 outside
+    # the band and 0.20 from the inner-row pads (§3.1).
+    p14, p16, p18 = (pad_center(board, "U1", n) for n in ("14", "16", "18"))
+    for a, b in ((p14, p16), (p16, p18)):
+        add_locked_via(board, ((a[0] + b[0]) / 2 + 0.05, (a[1] + b[1]) / 2), gnd)
 
 
 def fp_pos(board, ref: str) -> tuple[float, float]:
@@ -616,7 +642,7 @@ def check_keepouts(board) -> list[str]:
     stiff.SetClosed(True)
     for fp in board.GetFootprints():
         ref = fp.GetReference()
-        if ref in RING_REFS or ref == "J3":
+        if ref in RING_REFS or ref in TAB_REFS:
             continue
         back = fp.IsFlipped()
         cy = fp.GetCourtyard(pcbnew.B_CrtYd if back else pcbnew.F_CrtYd)
@@ -653,14 +679,14 @@ def check_keepouts(board) -> list[str]:
     return probs
 
 
-def build() -> None:
+def build(out: Path | None = None) -> None:
     sch = BOARD.with_suffix(".kicad_sch")
     NET_PATH.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["kicad-cli", "sch", "export", "netlist", "--format", "kicadsexpr", "-o", str(NET_PATH), str(sch)],
                    check=True, capture_output=True)
     comps, nets = parse_netlist(NET_PATH)
     comps = {r: c for r, c in comps.items() if c["footprint"] and not c["footprint"].startswith("power:")}
-    out = BOARD.with_suffix(".kicad_pcb")
+    out = out or BOARD.with_suffix(".kicad_pcb")
     if out.exists():
         out.unlink()
     board = pcbnew.NewBoard(str(out))
@@ -717,6 +743,8 @@ if __name__ == "__main__":
         export_dsn(Path(args[1]))
     elif args and args[0] == "--import-ses":
         import_ses(Path(args[1]), Path(args[2]) if len(args) > 2 else None)
+    elif args and args[0] == "--out":
+        build(Path(args[1]).resolve())
     else:
         build()
     # Leave without interpreter teardown: SWIG frees of board-held items at
