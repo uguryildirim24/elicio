@@ -6,7 +6,6 @@ net (fill cells >= 0.20 from the pad copper), clear on the finisher's track grid
   .venv/bin/python hardware/board/v4_thermal_stubs.py PCB DRC.json OUT [maxlen]
 """
 import sys, math, uuid, json, re
-sys.path.insert(0, '/home/user/projects/elicio/.worktrees/t-0014/hardware/board')
 import numpy as np
 from v4_route_fix import parse_board, Grid, LAYERS, STEP, TRACK_W, clear_line, Shape, seg_text
 from v4_tables import footprints

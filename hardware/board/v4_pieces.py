@@ -5,7 +5,6 @@ per layer (design note §9; the honest list when GND will not close).
   .venv/bin/python hardware/board/v4_pieces.py PCB NET
 """
 import sys, math
-sys.path.insert(0, '/home/user/projects/elicio/.worktrees/t-0014/hardware/board')
 import numpy as np
 from v4_route_fix import parse_board, components
 from v4_tables import footprints
@@ -45,7 +44,7 @@ def describe(c):
             out.append(f'via({cx:.3f},{cy:.3f})')
         else:
             (x0, y0), (x1, y1) = s.seg
-            out.append(f"trk{s.layers.pop()[0]}({x0:.3f},{y0:.3f})-({x1:.3f},{y1:.3f})" + ('L' if s.locked else ''))
+            out.append(f"trk{next(iter(s.layers))[0]}({x0:.3f},{y0:.3f})-({x1:.3f},{y1:.3f})" + ('L' if s.locked else ''))
     return out
 print(f'{net}: {len(comps)} pieces; main has {len(main)} members')
 for ci, c in enumerate(comps[1:], 1):
