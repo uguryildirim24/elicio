@@ -3,11 +3,11 @@
 This is a measured **v2 reference solid**, not a shell for the newer 18 mm v4
 board (`board-v4-design.md`). Its J2/P5 hardware collision remains open; the
 v4 board changes the cell connector and charging geometry and needs its own
-built shell. Assembled fit with the v4 board must be re-measured on that shell:
-`V2_CAVITY_v3` checks pin centres only, whereas the v4 shell lane (t-0030)
-now checks the v4 board's folded courtyard boxes against its built body and
-lid for nominal interference. Physical assembly remains unverified. Do not
-upload these v2 solids for a v4 build.
+built shell. Assembled fit with the v4 board must be re-measured on its own built shell:
+`V2_CAVITY_v3` checks v2 pin centres only, not the v4 board's folded
+courtyard boxes against a v4 body and lid. Separate v4 shell work is not
+included in these solids or checks. Physical assembly remains unverified.
+Do not upload these v2 solids for a v4 build.
 
 WP14 then WP14b then WP14c then WP14d then WP14e then WP14f. The plan is not
 changed. Nothing is ordered. The body is provisional until Rolf
