@@ -21,7 +21,7 @@ Baseline v2: W 22, T 9.0 (LID_Y 8.0 + lid 1.0), chord 47.90. The M1 gate is M1 �
 | L4 | J2: JST-SH (mated 2.95) → Molex Pico-EZmate Slim 202656-0021 (mated 1.20, top entry) | lets J2 sit on the island (part of L1) | 0 | lets J2 fit under LID_Y 7.1 (top 6.32; SH would reach 8.07) | The cell must come with a Pico-EZmate Slim plug fitted by a vendor. R2 forbids Rolf crimping. This changes the G1b/Q69 purchase route | Supply of a cell with that plug is UNVERIFIED | Header and plug prices UNVERIFIED. Not in the JLC library | **Yes** |
 | L5 | SW1: TS-1187A (4.5 × 4.5 × 1.6) → HRO 1TS015A (3.0 × 2.0 × 0.6) | area about 42 → 11 mm² | 0 | 0 (top 5.72) | Nothing (1.2 N press) | Low | C398746, 25,177 in stock (https://jlcpcb.com/partdetail/C398746, read 2026-09-23). Price UNVERIFIED | **Yes** |
 | L6 | Non-Contact R and C 0402 → 0201. 10 µF 0603 → 0402 | area about 40 mm² (35 parts) | 0 | 0 | Nothing | JLC lists FPC assembly and a 0201 minimum separately. That the two combine on FPC is UNVERIFIED | +$3.00 per new extended part number (L8 §2.2, read 2026-09-18). About 6–12 new lines gives +$18–36 (UNVERIFIED) | **Yes** |
-| L7 | Q1–Q4 SOT-23 → DFN1006-3. U4 SOT-23-5 → X2SON-4 | area about 57 mm² | 0 | 0 | Nothing | Q2–Q4 are PMZ290UNE2 (C478155, §2.1 item 4). U4 C3071062 resolves to no part; U4 is consigned | Q1 WPM3027-3 C240195. The rest UNVERIFIED | **Yes** |
+| L7 | Q1–Q4 SOT-23 → DFN1006-3. U4 SOT-23-5 → X2SON-4 | area about 57 mm² | 0 | 0 | Nothing | Q2–Q4 are PMZ290UNE2 (C478155, §2.1 item 4). U4 C2863576 is the same regulator on reel and stocked | Q1 WPM3027-3 C240195. The rest UNVERIFIED | **Yes** |
 | L8 | Lid posts replace the two board screws and bosses (H1/H2 go) | area about 17 mm² | 0 | 0 | Nothing. Assembly step 5 ("Turn the board screws") goes | The P2 post presses on U1's top. Force not computed (G7) | None | **Yes** |
 | L9 | Drop the DNP parts and the part the SiP makes redundant (Q5, R9, R10, R29, R30, L1) | area about 21 mm² | 0 | 0 | The option to fit R29/R30 lead-off bias later | None | None | **Yes** |
 | L10 | Drop R26 (nRESET 10 kΩ pull-up). P0.18 set as RESET has its own pull-up (PS v1.11 §5.3.8.3 tPINR = 5 × 13 kΩ × C; §7.3 reference circuits have no reset resistor) | area about 0.6 mm² and one via | 0 | 0 | Nothing. Firmware must set UICR PSELRESET (§8) | Low | −1 BOM line | **Yes** |
@@ -99,16 +99,16 @@ v2 list from the v2 netlist (board-v2.md G2/BOM). v4 list from `hardware/board/v
 |---|---|---|---|---|
 | U1 | MDBT50Q-1MV2, C5118826 | ISP1807-LR-RS | change | Same nRF52840. Antenna, crystals and DC/DC inside. No LCSC code: consign |
 | U2 | ADS1292IRSMT, C89288 | same | keep | ADS1291 considered: same package, loses channel 2 |
-| U3 | BQ25100YFPR, C527572 | same, courtyard cut to ±0.8 × ±1.06 (`Texas_YFP0006_V4`), **CONSIGNED** | keep | C527572 out of stock on 2026-09-25; keep charger family, land and TS network. No replenishment date verified |
-| U4 | TLV71330PDBVR SOT-23-5, C2863702 | TLV71330PDQNT X2SON-4, **CONSIGNED** | change | C3071062 returns a null part page (2026-09-25); no verified in-stock drop-in. TPS7A0230PDQNR fits the DQN land but has no verified JLC code either |
-| — | — | U5 TPS7A0230PDQNR, X2SON-4 | **add** | +VDD 3.0 V from VBAT (the SiP has no VDDH). 25 nA Iq. No LCSC code |
+| U3 | BQ25100YFPR, C527572 | same, courtyard cut to ±0.8 × ±1.06 (`Texas_YFP0006_V4`), **CONSIGNED** | keep | C527572 has 0 stock; A is 4.30 V, B has only 6 stock and is not listed in TI SLUSBV8C (§2.1). Exact YFPR marked InStock at TI; quantity not exposed (`bom-v4-orderable.md`) |
+| U4 | TLV71330PDBVR SOT-23-5, C2863702 | TLV71330PDQNR X2SON-4, C2863576 | change | Same regulator and DQN pinout, R rather than T tape; 990 in stock |
+| — | — | U5 TPS7A0230PDQNR, X2SON-4, C2867950 | **add** | +VDD 3.0 V from VBAT; 25 nA Iq; 385 in stock |
 | — | — | C16 1 µF 0201 on VBAT | **add** | U5 input |
 | L1 | 10 µH 0603, C1045 | — | **remove** | Stops nothing: DCCH is not brought out; the SiP carries its own DC/DC parts |
 | Q1 | AO3401A SOT-23, C15127 | WPM3027-3 DFN1006-3, C240195 | change | Vgs(th) max −1.0, 800 mΩ max at −2.5 V |
 | Q2–Q4 | 2N7002 SOT-23, C2128 | Nexperia PMZ290UNE2YL DFN1006-3 (SOT883), C478155 | change | Refcheck t-0023 (§2.1). Pin 1 G, 2 S, 3 D, as the SOT-883 land |
 | Q5 | 2N7002, DNP | — | **remove** | Stops nothing: DNP, BAT_MEAS_EN was never driven |
-| D1 | PESD5V0L1UL SOD-523, wrong C24109 | PESD5V0L1UL on Nexperia's SOD882 land (KiCad `D_SOD-882`), **CONSIGNED** | change land | C24109 is a TLV320AIC3204 codec, not a TVS (2026-09-25). Pad 1 cathode on VBUS |
-| D2 | LED 0402, C72043 | **CONSIGNED / footprint blocker** | keep | JLC lists the 19-217/GHC-YR1S2/3T and /6T as 0603, while the land is 0402; no electrically and mechanically verified 0402 drop-in. Do not place either LED on this land |
+| D1 | PESD5V0L1UL SOD-523, wrong C24109 | PESD5V0L1UL SOD882, C3001948 | change land | Same TVS, 7525 in stock; pad 1 cathode on VBUS |
+| D2 | LED 0402, wrong 0603 C72043 | Lite-On LTST-C281TGKT-5A 0402, C364549 | keep land | Green, 2.5–3.1 V Vf; R22 1 kΩ gives 1.9–3 mA at VBUS 5–5.5 V (using forward-voltage range). Pad 1 cathode on CHG_LED_K |
 | J2 | SM02B-SRSS-TB, C160402 | Molex 202656-0021 Pico-EZmate Slim | change | Mated 1.20. Not in the JLC library. The cell needs the matching plug (L4) |
 | J3 | HDR-3-RA, C49257 | same, on a break-off tab behind R31–R33 | keep | Q91. Pin order as v2 (J3.1 SIG1 side, J3.2 SIG2, J3.3 REF). Each pin has its own 220 kΩ on the tab (§5.4) |
 | J4 | TC2030-NL | same | keep | Not in BOM |
@@ -123,25 +123,25 @@ v2 list from the v2 netlist (board-v2.md G2/BOM). v4 list from `hardware/board/v
 | — | — | R34, R35 10 kΩ 0201, C473048 | **add** | U2 GPIO1/GPIO2 to GND (refcheck t-0023, §2.1) |
 | R26 | 10 kΩ 0402, nRESET pull-up | — | **remove** | Stops nothing: P0.18 as RESET has its own pull-up (L10). Firmware sets UICR PSELRESET (§8) |
 | R9, R10 | 5.1 kΩ, DNP | — | **remove** | Stops nothing: USB-C CC with no receptacle (Q81, Q95) |
-| R11 | 6.80 kΩ 0402, C25917 | 0201 ERJ-1GNF6801C, **CONSIGNED** | change | C4104700 out of stock; ISET unchanged (≈ 19.85 mA) |
+| R11 | 6.80 kΩ 0402, C25917 | 0201 0201WMF6801TEE, C423451 | change | 1% thick film, ISET unchanged (≈ 19.85 mA) |
 | R12 | 6.04 kΩ 0402, C966759 | 0201, C270341 | change | |
 | R14–R16, R23, R24 | 100 kΩ 0402, C25741 | 0201, C270364 | change | |
-| R18 | 47 kΩ 0402, C25792 | 0201, **CONSIGNED / MPN unverified** | change | No verified 0201 code. VBUS_DET is now the only VBUS sense |
-| R19 | 27 kΩ 0402, C25771 | 0201, **CONSIGNED / MPN unverified** | change | No verified 0201 code |
+| R18 | 47 kΩ 0402, C25792 | 0201 0201WMF4702TEE, C270345 | change | 1% thick film; VBUS_DET only VBUS sense |
+| R19 | 27 kΩ 0402, C25771 | 0201 0201WMF2702TEE, C270351 | change | 1% thick film |
 | R22 | 1 kΩ 0402, C11702 | 0201, C270365 | change | |
 | R29, R30 | 10 MΩ, DNP | — | **remove** | Stops nothing now: lead-off stays firmware-off (plan §5.5). The land to fit them later is gone |
 | C1 | 1.5 nF 0402, C1548 | 0201, C285104 | change | |
-| C2 | 10 nF 0402, C1524 | 0201 0201B103K500NT, **CONSIGNED** | change | C43380 has 10 in stock, below its JLC listed loss 10 plus minimum placement 20 (2026-09-25) |
-| C3 | 1 µF 0402, C15849 | 10 µF 0402 X5R 10 V, Murata GRM155R61A106ME18, consigned | change | IN effective 2.277 µF at 5 V (§2.1) |
+| C2 | 10 nF 0402, C1524 | 0201 TCC0201X7R103K500ZT, C5142551 | change | 50 V X7R ±10%, same dielectric/rating |
+| C3 | 1 µF 0402, C15849 | 10 µF 0402 X5R 10 V Murata GRM155R61A106ME18D, C36626211 | change | IN effective 2.277 µF at 5 V (§2.1); D is tape suffix |
 | C4–C5, C10, C13 | 1 µF 0402, C15849 | 0201, C5142566 | change | |
 | C6, C8, C9 | 10 µF 0603, C19702 | 0402, C15525 (Basic) | change | |
 | C7, C15 | 100 nF 0603, C14663 | 0201, C307380 | change | |
 | C11 | 100 nF 0402, C1525 | 1 µF 0201, C5142566 | change | VCAP2 (refcheck t-0023, §2.1) |
 | C12 | 100 nF 0402, C1525 | 0201, C307380 | change | |
 | — | — | C17 100 nF 0201, C307380 | **add** | VREFP local bypass beside C9 (refcheck t-0023, §2.1) |
-| C14 | 4.7 µF 0402, C19675 | 10 µF 0402 X5R 10 V, Murata GRM155R61A106ME18, consigned | change | OUT (VBAT) effective 2.781 µF at 4.2 V (§2.1); 9.3 mm from U3 |
-| — | — | C18 10 µF 0402 X5R 10 V, Murata GRM155R61A106ME18, consigned | **add** | TS to GND, 2.55 mm from U3.B1; fixed R13 unchanged |
-| — | — | C19 10 µF 0402 X5R 10 V, Murata GRM155R61A106ME18, consigned | **add** | Extra OUT (VBAT) bulk; temperature margin, but far from U3 |
+| C14 | 4.7 µF 0402, C19675 | 10 µF 0402 X5R 10 V Murata GRM155R61A106ME18D, C36626211 | change | OUT effective 2.781 µF at 4.2 V (§2.1); 9.3 mm from U3 |
+| — | — | C18 10 µF 0402 X5R 10 V Murata GRM155R61A106ME18D, C36626211 | **add** | TS to GND, fixed R13 unchanged |
+| — | — | C19 10 µF 0402 X5R 10 V Murata GRM155R61A106ME18D, C36626211 | **add** | Extra OUT bulk; far from U3 |
 
 J1 (USB-C) and USBLC6 were already absent in v2 (Q81).
 
@@ -156,7 +156,7 @@ The circuit check (`docs/fab/board-v4-refcheck.md` on the t-0023 branch, datashe
 1. **D1 land.** PESD5V0L1UL is made in Nexperia's SOD882 (DFN1006-2): "leadless ultra small plastic package; 2 terminals; body 1.0 × 0.6 × 0.5 mm" (datasheet Table 4). v2's SOD-523 land was another package.
    - Pinning (Table 3): pin 1 cathode, marked by the bar; pin 2 anode. Pad 1 is on VBUS, pad 2 on GND.
    - Land: KiCad `D_SOD-882`, pads 0.4 × 0.7 at 0.70 pitch, gap 0.30. Nexperia's reflow land (Fig. 13) is 0.3 × 0.6 at 0.60 pitch, gap 0.30. Same gap; KiCad's pads reach 0.10 further out on each side.
-   - D1 **remains** on B at (14.30, 28.60), cathode (14.65, 28.60); U3.A2 is (14.30, 17.55), so even the straight-line lower bound is 11.06 mm before the clamp (the copper path is longer). Trials of D1 by U3 ran into the 15.09 notch, R16/R17, U2's courtyard and the input-crossing channels. Beside U2, the F-side u strip 14.48–15.75 is 1.27 mm wide against D1's rotated courtyard width 1.30 mm (0.03 mm overlap); the B-side candidate (14.43–15.73, 19.70–21.40) overlapped the then-R17 courtyard (13.75–15.15, 20.50–21.20) and, after moving R17, the RLD vias. The final B-side TS cap occupies (14.61–15.53, 19.79–21.61), so this pocket cannot also hold D1. Putting the 0402 TS cap on F produced three persistent router conflicts (AFE_IN1N, AFE_IN1P, GND_B). The clean route instead has C18 on B at (15.07, 20.70) and adds C19 OUT bulk on F at (14.10, 34.20). This is not an ESD-interception layout. **The numerical fallback is U3's own conditional 8 kV contact / 15 kV air IEC 61000-4-2 IN rating** (SLUSBV8C §7.2), with C3/C18/(C14+C19) satisfying its 1/1/2 µF effective minimum at the specified biases, calculated below; it does *not* prove a surge at P4, where no contact-level IEC test was run. C24109 is a different IC (TLV320AIC3204IRHBR); D1 is consigned until an exact, stock-verified source is found.
+   - D1 **remains** on B at (14.30, 28.60), cathode (14.65, 28.60); U3.A2 is (14.30, 17.55), so even the straight-line lower bound is 11.06 mm before the clamp (the copper path is longer). Trials of D1 by U3 ran into the 15.09 notch, R16/R17, U2's courtyard and the input-crossing channels. Beside U2, the F-side u strip 14.48–15.75 is 1.27 mm wide against D1's rotated courtyard width 1.30 mm (0.03 mm overlap); the B-side candidate (14.43–15.73, 19.70–21.40) overlapped the then-R17 courtyard (13.75–15.15, 20.50–21.20) and, after moving R17, the RLD vias. The final B-side TS cap occupies (14.61–15.53, 19.79–21.61), so this pocket cannot also hold D1. Putting the 0402 TS cap on F produced three persistent router conflicts (AFE_IN1N, AFE_IN1P, GND_B). The clean route instead has C18 on B at (15.07, 20.70) and adds C19 OUT bulk on F at (14.10, 34.20). This is not an ESD-interception layout. **The numerical fallback is U3's own conditional 8 kV contact / 15 kV air IEC 61000-4-2 IN rating** (SLUSBV8C §7.2), with C3/C18/(C14+C19) satisfying its 1/1/2 µF effective minimum at the specified biases, calculated below; it does *not* prove a surge at P4, where no contact-level IEC test was run. C24109 is a different IC (TLV320AIC3204IRHBR); D1 now uses the stocked exact PESD5V0L1UL C3001948.
 2. **C11 (VCAP2) 1 µF.** TI shows 1 µF at VCAP2 (SBAS502C Fig. 73); v2 had 100 nF. Now 1 µF 0201 (C5142566), its pad 0.6 from pin 27 on a locked F track. The effective value at VCAP2's DC bias is UNVERIFIED (an 0201 X5R loses capacitance under bias).
 3. **GPIO1/GPIO2 pull-downs.** SBAS502C §8.5.1.7: the GPIO pins default to inputs and must not float. R34 (GPIO1, pin 26) and R35 (GPIO2, pin 25) are 10 kΩ to GND on B, each one via away from its pin. Firmware leaves both as inputs.
 4. **Q2–Q4 PMZ290UNE2.** Nexperia PMZ290UNE2YL, DFN1006-3 (SOT883), LCSC C478155. The older PMZ290UNE is end-of-life. Datasheet Rev. 1 (2015):
@@ -181,7 +181,7 @@ The circuit check (`docs/fab/board-v4-refcheck.md` on the t-0023 branch, datashe
    | TS, C18 10 µF GRM155R61A106ME18 | 5.5 V upper bound (at or below VBUS) | 2.034 µF | 1.627 µF | 1 µF | +0.627 µF |
    | OUT/VBAT, C14+C19 (2 × 10 µF GRM155R61A106ME18) | 4.2 V | 5.562 µF | 4.449 µF | 2 µF | +2.449 µF |
 
-   At 5.5 V IN the 10 µF curve is 2.034 µF (×0.8 = 1.627 µF). C3's VBUS pad is (14.40,16.72), 0.84 mm straight-line from IN ball U3.A2 (14.30,17.55). C18's TS pad is (15.07,20.22), 2.55 mm from U3.B1 (13.90,17.95). **C14's OUT pad is (13.67,27.20), 9.27 mm from U3.A1 (14.30,17.95)**; C19's OUT pad is (14.10,34.68), 16.73 mm away. Their DC capacitance is on VBAT but these lengths are not local high-frequency ESD bypasses. Multiplying again by 0.85 for the X5R ±15% temperature envelope gives IN 1.383 µF at 5.5 V, TS 1.383 µF at 5.5 V, OUT 3.782 µF at 4.2 V: all above 1/1/2 µF *by this independent allowance*, not by measured temperature/bias joint curves. Actual aging, mounted tolerances and contact-level response remain unmeasured. The parts are marked CONSIGNED in the BOM because a JLC or LCSC supply code with sufficient stock for this exact MPN was not verified. There is no claim of a P4 IEC test.
+   At 5.5 V IN the 10 µF curve is 2.034 µF (×0.8 = 1.627 µF). C3's VBUS pad is (14.40,16.72), 0.84 mm straight-line from IN ball U3.A2 (14.30,17.55). C18's TS pad is (15.07,20.22), 2.55 mm from U3.B1 (13.90,17.95). **C14's OUT pad is (13.67,27.20), 9.27 mm from U3.A1 (14.30,17.95)**; C19's OUT pad is (14.10,34.68), 16.73 mm away. Their DC capacitance is on VBAT but these lengths are not local high-frequency ESD bypasses. Multiplying again by 0.85 for the X5R ±15% temperature envelope gives IN 1.383 µF at 5.5 V, TS 1.383 µF at 5.5 V, OUT 3.782 µF at 4.2 V: all above 1/1/2 µF *by this independent allowance*, not by measured temperature/bias joint curves. Actual aging, mounted tolerances and contact-level response remain unmeasured. Murata suffix D specifies 180 mm reel paper tape (maker specification); JLC C36626211 has 137 in stock (2026-09-25). There is no claim of a P4 IEC test.
 
 ## 3. Layers against the JLC flex rules
 
@@ -875,7 +875,7 @@ Shell changes this table needs, with numbers (all in §7): the rib cut back 0.50
 - **Hours of wear:** about 7 mA, inferred from EARPIECE_DESIGN.md "Seven hours of streaming" on 50 mAh. Not measured.
 - **Prices:** MDBT50Q; Molex 202656-0021 header and 202655 plug; HRO 1TS015A; M2.5 nuts (W16).
 - **Consignment fee** for the ISP1807.
-- **Supply blockers (2026-09-25):** D1's old code is an unrelated codec, U4's code returns null, U3/R11 are out of stock, D2's JLC 0603 LED does not match its 0402 land, C2 stock cannot meet JLC's listed placement/loss quantities, and R18/R19 have no verified 0201 supply MPN/code. These are marked CONSIGNED, not solved by a routed release. ISP1807, TPS7A0230, Molex 202656 and Murata GRM155R61A106ME18 also need consignment; see `bom-v4-orderable.md`. D2 needs a footprint-qualified 0402 LED or a board change before ordering.
+- **Supply blockers (2026-09-25):** U3 exact JLC code has 0 stock; the stocked A variant regulates to 4.30 V and cannot charge the specified 4.2 V cell. U1 and J2 are not in the JLC catalog with usable stock. These three lines remain CONSIGNED (`bom-v4-orderable.md`). The correct SOD882 TVS and 0402 LED now have stocked codes; no land or copper changed.
 - **P4 ESD not demonstrated:** D1 is ≥ 11.06 mm straight-line from U3.A2 and behind it on the VBUS trunk; U3's conditional 8 kV contact / 15 kV air IN rating has the three effective capacitors numerically at 25 °C, but the nearest OUT bulk C14 is 9.27 mm away (C19 is 16.73 mm), no P4 contact-level IEC test was done, and bias/temperature/aging/assembly variation is not measured (§2.1). Do not equate the routed release with ESD proof.
 - **Library tier** of several v2 lines, and of the new 0201 lines beyond those read. The extended setup estimate of +$18–36.
 - **Assembly:** 0201 on FPC as a combination.
