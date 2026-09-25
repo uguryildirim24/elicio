@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 from pathlib import Path
 
@@ -119,25 +120,44 @@ def measure(body, lid, path, params):
     return checks
 
 
+def ramp_lip(path, u0, u1, start):
+    """Inclined insertion face; vertical underside provides the catch."""
+    mid = start + 1.75
+    center = cad._vec(path, u0, mid, 4.85)
+    radial = (cad._vec(path, u0 + .01, mid, 4.85) - center).normalized()
+    tangent = (cad._vec(path, u0, mid + .01, 4.85)
+               - cad._vec(path, u0, mid - .01, 4.85)).normalized()
+    points = [center + tangent*(s-mid) + cad.Vector(0,y-4.85,0)
+              for s,y in ((start,4.85),(44.70,4.85),(44.70,5.85),(start+1.40,5.85))]
+    face = cad.Face(cad.Wire.make_polygon(points + points[:1]))
+    return cad.Solid.extrude(face, radial*(u1-u0))
+
+
 def closure_variant(body, lid, path, params, name):
     """Independent closure prototypes on the unchanged v4 solid."""
     if name == "hinge":
         return body, lid, {"type": "hinge only"}
-    if name in ("snap", "snap-firm"):
+    if name == "snap":
         maker = cad.path_solid_for(path, params)
-        beam_start = 38.25 if name == "snap-firm" else 38.40
-        # End-wall notch leaves the existing hinge untouched. The beam runs
-        # down from the lid; its foot catches under the wall's replacement lip.
-        body = body.cut(maker(13.30, 15.50, 38.05, 40.05, 4.05, 7.10))
-        body = body.fuse(maker(13.40, 15.50, 39.80, 40.80, 5.35, 6.35))
-        lid = lid.fuse(maker(13.65, 15.35, beam_start, 39.40, 4.15, 7.18))
-        lid = lid.fuse(maker(13.65, 15.35, 39.35, 40.02, 4.15, 5.15))
-        # Key access to press the foot towards -s before lifting the lid.
-        lid = lid.cut(maker(13.50, 15.50, 39.46, 40.66, 7.09, 8.20))
-        return body, lid, {"type": "PA12 cantilever " + name, "beam_u_mm": [13.65, 15.35],
-                           "beam_s_mm": [beam_start, 39.40], "beam_y_mm": [4.15, 7.18],
-                           "foot_s_mm": [39.35, 40.02], "lip_s_mm": [39.80, 40.80],
-                           "lip_y_mm": [5.35, 6.35], "deflection_mm": 0.25}
+        # Pocket in the solid tail, leaving a 1 mm floor. Two side catches
+        # bridge to the uncut tail and leave an open central key corridor.
+        body = body.cut(maker(9.50, 14.50, 38.05, 44.60, 2.50, 7.10))
+        for u0, u1 in ((9.50, 10.90), (13.10, 14.50)):
+            body = body.fuse(maker(u0, u1, 43.50, 47.50 if u0 < 11 else 45.00, 4.85, 5.85))
+            body = body.fuse(ramp_lip(path, u0, u1, 41.30))
+        # Two independent 1 mm-thick arms flank the central key corridor.
+        # They join at a foot whose two wings hook under the side ledges.
+        for u0, u1 in ((9.80, 10.90), (13.10, 14.20)):
+            lid = lid.fuse(maker(u0, u1, 39.70, 40.70, 3.15, 7.18))
+        lid = lid.fuse(maker(9.80, 14.20, 40.60, 42.00, 3.15, 4.15))
+        # Open the centre for the entire shaft sweep, not just its tip.
+        lid = lid.cut(maker(11.05, 12.95, 39.80, 44.60, 7.09, 8.20))
+        return body, lid, {"type": "PA12 twin-side snap", "beam_u_mm": [[9.80, 10.90], [13.10, 14.20]],
+                           "beam_s_mm": [39.70, 40.70], "beam_y_mm": [3.15, 7.18],
+                           "foot_s_mm": [40.60, 42.00], "lip_s_mm": [41.30, 44.70],
+                           "lip_y_mm": [4.85, 5.85], "engagement_mm": 0.70,
+                           "closing_travel_worst_mm": 1.32,
+                           "max_strain_percent": round(100 * 3 * 1.0 * 1.32 / (2 * 3.95**2), 2)}
     diameter, head, height, boss_od = (1.6, 3.14, 1.64, 3.6)
     u, s = 14.10, 11.80
     xyz = cad._vec(path, u, s, 0)
@@ -169,10 +189,84 @@ def closure_variant(body, lid, path, params, name):
                                                               18 - u - (head / 2 + .1)), 3)}
 
 
+def hex_sweep(path, af, s0, s1, y0, y1):
+    """Exact flat-to-flat hex shaft, swept along s and extruded along y.
+
+    The path tangent is evaluated at the tool station; the tail curvature
+    over this 3 mm stroke is negligible only for the tool, never the shell.
+    """
+    center = cad._vec(path, 12.0, (s0 + s1) / 2, y0)
+    radial = (cad._vec(path, 13.0, (s0 + s1) / 2, y0) - center).normalized()
+    tangent = (cad._vec(path, 12.0, (s0 + s1) / 2 + .01, y0)
+               - cad._vec(path, 12.0, (s0 + s1) / 2 - .01, y0)).normalized()
+    radius = af / math.sqrt(3)
+    # Convex hull of the two endpoint hexagons, in cyclic perimeter order.
+    vertices = [(-af/2, -radius/2), (0, -radius), (af/2, -radius/2),
+                (af/2, radius/2), (0, radius), (-af/2, radius/2)]
+    # Union of endpoint polygons swept in s: their hull has these 6 vertices.
+    outline = [(-af/2, s0-radius/2), (0, s0-radius), (af/2, s0-radius/2),
+               (af/2, s1+radius/2), (0, s1+radius), (-af/2, s1+radius/2)]
+    mid = (s0+s1)/2
+    points = [center + radial*u + tangent*(s-mid) for u,s in outline]
+    wire = cad.Wire.make_polygon(points + points[:1])
+    return cad.Solid.extrude(cad.Face(wire), cad.Vector(0, y1-y0, 0))
+
+
+def snap_checks(body, lid, path, params):
+    maker = cad.path_solid_for(path, params)
+    checks = []
+    # Entire shaft, not a point in the mouth: from outside at y8.2 to
+    # y3.0, and then along s up to first contact with the foot at s42.
+    # Clearance envelope adds 0.2 mm per flat to the actual 1.5 mm key.
+    foot = maker(9.80, 14.20, 40.60, 42.00, 3.15, 4.15)
+    for label, af, s0, s1, contact in (
+        ("key approach", 1.9, 43.38, 43.38, False),
+        ("key release sweep", 1.9, 43.10, 43.38, False),
+        ("key contact and stroke", 1.5, 41.47, 43.10, True),
+    ):
+        tool = hex_sweep(path, af, s0, s1, 3.35, 8.20)
+        b_hit = cad._overlap_volume(body, tool)
+        # Remove ONLY the defined foot contact face/volume from this test;
+        # the rest of the built lid must remain entirely outside the shaft.
+        l_hit = cad._overlap_volume(lid.cut(foot) if contact else lid, tool)
+        foot_hit = cad._overlap_volume(foot, tool) if contact else 0
+        checks.append({"item": label, "kind": "swept hex key, 0.2 per-flat approach clearance",
+                       "body_overlap_mm3": round(b_hit, 4), "lid_overlap_mm3": round(l_hit, 4),
+                       "intended_foot_contact_mm3": round(foot_hit, 4),
+                       "passed": b_hit < .001 and l_hit < .001 and (not contact or foot_hit > .001)})
+    # Opposing ±0.3 shifts of foot and ledge are the worst horizontal stack.
+    # Vertical stack: .70 gap to ledge, .65 above floor; each loses .60.
+    for offset in (-.3, .3):
+        lip_start = 41.30 + offset
+        # Rebuild the catch at its offset, leaving the end anchor in place.
+        tol_body = body
+        for u0,u1 in ((9.5,10.9),(13.1,14.5)):
+            tol_body = tol_body.cut(maker(u0,u1,41.28,44.71,4.84,5.86))
+            tol_body = tol_body.fuse(maker(u0,u1,43.50,47.50 if u0 < 11 else 45.00,4.85,5.85))
+            tol_body = tol_body.fuse(ramp_lip(path,u0,u1,lip_start))
+        foot_offset = -offset
+        engagement = 42.00 + foot_offset - lip_start
+        # Move the entire foot, not a point, into the closing pose at the
+        # underside of the ledge. Its tip must clear even at opposing errors.
+        travel = engagement + .02
+        posed_foot = maker(9.80,14.20,40.60+foot_offset-travel,
+                           42.00+foot_offset-travel,4.85,5.85)
+        collision = cad._overlap_volume(tol_body, posed_foot)
+        checks.append({"item": f"catch offset {offset:+.1f}", "kind": "rebuilt opposing tolerance stack",
+                       "ledge_offset_mm": offset, "foot_offset_mm": foot_offset,
+                       "engagement_mm": round(engagement, 3),
+                       "closing_travel_mm": round(travel, 3),
+                       "closing_overlap_mm3": round(collision, 4),
+                       "vertical_ledge_gap_worst_mm": .10,
+                       "vertical_floor_gap_worst_mm": .05,
+                       "passed": engagement > 0 and travel <= 1.321 and collision < .001})
+    return checks
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=ROOT / "docs/fab/cad/v4")
-    parser.add_argument("--closure", choices=("hinge", "m16", "snap", "snap-firm"), default="hinge")
+    parser.add_argument("--closure", choices=("hinge", "m16", "snap"), default="hinge")
     args = parser.parse_args()
     params, unused = cad.build_reference_params(variant="full", preload=1.5,
         overrides=cad.load_params_file(PARAMS), crease_bow_from_m=False)
@@ -183,16 +277,8 @@ def main():
     checks.append({"item":"seated lid vs body", "kind":"solid overlap",
                    "margin_mm":round(cad._overlap_volume(body,lid),4),
                    "passed":cad._overlap_volume(body,lid)<0.001})
-    if args.closure.startswith('snap'):
-        for item, solid, u, s, y, occupied in (
-            ('snap beam root', lid, 14.5, 38.50, 6.90, True),
-            ('snap foot', lid, 14.5, 39.9, 4.5, True),
-            ('snap ledge', body, 14.5, 39.9, 5.7, True),
-            ('snap hex-key access', lid, 14.5, 39.7, 7.5, False),
-        ):
-            present = cad._inside_uys(solid,path,u,s,y)
-            checks.append({'item':item,'kind':'closure solid probe','margin_mm':0,
-                           'passed':present == occupied})
+    if args.closure == 'snap':
+        checks.extend(snap_checks(body, lid, path, params))
     elif args.closure == 'm16':
         for item, solid, y, occupied in (
             ('screw head air', body, 0.8, False),
