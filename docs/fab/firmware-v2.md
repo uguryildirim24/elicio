@@ -230,4 +230,54 @@ measured.
 
 ## Pin header (WP13b, 2026-09-17)
 
-`firmware/src/board_pins.h` now follows `docs/fab/board-v2.md` §9 (MDBT50Q nRF P0.xx), not the Feather header numbers. The Feather FQBN still compiles; those integers are not the product wiring on a Feather.
+The archived v2 map is `firmware/src/board_pins_v2.h` (MDBT50Q nRF P0.xx). The active `board_pins.h` is v4; it must not be built with the Feather variant. The historical Feather compile above was for the original v2 stand-in, **not** a v4 build.
+
+## Frozen v4 pin map (WP13 / ISP1807-LR)
+
+This table comes from committed `hardware/board/elicio-v4.kicad_sch` and
+`elicio-v4.kicad_pcb`, U1's pad nets, checked against Insight SiP's ISP1807
+R19 datasheet §3 pin table (pp. 10–11),
+https://www.insightsip.com/fichiers_insightsip/pdf/ble/ISP1807/isp_ble_DS1807.pdf
+(read 2026-09-25). Relevant table rows, quoted as pad : signal:
+"4 : P0.10/NFC2", "6 : P0.26", "13 : P0.18/RESET", "32 : P0.08",
+"34 : P0.06", "36 : P0.05/AIN3", "38 : P0.03/AIN1", "40 : P0.02/AIN0",
+"42 : P0.31/AIN7", "44 : P0.30/AIN6", "46 : P0.29/AIN5",
+"48 : P0.28/AIN4". These are module **pad numbers**, not Arduino pins.
+
+| U1 net | Pad | nRF pin | Direction at nRF | Constraint |
+|---|---:|---|---|---|
+| AFE_SCLK | 34 | P0.06 | out | SPIM3 SCK, 1 MHz; full-speed |
+| AFE_MOSI | 36 | P0.05 | out | SPIM3 MOSI, full-speed |
+| AFE_MISO | 32 | P0.08 | in | SPIM3 MISO, full-speed |
+| AFE_CS | 48 | P0.28 | out | LF ≤10 kHz, standard drive; high-Z while U2 unpowered |
+| AFE_DRDY | 46 | P0.29 | in | LF ≤10 kHz (2 kSPS DRDY) |
+| AFE_START | 4 | P0.10/NFC2 | out | LF only; disable UICR NFCPINS protection; high-Z while U2 unpowered |
+| AFE_RESET (ADS PWDN/RESET) | 6 | P0.26 | out | High-Z while U2 unpowered |
+| CHG_MON | 44 | P0.30/AIN6 | analog in | ISET via R25; no separate /CHG status output |
+| VBAT_SENSE | 42 | P0.31/AIN7 | analog in | R20/R21 1 MΩ/1 MΩ divider, LF |
+| VBUS_DET | 40 | P0.02 | digital in | R18/R19 divider, LF; **not** USBREGSTATUS (U1 USB unconnected) |
+| LED_EN | 38 | P0.03 | out | LF; Q4 gate/10 kΩ pull-down, LED powered from VBUS; not a stream LED |
+| nRESET | 13 | P0.18/RESET | in | SW1 + SWD J4; configure UICR PSELRESET[0/1]=18; no external pull-up |
+| SWDIO / SWDCLK | 28 / 30 | SWDIO / SWDCLK | bidirectional / in | J4 factory programming; not application GPIO |
+| +VDD | 26 | VCC_nRF | power in | 3.0 V from U5; no v2 REGOUT0/VDDH first-boot programming |
+| RF_ANT | 20, 22 | OUT_ANT, OUT_MOD | RF | antenna path, not GPIO |
+| GND | 1, 7, 14, 16, 18, 21, 23, 24, 25, 31 | VSS | power | VSS 14/16/18 use via pair between pads |
+
+All other U1 pads are unconnected, including USB D± pads 8/10 and VBUS pad
+12; the U1 pad 2 P0.09/NFC1 is open. BAT_MEAS_EN/Q5 is removed: no MCU AFE
+power-enable line exists. Q2/Q3/Q1 gate AFE power **in hardware** on charging;
+the GPIOs to U2 must be high-Z while off. R26 (external reset pull-up) was
+removed; SW1 only resets after PSELRESET is provisioned. P0.09 and P0.10
+must be driven to the same level before sleep with NFC reassigned to GPIO.
+P0.28/29/30/31/02/03/10 are low-frequency-only; none should carry SPI data.
+
+The sketch now reads VBUS_DET and VBAT_SENSE and uses a dedicated SPIM3
+object wired to the table, but it **requires an ISP1807 v4 Arduino variant**
+that maps digital numbers to these actual pins and configures SAADC reference
+and UICR for NFC/reset. There is no such product variant in this tree: a
+Feather compile is deliberately rejected rather than claiming the wrong
+wiring works. `CHG_MON` is mapped but its charge/termination thresholds are
+not characterized; until they are, LED_EN stays off (not an acquisition
+indicator). No bootloader flash, physical board, BLE link or charge-state
+validation was performed for v4. The earlier v2 build and flash instructions
+above are historical and are **not** v4 release instructions.
