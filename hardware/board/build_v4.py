@@ -164,8 +164,9 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     # cross; R12 turns PRETERM's pad toward its via east of the pulls.
     "C9": ("top", 10.20, 18.50, 90),
     "C10": ("top", 9.10, 18.60, 90),
+    "C17": ("top", 11.10, 18.60, 90),  # VREFP 100 nF beside C9 (refcheck t-0023): VREFP pad south, next to C9.1
     "R12": ("top", 12.60, 18.15, 180),
-    "R13": ("top", 12.60, 18.95, 0),
+    "R13": ("top", 13.25, 18.97, 180),  # TS pad east under its via; west of it IN1N drops to pin 3 (pass 5)
     # F corner above SW1: CS/DRDY series, pad-23 decoupling, charge LED.
     # R7 sits against U1's courtyard so three SPI tracks pass between R7
     # and R27; R27 faces DRDY_AFE north, straight at U2 pad 22.
@@ -193,37 +194,45 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "R11": ("bottom", 12.00, 16.75, 0),
     "C2": ("bottom", 11.95, 17.55, 0),
     "R25": ("bottom", 11.95, 18.35, 0),
-    "C3": ("bottom", 14.40, 19.95, 90),
-    "D1": ("bottom", 12.60, 19.70, 0),
-    # B under U2: AFE supply switch, LDO, bulk, RLD network.
-    # Relief 5 (t-0014, §9.2): the west stack sits 0.10 further west than 815ca29 (9.95 ->
-    # 9.85, R24 9.40 -> 9.30), as far as R14's and Q1's courtyards clear LAND_P1, and C8, C14
-    # and C11 are turned so their GND pads face east, away from the B corridor between the
-    # stacks. The corridor pinch beside Q1 grows from 0.42 to 0.52 mm and carries no GND: the
-    # east-side GND pads sit under U2's exposed pad and reach it by stitching vias.
-    "R15": ("bottom", 9.85, 19.95, 0),  # AFE_EN_HW west over Q3.1, VBAT east
-    "Q3": ("bottom", 9.85, 20.90, 180),  # GND and AFE_EN_HW west (away from the corridor), AFE_GATE east
-    "R14": ("bottom", 9.85, 21.85, 0),
-    "Q1": ("bottom", 9.85, 22.80, 0),
-    "C5": ("bottom", 9.85, 23.75, 0),
-    "R24": ("bottom", 9.30, 24.65, 0),
+    "C3": ("bottom", 14.55, 19.60, 270),  # closed up to U3.A2, 0.31 from the joint notch edge
+    # B under U2: AFE supply switch, LDO and RLD network. The west stack stays at u 9.85
+    # outside LAND_P1; R15 and Q3 moved north beside the charger. C8's GND pad faces west
+    # toward the exposed-pad via; C14 moved east by the dividers and C11 is now on F.
+    "R14": ("bottom", 9.85, 21.85, 180),  # VBAT west, AFE_GATE east under Q3.3
+    "Q1": ("bottom", 9.85, 22.80, 180),  # AFE_GATE and VBAT west, AFE_VIN east toward U4
+    "C5": ("bottom", 9.85, 23.90, 180),  # AFE_VIN west (from Q1.3), GND east toward C8.2; 0.15 south for the +3V0 W via (pass 4)
+    "R24": ("bottom", 11.45, 24.70, 180),  # south of the +3V0 W arm; START west, GND east (pass 4)
     "U4": ("bottom", 11.65, 21.25, 0),
-    "C8": ("bottom", 11.65, 22.55, 180),  # GND pad east (under U2's exposed pad)
-    "C14": ("bottom", 11.65, 23.60, 180),  # GND pad east; VBAT pad west, one hop from Q1.2
-    "C11": ("bottom", 11.65, 24.60, 180),  # GND pad east, in line with C14.2
-    "R4": ("bottom", 13.30, 22.15, 90),
+    "C8": ("bottom", 11.65, 22.55, 0),  # +3V0 pad east under U4.1, GND pad west
+    "C14": ("bottom", 14.15, 27.20, 180),  # east pocket: VBAT pad west beside R20.1
+    "C11": ("top", 15.10, 23.20, 270),  # F beside U2's east row: VCAP2 pad north toward U2.27
+    # B under the east column, freed by D1: the GPIO pull-downs (refcheck t-0023), each a stub
+    # from its via beside U2.26 / U2.25. Pads stop at u 15.15 so VBUS keeps the B edge lane.
+    "R34": ("bottom", 14.95, 23.22, 270),  # GPIO1 north, GND south
+    "R35": ("bottom", 14.40, 24.55, 180),  # GPIO2 west, GND east
+    "R4": ("bottom", 13.30, 22.15, 270),  # RLD_FB north, RLDINV south onto C1.2 (pass 4)
     "C1": ("bottom", 13.30, 23.65, 90),
     # B pocket right of the stiffener: REF resistor, dividers, charge interlock.
     # Kept east of u 11.1 so a via column at u 10.72 fits beside U1's pads.
     "R3": ("bottom", 14.55, 25.60, 0),
-    "R18": ("bottom", 11.80, 25.60, 0),
-    "R19": ("bottom", 13.30, 26.52, 180),  # VBUS_DET pad west
-    "R20": ("bottom", 11.80, 26.40, 0),
-    "R21": ("bottom", 11.80, 27.20, 0),
-    "Q2": ("bottom", 13.35, 27.60, 0),
-    # Interlock: R16 (VBUS pull) and R17 (GND pull) stacked on Q2's gate side.
-    "R16": ("bottom", 14.60, 27.10, 270),
-    "R17": ("bottom", 14.60, 28.55, 270),
+    # One row further east than 815ca29 (11.80 -> 12.40) so U1's east pads get a second via
+    # column at u 11.3; U1-side pads face west; the VBAT_SENSE pair sits above the VBUS_DET
+    # pair in U1's pad order; s 25.05-26.5 stays free for AFE_DRDY's hop to R27 on B.
+    "R20": ("bottom", 12.40, 26.90, 0),  # VBAT east, VBAT_SENSE west
+    "R21": ("bottom", 12.40, 27.70, 180),  # VBAT_SENSE west, GND east
+    "R18": ("bottom", 12.40, 28.50, 0),  # VBUS east, VBUS_DET west
+    "R19": ("bottom", 12.40, 29.30, 180),  # VBUS_DET west, GND east
+    # Interlock beside the charger (t-0016): Q2.3 faces R15.2 across the corridor's north end,
+    # so AFE_EN_HW is a short hop and no longer runs south past U1; R16 (VBUS pull) and
+    # R17 (GND pull) sit at Q2's gate side.
+    "Q3": ("bottom", 10.65, 19.90, 0),  # AFE_EN_HW (north) and GND east, AFE_GATE west over R14.2
+    "R15": ("bottom", 10.80, 18.60, 270),  # VBAT north on the trunk, AFE_EN_HW south onto Q3.1
+    "Q2": ("bottom", 12.50, 19.55, 0),  # AFE_EN_HW west toward Q3.1; Q2_G and GND east
+    "R16": ("bottom", 13.75, 19.70, 270),  # VBUS north, Q2_G south; south of the VBAT row (pass 4)
+    "R17": ("bottom", 14.45, 20.85, 180),  # Q2_G west, GND east
+    # VBUS TVS on the trunk's south end beside R18 (pass 4): the east column holds the RLD and
+    # GPIO vias and the +3V0 E arm.
+    "D1": ("bottom", 14.30, 28.60, 0),  # SOD882, cathode (VBUS) east, GND west
 }
 
 RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
@@ -634,6 +643,203 @@ def pre_routes(board) -> None:
     p14, p16, p18 = (pad_center(board, "U1", n) for n in ("14", "16", "18"))
     for a, b in ((p14, p16), (p16, p18)):
         add_locked_via(board, ((a[0] + b[0]) / 2 + 0.05, (a[1] + b[1]) / 2), gnd)
+    u2_core_pre_routes(board)
+
+
+def u2_core_pre_routes(board) -> None:
+    """U2's core and the charger corner (pass 4, t-0019), locked so the router only has to
+    thread the long nets past them.
+
+    GND: pads 10, 13 and 24 tie to the exposed pad inside the pad ring; one via in the pad
+    drops between U4 and C8 to U4's GND pads and C8.2, and Q2.S and Q3.S each get a via into
+    the pad. +3V0: U4.1 feeds a B hub to C8.1, and four arms reach U2's four sides: N (pins
+    5/6) straight down between Q3 and Q2, E (pins 31/32) under R4, W (pins 12/14, C6, C7)
+    round C5 on B to a via outside LAND_P1's circle, S (pin 23, C15) beside C1. Charger:
+    VBAT leaves U3.A1 along one row south of U3 to R15, ISET runs north of U3's GND ball, TS
+    and PRETERM hop to R13 and R12 on F, CHG_MON leaves R25 west. The AFE switch chain
+    (AFE_EN_HW, AFE_GATE, AFE_VIN) and the RLD network sit on B under U2 with their own
+    vias. VCAP2 runs straight to C11; GPIO1 and GPIO2 hop to their pull-downs on B. Two GND
+    links the finisher could not find: P5's run to R11.2 along the top edge, Q4.2 to D1.2."""
+    bcu, fcu = pcbnew.B_Cu, pcbnew.F_Cu
+    w = FLEX_TRACK
+    net = {n: ensure_net(board, n) for n in (
+        "GND", "+3V0", "VBAT", "VBUS", "ISET", "TS", "PRETERM", "CHG_MON", "AFE_EN_HW", "Q2_G",
+        "AFE_GATE", "AFE_VIN", "AFE_START", "AFE_RESET", "RLD_FB", "RLDINV", "VCAP2")}
+
+    def path(pts, name, layer, width=w):
+        add_locked_path(board, pts, net[name], layer, width)
+
+    def via(pos, name):
+        add_locked_via(board, pos, net[name])
+
+    pc = lambda ref, n: pad_center(board, ref, n)  # noqa: E731
+
+    # GND core.
+    ep_via = (11.65, 22.00)
+    via(ep_via, "GND")
+    for ref, n in (("U4", "5"), ("U4", "2"), ("C8", "2")):
+        path([ep_via, pc(ref, n)], "GND", bcu)
+    for n, end in (("10", (10.60, 21.08)), ("13", (10.60, 22.28)), ("24", (13.20, 23.40))):
+        path([pc("U2", n), end], "GND", fcu)
+    for ref, v in (("Q3", (10.68, 20.85)), ("Q2", (12.85, 20.85))):
+        via(v, "GND")
+        path([pc(ref, "2"), v], "GND", bcu)
+    c5g = pc("C5", "2")
+    path([c5g, (10.75, c5g[1]), (10.75, 23.00), pc("C8", "2")], "GND", bcu)
+    # The +3V0 arms ring the core on B and U2's pad ring closes it on F (and LAND_P1 takes
+    # no pour), so the core leaves through pin 24 to C15.2 and C11.2 on F, and the east
+    # pocket (C3.2, R17.2, R34.2, R35.2) joins it down the B edge lane and one via.
+    c15g, c11g = pc("C15", "2"), pc("C11", "2")
+    path([pc("U2", "24"), (13.25, 24.30), (13.60, 24.60), c15g], "GND", fcu)
+    path([c11g, (c11g[0], c15g[1]), c15g], "GND", fcu)
+    east_via = (15.20, 24.05)
+    via(east_via, "GND")
+    path([pc("C3", "2"), pc("R17", "2"), (15.30, 21.20), (15.30, 23.40), pc("R34", "2"), east_via,
+          pc("R35", "2")], "GND", bcu)
+
+    # +3V0: hub U4.1 -> C8.1 and the four arms.
+    hub = (12.50, 21.40)
+    path([pc("U4", "1"), (12.50, 21.10), hub, (12.50, 22.20), pc("C8", "1")], "+3V0", bcu)
+    n_via = (11.55, 19.50)
+    path([(11.25, 20.10), (11.65, 20.10)], "+3V0", fcu)
+    path([(11.45, 20.10), n_via], "+3V0", fcu)
+    via(n_via, "+3V0")
+    path([n_via, (11.60, 20.55), (11.95, 20.80), pc("U4", "1")], "+3V0", bcu)
+    e_via = (14.40, 21.40)
+    path([(13.95, 20.68), (13.95, 21.08), e_via], "+3V0", fcu)
+    via(e_via, "+3V0")
+    path([e_via, hub], "+3V0", bcu)
+    w_via = (9.10, 23.45)
+    path([pc("U2", "12"), (9.45, 21.88), (9.45, 22.68), pc("U2", "14")], "+3V0", fcu)
+    path([(9.45, 22.68), (9.40, 22.90), (8.78, 22.95)], "+3V0", fcu)
+    path([pc("C6", "1"), (8.78, 23.05)], "+3V0", fcu)
+    path([(8.90, 23.15), w_via], "+3V0", fcu)
+    via(w_via, "+3V0")
+    arm_s = 24.30
+    path([w_via, (w_via[0], arm_s), (12.13, arm_s), pc("C8", "1")], "+3V0", bcu)
+    s_via = (12.85, 24.60)
+    path([(12.13, arm_s), (12.50, arm_s), s_via], "+3V0", bcu)
+    via(s_via, "+3V0")
+    path([pc("U2", "23"), s_via, pc("C15", "1")], "+3V0", fcu)
+
+    # Charger corner.
+    a1, b1, c1 = pc("U3", "A1"), pc("U3", "B1"), pc("U3", "C1")
+    path([a1, (a1[0], 18.85), (11.20, 18.85), (11.20, 18.28), pc("R15", "1")], "VBAT", bcu)
+    b2 = pc("U3", "B2")
+    path([b2, (b2[0], 17.15), (12.27, 17.15), pc("R25", "1")], "ISET", bcu)
+    path([(12.27, 17.15), pc("R11", "1")], "ISET", bcu)
+    ts_via, pt_via = (13.90, 18.45), (13.35, 18.45)
+    path([b1, ts_via], "TS", bcu)
+    via(ts_via, "TS")
+    path([ts_via, pc("R13", "1")], "TS", fcu)
+    path([c1, pt_via], "PRETERM", bcu)
+    via(pt_via, "PRETERM")
+    path([pt_via, pc("R12", "1")], "PRETERM", fcu)
+    path([pc("R13", "2"), pc("R12", "2")], "GND", fcu)
+    c2_via = (13.00, 17.65)
+    via(c2_via, "GND")
+    path([pc("U3", "C2"), c2_via], "GND", bcu)
+    path([pc("R11", "2"), pc("C2", "2")], "GND", bcu)
+    r25 = pc("R25", "2")
+    path([r25, (r25[0], 17.95), (11.35, 17.90), (10.30, 17.90)], "CHG_MON", bcu)
+    vb = pc("C3", "1")
+    path([(14.65, 18.40), vb], "VBUS", bcu, CHARGE_TRACK)
+    path([vb, pc("R16", "1")], "VBUS", bcu)
+    q2g = pc("Q2", "1")
+    path([q2g, (13.25, q2g[1]), (13.25, 20.02), pc("R16", "2"), pc("R17", "1")], "Q2_G", bcu)
+    # P5's GND run ends on B north of U3, where ISET and VBUS box it in and the IN1P/VBUS pair
+    # holds the F edge: it joins R11.2 along the top edge, north of R11.1 (pass 6).
+    path([(BEND_U0 - 0.25, CHG_GND_S), (14.35, 16.39), (11.80, 16.39), pc("R11", "2")], "GND", bcu)
+    # Q4.2 (charge-LED switch source) sits between LED_EN and VBUS on F: one via beside D1.2,
+    # south of R28.1 (pass 6).
+    q4_via = (13.50, 28.58)
+    via(q4_via, "GND")
+    path([q4_via, (13.85, 28.225), pc("Q4", "2")], "GND", fcu)
+    path([q4_via, pc("D1", "2")], "GND", bcu)
+
+    # AFE supply switch: R15/Q3/Q2 enable, Q3/R14 gate to Q1, Q1 to U4 and C5.
+    r15 = pc("R15", "2")
+    path([r15, (r15[0], 19.10), (12.15, 19.10), (12.15, 19.55)], "AFE_EN_HW", bcu)
+    q31 = pc("Q3", "1")
+    path([q31, (q31[0], 19.10)], "AFE_EN_HW", bcu)
+    path([pc("Q3", "3"), (10.30, 21.85)], "AFE_GATE", bcu)
+    path([(10.10, 21.95), (9.85, 22.25), (9.85, 23.025), pc("Q1", "1")], "AFE_GATE", bcu)
+    path([pc("R14", "1"), pc("Q1", "2")], "VBAT", bcu)
+    path([(11.10, 21.65), (10.60, 22.20), (10.25, 22.55)], "AFE_VIN", bcu)
+    path([(10.20, 23.05), pc("C5", "1")], "AFE_VIN", bcu)
+
+    # START and RESET out of U2's south-west corner, west of the +3V0 W via.
+    st_via = (10.45, 24.75)
+    p16 = pc("U2", "16")
+    path([p16, (p16[0], 24.75), st_via], "AFE_START", fcu)
+    path([(p16[0], 24.75), (9.40, 24.95), (8.60, 24.95), pc("U1", "4")], "AFE_START", fcu)
+    via(st_via, "AFE_START")
+    path([st_via, pc("R24", "1")], "AFE_START", bcu)
+    p15 = pc("U2", "15")
+    path([p15, (9.55, p15[1]), (9.475, 23.16), (9.475, 23.75), pc("R23", "1")], "AFE_RESET", fcu)
+    path([(8.15, 24.20), pc("U1", "6")], "AFE_RESET", fcu)
+
+    # RLD network: pins 29/30 to the J3 neck on F and to R4.1 and C1.1 on B; pin 28 to R4.2
+    # and C1.2.
+    fb_via, inv_via = (14.95, 21.95), (14.40, 22.30)
+    path([(13.85, 21.48), (13.85, 21.88)], "RLD_FB", fcu)
+    path([pc("U2", "29"), fb_via, (J3_ISLAND_U, J3_S_REF)], "RLD_FB", fcu)
+    via(fb_via, "RLD_FB")
+    r41 = pc("R4", "1")
+    path([fb_via, r41, (12.85, r41[1]), (12.85, 23.97), pc("C1", "1")], "RLD_FB", bcu)
+    path([pc("U2", "28"), inv_via], "RLDINV", fcu)
+    via(inv_via, "RLDINV")
+    path([inv_via, pc("R4", "2"), pc("C1", "2")], "RLDINV", bcu)
+
+    p27 = pc("U2", "27")
+    path([p27, (14.70, p27[1]), pc("C11", "1")], "VCAP2", fcu)
+    for pin, v, ref in (("26", (14.45, 23.15), "R34"), ("25", (14.45, 23.85), "R35")):
+        n = ensure_net(board, board_pad_net(board, "U2", pin))
+        add_locked_path(board, [pc("U2", pin), v], n, fcu, w)
+        add_locked_via(board, v, n)
+        add_locked_path(board, [v, pc(ref, "1")], n, bcu, w)
+    in1_pre_routes(board)
+
+
+def in1_pre_routes(board) -> None:
+    """AFE_IN1P and AFE_IN1N north of U2 (pass 5, t-0019), locked because the two nets must
+    cross once: at the J3 neck IN1P lies north of IN1N, at the strips R1 (IN1P) lies west of
+    R2 (IN1N). IN1P crosses over R2 on F and IN1N leaves R2 by a via just west of it, so the
+    IN1P trunk (along the top, to the neck) and its branch (back east to pin 4) wrap round
+    that via. Trunk, IN1N and branch pass the SIG2 root at s 17.165 / 17.37 / 17.575 with
+    VBUS at 16.96, 0.105 apart, 0.21 from the SIG2 via (Contact 0.20) and 0.115 from C9.2;
+    VBUS keeps its F loop round the IN1P via to its via south of it. IN1N and the branch
+    drop between C17 and R12 to pins 3 and 4, the branch east of the +3V0 N via. Past the
+    root VBUS and the trunk rise to the top edge, so a GND via on the R11.2-C2.2 link
+    reaches R12.2 and U3.C2's via on F: ISET and VBAT box U3.C2 in on B."""
+    fcu, bcu = pcbnew.F_Cu, pcbnew.B_Cu
+    w = FLEX_TRACK
+    in1p, in1n, vbus, gnd = (ensure_net(board, n) for n in ("AFE_IN1P", "AFE_IN1N", "VBUS", "GND"))
+    pc = lambda ref, n: pad_center(board, ref, n)  # noqa: E731
+    s_vbus, s_trunk, s_in1n, s_branch = 16.96, 17.165, 17.37, 17.575
+    j_via, n_via, vbus_via = (6.38, 17.45), (8.35, s_in1n), (6.70, 18.30)
+    add_locked_via(board, j_via, in1p)
+    add_locked_path(board, [j_via, pc("R1", "2")], in1p, bcu, w)
+    add_locked_path(board, [j_via, (6.83, 17.00), (9.50, 17.00), (9.665, s_trunk), (10.80, s_trunk), (11.305, 16.66),
+                            (11.95, 16.66)], in1p, fcu, w)
+    add_locked_path(board, [j_via, (6.69, 17.76), (8.95, 17.76), (9.135, s_branch), (11.075, s_branch),
+                            (11.50, 18.00), (11.50, 18.90), (11.95, 19.35), pc("U2", "4")], in1p, fcu, w)
+    add_locked_via(board, n_via, in1n)
+    add_locked_path(board, [n_via, pc("R2", "2")], in1n, bcu, w)
+    add_locked_path(board, [n_via, (11.37, s_in1n), (11.80, 17.80), (11.80, 18.45), (12.45, 19.10), pc("U2", "3")],
+                    in1n, fcu, w)
+    add_locked_via(board, vbus_via, vbus)
+    add_locked_path(board, [vbus_via, (6.10, 17.70), (6.00, 17.60), (6.00, 16.95), (6.20, 16.75), (9.55, 16.75),
+                            (9.76, s_vbus), (10.60, s_vbus), (11.11, 16.45), (11.95, 16.45)], vbus, fcu, w)
+    g_via, g_mid = (11.67, 17.15), (12.28, 17.15)
+    add_locked_via(board, g_via, gnd)
+    add_locked_path(board, [g_via, g_mid, pc("R12", "2")], gnd, fcu, w)
+    add_locked_path(board, [g_mid, (12.50, 17.15), (13.00, 17.65)], gnd, fcu, w)
+
+
+def board_pad_net(board, ref: str, num: str) -> str:
+    fp = next(f for f in board.GetFootprints() if f.GetReference() == ref)
+    return next(p for p in fp.Pads() if p.GetNumber() == num).GetNetname()
 
 
 def fp_pos(board, ref: str) -> tuple[float, float]:
