@@ -194,7 +194,7 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "R11": ("bottom", 12.00, 16.75, 0),
     "C2": ("bottom", 11.95, 17.55, 0),
     "R25": ("bottom", 11.95, 18.35, 0),
-    "C3": ("bottom", 14.55, 19.60, 270),  # closed up to U3.A2, 0.31 from the joint notch edge
+    "C3": ("top", 14.40, 17.20, 270),  # 10 V IN reservoir; F-side landing beside U3's IN ball
     # B under U2: AFE supply switch, LDO and RLD network. The west stack stays at u 9.85
     # outside LAND_P1; R15 and Q3 moved north beside the charger. C8's GND pad faces west
     # toward the exposed-pad via; C14 moved east by the dividers and C11 is now on F.
@@ -204,7 +204,9 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "R24": ("bottom", 11.45, 24.70, 180),  # south of the +3V0 W arm; START west, GND east (pass 4)
     "U4": ("bottom", 11.65, 21.25, 0),
     "C8": ("bottom", 11.65, 22.55, 0),  # +3V0 pad east under U4.1, GND pad west
-    "C14": ("bottom", 14.15, 27.20, 180),  # east pocket: VBAT pad west beside R20.1
+    "C14": ("bottom", 14.15, 27.20, 180),  # OUT reservoir; east pocket: VBAT pad west beside R20.1
+    "C19": ("top", 14.10, 34.20, 90),  # second characterized OUT capacitor, thermal margin
+    "C18": ("bottom", 15.07, 20.70, 270),  # TS reservoir alongside U3, east of U2
     "C11": ("top", 15.10, 23.20, 270),  # F beside U2's east row: VCAP2 pad north toward U2.27
     # B under the east column, freed by D1: the GPIO pull-downs (refcheck t-0023), each a stub
     # from its via beside U2.26 / U2.25. Pads stop at u 15.15 so VBUS keeps the B edge lane.
@@ -229,10 +231,10 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "R15": ("bottom", 10.80, 18.60, 270),  # VBAT north on the trunk, AFE_EN_HW south onto Q3.1
     "Q2": ("bottom", 12.50, 19.55, 0),  # AFE_EN_HW west toward Q3.1; Q2_G and GND east
     "R16": ("bottom", 13.75, 19.70, 270),  # VBUS north, Q2_G south; south of the VBAT row (pass 4)
-    "R17": ("bottom", 14.45, 20.85, 180),  # Q2_G west, GND east
+    "R17": ("bottom", 13.70, 20.85, 180),  # Q2_G west, GND east
     # VBUS TVS on the trunk's south end beside R18 (pass 4): the east column holds the RLD and
     # GPIO vias and the +3V0 E arm.
-    "D1": ("bottom", 14.30, 28.60, 0),  # SOD882, cathode (VBUS) east, GND west
+    "D1": ("bottom", 14.30, 28.60, 0),  # far-end TVS: charger relies on its conditional IEC IN rating (§2.1)
 }
 
 RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
@@ -688,13 +690,13 @@ def u2_core_pre_routes(board) -> None:
     path([c5g, (10.75, c5g[1]), (10.75, 23.00), pc("C8", "2")], "GND", bcu)
     # The +3V0 arms ring the core on B and U2's pad ring closes it on F (and LAND_P1 takes
     # no pour), so the core leaves through pin 24 to C15.2 and C11.2 on F, and the east
-    # pocket (C3.2, R17.2, R34.2, R35.2) joins it down the B edge lane and one via.
+    # East GND pocket joins R17/R34/R35 and the core through the B edge lane.
     c15g, c11g = pc("C15", "2"), pc("C11", "2")
     path([pc("U2", "24"), (13.25, 24.30), (13.60, 24.60), c15g], "GND", fcu)
     path([c11g, (c11g[0], c15g[1]), c15g], "GND", fcu)
     east_via = (15.20, 24.05)
     via(east_via, "GND")
-    path([pc("C3", "2"), pc("R17", "2"), (15.30, 21.20), (15.30, 23.40), pc("R34", "2"), east_via,
+    path([pc("R17", "2"), (15.30, 21.20), (15.30, 23.40), pc("R34", "2"), east_via,
           pc("R35", "2")], "GND", bcu)
 
     # +3V0: hub U4.1 -> C8.1 and the four arms.
@@ -742,15 +744,13 @@ def u2_core_pre_routes(board) -> None:
     path([pc("R11", "2"), pc("C2", "2")], "GND", bcu)
     r25 = pc("R25", "2")
     path([r25, (r25[0], 17.95), (11.35, 17.90), (10.30, 17.90)], "CHG_MON", bcu)
-    vb = pc("C3", "1")
-    path([(14.65, 18.40), vb], "VBUS", bcu, CHARGE_TRACK)
-    path([vb, pc("R16", "1")], "VBUS", bcu)
+    # Connect the F-side IN reservoir and clamp to the B-side VBUS trunk during routing.
     q2g = pc("Q2", "1")
     path([q2g, (13.25, q2g[1]), (13.25, 20.02), pc("R16", "2"), pc("R17", "1")], "Q2_G", bcu)
     # P5's GND run ends on B north of U3, where ISET and VBUS box it in and the IN1P/VBUS pair
     # holds the F edge: it joins R11.2 along the top edge, north of R11.1 (pass 6).
     path([(BEND_U0 - 0.25, CHG_GND_S), (14.35, 16.39), (11.80, 16.39), pc("R11", "2")], "GND", bcu)
-    # Q4.2 (charge-LED switch source) sits between LED_EN and VBUS on F: one via beside D1.2,
+    # Q4.2 (charge-LED switch source) sits between LED_EN and VBUS on F: one via
     # south of R28.1 (pass 6).
     q4_via = (13.50, 28.58)
     via(q4_via, "GND")
