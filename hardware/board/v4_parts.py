@@ -32,7 +32,7 @@ DFN1006 = "Package_TO_SOT_SMD:SOT-883"  # DFN1006-3: 1 G, 2 S, 3 D
 def esd_cap(ref: str, value: str, net: str, mpn: str) -> Part:
     """Murata 10 V X5R 0402, DC-bias characterized in the design note §2.1."""
     return Part(ref, "Device:C", value, C0402,
-                {"1": net, "2": "GND"}, lcsc="CONSIGNED", mpn=mpn)
+                {"1": net, "2": "GND"}, lcsc="C36626211", mpn=mpn + "D")
 
 # (value, size) -> (LCSC, MPN). Filled from research; "" = not yet read.
 # Parts JLC cannot supply carry CONSIGNED in the LCSC field, so the BOM says
@@ -43,16 +43,16 @@ LCSC: dict[tuple[str, str], tuple[str, str]] = {
     ("10uF", "0402"): ("C15525", "CL05A106MQ5NUNC"),
     ("1uF", "0201"): ("C5142566", "TCC0201X5R105K6R3ZT"),
     ("100nF", "0201"): ("C307380", "CL03A104KO3NNNC"),
-    ("10nF", "0201"): ("CONSIGNED", "0201B103K500NT"),
+    ("10nF", "0201"): ("C5142551", "TCC0201X7R103K500ZT"),
     ("1.5nF", "0201"): ("C285104", "0201B152K500NT"),
     ("10k", "0201"): ("C473048", "0201WMF1002TEE"),
     ("100k", "0201"): ("C270364", "0201WMF1003TEE"),
     ("1k", "0201"): ("C270365", "0201WMF1001TEE"),
     ("1M", "0201"): ("C473482", "0201WMF1004TEE"),
-    ("6.8k", "0201"): ("CONSIGNED", "ERJ-1GNF6801C"),
+    ("6.8k", "0201"): ("C423451", "0201WMF6801TEE"),
     ("6.04k", "0201"): ("C270341", "0201WMF6041TEE"),
-    ("47k", "0201"): ("CONSIGNED", ""),
-    ("27k", "0201"): ("CONSIGNED", ""),
+    ("47k", "0201"): ("C270345", "0201WMF4702TEE"),
+    ("27k", "0201"): ("C270351", "0201WMF2702TEE"),
 }
 
 
@@ -138,12 +138,12 @@ def parts() -> list[Part]:
         Part(
             "U4", "elicio:TLV71330PDQN", "TLV71330PDQNT", "Package_SON:Texas_X2SON-4_1x1mm_P0.65mm",
             {"4": "AFE_VIN", "3": "AFE_VIN", "1": "+3V0", "2": "GND", "5": "GND"},
-            lcsc=CONSIGNED, mpn="TLV71330PDQNT",
+            lcsc="C2863576", mpn="TLV71330PDQNR",
         ),
         Part(
             "U5", "elicio:TPS7A0230PDQN", "TPS7A0230PDQNR", "Package_SON:Texas_X2SON-4_1x1mm_P0.65mm",
             {"4": "VBAT", "3": "VBAT", "1": "+VDD", "2": "GND", "5": "GND"},
-            lcsc=CONSIGNED, mpn="TPS7A0230PDQNR",
+            lcsc="C2867950", mpn="TPS7A0230PDQNR",
         ),
         Part("Q1", "elicio:AO3401A", "WPM3027-3", DFN1006, {"1": "AFE_GATE", "2": "VBAT", "3": "AFE_VIN"},
              lcsc="C240195", mpn="WPM3027-3/TR"),
@@ -157,9 +157,9 @@ def parts() -> list[Part]:
              lcsc="C478155", mpn="PMZ290UNE2YL"),
         # SOD882 (DFN1006-2), Nexperia's package; pad 1 cathode on VBUS (refcheck t-0023).
         Part("D1", "elicio:PESD5V0L1UL", "PESD5V0L1UL", "Diode_SMD:D_SOD-882",
-             {"1": "VBUS", "2": "GND"}, lcsc=CONSIGNED, mpn="PESD5V0L1UL"),
+             {"1": "VBUS", "2": "GND"}, lcsc="C3001948", mpn="PESD5V0L1UL"),
         Part("D2", "Device:LED", "LED-0402", "LED_SMD:LED_0402_1005Metric",
-             {"1": "CHG_LED_K", "2": "D2_A"}, lcsc=CONSIGNED, mpn="19-217/GHC-YR1S2/3T"),
+             {"1": "CHG_LED_K", "2": "D2_A"}, lcsc="C364549", mpn="LTST-C281TGKT-5A"),
         Part("J2", "Connector:Conn_01x02_Pin", "202656-0021",
              "Connector_Molex:Molex_Pico-EZmate_Slim_202656-0021_1x02-1MP_P1.20mm_Vertical",
              {"1": "VBAT", "2": "GND"}, lcsc=CONSIGNED, mpn="202656-0021"),
