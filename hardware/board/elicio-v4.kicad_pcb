@@ -154,7 +154,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C72043"
+		(property "LCSC" "C364549"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -166,7 +166,7 @@
 				)
 			)
 		)
-		(property "MPN" "19-217/GHC-YR1S2/3T"
+		(property "MPN" "LTST-C281TGKT-5A"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -326,7 +326,7 @@
 				)
 			)
 		)
-		(property "LCSC" "CONSIGNED"
+		(property "LCSC" "C36626211"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -338,7 +338,7 @@
 				)
 			)
 		)
-		(property "MPN" "GRM155R61A106ME18"
+		(property "MPN" "GRM155R61A106ME18D"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -4902,7 +4902,7 @@
 				)
 			)
 		)
-		(property "LCSC" "CONSIGNED"
+		(property "LCSC" "C36626211"
 			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -4914,7 +4914,7 @@
 				)
 			)
 		)
-		(property "MPN" "GRM155R61A106ME18"
+		(property "MPN" "GRM155R61A106ME18D"
 			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -7245,7 +7245,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C270351"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -8373,7 +8373,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "C24109"
+		(property "LCSC" "C3001948"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -9782,7 +9782,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C270345"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -9943,7 +9943,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "C527572"
+		(property "LCSC" "CONSIGNED"
 			(at 0 0 90)
 			(layer "B.Fab")
 			(hide yes)
@@ -10670,7 +10670,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "C43380"
+		(property "LCSC" "C5142551"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -10683,7 +10683,7 @@
 				(justify mirror)
 			)
 		)
-		(property "MPN" "0201B103K500NT"
+		(property "MPN" "TCC0201X7R103K500ZT"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -10844,7 +10844,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "CONSIGNED"
+		(property "LCSC" "C36626211"
 			(at 0 0 90)
 			(layer "B.Fab")
 			(hide yes)
@@ -10857,7 +10857,7 @@
 				(justify mirror)
 			)
 		)
-		(property "MPN" "GRM155R61A106ME18"
+		(property "MPN" "GRM155R61A106ME18D"
 			(at 0 0 90)
 			(layer "B.Fab")
 			(hide yes)
@@ -11004,7 +11004,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "C4104700"
+		(property "LCSC" "C423451"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -11017,7 +11017,7 @@
 				(justify mirror)
 			)
 		)
-		(property "MPN" "ERJ-1GNF6801C"
+		(property "MPN" "0201WMF6801TEE"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -12169,7 +12169,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "CONSIGNED"
+		(property "LCSC" "C36626211"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -12182,7 +12182,7 @@
 				(justify mirror)
 			)
 		)
-		(property "MPN" "GRM155R61A106ME18"
+		(property "MPN" "GRM155R61A106ME18D"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -12320,7 +12320,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "C3071062"
+		(property "LCSC" "C2863576"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -12333,7 +12333,7 @@
 				(justify mirror)
 			)
 		)
-		(property "MPN" "TLV71330PDQNT"
+		(property "MPN" "TLV71330PDQNR"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -13298,7 +13298,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" "CONSIGNED"
+		(property "LCSC" "C2867950"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
