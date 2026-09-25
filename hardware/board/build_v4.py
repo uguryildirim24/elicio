@@ -661,7 +661,8 @@ def u2_core_pre_routes(board) -> None:
     VBAT leaves U3.A1 along one row south of U3 to R15, ISET runs north of U3's GND ball, TS
     and PRETERM hop to R13 and R12 on F, CHG_MON leaves R25 west. The AFE switch chain
     (AFE_EN_HW, AFE_GATE, AFE_VIN) and the RLD network sit on B under U2 with their own
-    vias. VCAP2 runs straight to C11; GPIO1 and GPIO2 hop to their pull-downs on B."""
+    vias. VCAP2 runs straight to C11; GPIO1 and GPIO2 hop to their pull-downs on B. Two GND
+    links the finisher could not find: P5's run to R11.2 along the top edge, Q4.2 to D1.2."""
     bcu, fcu = pcbnew.B_Cu, pcbnew.F_Cu
     w = FLEX_TRACK
     net = {n: ensure_net(board, n) for n in (
@@ -749,6 +750,15 @@ def u2_core_pre_routes(board) -> None:
     path([vb, pc("R16", "1")], "VBUS", bcu)
     q2g = pc("Q2", "1")
     path([q2g, (13.25, q2g[1]), (13.25, 20.02), pc("R16", "2"), pc("R17", "1")], "Q2_G", bcu)
+    # P5's GND run ends on B north of U3, where ISET and VBUS box it in and the IN1P/VBUS pair
+    # holds the F edge: it joins R11.2 along the top edge, north of R11.1 (pass 6).
+    path([(BEND_U0 - 0.25, CHG_GND_S), (14.35, 16.39), (11.80, 16.39), pc("R11", "2")], "GND", bcu)
+    # Q4.2 (charge-LED switch source) sits between LED_EN and VBUS on F: one via beside D1.2,
+    # south of R28.1 (pass 6).
+    q4_via = (13.50, 28.58)
+    via(q4_via, "GND")
+    path([q4_via, (13.85, 28.225), pc("Q4", "2")], "GND", fcu)
+    path([q4_via, pc("D1", "2")], "GND", bcu)
 
     # AFE supply switch: R15/Q3/Q2 enable, Q3/R14 gate to Q1, Q1 to U4 and C5.
     r15 = pc("R15", "2")
