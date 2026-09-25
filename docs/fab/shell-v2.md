@@ -1,5 +1,10 @@
 # Shell v2f — the wearable body on packing §5e (width 22)
 
+This is a measured **v2 reference solid**, not a shell for the newer 18 mm v4
+board (`board-v4-design.md`). Its J2/P5 hardware collision remains open; the
+v4 board changes the cell connector and charging geometry and needs its own
+built shell. Do not upload these v2 solids for a v4 build.
+
 WP14 then WP14b then WP14c then WP14d then WP14e then WP14f. The plan is not
 changed. Nothing is ordered. The body is provisional until Rolf
 measures M1 (Q34) and approves the two renders.
