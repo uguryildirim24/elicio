@@ -6,6 +6,13 @@
 #include "frame_v2.h"
 #include "undervoltage.h"
 
+/* A product variant must define digital pin indices as nRF P0 numbers and
+ * reserve these SPIM3 pins. The Feather variant is not the v4 pinout. */
+#ifndef ELICIO_V4_PIN_VARIANT
+#error "Build with an ISP1807 v4 Arduino variant, not the Feather variant"
+#endif
+
+SPIClass afe_spi(NRF_SPIM3, ELICIO_PIN_ADS_MISO, ELICIO_PIN_ADS_SCLK, ELICIO_PIN_ADS_MOSI);
 BLEUart bleuart;
 
 #define RING_LEN 256
@@ -37,7 +44,7 @@ static void ads_select(int asserted) {
 
 static void ads_xfer(const uint8_t *tx, uint8_t *rx, size_t n) {
     for (size_t i = 0; i < n; i++) {
-        uint8_t b = SPI.transfer(tx ? tx[i] : 0);
+        uint8_t b = afe_spi.transfer(tx ? tx[i] : 0);
         if (rx != NULL) {
             rx[i] = b;
         }
@@ -55,12 +62,12 @@ static const Ads1292Bus ADS_BUS = {
 };
 
 static uint8_t vbus_present(void) {
-    return (NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_VBUSDETECT_Msk) ? 1 : 0;
+    return digitalRead(ELICIO_PIN_VBUS_DET) ? 1 : 0;
 }
 
 static uint16_t battery_mv(void) {
-    /* Feather PIN_VBAT divider. WP12 replaces this with the product sense net. */
-    float vbat = analogRead(PIN_VBAT) * 2.0f * 3.6f / 4096.0f;
+    /* R20/R21: 1 MΩ / 1 MΩ; set SAADC reference/gain for 3.6 V full scale. */
+    float vbat = analogRead(ELICIO_PIN_VBAT_SENSE) * 2.0f * 3.6f / 4096.0f;
     if (vbat < 0) {
         vbat = 0;
     }
@@ -155,8 +162,8 @@ static void send_stream(const FrameV2StreamMeta *meta, const uint8_t *samples) {
 }
 
 /*
- * With VBUS present the board switches the AFE rail off (Q2 turns the P-FET
- * off, board-v2.md §4). An output left high into the unpowered ADS1292
+ * With VBUS present the v4 hardware interlock Q2/Q3 turns Q1 off.
+ * An output left high into the unpowered ADS1292
  * would feed its rail through the input clamps, so the control and SPI
  * pins go high-impedance until VBUS is gone (review r5).
  */
@@ -164,10 +171,10 @@ static void afe_pins_safe(void) {
     if (afe_safe) {
         return;
     }
-    SPI.endTransaction();
-    SPI.end();
-    pinMode(PIN_SPI_SCK, INPUT);
-    pinMode(PIN_SPI_MOSI, INPUT);
+    afe_spi.endTransaction();
+    afe_spi.end();
+    pinMode(ELICIO_PIN_ADS_SCLK, INPUT);
+    pinMode(ELICIO_PIN_ADS_MOSI, INPUT);
     pinMode(ELICIO_PIN_ADS_CS, INPUT);
     pinMode(ELICIO_PIN_ADS_PWDN, INPUT);
     pinMode(ELICIO_PIN_ADS_START, INPUT);
@@ -181,8 +188,8 @@ static void afe_pins_active(void) {
     digitalWrite(ELICIO_PIN_ADS_CS, HIGH);
     digitalWrite(ELICIO_PIN_ADS_PWDN, HIGH);
     digitalWrite(ELICIO_PIN_ADS_START, LOW);
-    SPI.begin();
-    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+    afe_spi.begin();
+    afe_spi.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
     afe_safe = 0;
 }
 
@@ -199,14 +206,13 @@ static void start_acquisition(void) {
     attachInterrupt(digitalPinToInterrupt(ELICIO_PIN_ADS_DRDY), drdy_isr, FALLING);
     streaming = 1;
     sent_stop = 0;
-    digitalWrite(ELICIO_PIN_LED_STREAM, HIGH);
+    /* LED_EN is a VBUS-powered charge LED, not a stream indicator. */
 }
 
 static void stop_acquisition(void) {
     detachInterrupt(digitalPinToInterrupt(ELICIO_PIN_ADS_DRDY));
     ads1292_stop(&ADS_BUS);
     streaming = 0;
-    digitalWrite(ELICIO_PIN_LED_STREAM, LOW);
 }
 
 static void connect_cb(uint16_t handle) {
@@ -224,9 +230,20 @@ static void connect_cb(uint16_t handle) {
 
 void setup() {
     pinMode(ELICIO_PIN_ADS_DRDY, INPUT);
-    pinMode(ELICIO_PIN_LED_STREAM, OUTPUT);
-    digitalWrite(ELICIO_PIN_LED_STREAM, LOW);
-    afe_pins_active();
+    pinMode(ELICIO_PIN_VBUS_DET, INPUT);
+    pinMode(ELICIO_PIN_LED_EN, OUTPUT);
+    digitalWrite(ELICIO_PIN_LED_EN, LOW);
+    /* Do not drive U2 before checking the hardware charge interlock. */
+    if (vbus_present()) {
+        afe_safe = 1;
+        pinMode(ELICIO_PIN_ADS_SCLK, INPUT);
+        pinMode(ELICIO_PIN_ADS_MOSI, INPUT);
+        pinMode(ELICIO_PIN_ADS_CS, INPUT);
+        pinMode(ELICIO_PIN_ADS_PWDN, INPUT);
+        pinMode(ELICIO_PIN_ADS_START, INPUT);
+    } else {
+        afe_pins_active();
+    }
 
     uv_init(&uv);
     analogReadResolution(12);
@@ -244,9 +261,7 @@ void setup() {
     Bluefruit.Advertising.start(0);
 
     last_battery_ms = millis();
-    if (vbus_present()) {
-        afe_pins_safe();
-    } else {
+    if (!vbus_present()) {
         start_acquisition();
     }
 }
@@ -261,7 +276,7 @@ void loop() {
             /* The AFE rail is already off: no SPI to it, pins high-Z. */
             detachInterrupt(digitalPinToInterrupt(ELICIO_PIN_ADS_DRDY));
             streaming = 0;
-            digitalWrite(ELICIO_PIN_LED_STREAM, LOW);
+            digitalWrite(ELICIO_PIN_LED_EN, LOW);
         }
         afe_pins_safe();
         if (Bluefruit.connected() && !sent_stop) {

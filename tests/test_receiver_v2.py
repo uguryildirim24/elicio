@@ -36,7 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures" / "receiver_v2"
 BOARD_MD = ROOT / "docs" / "fab" / "board-v2.md"
 MONTAGE_MD = ROOT / "docs" / "fab" / "montage.md"
-PINS_H = ROOT / "firmware" / "src" / "board_pins.h"
+PINS_H = ROOT / "firmware" / "src" / "board_pins_v2.h"
 
 
 def _flat_packets(acq: int, count: int, seq: int) -> list[bytes]:
