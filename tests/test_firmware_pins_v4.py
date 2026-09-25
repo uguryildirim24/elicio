@@ -12,11 +12,11 @@ HEADER = ROOT / "firmware/src/board_pins.h"
 
 # ISP1807 datasheet R19 §3 pin table, pp. 10-11, read 2026-09-25:
 # https://www.insightsip.com/fichiers_insightsip/pdf/ble/ISP1807/isp_ble_DS1807.pdf
-# Quotes (pad : signal): "4 : P0.10/NFC2", "6 : P0.26",
-# "13 : P0.18/RESET", "32 : P0.08", "34 : P0.06",
-# "36 : P0.05/AIN3", "38 : P0.03/AIN1", "40 : P0.02/AIN0",
-# "42 : P0.31/AIN7", "44 : P0.30/AIN6", "46 : P0.29/AIN5",
-# "48 : P0.28/AIN4". SWDIO=28, SWDCLK=30, VCC_nRF=26.
+# Quoted table cells (Pin Name): "4 P0_10 NFC2", "6 P0_26",
+# "13 P0_18 RESET", "32 P0_08", "34 P0_06", "36 P0_05 AIN3",
+# "38 P0_03 AIN1", "40 P0_02 AIN0", "42 P0_31 AIN7",
+# "44 P0_30 AIN6", "46 P0_29 AIN5", "48 P0_28 AIN4".
+# SWDIO=28, SWDCLK=30, VCC_nRF=26.
 GPIO_PADS = {
     4: 10, 6: 26, 13: 18, 32: 8, 34: 6, 36: 5,
     38: 3, 40: 2, 42: 31, 44: 30, 46: 29, 48: 28,
