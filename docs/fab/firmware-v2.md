@@ -255,7 +255,7 @@ https://www.insightsip.com/fichiers_insightsip/pdf/ble/ISP1807/isp_ble_DS1807.pd
 | AFE_RESET (ADS PWDN/RESET) | 6 | P0.26 | out | High-Z while U2 unpowered |
 | CHG_MON | 44 | P0.30/AIN6 | analog in | ISET via R25; no separate /CHG status output |
 | VBAT_SENSE | 42 | P0.31/AIN7 | analog in | R20/R21 1 MΩ/1 MΩ divider, LF |
-| VBUS_DET | 40 | P0.02 | digital in | R18/R19 divider, LF; **not** USBREGSTATUS (U1 USB unconnected) |
+| VBUS_DET | 40 | P0.02/AIN0 | analog in | R18/R19 47 kΩ/27 kΩ divider, LF; **not** USBREGSTATUS (U1 USB unconnected) |
 | LED_EN | 38 | P0.03 | out | LF; Q4 gate/10 kΩ pull-down, LED powered from VBUS; not a stream LED |
 | nRESET | 13 | P0.18/RESET | in | SW1 + SWD J4; configure UICR PSELRESET[0/1]=18; no external pull-up |
 | SWDIO / SWDCLK | 28 / 30 | SWDIO / SWDCLK | bidirectional / in | J4 factory programming; not application GPIO |
@@ -272,9 +272,13 @@ must be driven to the same level before sleep with NFC reassigned to GPIO.
 P0.28/29/30/31/02/03/10 are low-frequency-only; none should carry SPI data.
 
 The sketch now reads VBUS_DET and VBAT_SENSE and uses a dedicated SPIM3
-object wired to the table, but it **requires an ISP1807 v4 Arduino variant**
-that maps digital numbers to these actual pins and configures SAADC reference
-and UICR for NFC/reset. There is no such product variant in this tree: a
+object wired to the table. VBUS_DET uses the ADC, **not** `digitalRead`:
+5.0 V × 27/(47+27) = 1.82 V at P0.02, not a guaranteed digital HIGH
+with 3.0 V VDD. The ADC threshold is ~1.0 V at P0.02 (1138/4096 of a
+3.6 V full scale). The sketch **requires an ISP1807 v4 Arduino variant**
+that maps digital numbers to these actual pins, configures the 12-bit
+SAADC for 3.6 V full scale (including adequate acquisition time for the
+500 kΩ VBAT source), and sets UICR for NFC/reset. There is no such product variant in this tree: a
 Feather compile is deliberately rejected rather than claiming the wrong
 wiring works. `CHG_MON` is mapped but its charge/termination thresholds are
 not characterized; until they are, LED_EN stays off (not an acquisition

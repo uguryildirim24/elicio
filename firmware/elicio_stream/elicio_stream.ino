@@ -62,7 +62,10 @@ static const Ads1292Bus ADS_BUS = {
 };
 
 static uint8_t vbus_present(void) {
-    return digitalRead(ELICIO_PIN_VBUS_DET) ? 1 : 0;
+    /* R18 47k / R19 27k puts 5 V USB at only 1.82 V on P0.02.
+     * That is not a guaranteed digital HIGH at 3.0 V VDD; use AIN0.
+     * Requires the v4 variant's 12-bit, 3.6 V full-scale SAADC setup. */
+    return analogRead(ELICIO_PIN_VBUS_DET) >= 1138; /* ~1.0 V at the pin */
 }
 
 static uint16_t battery_mv(void) {
@@ -230,7 +233,7 @@ static void connect_cb(uint16_t handle) {
 
 void setup() {
     pinMode(ELICIO_PIN_ADS_DRDY, INPUT);
-    pinMode(ELICIO_PIN_VBUS_DET, INPUT);
+    analogReadResolution(12);
     pinMode(ELICIO_PIN_LED_EN, OUTPUT);
     digitalWrite(ELICIO_PIN_LED_EN, LOW);
     /* Do not drive U2 before checking the hardware charge interlock. */
@@ -246,7 +249,6 @@ void setup() {
     }
 
     uv_init(&uv);
-    analogReadResolution(12);
 
     Bluefruit.configPrphBandwidth(BANDWIDTH_MAX);
     Bluefruit.begin();

@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PCB = ROOT / "hardware/board/elicio-v4.kicad_pcb"
 SCH = ROOT / "hardware/board/elicio-v4.kicad_sch"
 HEADER = ROOT / "firmware/src/board_pins.h"
+SKETCH = ROOT / "firmware/elicio_stream/elicio_stream.ino"
 
 # ISP1807 datasheet R19 §3 pin table, pp. 10-11, read 2026-09-25:
 # https://www.insightsip.com/fichiers_insightsip/pdf/ble/ISP1807/isp_ble_DS1807.pdf
@@ -89,7 +90,8 @@ def schematic_pins(text: str) -> dict[int, str]:
 class FirmwarePinsV4(unittest.TestCase):
     def test_v4_kicad_and_firmware_agree(self) -> None:
         pcb = pcb_pads(PCB.read_text(encoding="utf-8"))
-        sch = schematic_pins(SCH.read_text(encoding="utf-8"))
+        schematic = SCH.read_text(encoding="utf-8")
+        sch = schematic_pins(schematic)
         header = HEADER.read_text(encoding="utf-8")
         macros = dict(re.findall(r'^#define ELICIO_PIN_(\w+) (\d+)\b', header, re.M))
         expected_pads = FIXED_NETS | {
@@ -109,7 +111,20 @@ class FirmwarePinsV4(unittest.TestCase):
         self.assertEqual(sch[30], "SWDCLK")
         self.assertEqual(sch[20], "OUT_ANT")
         self.assertEqual(sch[22], "OUT_MOD")
-        self.assertIn('(reference "U1")', SCH.read_text(encoding="utf-8"))
+        self.assertIn("AIN0", sch[40])  # VBUS_DET cannot use digitalRead at 3 V VDD.
+        self.assertIn("AIN7", sch[42])
+        self.assertIn("AIN6", sch[44])
+        self.assertIn('(reference "U1")', schematic)
+        # The VBUS ADC threshold assumes this divider, not just the correct U1 pad.
+        resistors = {}
+        for match in re.finditer(r'\(symbol\s+\(lib_id "Device:R"\)', schematic):
+            symbol = group(schematic, match.start())
+            reference = re.search(r'\(property "Reference" "(R18|R19)"', symbol)
+            if reference:
+                value = re.search(r'\(property "Value" "([^"]+)"', symbol)
+                self.assertIsNotNone(value)
+                resistors[reference[1]] = value[1]
+        self.assertEqual(resistors, {"R18": "47k", "R19": "27k"})
         for pad, pin in GPIO_PADS.items():
             with self.subTest(pad=pad):
                 self.assertTrue(sch[pad].startswith(f"P0.{pin:02d}"), sch[pad])
@@ -119,6 +134,9 @@ class FirmwarePinsV4(unittest.TestCase):
         self.assertNotIn("BAT_MEAS_EN", macros)
         self.assertNotIn("ELICIO_PIN_LED_STREAM", header)
         self.assertNotIn("ELICIO_PIN_RECOVERY", header)
+        sketch = SKETCH.read_text(encoding="utf-8")
+        self.assertIn("analogRead(ELICIO_PIN_VBUS_DET) >= 1138", sketch)
+        self.assertNotIn("digitalRead(ELICIO_PIN_VBUS_DET)", sketch)
 
 
 if __name__ == "__main__":
