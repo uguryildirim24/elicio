@@ -4563,6 +4563,13 @@ def _apply_v4_features(
             body = body.fuse(maker(13.19, 16.19, s0, s1, 1.5, 4.3))
         body = body.cut(_u_cylinder(path, 16.15, site, 4.295, 1.35, 2.0))
     body = body.cut(slot)
+    # The vertical flap continues past the rib to s19.30. The r9 bay
+    # shoulder occupies its lower y1.695–3.905 volume there; the short
+    # rib slot alone leaves a real solid collision. Recess the inner
+    # 0.5 mm of that shoulder while keeping the 1.5 mm outer wall.
+    flap_relief = maker(16.0, 16.5, 15.7, 19.3, 1.5, 4.5)
+    measure["flap_relief_removed_mm3"] = round(_overlap_volume(body, flap_relief), 4)
+    body = body.cut(flap_relief)
     # The v2 island corner pad occupied the v4 joint's relief notch.
     # It is not a v4 support: the island is held between lid posts and
     # contact standoffs, with its high-u edge notched from s16 to 19.6.
