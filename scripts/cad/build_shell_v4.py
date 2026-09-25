@@ -18,6 +18,12 @@ import bte_fit_shell as cad
 ROOT = cad.REPO_ROOT
 TABLE = ROOT / "docs/fab/board-v4-design.md"
 PARAMS = cad.SCRIPT_DIR / "params/shell_v4.toml"
+MIN_COMPONENT_CLEARANCE_MM = 0.40
+
+
+def courtyard_passes(body_hit: float, lid_hit: float, distance: float, seat: bool) -> bool:
+    return (body_hit < 0.001 and lid_hit < 0.001
+            and (distance >= MIN_COMPONENT_CLEARANCE_MM or seat))
 
 
 def courtyard_table() -> str:
@@ -58,14 +64,18 @@ def measure(body, lid, path, params):
         body_hit = cad._overlap_volume(body, prism)
         lid_hit = cad._overlap_volume(lid, prism)
         distance = min(body.distance_to(prism), lid.distance_to(prism))
-        # U1 deliberately seats against the second post. Other parts must
-        # have strictly disjoint interiors; proximity is the nearest solid
-        # distance, not just clearance from a nominal rectangular cavity.
-        intentional = ref == "U1" and lid_hit > 0
-        passed = body_hit < 0.001 and (lid_hit < 0.001 or intentional)
-        checks.append({"item": ref, "kind": f"{side} courtyard", "margin_mm": round(distance, 4) if passed else -round(max(body_hit, lid_hit), 4),
+        # P2's post terminates on U1's top at y6.12. This one documented
+        # contact is a seat, not free space; all other courtyards need 0.40.
+        # Check the post is actually present at its specified landing, not
+        # merely that the row happens to have zero measured distance.
+        seat = (ref == "U1" and side == "top" and y1 == 6.12
+                and u0 < 9.40 < u1 and s0 < 32.10 < s1
+                and cad._inside_uys(lid, path, 9.40, 32.10, 6.17)
+                and not cad._inside_uys(lid, path, 9.40, 32.10, 6.07))
+        passed = courtyard_passes(body_hit, lid_hit, distance, seat)
+        checks.append({"item": ref, "kind": f"{side} courtyard", "margin_mm": round(distance, 4) if body_hit < .001 and lid_hit < .001 else -round(max(body_hit, lid_hit), 4),
                        "body_overlap_mm3": round(body_hit, 4), "lid_overlap_mm3": round(lid_hit, 4),
-                       "post_on_U1": intentional, "passed": passed})
+                       "intended_seat": "P2 lid post on U1 top" if seat else None, "passed": passed})
     def probe(name, bounds, part=body):
         u0,u1,s0,s1,y0,y1 = bounds
         block = maker(u0,u1,s0,s1,y0,y1)
