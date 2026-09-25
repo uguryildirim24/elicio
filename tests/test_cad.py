@@ -898,6 +898,9 @@ SHELL_FILE = ROOT / "scripts" / "cad" / "params" / "shell_v2.toml"
 class CadShellV2Tests(unittest.TestCase):
     def test_q71_screw_engagement_constant(self) -> None:
         self.assertGreaterEqual(CAD.SHELL_SCREW_ENGAGE, 4.0)
+        self.assertGreaterEqual(CAD.SHELL_SCREW_LEN, 8.0)
+        self.assertGreaterEqual(CAD.SHELL_LID_BOSS_H, 3.0)
+        self.assertGreaterEqual(CAD.SHELL_LID_ENGAGE, 3.0)
         self.assertGreaterEqual(CAD.SHELL_SCREW_BOSS_WALL, 1.4)
         self.assertGreaterEqual(CAD.SHELL_SCREW_BOSS_OD, 5.0)
         self.assertAlmostEqual(CAD.SHELL_PILOT, 2.10)
@@ -929,7 +932,7 @@ class CadShellV2Tests(unittest.TestCase):
         self.assertAlmostEqual(params["BOARD_ZONE_S"][0], 16.0)
         self.assertAlmostEqual(params["RIB_S"][0], 14.9, places=1)
         header = SHELL_FILE.read_text(encoding="utf-8")
-        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0", "Q71", "Q76", "Q81", "Q82", "Q83", "Q86"):
+        for token in ("Q59", "Q34", "Harwin R25-1000402", "3.0", "Q71", "Q76", "Q81", "Q82", "Q83", "Q89", "Q90", "Q93", "Q98"):
             self.assertIn(token, header)
 
     def test_s5c_reader_uses_the_table(self) -> None:
@@ -964,6 +967,31 @@ class CadShellV2Tests(unittest.TestCase):
             CAD.stage_b_failing({"full": {"V2_USB_end": inactive}}, skip_not_measured=True),
             [],
         )
+
+    def test_s5e_reader_uses_the_wall_table(self) -> None:
+        s5e = CAD.load_s5e_shell()
+        self.assertEqual(s5e.packing_sha, CAD.S5E_PACKING_SHA)
+        self.assertEqual(s5e.holes, ((13.23, 17.70), (17.95, 17.70)))
+        self.assertEqual(s5e.p1, (5.90, 22.00))
+        self.assertEqual(s5e.p2, (10.40, 33.10))
+        self.assertEqual(s5e.p3, (8.50, 43.00))
+        self.assertEqual(s5e.p4, (20.50, 4.35))
+        self.assertEqual(s5e.p5, (20.50, 12.35))
+        self.assertAlmostEqual(s5e.p4_y, 4.35)
+        self.assertAlmostEqual(s5e.p5_y, 4.35)
+        self.assertEqual(s5e.head_axis, "+u")
+        self.assertIn("posterior", s5e.wall_name)
+        self.assertEqual(s5e.j2, (15.15, 11.35))
+        self.assertAlmostEqual(s5e.j2_wu, 5.80, places=2)
+        self.assertAlmostEqual(s5e.j2_ws, 6.56, places=2)
+        self.assertAlmostEqual(s5e.sig1_strip, 10.71, places=2)
+        self.assertAlmostEqual(s5e.sig2_strip, 21.81, places=2)
+        self.assertEqual(s5e.cavity_u, (1.50, 20.50))
+        h1_h2 = abs(s5e.holes[0][0] - s5e.holes[1][0]) - CAD.S5C_BOSS_KEEP
+        self.assertAlmostEqual(h1_h2, 1.42, places=2)
+        frozen = CAD.load_s5d_folded()
+        self.assertEqual(frozen.p4, (14.70, 4.30))
+        self.assertEqual(frozen.holes, ((13.45, 17.70), (17.95, 17.70)))
 
     def test_shell_refuses_v1_and_allows_v2(self) -> None:
         params = stage_b_params(
@@ -1024,27 +1052,30 @@ class CadShellV2BuildTests(unittest.TestCase):
             self.assertIn(name, rows)
             self.assertTrue(rows[name].passed, f"{name}: {rows[name].detail} {rows[name].numbers}")
             self.assertFalse(rows[name].detail.startswith("NOT_MEASURED"), name)
-        # Review r7: the M2.5x4 from the well bottom ends at y 5.55 in the body's own
-        # tail; the lid underside is at LID_Y 8.0, so the screw holds no lid (Q89).
-        self.assertFalse(rows["V2_CLOSURE"].passed, rows["V2_CLOSURE"].numbers)
-        self.assertAlmostEqual(rows["V2_CLOSURE"].numbers["screw_tip_y"], 5.55, places=2)
-        self.assertAlmostEqual(rows["V2_CLOSURE"].numbers["lid_underside_y"], 8.0, places=2)
-        self.assertEqual(rows["V2_CLOSURE"].numbers["lid_engagement"], 0.0)
+        # Q89: lid boss into a tail pocket; M2.5×8 from the well; ≥ 3 mm of
+        # thread in the lid boss; V2_CLOSURE passes.
+        self.assertTrue(rows["V2_CLOSURE"].passed, rows["V2_CLOSURE"].numbers)
+        self.assertAlmostEqual(rows["V2_CLOSURE"].numbers["screw_tip_y"], 9.55, places=2)
+        self.assertLessEqual(rows["V2_CLOSURE"].numbers["lid_underside_y"], 5.05)
+        self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["lid_engagement"], 3.0)
         self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["hinge_lip_undercut"], 1.0)
-        self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["screw_engagement"], 4.0)
         self.assertGreaterEqual(rows["V2_CLOSURE"].numbers["boss_wall"], 1.4)
         self.assertEqual(rows["V2_CLOSURE"].numbers["well_on_medial"], 1.0)
         self.assertTrue(rows["V2_LATERAL_unbroken"].passed, rows["V2_LATERAL_unbroken"].numbers)
         self.assertEqual(rows["V2_LATERAL_unbroken"].numbers["pits"], 0.0)
         self.assertEqual(rows["V2_LATERAL_unbroken"].numbers["old_lid_well_solid"], 1.0)
+        self.assertEqual(rows["V2_LATERAL_unbroken"].numbers["pad_closed"], 1.0)
         self.assertTrue(rows["V2_BOSS_pilot"].passed, rows["V2_BOSS_pilot"].numbers)
         self.assertAlmostEqual(rows["V2_BOSS_pilot"].numbers["tail_pilot_d"], 2.10, delta=0.08)
         self.assertGreaterEqual(rows["V2_BOSS_pilot"].numbers["tail_wall"], 1.4)
         self.assertGreaterEqual(rows["V2_BOSS_pilot"].numbers["tail_od"], 5.0)
+        self.assertAlmostEqual(rows["V2_BOSS_pilot"].numbers["lid_pilot_d"], 2.10, delta=0.08)
+        self.assertGreaterEqual(rows["V2_BOSS_pilot"].numbers["lid_wall"], 1.4)
+        self.assertGreaterEqual(rows["V2_BOSS_pilot"].numbers["lid_od"], 5.0)
         island = [
             key[: -len("_pilot_d")]
             for key in rows["V2_BOSS_pilot"].numbers
-            if key.endswith("_pilot_d") and key != "tail_pilot_d"
+            if key.endswith("_pilot_d") and key not in ("tail_pilot_d", "lid_pilot_d")
         ]
         self.assertEqual(len(island), 2, island)
         for name in island:
@@ -1065,27 +1096,45 @@ class CadShellV2BuildTests(unittest.TestCase):
         self.assertLessEqual(rows["V2_BOSS_sites"].numbers["boss_2_err"], 0.05)
         self.assertEqual(rows["V2_BOSS_sites"].numbers["boss_1_courtyard_hits"], 0.0)
         self.assertEqual(rows["V2_BOSS_sites"].numbers["boss_2_courtyard_hits"], 0.0)
+        self.assertAlmostEqual(rows["V2_BOSS_sites"].numbers["boss_1_table_u"], 13.23, places=2)
+        self.assertAlmostEqual(rows["V2_BOSS_sites"].numbers["boss_2_table_u"], 17.95, places=2)
+        self.assertGreaterEqual(rows["V2_BOSS_sites"].numbers["h1_h2_keep_gap"], 1.42 - 0.05)
         self.assertTrue(rows["V2_CHARGE_pads"].passed, rows["V2_CHARGE_pads"].numbers)
-        # Review r7: open Ø5 holes, no printed nylon cap over the pads.
         self.assertEqual(rows["V2_CHARGE_pads"].numbers["P4_cap"], 0.0)
         self.assertEqual(rows["V2_CHARGE_pads"].numbers["P5_cap"], 0.0)
         self.assertEqual(rows["V2_CHARGE_pads"].numbers["P4_hole"], 1.0)
         self.assertEqual(rows["V2_CHARGE_pads"].numbers["P5_hole"], 1.0)
+        self.assertEqual(rows["V2_CHARGE_pads"].numbers["P4_outer_open"], 1.0)
+        self.assertEqual(rows["V2_CHARGE_pads"].numbers["P5_outer_open"], 1.0)
         self.assertNotIn("flush_pads", rows["V2_CHARGE_pads"].numbers)
+        self.assertNotIn("P4_floor_t", rows["V2_CHARGE_pads"].numbers)
         self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["nylon_between"], 3.0)
-        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P4_u"], 14.70, places=2)
-        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P4_s"], 4.30, places=2)
-        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P5_u"], 17.70, places=2)
-        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P5_s"], 11.72, places=2)
-        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P4_floor_t"], 1.0)
-        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P5_floor_t"], 1.0)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P4_u"], 20.50, places=2)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P4_s"], 4.35, places=2)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P4_y"], 4.35, places=2)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P5_u"], 20.50, places=2)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P5_s"], 12.35, places=2)
+        self.assertAlmostEqual(rows["V2_CHARGE_pads"].numbers["P5_y"], 4.35, places=2)
+        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P4_wall_around"], 1.45)
+        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P5_wall_around"], 1.45)
         self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P4_cell_gap"], 0.0)
         self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P5_cell_gap"], 0.0)
+        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P4_hinge_gap"], 0.0)
+        self.assertGreaterEqual(rows["V2_CHARGE_pads"].numbers["P5_hinge_gap"], 0.0)
+        self.assertTrue(rows["V2_CAVITY_v3"].passed, rows["V2_CAVITY_v3"].numbers)
+        self.assertEqual(rows["V2_CAVITY_v3"].numbers["j2_inside"], 1.0)
+        self.assertAlmostEqual(rows["V2_CAVITY_v3"].numbers["j2_u"], 15.15, places=2)
+        self.assertAlmostEqual(rows["V2_CAVITY_v3"].numbers["j2_s"], 11.35, places=2)
+        self.assertEqual(rows["V2_CAVITY_v3"].numbers["n_illegal"], 0.0)
         self.assertEqual(rows["V2_TAB_envelope"].numbers["side_pocket"], 0.0)
-        self.assertEqual(rows["V2_TAB_envelope"].numbers["rib_slot_air"], 1.0)
-        self.assertEqual(rows["V2_TAB_envelope"].numbers["drop_channel_air"], 1.0)
+        self.assertEqual(rows["V2_TAB_envelope"].numbers["rib_slot_air"], 0.0)
+        self.assertEqual(rows["V2_TAB_envelope"].numbers["drop_channel_air"], 0.0)
         self.assertAlmostEqual(rows["V2_TAB_envelope"].numbers["SIG1_strip"], 10.71, places=2)
         self.assertAlmostEqual(rows["V2_TAB_envelope"].numbers["SIG2_strip"], 21.81, places=2)
+        self.assertEqual(rows["V2_WALL_minima"].numbers["P4_seat_open"], 1.0)
+        self.assertEqual(rows["V2_WALL_minima"].numbers["P5_seat_open"], 1.0)
+        self.assertGreaterEqual(rows["V2_WALL_minima"].numbers["P4_wall_around"], 1.45)
+        self.assertGreaterEqual(rows["V2_WALL_minima"].numbers["P5_wall_around"], 1.45)
         self.assertAlmostEqual(self.params["BODY_WIDTH"], 22.0)
         self.assertAlmostEqual(self.params["BODY_THICK"], 9.0)
         self.assertAlmostEqual(self.params["CAVITY_U"][1], 20.5, places=2)
@@ -1131,11 +1180,11 @@ class CadShellV2BuildTests(unittest.TestCase):
                     cmd + ["--out", str(dest)], capture_output=True, text=True
                 )
                 self.assertEqual(
-                    done.returncode, CAD.STAGE_B_NOT_PASSED_EXIT, done.stderr + done.stdout
+                    done.returncode, 0, done.stderr + done.stdout
                 )
                 payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
                 hashes.append(payload["files"])
-                self.assertEqual(payload["stage_b_failing"], ["V2_CLOSURE"])
+                self.assertEqual(payload["stage_b_failing"], [])
                 for part in ("body_full_p15.step", "lid.step", "body_full_p15.stl", "lid.stl"):
                     self.assertEqual(
                         (dest / part).read_bytes(), (CAD.V2_DIR / part).read_bytes(), part
@@ -1182,6 +1231,13 @@ class CadShellV2PackingSourceTests(unittest.TestCase):
         live = (ROOT / "docs" / "fab" / "packing-v2.md").read_text(encoding="utf-8")
         self.assertEqual(CAD._parse_s5d_folded_pads(text), CAD._parse_s5d_folded_pads(live))
         self.assertEqual(CAD._parse_s5d_shell_extras(text), CAD._parse_s5d_shell_extras(live))
+        s5e_text, s5e_sha, s5e_label = CAD._s5e_packing_text()
+        self.assertEqual(s5e_label, "docs/fab/packing-v2.md")
+        self.assertEqual(s5e_sha, CAD.S5E_PACKING_SHA)
+        pads = CAD._parse_s5e_shell_pads(s5e_text)
+        self.assertEqual(pads["P4"][0], 20.50)
+        self.assertEqual(pads["P5"][0], 20.50)
+        self.assertEqual(pads["P4"][4], "+u")
         payload = json.loads((CAD.V2_DIR / "manifest.json").read_text(encoding="utf-8"))
         self.assertNotIn(".worktrees", json.dumps(payload))
 
