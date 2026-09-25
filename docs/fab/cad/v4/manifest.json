@@ -22,9 +22,9 @@
     {
       "body_overlap_mm3": 0.0,
       "item": "C3",
-      "kind": "bottom courtyard",
+      "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 1.6,
+      "margin_mm": 0.8319,
       "passed": true,
       "post_on_U1": false
     },
@@ -151,6 +151,24 @@
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.63,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C18",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.97,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C19",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.38,
       "passed": true,
       "post_on_U1": false
     },
@@ -363,7 +381,7 @@
       "item": "R17",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 1.35,
+      "margin_mm": 2.09,
       "passed": true,
       "post_on_U1": false
     },
@@ -774,9 +792,17 @@
       "kind": "courtyard-to-open-standoff-end",
       "margin_mm": 4.81,
       "passed": true
+    },
+    {
+      "item": "seated lid vs body",
+      "kind": "solid overlap",
+      "margin_mm": 0.0,
+      "passed": true
     }
   ],
-  "closure": "hinge only; NO SCREW OR LATCH (50.25 mm needed beyond 48.4 mm arc)",
+  "closure": {
+    "type": "hinge only"
+  },
   "files": {
     "body_full_p15.3mf": {
       "bytes": 524698,
@@ -961,19 +987,20 @@
   "provisional": true,
   "schema": 1,
   "source_table": "docs/fab/board-v4-design.md \u00a710.2",
+  "source_table_sha256": "80d9fd11b1988ad992a621eb5c54b1dbacf423fe9038304ff7f35b0fb1efa453",
   "stage": "shell-v4",
   "views": {
     "render_folded_board.png": {
-      "bytes": 152308,
-      "sha256": "f6270f03f5a0cdf4d93705d5c10b48f9990a1d5058bf7e99e2b32763d89346a0"
+      "bytes": 150065,
+      "sha256": "9c0d0f8d86c521b15c791da2098eae50f827a3837e33067eaa0bb9bcddf20ce9"
     },
     "render_lateral.png": {
-      "bytes": 70233,
-      "sha256": "6f3f964af3defe5772a825af52a034fc3c7840de4429112d1026b069761a7261"
+      "bytes": 67374,
+      "sha256": "9ea26e642cc4a6b1d91a5632ac9b4101972e5617dba5f4ab23c142f4aac8a1f5"
     },
     "render_medial.png": {
-      "bytes": 69801,
-      "sha256": "52fc62073082d07f8b6a9786fd90fabeb4d90b0bfbed6c6d9be0fba6f357a64d"
+      "bytes": 66931,
+      "sha256": "3c5b6aa17d724b6c5b3b1a51a032d1e06039972bf3d544a446d32bfc6c3343a7"
     }
   }
 }

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import math
 import shutil
@@ -1223,6 +1224,26 @@ class CadShellV2StampTests(unittest.TestCase):
 
 
 class CadShellV4ManifestTests(unittest.TestCase):
+    def test_manifests_cover_current_board_courtyards(self) -> None:
+        table = (ROOT / "docs/fab/board-v4-design.md").read_text(encoding="utf-8")
+        table = table.split("#### Courtyards on the island")[1].split("#### Rings, strip roots")[0]
+        refs = {
+            fields[0]
+            for line in table.splitlines()
+            if len(fields := [f.strip() for f in line.strip().strip("|").split("|")]) == 12
+            and fields[1] in ("top", "bottom")
+        }
+        for variant in ("v4", "v4-m16", "v4-snap"):
+            with self.subTest(variant=variant):
+                payload = json.loads((ROOT / f"docs/fab/cad/{variant}/manifest.json").read_text())
+                self.assertEqual(payload["source_table_sha256"], hashlib.sha256(table.encode()).hexdigest())
+                rows = {c["item"]: c for c in payload["checks"] if c["item"] in refs}
+                self.assertEqual(set(rows), refs)
+                self.assertEqual(rows["C3"]["kind"], "top courtyard")
+                self.assertEqual(rows["C18"]["kind"], "bottom courtyard")
+                self.assertEqual(rows["C19"]["kind"], "top courtyard")
+                self.assertTrue(all(row["passed"] for row in rows.values()))
+
     def test_folded_wall_flap_is_checked_and_clear(self) -> None:
         # The original plate check stopped at s14.85. The lower flap past
         # the rib hit 1.184 mm³ of the r9 bay shoulder despite 97 passes.
@@ -1236,7 +1257,7 @@ class CadShellV4ManifestTests(unittest.TestCase):
     def test_snap_key_volume_and_opposing_print_offsets(self) -> None:
         payload = json.loads((ROOT / "docs/fab/cad/v4-snap/manifest.json").read_text())
         checks = payload["checks"]
-        self.assertEqual(len(checks), 104)
+        self.assertEqual(len(checks), 106)
         self.assertTrue(all(c["passed"] for c in checks))
         flap = next(c for c in checks if c["item"] == "P4/P5 folded flap")
         self.assertEqual(flap["overlap_mm3"], 0)

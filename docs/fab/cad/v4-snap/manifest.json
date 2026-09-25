@@ -22,9 +22,9 @@
     {
       "body_overlap_mm3": 0.0,
       "item": "C3",
-      "kind": "bottom courtyard",
+      "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 1.6,
+      "margin_mm": 0.8319,
       "passed": true,
       "post_on_U1": false
     },
@@ -151,6 +151,24 @@
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.63,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C18",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.97,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C19",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.38,
       "passed": true,
       "post_on_U1": false
     },
@@ -363,7 +381,7 @@
       "item": "R17",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 1.35,
+      "margin_mm": 2.09,
       "passed": true,
       "post_on_U1": false
     },
@@ -1050,6 +1068,7 @@
   "provisional": true,
   "schema": 1,
   "source_table": "docs/fab/board-v4-design.md \u00a710.2",
+  "source_table_sha256": "80d9fd11b1988ad992a621eb5c54b1dbacf423fe9038304ff7f35b0fb1efa453",
   "stage": "shell-v4",
   "views": {
     "render_closure.png": {

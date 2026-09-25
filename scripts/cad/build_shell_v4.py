@@ -20,10 +20,13 @@ TABLE = ROOT / "docs/fab/board-v4-design.md"
 PARAMS = cad.SCRIPT_DIR / "params/shell_v4.toml"
 
 
+def courtyard_table() -> str:
+    return TABLE.read_text(encoding="utf-8").split("#### Courtyards on the island")[1].split("#### Rings, strip roots")[0]
+
+
 def folded_rows() -> list[tuple[str, str, tuple[float, ...]]]:
-    text = TABLE.read_text().split("#### Courtyards on the island")[1].split("#### Rings, strip roots")[0]
     rows = []
-    for line in text.splitlines():
+    for line in courtyard_table().splitlines():
         fields = [f.strip() for f in line.strip().strip("|").split("|")]
         if len(fields) != 12 or fields[1] not in ("top", "bottom"):
             continue
@@ -300,6 +303,7 @@ def main():
     manifest = {"schema": 1,"stage":"shell-v4", "provisional":True,
                 "closure":closure,
                 "source_table":"docs/fab/board-v4-design.md §10.2",
+                "source_table_sha256":hashlib.sha256(courtyard_table().encode()).hexdigest(),
                 "parameters":{k:v for k,v in params.items() if not k.startswith('_') and cad._jsonable(v)},
                 "params_sha256":cad.sha256_file(PARAMS), "checks":checks,
                 "files":files,"notes":notes,"body_lid_overlap_mm3":round(cad._overlap_volume(body,lid),4),

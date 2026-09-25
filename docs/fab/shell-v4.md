@@ -61,12 +61,13 @@ volume (mm³), not free distance. All measured interior intersections are
 
 | Row | margin | Row | margin | Row | margin |
 |---|---:|---|---:|---|---:|
-| C1 | 2.0900 | C2 | 1.6096 | C3 | 1.6000 |
+| C1 | 2.0900 | C2 | 1.6096 | C3 | 0.8319 |
 | C4 | 1.1938 | C5 | 1.1600 | C6 | 0.3900 |
 | C7 | 1.5300 | C8 | 0.9109 | C9 | 1.3800 |
 | C10 | 1.6200 | C11 | 1.0500 | C12 | 0.5850 |
 | C13 | 1.0755 | C14 | 1.4400 | C15 | 1.6300 |
-| C16 | 0.8237 | C17 | 1.6300 | D1 | 1.1989 |
+| C16 | 0.8237 | C17 | 1.6300 | C18 | 0.9700 |
+| C19 | 1.3800 | D1 | 1.1989 | | |
 | D2 | 0.9200 | J2 | 0.4320 | J3 | cut off |
 | J4 | 0.8535 | Q1 | 1.1100 | Q2 | 2.0900 |
 | Q3 | 1.1240 | Q4 | 1.2000 | R1 | 1.0600 |
@@ -74,7 +75,7 @@ volume (mm³), not free distance. All measured interior intersections are
 | R5 | 0.9398 | R6 | 1.6200 | R7 | 1.6300 |
 | R8 | 0.9192 | R11 | 0.8037 | R12 | 1.6300 |
 | R13 | 1.6300 | R14 | 1.1600 | R15 | 1.6687 |
-| R16 | 1.9785 | R17 | 1.3500 | R18 | 1.3014 |
+| R16 | 1.9785 | R17 | 2.0900 | R18 | 1.3014 |
 | R19 | 1.1600 | R20 | 2.0900 | R21 | 1.8846 |
 | R22 | 1.2000 | R23 | 0.5696 | R24 | 1.7258 |
 | R25 | 2.0900 | R27 | 1.6300 | R28 | 1.6300 |
@@ -133,12 +134,13 @@ changes are requested.
 Two **separate** body/lid builds, not edits to `cad/v4`: `cad/v4-m16` and
 `cad/v4-snap`. Rebuild one at a time with `build_shell_v4.py --closure
 m16|snap --out docs/fab/cad/v4-<name>`; `render_v4.py --single --out` on
-each directory makes the closure view. The base table now has **98** solid
-checks, including the full P4/P5 folded flap. M1.6 was rebuilt too: **103/103 checks passed**, but its 0.13 mm wall
-rejects it. The snap was rebuilt on the r19 flap fix:
-**104/104 checks passed** (98 base, seated overlap, three swept-key checks,
-two tolerance builds); zero seated overlap, zero flap overlap, both STLs
-watertight. The exterior render cannot expose the concealed hook: inspect
+each directory makes the closure view. On the routed board's current §10.2
+courtyards, the base has **101/101 checks passed** (100 base, seated overlap),
+including C3 on top, C18, C19, the moved R17 and the full P4/P5 folded flap.
+M1.6 was rebuilt too: **105/105 checks passed**, but its 0.13 mm wall
+rejects it. The snap has **106/106 checks passed** (100 base, seated overlap,
+three swept-key checks, two tolerance builds); zero seated overlap, zero flap
+overlap, both STLs watertight. The exterior render cannot expose the concealed hook: inspect
 STEP for that geometry. These are CAD solids, not validated print fits.
 
 ### M1.6 cap screw — built, but **reject** for printing
@@ -241,8 +243,8 @@ cannot fix those defects.
 
 | Variant | Minimum closure wall | Retention evidence | Solid checks | Parts / price | Status |
 |---|---:|---|---:|---|---|
-| M1.6 × 4 cap | **0.13 mm** head wall | 122 N conditional thread model; actual unknown | 103/103 | screw price UNVERIFIED; shell price UNVERIFIED | Unsuitable: below 1 mm |
-| Twin-arm snap | **≈0.99 mm right tail wall** (1.00 mm arm thickness) | 0.10–1.30 mm tolerance engagement; axial pull-off UNVERIFIED | 104/104 | PA12 body/lid only, price UNVERIFIED | Trial candidate, tail wall needs print review |
+| M1.6 × 4 cap | **0.13 mm** head wall | 122 N conditional thread model; actual unknown | 105/105 | screw price UNVERIFIED; shell price UNVERIFIED | Unsuitable: below 1 mm |
+| Twin-arm snap | **≈0.99 mm right tail wall** (1.00 mm arm thickness) | 0.10–1.30 mm tolerance engagement; axial pull-off UNVERIFIED | 106/106 | PA12 body/lid only, price UNVERIFIED | Trial candidate, tail wall needs print review |
 
 **Recommendation:** assess the new snap geometry on a first test print and
 cycle it before use. The 0.0894 mm U3 nominal clearance is still below
