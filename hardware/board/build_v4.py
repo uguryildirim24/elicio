@@ -166,7 +166,7 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "C10": ("top", 9.10, 18.60, 90),
     "C17": ("top", 11.10, 18.60, 90),  # VREFP 100 nF beside C9 (refcheck t-0023): VREFP pad south, next to C9.1
     "R12": ("top", 12.60, 18.15, 180),
-    "R13": ("top", 12.60, 18.95, 180),  # TS pad east, toward its via below U3.B1 (pass 4)
+    "R13": ("top", 13.25, 18.97, 180),  # TS pad east under its via; west of it IN1N drops to pin 3 (pass 5)
     # F corner above SW1: CS/DRDY series, pad-23 decoupling, charge LED.
     # R7 sits against U1's courtyard so three SPI tracks pass between R7
     # and R27; R27 faces DRDY_AFE north, straight at U2 pad 22.
@@ -733,10 +733,11 @@ def u2_core_pre_routes(board) -> None:
     ts_via, pt_via = (13.90, 18.45), (13.35, 18.45)
     path([b1, ts_via], "TS", bcu)
     via(ts_via, "TS")
-    path([ts_via, (13.40, 18.95), pc("R13", "1")], "TS", fcu)
+    path([ts_via, pc("R13", "1")], "TS", fcu)
     path([c1, pt_via], "PRETERM", bcu)
     via(pt_via, "PRETERM")
     path([pt_via, pc("R12", "1")], "PRETERM", fcu)
+    path([pc("R13", "2"), pc("R12", "2")], "GND", fcu)
     c2_via = (13.00, 17.65)
     via(c2_via, "GND")
     path([pc("U3", "C2"), c2_via], "GND", bcu)
@@ -790,6 +791,36 @@ def u2_core_pre_routes(board) -> None:
         add_locked_path(board, [pc("U2", pin), v], n, fcu, w)
         add_locked_via(board, v, n)
         add_locked_path(board, [v, pc(ref, "1")], n, bcu, w)
+    in1_pre_routes(board)
+
+
+def in1_pre_routes(board) -> None:
+    """AFE_IN1P and AFE_IN1N north of U2 (pass 5, t-0019), locked because the two nets must
+    cross once: at the J3 neck IN1P lies north of IN1N, at the strips R1 (IN1P) lies west of
+    R2 (IN1N). IN1P crosses over R2 on F and IN1N leaves R2 by a via just west of it, so the
+    IN1P trunk (along the top, to the neck) and its branch (back east to pin 4) wrap round
+    that via. Trunk, IN1N and branch pass the SIG2 root at s 17.165 / 17.37 / 17.575 with
+    VBUS at 16.96, 0.105 apart, 0.21 from the SIG2 via (Contact 0.20) and 0.115 from C9.2;
+    VBUS keeps its F loop round the IN1P via to its via south of it. IN1N and the branch
+    drop between C17 and R12 to pins 3 and 4, the branch east of the +3V0 N via."""
+    fcu, bcu = pcbnew.F_Cu, pcbnew.B_Cu
+    w = FLEX_TRACK
+    in1p, in1n, vbus = (ensure_net(board, n) for n in ("AFE_IN1P", "AFE_IN1N", "VBUS"))
+    pc = lambda ref, n: pad_center(board, ref, n)  # noqa: E731
+    s_vbus, s_trunk, s_in1n, s_branch = 16.96, 17.165, 17.37, 17.575
+    j_via, n_via, vbus_via = (6.38, 17.45), (8.35, s_in1n), (6.70, 18.30)
+    add_locked_via(board, j_via, in1p)
+    add_locked_path(board, [j_via, pc("R1", "2")], in1p, bcu, w)
+    add_locked_path(board, [j_via, (6.83, 17.00), (9.50, 17.00), (9.665, s_trunk), (11.95, s_trunk)], in1p, fcu, w)
+    add_locked_path(board, [j_via, (6.69, 17.76), (8.95, 17.76), (9.135, s_branch), (11.075, s_branch),
+                            (11.50, 18.00), (11.50, 18.90), (11.95, 19.35), pc("U2", "4")], in1p, fcu, w)
+    add_locked_via(board, n_via, in1n)
+    add_locked_path(board, [n_via, pc("R2", "2")], in1n, bcu, w)
+    add_locked_path(board, [n_via, (11.37, s_in1n), (11.80, 17.80), (11.80, 18.45), (12.45, 19.10), pc("U2", "3")],
+                    in1n, fcu, w)
+    add_locked_via(board, vbus_via, vbus)
+    add_locked_path(board, [vbus_via, (6.10, 17.70), (6.00, 17.60), (6.00, 16.95), (6.20, 16.75), (9.55, 16.75),
+                            (9.76, s_vbus), (11.95, s_vbus)], vbus, fcu, w)
 
 
 def board_pad_net(board, ref: str, num: str) -> str:
