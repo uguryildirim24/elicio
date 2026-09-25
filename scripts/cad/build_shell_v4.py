@@ -74,6 +74,10 @@ def measure(body, lid, path, params):
     probe("REF root", (7.25,9.75,38.2,39.25,1.51,1.81))
     probe("P4/P5 flap slot", (16.02,16.48,14.91,15.69,1.51,4.49))
     probe("P4/P5 plate", (16.19,16.49,1.75,14.85,1.695,6.895))
+    # The plate's lower continuation past the rib is separate from its
+    # s1.75–14.85 straight run and its high joint root. Probe its entire
+    # s14.85–19.30 wall volume, not only the first 0.8 mm of the slot.
+    probe("P4/P5 folded flap", (16.19,16.50,14.85,19.30,1.695,3.905))
     probe("P4/P5 joint root", (15.09,16.30,16.30,19.30,3.80,5.12))
     probe("J3 stub", (15.75,16.20,19.9,22.4,5.01,5.12))
     probe("island", (2.25,15.75,16,37.6,5.01,5.12))
