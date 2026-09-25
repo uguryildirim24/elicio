@@ -14,7 +14,7 @@ import trimesh
 import bte_fit_shell as cad
 
 
-def draw(out: Path, angle: tuple[int,int], board: bool, filename: str):
+def draw(out: Path, angle: tuple[int,int], board: bool, filename: str, detail: bool = False):
     mesh = trimesh.load(out/'body_full_p15.stl', force='mesh')
     lid = trimesh.load(out/'lid.stl', force='mesh')
     fig = plt.figure(figsize=(9,9),dpi=130)
@@ -37,19 +37,25 @@ def draw(out: Path, angle: tuple[int,int], board: bool, filename: str):
     radius=max(np.ptp(bounds,axis=0))/2
     ax.set_xlim(mid[0]-radius,mid[0]+radius);ax.set_ylim(mid[1]-radius,mid[1]+radius);ax.set_zlim(mid[2]-radius,mid[2]+radius)
     ax.set_box_aspect(np.ptp(bounds,axis=0),zoom=1.05)
+    if detail:
+        ax.set_xlim(10,21);ax.set_ylim(0,8.2);ax.set_zlim(-46,-35)
+        ax.set_box_aspect((11,8.2,11),zoom=1.1)
     ax.view_init(elev=angle[0],azim=angle[1]);ax.set_axis_off()
-    fig.suptitle('Elicio v4 • W18 / T8.1 • hinge only, closure unresolved'+ ('\nSchematic folded board envelope (not component CAD)' if board else ''), y=0.99, fontsize=11)
+    closure=json.loads((out/'manifest.json').read_text())['closure']['type']
+    fig.suptitle('Elicio v4 • W18 / T8.1 • '+closure+ ('\nSchematic folded board envelope (not component CAD)' if board else ''), y=0.99, fontsize=11)
     fig.savefig(out/filename,bbox_inches='tight');plt.close(fig)
 
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=cad.REPO_ROOT/'docs/fab/cad/v4')
-    out=parser.parse_args().out
-    for angle,board,file in (((25,-75),False,'render_medial.png'),((27,100),False,'render_lateral.png'),((32,-55),True,'render_folded_board.png')):
-        draw(out,angle,board,file)
+    parser.add_argument('--single', action='store_true', help='only render the medial closure view')
+    args=parser.parse_args();out=args.out
+    views=(((25,-75),False,'render_closure.png'),) if args.single else (((25,-75),False,'render_medial.png'),((27,100),False,'render_lateral.png'),((32,-55),True,'render_folded_board.png'))
+    for angle,board,file in views:
+        draw(out,angle,board,file,detail=args.single)
     manifest=out/'manifest.json';data=json.loads(manifest.read_text())
     data['views']={name:{'sha256':cad.sha256_file(out/name),'bytes':(out/name).stat().st_size}
-                   for name in ('render_medial.png','render_lateral.png','render_folded_board.png')}
+                   for _,_,name in views}
     manifest.write_text(json.dumps(data,indent=2,sort_keys=True)+'\n')
 
 if __name__=='__main__':main()
