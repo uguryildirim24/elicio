@@ -30,14 +30,19 @@ standoff is keyed by two floor-standing walls u **13.19–16.19**, s
 **site−3.80 to site−2.80** and **site+2.80 to site+3.80**, y
 **1.50–4.30**. The rib slot is u **16.00–16.50** × s **14.90–15.70** ×
 y **1.50–4.50** (last cut, so it also trims the P5 upper key where they
-cross). It removes **1.4008 mm³** of the pre-slot rib. The v2 island corner pad
-otherwise collides with the v4 P4/P5 joint root by **0.8433 mm³**; its
-obsolete top corner is relieved at u15.09–16.30 × s16.30–19.30 ×
-y3.80–5.12, leaving **0 mm³** overlap with the joint. Floor-to-outer-side
-wall at the slot is **18.00−16.50 = 1.50 mm**. The standoff's open −u end
+cross). It removes **1.4008 mm³** of the pre-slot rib. The folded flap continues to s19.30,
+and the original bay shoulder *also* overlapped its lower plate volume by
+**1.1845 mm³** beyond that slot (missed by the initial 97 checks). An
+additional recess u16.00–16.50 × s15.70–19.30 × y1.50–4.50 removes
+**2.5755 mm³** before the joint relief; the full folded flap now has zero
+solid overlap. The v2 island corner pad otherwise collides with the v4
+P4/P5 joint root by **0.8433 mm³** before either recess; its obsolete top
+corner is relieved at u15.09–16.30 × s16.30–19.30 × y3.80–5.12, leaving
+**0 mm³** overlap with the joint. Floor-to-outer-side wall at the recess is
+**18.00−16.50 = 1.50 mm**. The standoff's open −u end
 is at 13.19: gap to the cell's 11.90 edge is **1.29 mm**. The P5 key near
-the rib is locally interrupted by the flap slot; retention force is
-UNVERIFIED. Posts Ø2.0 extend **1.98 mm** from (5.90, 23.00) to board top
+the rib and bay shoulder are locally interrupted by the flap recess;
+retention force is UNVERIFIED. Posts Ø2.0 extend **1.98 mm** from (5.90, 23.00) to board top
 y5.12 and **0.98 mm** from (9.40, 32.10) to U1 top y6.12; both were
 probed in the lid solid.
 
@@ -86,6 +91,7 @@ volume (mm³), not free distance. All measured interior intersections are
 | REF root through end-wall slot | 0.0000 |
 | P4/P5 flap slot | 0.0100 |
 | Folded P4/P5 plate | 0.0000 |
+| P4/P5 folded flap, s14.85–19.30 × y1.695–3.905 | 0.0000, zero overlap |
 | P4/P5 joint root (v4 notch relief) | 0.0000 |
 | P1/P2/P3 ring axes at y0.05, 0.75, 1.65 | 9/9 open, 0.0000 each |
 | J3 stub after tab cut | 0.3000 |
@@ -102,8 +108,8 @@ volume (mm³), not free distance. All measured interior intersections are
 The earliest side clearance to a component is U5 0.31 mm; U3 is only
 **0.0894 mm** from the nearest shell surface. These are nominal CAD
 numbers, not tolerance-stack release. J4 height is pads-only; a mating
-fixture is not included. The P4/P5 plate check probes the plate volume,
-not a 3D model of its bends or actual hardware.
+fixture is not included. The P4/P5 plate and flap checks probe bounding
+prisms, not a 3D model of its bends or actual hardware.
 
 ## Closure blocked by the unchanged length
 
@@ -126,7 +132,8 @@ changes are requested.
 
 Physical PA12 print tolerance, snap/retention and S4 pull/drop, contact
 installation, actual folded-board bend radii and P5 interrupted-key strength,
-post load on U1, package maxima marked UNVERIFIED in §10.2, cell lead
+post load on U1, flap recess strength, package maxima marked UNVERIFIED
+in §10.2, cell lead
 routing, RF/antenna range, skin fit, seam and visual approval are not proven.
 Even though all nominal box checks pass, a nominal U3 gap of 0.0894 does
 not absorb a ±0.3 mm print tolerance. The two exterior renders show the

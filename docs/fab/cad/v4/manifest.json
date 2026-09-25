@@ -590,6 +590,13 @@
       "passed": true
     },
     {
+      "item": "P4/P5 folded flap",
+      "kind": "reserved air",
+      "margin_mm": 0.0,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
       "item": "P4/P5 joint root",
       "kind": "reserved air",
       "margin_mm": 0.0,
@@ -772,28 +779,28 @@
   "closure": "hinge only; NO SCREW OR LATCH (50.25 mm needed beyond 48.4 mm arc)",
   "files": {
     "body_full_p15.3mf": {
-      "bytes": 526064,
-      "sha256": "c22163251b6bf5de1312cd7456c214a43adb9d7f8bf5cdb1038df6b00f75b47d"
+      "bytes": 524698,
+      "sha256": "3be11304b85a1b1db5095042429cf7197b91b1b0aa31daead38dc9288f91284c"
     },
     "body_full_p15.step": {
-      "bytes": 1259525,
-      "sha256": "12402c519274184fbf1b00cb607d0ac11a507554c6ccc67e00c3b0c2d18318a1"
+      "bytes": 1249300,
+      "sha256": "f72ba389163d5a97d52234a99b7997fbff7a16a170a9fe8e20f75b97e500ce92"
     },
     "body_full_p15.stl": {
-      "bytes": 1936184,
-      "sha256": "6ec8d72d46fd30ef2a6ab2005a2c07dcf913c1abfc6c95ff3fb6ea96df7e286d"
+      "bytes": 1931984,
+      "sha256": "010cfd9e07f865d4ad171283303865f7fa8f755435bc3f9f156848e46aacc2a7"
     },
     "lid.3mf": {
-      "bytes": 48160,
-      "sha256": "82f6404adf1cd79ab3886fa8443319346cb5a7dd0a2e8283ea268aeca6483250"
+      "bytes": 48113,
+      "sha256": "81256a1e03275e146aa358a0fd69402b6a28ef54be6e3c87472cc9bbb0f0aa02"
     },
     "lid.step": {
-      "bytes": 392834,
-      "sha256": "73cee97fe4991ed659468782da291455b61f69cc40cda09690bbe2dbb9adb728"
+      "bytes": 392757,
+      "sha256": "bbda465a0f10a39ee237dba8894d677f2adb48f314f570e5f2fb22bf9bafe8f6"
     },
     "lid.stl": {
       "bytes": 177584,
-      "sha256": "c433625f80de8ae45bcda021a7943ee6f6d1ca8fa42215a3f9211e859e1d7511"
+      "sha256": "64dbe1e271607a62fcd10892553a41e0794e441ea031e9aff3e2d3785efaef95"
     }
   },
   "hash_rule": "SHA256 raw bytes; STEP pinned timestamp; STL/3MF CAD meshing 0.02 mm, 5 degrees",
@@ -811,6 +818,7 @@
     "shell_measure": {
       "boss_top_y": 4.31,
       "bosses": 0,
+      "flap_relief_removed_mm3": 2.5755,
       "q59_clear_s": 0.2,
       "q59_clear_u": 0.2,
       "q59_clear_y": 0.15,
@@ -956,16 +964,16 @@
   "stage": "shell-v4",
   "views": {
     "render_folded_board.png": {
-      "bytes": 154350,
-      "sha256": "ad839639e9d3ff5acc3d29dd685b26a05ae70e6fc82f279fd49ddd32498ec0b9"
+      "bytes": 152308,
+      "sha256": "f6270f03f5a0cdf4d93705d5c10b48f9990a1d5058bf7e99e2b32763d89346a0"
     },
     "render_lateral.png": {
-      "bytes": 69474,
-      "sha256": "c859206dfb6db020ba9faf7a14375359f68561898072495771186d89afeb76f8"
+      "bytes": 70233,
+      "sha256": "6f3f964af3defe5772a825af52a034fc3c7840de4429112d1026b069761a7261"
     },
     "render_medial.png": {
-      "bytes": 68964,
-      "sha256": "e22718297bf1033d2ca2f011cff3dc401502e5ede890a9548caeba3bdb91652a"
+      "bytes": 69801,
+      "sha256": "52fc62073082d07f8b6a9786fd90fabeb4d90b0bfbed6c6d9be0fba6f357a64d"
     }
   }
 }
