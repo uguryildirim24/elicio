@@ -1224,6 +1224,17 @@ class CadShellV2StampTests(unittest.TestCase):
 
 
 class CadShellV4ManifestTests(unittest.TestCase):
+    def test_clearance_gate_rejects_a_near_miss_and_overlap(self) -> None:
+        spec = importlib.util.spec_from_file_location(
+            "build_shell_v4", ROOT / "scripts/cad/build_shell_v4.py")
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+        self.assertFalse(module.courtyard_passes(0, 0, 0.3999, False))
+        self.assertTrue(module.courtyard_passes(0, 0, 0.40, False))
+        self.assertFalse(module.courtyard_passes(.01, 0, .50, False))
+        self.assertFalse(module.courtyard_passes(0, .01, 0, True))
+
     def test_manifests_cover_current_board_courtyards(self) -> None:
         table = (ROOT / "docs/fab/board-v4-design.md").read_text(encoding="utf-8")
         table = table.split("#### Courtyards on the island")[1].split("#### Rings, strip roots")[0]
@@ -1243,6 +1254,15 @@ class CadShellV4ManifestTests(unittest.TestCase):
                 self.assertEqual(rows["C18"]["kind"], "bottom courtyard")
                 self.assertEqual(rows["C19"]["kind"], "top courtyard")
                 self.assertTrue(all(row["passed"] for row in rows.values()))
+                for ref, row in rows.items():
+                    with self.subTest(variant=variant, ref=ref):
+                        if ref == "U1":
+                            self.assertEqual(row["intended_seat"], "P2 lid post on U1 top")
+                            self.assertEqual(row["margin_mm"], 0)
+                            self.assertEqual(row["lid_overlap_mm3"], 0)
+                        elif row["margin_mm"] is not None:
+                            self.assertIsNone(row["intended_seat"])
+                            self.assertGreaterEqual(row["margin_mm"], 0.40)
 
     def test_folded_wall_flap_is_checked_and_clear(self) -> None:
         # The original plate check stopped at s14.85. The lower flap past

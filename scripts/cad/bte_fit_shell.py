@@ -4589,6 +4589,18 @@ def _apply_v4_features(
     for u, s, length in ((5.90, 23.00, 1.98), (9.40, 32.10, 0.98)):
         pt = _vec(path, u, s, lid_y - length)
         lid = lid.fuse(_y_cylinder(pt.X, lid_y - length, pt.Z, 1.0, length + 0.1))
+    # Local relief around the three §10.2 courtyards below 0.40 mm.
+    # The cutters extend 0.42 mm from the courtyard in all directions;
+    # they do not touch the outer surface or alter the body envelope.
+    for u0, u1, s0, s1, y0, y1 in (
+        (7.29, 8.21, 21.75, 23.57, 5.12, 5.72),  # C6 / P1 post
+        (12.84, 14.96, 16.95, 18.55, 4.38, 5.01),  # U3 / bay shoulder
+        (2.39, 4.21, 16.35, 17.85, 4.61, 5.01),  # U5 / rib
+    ):
+        relief = maker(u0 - .42, u1 + .42, s0 - .42, s1 + .42,
+                       y0 - .42, y1 + .42)
+        body = body.cut(relief)
+        lid = lid.cut(relief)
     # No screw: with length unchanged the 50.25 mm minimum screw station is
     # outside the 48.4 mm body. Do not substitute a latch without approval.
     notes["closure"] = "UNVERIFIED: screw cannot fit beyond REF; hinge only, no closure"

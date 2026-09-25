@@ -3,201 +3,201 @@
   "checks": [
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C1",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 2.09,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C2",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.6096,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C3",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.8319,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C4",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.1938,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C5",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.16,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C6",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 0.39,
-      "passed": true,
-      "post_on_U1": false
+      "margin_mm": 0.42,
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C7",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 1.53,
-      "passed": true,
-      "post_on_U1": false
+      "margin_mm": 1.56,
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C8",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.9109,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C9",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.38,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C10",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.62,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C11",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.05,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C12",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 0.585,
-      "passed": true,
-      "post_on_U1": false
+      "margin_mm": 0.6584,
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C13",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 1.0755,
-      "passed": true,
-      "post_on_U1": false
+      "margin_mm": 1.1172,
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C14",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.44,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C15",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.63,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C16",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.8237,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C17",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.63,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C18",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.97,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "C19",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.38,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "D1",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.1989,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "D2",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.92,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "J2",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.432,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "item": "J3",
@@ -207,273 +207,273 @@
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "J4",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.8535,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "Q1",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.11,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "Q2",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 2.09,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "Q3",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.124,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "Q4",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.2,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R1",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.06,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R2",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.1526,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R3",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.02,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R4",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 2.09,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R5",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.9398,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R6",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.62,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R7",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.63,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R8",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.9192,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R11",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.8037,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R12",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.63,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R13",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.63,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R14",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.16,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R15",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.6687,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R16",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 1.9785,
-      "passed": true,
-      "post_on_U1": false
+      "margin_mm": 2.0675,
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R17",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 2.09,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R18",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.3014,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R19",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.16,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R20",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 2.09,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R21",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.8846,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R22",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.2,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R23",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.5696,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R24",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.7258,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R25",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 2.09,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R27",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.63,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R28",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.63,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "item": "R31",
@@ -495,75 +495,75 @@
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R34",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.2,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "R35",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.4,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "SW1",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.8,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": "P2 lid post on U1 top",
       "item": "U1",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.0,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "U2",
       "kind": "top courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 0.98,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "U3",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 0.0894,
-      "passed": true,
-      "post_on_U1": false
+      "margin_mm": 0.4219,
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "U4",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
       "margin_mm": 1.11,
-      "passed": true,
-      "post_on_U1": false
+      "passed": true
     },
     {
       "body_overlap_mm3": 0.0,
+      "intended_seat": null,
       "item": "U5",
       "kind": "bottom courtyard",
       "lid_overlap_mm3": 0.0,
-      "margin_mm": 0.31,
-      "passed": true,
-      "post_on_U1": false
+      "margin_mm": 0.42,
+      "passed": true
     },
     {
       "item": "cell + 0.5 foam",
@@ -886,28 +886,28 @@
   },
   "files": {
     "body_full_p15.3mf": {
-      "bytes": 526224,
-      "sha256": "39d0dee3f65f9bbfd20b7215b567e642e4e1246c8b24170d0386a31db8ce15d2"
+      "bytes": 526664,
+      "sha256": "5302adc3e9711f0a1f59f8fb44f09cacc3efeea4d95f335a7bc59a1debd26080"
     },
     "body_full_p15.step": {
-      "bytes": 1351340,
-      "sha256": "46ba3d80e986e6867e30e6851190438b3251218961eb7ccb1934ab0cd59a64bb"
+      "bytes": 1370409,
+      "sha256": "dda49e081f9e8ea53376c433e5437b8c717a1688db44e8e9938fc97749f36131"
     },
     "body_full_p15.stl": {
-      "bytes": 1932884,
-      "sha256": "5810c8506b5a8939c33e15a220f01b15c13d0724757a580ae0c8dcf514260e2f"
+      "bytes": 1934484,
+      "sha256": "420729046267a8ae39cb8936a3c6cbef840bbda35b1347228918e9c5b16d4805"
     },
     "lid.3mf": {
-      "bytes": 50114,
-      "sha256": "d9142b1ae456ffec1d779f0c238cab6ad2e0f7c44f199dc0be4a70f60dd5a73a"
+      "bytes": 50764,
+      "sha256": "dadabc66b7374cfe64debc44187300c876cacbaba57c7d583245a4bb20f55972"
     },
     "lid.step": {
-      "bytes": 478876,
-      "sha256": "1e9063c97af27a9d13a357f59ff45db28627ffee872c66a195784607c278a945"
+      "bytes": 487304,
+      "sha256": "dd52d1d6800822216ebebbd586ddb0ddad1ef9a63dc1e193f2f08453b9d611ba"
     },
     "lid.stl": {
-      "bytes": 183384,
-      "sha256": "5f50251cb2f97fa76739102f036ec2717be4b5cd68b872278525c263db8edc87"
+      "bytes": 184184,
+      "sha256": "a578e187ed718716ee65f14e0fa04a498fbe7f5a5e216cff2f0cc9f086d58fcb"
     }
   },
   "hash_rule": "SHA256 raw bytes; STEP pinned timestamp; STL/3MF CAD meshing 0.02 mm, 5 degrees",
