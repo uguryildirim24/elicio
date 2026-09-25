@@ -1,0 +1,1010 @@
+{
+  "body_lid_overlap_mm3": 0.0,
+  "checks": [
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C1",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 2.09,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C2",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.6096,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C3",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.6,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C4",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.1938,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C5",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.16,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C6",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.39,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C7",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.53,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C8",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.9109,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C9",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.38,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C10",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.62,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C11",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.05,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C12",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.585,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C13",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.0755,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C14",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.44,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C15",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.63,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C16",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.8237,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "C17",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.63,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "D1",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.1989,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "D2",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.92,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "J2",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.432,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "item": "J3",
+      "kind": "exterior (tab cut)",
+      "margin_mm": null,
+      "passed": true
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "J4",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.8535,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "Q1",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.11,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "Q2",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 2.09,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "Q3",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.124,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "Q4",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.2,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R1",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.06,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R2",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.1526,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R3",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.02,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R4",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 2.09,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R5",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.9398,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R6",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.62,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R7",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.63,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R8",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.9192,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R11",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.8037,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R12",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.63,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R13",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.63,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R14",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.16,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R15",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.6687,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R16",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.9785,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R17",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.35,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R18",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.3014,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R19",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.16,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R20",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 2.09,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R21",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.8846,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R22",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.2,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R23",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.5696,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R24",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.7258,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R25",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 2.09,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R27",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.63,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R28",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.63,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "item": "R31",
+      "kind": "exterior (tab cut)",
+      "margin_mm": null,
+      "passed": true
+    },
+    {
+      "item": "R32",
+      "kind": "exterior (tab cut)",
+      "margin_mm": null,
+      "passed": true
+    },
+    {
+      "item": "R33",
+      "kind": "exterior (tab cut)",
+      "margin_mm": null,
+      "passed": true
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R34",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.2,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "R35",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.4,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "SW1",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.8,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "U1",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.0,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "U2",
+      "kind": "top courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.98,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "U3",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.0894,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "U4",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 1.11,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "body_overlap_mm3": 0.0,
+      "item": "U5",
+      "kind": "bottom courtyard",
+      "lid_overlap_mm3": 0.0,
+      "margin_mm": 0.31,
+      "passed": true,
+      "post_on_U1": false
+    },
+    {
+      "item": "cell + 0.5 foam",
+      "kind": "reserved air",
+      "margin_mm": 0.0,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
+      "item": "SIG1 root",
+      "kind": "reserved air",
+      "margin_mm": 0.01,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
+      "item": "SIG2 root",
+      "kind": "reserved air",
+      "margin_mm": 0.01,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
+      "item": "REF root",
+      "kind": "reserved air",
+      "margin_mm": 0.0,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
+      "item": "P4/P5 flap slot",
+      "kind": "reserved air",
+      "margin_mm": 0.01,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
+      "item": "P4/P5 plate",
+      "kind": "reserved air",
+      "margin_mm": 0.0,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
+      "item": "P4/P5 joint root",
+      "kind": "reserved air",
+      "margin_mm": 0.0,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
+      "item": "J3 stub",
+      "kind": "reserved air",
+      "margin_mm": 0.3,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
+      "item": "island",
+      "kind": "reserved air",
+      "margin_mm": 0.5952,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
+      "item": "P1 post landing",
+      "kind": "post solid (intentional)",
+      "margin_mm": 6.1375,
+      "overlap_mm3": 6.1375,
+      "passed": true
+    },
+    {
+      "item": "P2 post landing",
+      "kind": "post solid (intentional)",
+      "margin_mm": 3.0378,
+      "overlap_mm3": 3.0378,
+      "passed": true
+    },
+    {
+      "item": "P1 ring axis y0.05",
+      "kind": "open floor hole / seat",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P1 ring axis y0.75",
+      "kind": "open floor hole / seat",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P1 ring axis y1.65",
+      "kind": "open floor hole / seat",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P2 ring axis y0.05",
+      "kind": "open floor hole / seat",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P2 ring axis y0.75",
+      "kind": "open floor hole / seat",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P2 ring axis y1.65",
+      "kind": "open floor hole / seat",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P3 ring axis y0.05",
+      "kind": "open floor hole / seat",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P3 ring axis y0.75",
+      "kind": "open floor hole / seat",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P3 ring axis y1.65",
+      "kind": "open floor hole / seat",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P4 low key",
+      "kind": "solid occupancy",
+      "margin_mm": 0.5,
+      "passed": true
+    },
+    {
+      "item": "P4 high key",
+      "kind": "solid occupancy",
+      "margin_mm": 0.5,
+      "passed": true
+    },
+    {
+      "item": "P4 screw axis u13.1",
+      "kind": "hole face air",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P4 screw axis u16.55",
+      "kind": "hole face air",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P4 screw axis u17.95",
+      "kind": "hole face air",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P4 screw axis u18.05",
+      "kind": "hole face air",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P5 low key",
+      "kind": "solid occupancy",
+      "margin_mm": 0.5,
+      "passed": true
+    },
+    {
+      "item": "P5 high key",
+      "kind": "solid occupancy",
+      "margin_mm": 0.5,
+      "passed": true
+    },
+    {
+      "item": "P5 screw axis u13.1",
+      "kind": "hole face air",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P5 screw axis u16.55",
+      "kind": "hole face air",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P5 screw axis u17.95",
+      "kind": "hole face air",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P5 screw axis u18.05",
+      "kind": "hole face air",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "P1 post datum",
+      "kind": "lid post y landing",
+      "margin_mm": 0.05,
+      "passed": true
+    },
+    {
+      "item": "P2 post datum",
+      "kind": "lid post y landing",
+      "margin_mm": 0.05,
+      "passed": true
+    },
+    {
+      "item": "J2 to P5 key",
+      "kind": "courtyard-to-open-standoff-end",
+      "margin_mm": 4.81,
+      "passed": true
+    },
+    {
+      "item": "seated lid vs body",
+      "kind": "solid overlap",
+      "margin_mm": 0.0,
+      "passed": true
+    },
+    {
+      "item": "screw head air",
+      "kind": "closure solid probe",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "screw shank air",
+      "kind": "closure solid probe",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "screw lid pilot air",
+      "kind": "closure solid probe",
+      "margin_mm": 0,
+      "passed": true
+    },
+    {
+      "item": "screw lid boss wall",
+      "kind": "closure solid probe",
+      "margin_mm": 0,
+      "passed": true
+    }
+  ],
+  "closure": {
+    "body_boss_od_mm": 3.6,
+    "head_height_max_mm": 1.64,
+    "head_max_mm": 3.14,
+    "head_seat_y_mm": 1.7599999999999998,
+    "head_well_floor_radial_mm": 2.23,
+    "head_well_radial_wall_mm": 0.13,
+    "key_mm": 1.5,
+    "lid_boss_od_mm": 3.6,
+    "lid_boss_radial_wall_mm": 1.0,
+    "lid_engagement_mm": 1.71,
+    "nominal_screw_length_mm": 4,
+    "s": 11.8,
+    "thread": "m16",
+    "tip_y_mm": 5.76,
+    "type": "ISO 4762 medial-access socket screw",
+    "u": 14.1
+  },
+  "files": {
+    "body_full_p15.3mf": {
+      "bytes": 547654,
+      "sha256": "f2802d20aae91bd698710634514a0d485138a1dd578a4919b644d77a3dfe1d0d"
+    },
+    "body_full_p15.step": {
+      "bytes": 1273609,
+      "sha256": "6c20f64b0937101daf9261584ba80862af3564d39679f2dca4c4e89eba67aea4"
+    },
+    "body_full_p15.stl": {
+      "bytes": 2022784,
+      "sha256": "ad21af2a8c6f40591d3d723d33bb0f22a6fcf4e5a04e6259d11b1cc538fdfe39"
+    },
+    "lid.3mf": {
+      "bytes": 63865,
+      "sha256": "5384f174271b470155c279428542af548fcb506c3892009b2913103e40e05535"
+    },
+    "lid.step": {
+      "bytes": 430387,
+      "sha256": "41776001efe4616a95226bf130ae78c36494d5cc401a7b69c99599c7d5176e74"
+    },
+    "lid.stl": {
+      "bytes": 238584,
+      "sha256": "8c930a74bea97e96e9f3acee2d4522314f911b1b6951822362bca00e668cfb3f"
+    }
+  },
+  "hash_rule": "SHA256 raw bytes; STEP pinned timestamp; STL/3MF CAD meshing 0.02 mm, 5 degrees",
+  "notes": {
+    "closure": "UNVERIFIED: screw cannot fit beyond REF; hinge only, no closure",
+    "emboss": "none (plan v2 \u00a77: no text outside)",
+    "fillets": [
+      "\u00a73.5 step 2 tip round 4.0 applied",
+      "FILLET_MEDIAL 1.5 applied",
+      "\u00a73.5 step 9 hook joint fillet 1.5 applied"
+    ],
+    "hook_stub_in_cavity_removed_mm3": 4.6261,
+    "q59": "packing-v2.md \u00a75 on lane/w3 at 284ec05 (git show 284ec05): no in-cavity REF tab route; REF_end_wall_slot u 7.25\u20139.75, s 38.20\u201339.25, y 1.50\u20131.81, width 2.50, through 1.05, height 0.31, 0.814 mm\u00b3, plus flex clearance 0.2 mm per side in u, 0.2 mm in s, 0.15 mm in y",
+    "q76": "circular root r=1.75 blended 1.5",
+    "shell_measure": {
+      "boss_top_y": 4.31,
+      "bosses": 0,
+      "q59_clear_s": 0.2,
+      "q59_clear_u": 0.2,
+      "q59_clear_y": 0.15,
+      "q59_pack_overlap_mm3": 0.885,
+      "q59_pack_vol_mm3": 0.814,
+      "q59_removed_mm3": 1.8135,
+      "q59_slot": "REF_end_wall_slot",
+      "rib_slot_removed_mm3": 1.4008,
+      "standoff_top_y": 4.81,
+      "wp11b_route": "none in cavity"
+    },
+    "stage_b_cuts": {
+      "exit_nylon_in_cavity_mm3": 0.0,
+      "exit_removed_mm3": 0.0,
+      "hole_removed_mm3": {
+        "REF": 9.9078,
+        "SIG1": 9.9078,
+        "SIG2": 9.9078
+      },
+      "pocket_removed_mm3": 247.4004,
+      "shell_skipped": "v1 REF wire channel and bench-cable exit"
+    },
+    "winner": "v4 flex W18 T8.1"
+  },
+  "parameters": {
+    "BOARD_ZONE_S": [
+      16.0,
+      37.6
+    ],
+    "BOARD_ZONE_U": [
+      2.25,
+      15.75
+    ],
+    "BODY_ARC": 48.4,
+    "BODY_THICK": 8.1,
+    "BODY_WIDTH": 18.0,
+    "CABLE_EXIT_S": 35.0,
+    "CAVITY_S": [
+      1.5,
+      38.2
+    ],
+    "CAVITY_U": [
+      1.5,
+      16.5
+    ],
+    "CLEAR_FIT": 0.4,
+    "CLOSURE_PASSED": false,
+    "CONTACT_1_S": 22.0,
+    "CONTACT_1_U": 5.9,
+    "CONTACT_2_S": 33.126206254801446,
+    "CONTACT_2_U": 10.395279120990946,
+    "CONTACT_REF_S": 43.0,
+    "CONTACT_REF_U": 8.5,
+    "CONTACT_SOURCE": "board-v4-design.md \u00a710.2",
+    "CREASE_BOW": 3.0,
+    "CREASE_BOW_COMPUTED": 11.001411613371118,
+    "CREASE_BOW_REQUESTED": 3.0,
+    "FILLET_MEDIAL": 1.5,
+    "GLASSES_FLAT": 0.8,
+    "HOOK_ANGLE": 145.0,
+    "HOOK_DIA": 3.5,
+    "HOOK_PRELOAD": 1.5,
+    "HOOK_RADIUS": 13.5,
+    "HOOK_ROOT_X": 4.0,
+    "HOOK_ROOT_Y": 3.0,
+    "LEAD_PADS": {
+      "REF": [
+        5.5,
+        29.35
+      ],
+      "SIG1": [
+        7.5,
+        29.35
+      ],
+      "SIG2": [
+        13.5,
+        21.35
+      ]
+    },
+    "LID_EDGE": 0.8,
+    "LID_THICK": 1.0,
+    "LID_Y": 7.1,
+    "M1": 52.0,
+    "M2": 58.0,
+    "M3": 11.0,
+    "M4": 6.0,
+    "M5": 2.5,
+    "M6": 15.0,
+    "M7": 22.0,
+    "M8": 11.0,
+    "MOCK_CONTACTS": false,
+    "NUB_U": [
+      [
+        1.9,
+        2.7
+      ],
+      [
+        15.3,
+        16.1
+      ]
+    ],
+    "PACKING": "v2",
+    "PATH_RADIUS": 97.10250594613626,
+    "RIB_S": [
+      14.9,
+      15.7
+    ],
+    "SHELL_V4": true,
+    "SIDE": "right",
+    "STAGE": "shell",
+    "TAB_DEG": {
+      "SIG1": 110.0,
+      "SIG2": 270.0
+    },
+    "TAB_HEIGHT": 2.0,
+    "TAIL_DS": 0.0,
+    "TAIL_S0": 45.5,
+    "THETA_DEG": 1.793625348966511,
+    "TOTAL_CHORD": 47.900523407445874,
+    "V2_ARCH": "A",
+    "V2_ARC_PLUS": 0.0,
+    "V2_CELL": "pack501012",
+    "V2_IFACE": "II",
+    "V2_LAYOUT": "series",
+    "V2_LID_Y": 7.1,
+    "V2_RECESS": 0.0,
+    "V2_STANDOFF": 3.0,
+    "V2_TAG": "A_pack501012_series_w18_y7.1_iII_s3",
+    "V2_WIDTH": 18.0,
+    "VARIANT": "full",
+    "WALL_END": 1.5,
+    "WALL_MEDIAL": 1.5,
+    "WALL_SIDE": 1.5,
+    "WIRE_S": [
+      38.2,
+      40.5
+    ]
+  },
+  "params_sha256": "853f9de05b01a719074f41fbd194a5fa5cfa695fbd24af9b8948dd1c99d035ee",
+  "provisional": true,
+  "schema": 1,
+  "source_table": "docs/fab/board-v4-design.md \u00a710.2",
+  "stage": "shell-v4",
+  "views": {
+    "render_closure.png": {
+      "bytes": 51623,
+      "sha256": "0d7ebdc83d34a195fd5ebe044303252a74376025aaf9906a7e9909cdfb461467"
+    }
+  }
+}
