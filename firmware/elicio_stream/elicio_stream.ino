@@ -51,7 +51,16 @@ static void ads_xfer(const uint8_t *tx, uint8_t *rx, size_t n) {
     }
 }
 
-static void ads_delay_us(unsigned us) { delayMicroseconds(us); }
+static void ads_delay_us(unsigned us) {
+    /* The 1 s POR wait must yield; delayMicroseconds is only for short pulses. */
+    if (us >= 1000u) {
+        delay(us / 1000u);
+        us %= 1000u;
+    }
+    if (us != 0u) {
+        delayMicroseconds(us);
+    }
+}
 
 static void ads_pwdn(int high) { digitalWrite(ELICIO_PIN_ADS_PWDN, high ? HIGH : LOW); }
 
@@ -182,13 +191,16 @@ static void afe_pins_safe(void) {
 }
 
 static void afe_pins_active(void) {
+    /* Preload the output latches *before* enabling drive: a VBUS-to-cell
+       transition must not briefly release PWDN or assert START. */
+    digitalWrite(ELICIO_PIN_ADS_CS, LOW);
+    digitalWrite(ELICIO_PIN_ADS_PWDN, LOW);
+    digitalWrite(ELICIO_PIN_ADS_START, LOW);
     pinMode(ELICIO_PIN_ADS_CS, OUTPUT);
     pinMode(ELICIO_PIN_ADS_PWDN, OUTPUT);
     pinMode(ELICIO_PIN_ADS_START, OUTPUT);
-    digitalWrite(ELICIO_PIN_ADS_CS, HIGH);
-    digitalWrite(ELICIO_PIN_ADS_PWDN, HIGH);
-    digitalWrite(ELICIO_PIN_ADS_START, LOW);
     afe_spi.begin();
+    digitalWrite(ELICIO_PIN_ADS_CS, HIGH);
     afe_spi.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
     afe_safe = 0;
 }

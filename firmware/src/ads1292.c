@@ -21,7 +21,8 @@ static void cmd(const Ads1292Bus *bus, uint8_t c) {
     bus->select(1);
     bus->xfer(&c, NULL, 1);
     bus->select(0);
-    bus->delay_us(4);
+    /* 4 tCLK command decode and 2 tCLK CS-high at 512 kHz. */
+    bus->delay_us(12);
 }
 
 static void wreg(const Ads1292Bus *bus, uint8_t addr, uint8_t value) {
@@ -32,7 +33,7 @@ static void wreg(const Ads1292Bus *bus, uint8_t addr, uint8_t value) {
     bus->select(1);
     bus->xfer(tx, NULL, 3);
     bus->select(0);
-    bus->delay_us(4);
+    bus->delay_us(12);
 }
 
 int ads1292_apply_worn_regs(const Ads1292Bus *bus) {
@@ -40,16 +41,28 @@ int ads1292_apply_worn_regs(const Ads1292Bus *bus) {
     if (bus == NULL || bus->select == NULL || bus->xfer == NULL || bus->delay_us == NULL) {
         return -1;
     }
+    if (bus->start_pin != NULL) {
+        bus->start_pin(0);
+    }
     if (bus->pwdn != NULL) {
+        /* R23 holds PWDN/RESET low during the rail ramp. Release only
+           when the rail is on; Figure 44 allows 1 s for POR/oscillator. */
+        bus->pwdn(1);
+        bus->delay_us(1000000);
+        /* TI §10.1: RESET after POR. 20 us > 1 tMOD at 128 kHz;
+           100 us > 18 tCLK at the slow end of the internal clock. */
         bus->pwdn(0);
         bus->delay_us(20);
         bus->pwdn(1);
+        bus->delay_us(100);
     }
-    bus->delay_us(200);
     cmd(bus, ADS1292_CMD_SDATAC);
     for (i = 0; i < ADS1292_WORN_REG_COUNT; i++) {
         wreg(bus, ADS1292_WORN_REGS[i].addr, ADS1292_WORN_REGS[i].value);
     }
+    /* GPIOC2/GPIOC1 = 1: U2 GPIO2/GPIO1 stay inputs. Board pull-downs
+       must be fitted; firmware cannot prevent floating during POR. */
+    wreg(bus, ADS1292_REG_GPIO, 0x0cu);
     return 0;
 }
 
