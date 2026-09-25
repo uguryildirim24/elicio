@@ -57,7 +57,7 @@ RING_REFS = {"P1", "P2", "P3", "P4", "P5"}
 HEIGHTS = {
     "U1": (1.00, "§1.2"), "U2": (1.00, "TI RSM"), "U3": (0.63, "TI YFP, UNVERIFIED"),
     "U4": (0.40, "TI DQN"), "U5": (0.40, "TI DQN"), "J2": (1.20, "§1.2 mated"), "SW1": (0.60, "§1.2"),
-    "J4": (0.00, "pads only"), "D1": (0.80, "SOD-523 max, UNVERIFIED"), "D2": (0.55, "0402 LED, UNVERIFIED"),
+    "J4": (0.00, "pads only"), "D1": (0.50, "Nexperia SOD882 body 0.5"), "D2": (0.55, "0402 LED, UNVERIFIED"),
 }
 HEIGHT_BY_FP = {"SOT-883": (0.40, "DFN1006 max, UNVERIFIED"), "0201": (0.35, "0201 max, UNVERIFIED"),
                 "R_0402": (0.45, "0402 R max, UNVERIFIED"), "C_0402": (0.60, "0402 C max, UNVERIFIED")}
