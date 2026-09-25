@@ -6613,7 +6613,7 @@
 				)
 			)
 		)
-		(property "Value" "TLV71330PDQNT"
+		(property "Value" "TLV71330PDQNR"
 			(at 307.34 43.18 0)
 			(show_name no)
 			(do_not_autoplace no)
