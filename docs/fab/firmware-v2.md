@@ -273,9 +273,10 @@ P0.28/29/30/31/02/03/10 are low-frequency-only; none should carry SPI data.
 
 The sketch now reads VBUS_DET and VBAT_SENSE and uses a dedicated SPIM3
 object wired to the table, but it **requires an ISP1807 v4 Arduino variant**
-that maps digital numbers to these actual pins and configures SAADC reference
-and UICR for NFC/reset. There is no such product variant in this tree: a
-Feather compile is deliberately rejected rather than claiming the wrong
+that maps digital numbers to these actual pins and configures SAADC reference;
+UICR NFC/reset must be provisioned over J4 as below. There is no such
+product variant in this tree: a Feather compile is deliberately rejected
+rather than claiming the wrong
 wiring works. `CHG_MON` is mapped but its charge/termination thresholds are
 not characterized; until they are, LED_EN stays off (not an acquisition
 indicator). No bootloader flash, physical board, BLE link or charge-state
@@ -300,8 +301,45 @@ above are historical and are **not** v4 release instructions.
    reset/power-cycle, then confirm SW1 pulls module reset low and SWD still
    works. No external reset pull-up exists. This is not a command to drive
    P0.18 from the application; the first programming can use SWD without a
-   working reset pin. Exact SWD tool commands depend on the product image;
-   no first-flash script or factory verification exists here.
+   working reset pin. No first-flash script or factory verification exists here.
+
+   **Exact J4 provisioning example (Nordic `nrfjprog` + J-Link, nRF52840):**
+   On an unprovisioned module, connect J4.1 to VTref (+VDD), J4.2 to SWDIO,
+   J4.3 or J4.5 to GND and J4.4 to SWDCLK; J4.6 is nRESET and need not
+   work yet. Power the board at its measured 3.0 V target voltage, with no
+   electrode or wearer attached. First read all three words; **stop if any
+   is not `0xFFFFFFFF`**. Do not mass-erase a programmed device to make
+   these commands work: UICR writes can clear bits but cannot restore them
+   without an erase, which may destroy a bootloader or other provisioning.
+
+   ```sh
+   nrfjprog --family NRF52 --memrd 0x1000120C --w 32 --n 4  # NFCPINS
+   nrfjprog --family NRF52 --memrd 0x10001200 --w 32 --n 4  # PSELRESET[0]
+   nrfjprog --family NRF52 --memrd 0x10001204 --w 32 --n 4  # PSELRESET[1]
+   # Each preflight read above must report FFFFFFFF at its address.
+   nrfjprog --family NRF52 --memwr 0x1000120C --val 0xFFFFFFFE
+   nrfjprog --family NRF52 --memwr 0x10001200 --val 0x7FFFFFD2
+   nrfjprog --family NRF52 --memwr 0x10001204 --val 0x7FFFFFD2
+   nrfjprog --family NRF52 --memrd 0x1000120C --w 32 --n 4  # expect FFFFFFFE
+   nrfjprog --family NRF52 --memrd 0x10001200 --w 32 --n 4  # expect 7FFFFFD2
+   nrfjprog --family NRF52 --memrd 0x10001204 --w 32 --n 4  # expect 7FFFFFD2
+   nrfjprog --family NRF52 --reset
+   nrfjprog --family NRF52 --memrd 0x1000120C --w 32 --n 4  # FFFFFFFE
+   nrfjprog --family NRF52 --memrd 0x10001200 --w 32 --n 4  # 7FFFFFD2
+   nrfjprog --family NRF52 --memrd 0x10001204 --w 32 --n 4  # 7FFFFFD2
+   ```
+
+   The addresses are UICR base `0x10001000` plus offsets `0x20C`, `0x200`
+   and `0x204` (nRF52840 MDK `nrf52840.h`). `NFCPINS.PROTECT=0` disables
+   NFC protection so P0.10 can be a GPIO; both PSELRESET words select
+   `CONNECT=0`, `PORT=0`, `PIN=18` while leaving reserved bits erased
+   (`0x7FFFFFD2`; MDK `nrf52840_bitfields.h`). If the values differ or
+   cannot be read, **stop before running the sketch**. The application must
+   not overwrite UICR, and any later erase requires this step again. After
+   reset, verify SW1 resets U1 and SWD remains accessible. These are
+   specified commands, not a tested factory flash or an available v4 image.
+   Without the NFCPINS step, **AFE_START on P0.10 will not work**.
+
 3. **Internal clock/data rate:** U2 CLKSEL is tied to +3V0, CLK is open,
    CONFIG2.CLK_EN=0. With the default internal oscillator at nominal
    fCLK=512 kHz, fMOD=128 kHz, CONFIG1 DR[2:0]=100 gives fMOD/64 = 2000
