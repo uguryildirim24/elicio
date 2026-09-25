@@ -1,9 +1,10 @@
-# WP14e wearable shell. Overlay on stageb_v2.toml. Not an order. Writes
+# WP14f wearable shell. Overlay on stageb_v2.toml. Not an order. Writes
 # docs/fab/cad/v2/ with --stage shell.
 #
-# Winner: A_pack501012_series_w22_y8_iII_s3 (packing-v2.md §5d on lane/w3
-# at 408a4765ec953d6cc84210fd3e5632185ff95cbb). Width 22, height 9.0,
-# 501012 pack (Q69), island u 2.25–19.75 × s 16.00–37.60. Standoff 3.0 mm
+# Winner: A_pack501012_series_w22_y8_iII_s3 (packing-v2.md §5e pin table v3
+# at ab9ce9588d55aff5143828f6dd88f5d22ed8223c; §5d frozen v2.1). Width 22,
+# height 9.0, 501012 pack (Q69), island u 2.25–19.75 × s 16.00–37.60.
+# Standoff 3.0 mm
 # (Q43, Q58). The 4.0 mm Harwin R25-1000402 stays a listed alternate.
 # M1 = 52 from default.toml (Q34 blank); provisional: true.
 #
@@ -11,8 +12,9 @@
 # - V2_* layout: Rolf's pick among the closers (packing-v2.md §3).
 # - TAB_HEIGHT: Q22 (v1 TE 31428; v2 tabs: V2_TAB_envelope).
 # - CABLE_EXIT_S: review r4 decision 24.
-# - CLOSURE_PASSED: false (E1 dropped, Q28). Q71: concealed medial-tail
-#   M2.5 (head well off the lateral lid) plus a hinge lip at the hook
+# - CLOSURE_PASSED: false (E1 dropped, Q28). Q71/Q89: concealed medial-tail
+#   M2.5×8 (head well off the lateral lid) through a tail pocket into a
+#   hanging lid boss, ≥ 3 mm of thread; plus a hinge lip at the hook
 #   end; no snaps. CAD pilots Ø2.10, boss OD ≥ 5.0 (L8 §4). See
 #   docs/fab/shell-v2.md.
 # - Q76: circular hook root blending into the elliptical tube.
@@ -22,11 +24,13 @@
 #   This shell cuts REF_end_wall_slot (u 7.25–9.75, s 38.20–39.25,
 #   y 1.50–1.81) plus 0.20 mm flex clearance per side in u.
 # - Q81: no USB receptacle at M1 52.
-# - Q82: island bosses at §5c hole sites (13.45, 17.70) and (17.95, 17.70).
+# - Q82/Q98: island bosses at §5e H1/H2 (13.23, 17.70) and (17.95, 17.70); keep gap 1.42.
 # - Q83: neck-end tab strips, no side-wall pockets.
-# - Q86: P4/P5 on the hook-end medial floor at §5d folded sites
-#   (14.70, 4.30) and (17.70, 11.72). Rib slot and drop channel.
-# - Q84: 1.0 mm creepage nylon under the floor pads.
+# - Q90/Q93: P4/P5 clamped button-heads in the posterior wall at §5e wall
+#   sites (20.50, 4.35, y 4.35) and (20.50, 12.35, y 4.35), head +u.
+#   Skin-face floor pads, rib slot and drop channel removed.
+# - Q89: lid boss / M2.5×8 (see docs/fab/shell-v2.md).
+# - Q84: 1.0 mm creepage nylon under the floor EMG pads.
 # - Q17: reference dome on the tail, provisional.
 
 PACKING = "v2"
