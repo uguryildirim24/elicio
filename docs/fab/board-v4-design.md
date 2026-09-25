@@ -1,7 +1,7 @@
 # Board v4 — design note (smaller body)
 
-Draft. **Routed**: DRC 0 errors and 0 unconnected after a zone refill, and `scripts/board/release.py --board elicio-v4 --routed` passes (§9). Rolf still decides the TS/NTC question (§2.1 item 6) and the antenna keep-out (§4.2); §11.1 lists what is still UNVERIFIED.
-Date: 2026-09-25. Lanes t-0012 (Opus 5.5: design and first routing), t-0014 (Fable 5.1: routed to 10 open), t-0016 (Fable 5.1: pass-2 placement) and t-0019 (Opus 5.5: passes 3–6 and the routed board).
+Draft. **Routed, not a complete ESD fix**: DRC 0 errors and 0 unconnected after a zone refill, and `scripts/board/release.py --board elicio-v4 --routed` passes (§9). U3 now has DC-bias-characterized IN/TS/OUT capacitors meeting the numerical IEC rating conditions, but D1 still clamps at the far end of VBUS and the nearest OUT bulk is 9.3 mm from U3; the conditional IC rating is not a contact-level test (§2.1). Rolf still decides the TS/NTC question (§2.1 item 6) and antenna keep-out (§4.2); §11.1 lists what is still UNVERIFIED.
+Date: 2026-09-25. Lanes t-0012 (Opus 5.5: design and first routing), t-0014 (Fable 5.1: routed to 10 open), t-0016 (Fable 5.1: pass-2 placement), t-0019 (Opus 5.5: passes 3–6 and the first routed board), t-0036 (charger ESD capacitor changes and reroute).
 
 ## 1. Size levers
 
@@ -132,17 +132,20 @@ v2 list from the v2 netlist (board-v2.md G2/BOM). v4 list from `hardware/board/v
 | R29, R30 | 10 MΩ, DNP | — | **remove** | Stops nothing now: lead-off stays firmware-off (plan §5.5). The land to fit them later is gone |
 | C1 | 1.5 nF 0402, C1548 | 0201, C285104 | change | |
 | C2 | 10 nF 0402, C1524 | 0201, C43380 | change | |
-| C3–C5, C10, C13 | 1 µF 0402, C15849 | 0201, C5142566 | change | |
+| C3 | 1 µF 0402, C15849 | 10 µF 0402 X5R 10 V, Murata GRM155R61A106ME18, consigned | change | IN effective 2.277 µF at 5 V (§2.1) |
+| C4–C5, C10, C13 | 1 µF 0402, C15849 | 0201, C5142566 | change | |
 | C6, C8, C9 | 10 µF 0603, C19702 | 0402, C15525 (Basic) | change | |
 | C7, C15 | 100 nF 0603, C14663 | 0201, C307380 | change | |
 | C11 | 100 nF 0402, C1525 | 1 µF 0201, C5142566 | change | VCAP2 (refcheck t-0023, §2.1) |
 | C12 | 100 nF 0402, C1525 | 0201, C307380 | change | |
 | — | — | C17 100 nF 0201, C307380 | **add** | VREFP local bypass beside C9 (refcheck t-0023, §2.1) |
-| C14 | 4.7 µF 0402, C19675 | 4.7 µF 0402 | keep size | Code UNVERIFIED (v2's C19675 was never checked in board-v2) |
+| C14 | 4.7 µF 0402, C19675 | 10 µF 0402 X5R 10 V, Murata GRM155R61A106ME18, consigned | change | OUT (VBAT) effective 2.781 µF at 4.2 V (§2.1); 9.3 mm from U3 |
+| — | — | C18 10 µF 0402 X5R 10 V, Murata GRM155R61A106ME18, consigned | **add** | TS to GND, 2.55 mm from U3.B1; fixed R13 unchanged |
+| — | — | C19 10 µF 0402 X5R 10 V, Murata GRM155R61A106ME18, consigned | **add** | Extra OUT (VBAT) bulk; temperature margin, but far from U3 |
 
 J1 (USB-C) and USBLC6 were already absent in v2 (Q81).
 
-v4 placement: 62 parts plus P1–P5. On the island, 24 are on F (J4 included) and 34 on B; J3, R31 and R33 are on the tab and R32 on its neck. J4 and P1–P5 are not in the BOM, which leaves 61 lines.
+v4 placement: 64 parts plus P1–P5. On the island, 25 are on F (J4 included) and 35 on B; J3, R31 and R33 are on the tab and R32 on its neck. J4 and P1–P5 are not in the BOM, which leaves 63 lines.
 
 **No removal changes function.** Every removed part was DNP, or is replaced by the SiP (L1), by the lid posts (H1/H2) or by the nRF's own reset pull-up (R26). The charger, charge interlock, AFE supply gate, VBUS_DET, VBAT_SENSE, CHG_MON, LED, SW1, J3 and J4 all stay.
 
@@ -153,7 +156,7 @@ The circuit check (`docs/fab/board-v4-refcheck.md` on the t-0023 branch, datashe
 1. **D1 land.** PESD5V0L1UL is made in Nexperia's SOD882 (DFN1006-2): "leadless ultra small plastic package; 2 terminals; body 1.0 × 0.6 × 0.5 mm" (datasheet Table 4). v2's SOD-523 land was another package.
    - Pinning (Table 3): pin 1 cathode, marked by the bar; pin 2 anode. Pad 1 is on VBUS, pad 2 on GND.
    - Land: KiCad `D_SOD-882`, pads 0.4 × 0.7 at 0.70 pitch, gap 0.30. Nexperia's reflow land (Fig. 13) is 0.3 × 0.6 at 0.60 pitch, gap 0.30. Same gap; KiCad's pads reach 0.10 further out on each side.
-   - D1 sits on B at (14.30, 28.60), at the VBUS trunk's south end beside R18, cathode east (t-0019 pass 4, §9.2: the east column under U2 now holds the RLD and +3V0 vias and R34/R35). The cost: a surge from P4 reaches U3's VBUS ball (A2) first and D1 at least 11 mm of track later, so the clamp no longer sits between the contact and U3. Whether U3's own ESD rating covers that is UNVERIFIED. C24109 is v2's LCSC code; that its listing is this package is UNVERIFIED.
+   - D1 **remains** on B at (14.30, 28.60), cathode (14.65, 28.60); U3.A2 is (14.30, 17.55), so even the straight-line lower bound is 11.06 mm before the clamp (the copper path is longer). Trials of D1 by U3 ran into the 15.09 notch, R16/R17, U2's courtyard and the input-crossing channels. Beside U2, the F-side u strip 14.48–15.75 is 1.27 mm wide against D1's rotated courtyard width 1.30 mm (0.03 mm overlap); the B-side candidate (14.43–15.73, 19.70–21.40) overlapped the then-R17 courtyard (13.75–15.15, 20.50–21.20) and, after moving R17, the RLD vias. The final B-side TS cap occupies (14.61–15.53, 19.79–21.61), so this pocket cannot also hold D1. Putting the 0402 TS cap on F produced three persistent router conflicts (AFE_IN1N, AFE_IN1P, GND_B). The clean route instead has C18 on B at (15.07, 20.70) and adds C19 OUT bulk on F at (14.10, 34.20). This is not an ESD-interception layout. **The numerical fallback is U3's own conditional 8 kV contact / 15 kV air IEC 61000-4-2 IN rating** (SLUSBV8C §7.2), with C3/C18/(C14+C19) satisfying its 1/1/2 µF effective minimum at the specified biases, calculated below; it does *not* prove a surge at P4, where no contact-level IEC test was run. C24109's listing for D1's SOD882 package remains UNVERIFIED.
 2. **C11 (VCAP2) 1 µF.** TI shows 1 µF at VCAP2 (SBAS502C Fig. 73); v2 had 100 nF. Now 1 µF 0201 (C5142566), its pad 0.6 from pin 27 on a locked F track. The effective value at VCAP2's DC bias is UNVERIFIED (an 0201 X5R loses capacitance under bias).
 3. **GPIO1/GPIO2 pull-downs.** SBAS502C §8.5.1.7: the GPIO pins default to inputs and must not float. R34 (GPIO1, pin 26) and R35 (GPIO2, pin 25) are 10 kΩ to GND on B, each one via away from its pin. Firmware leaves both as inputs.
 4. **Q2–Q4 PMZ290UNE2.** Nexperia PMZ290UNE2YL, DFN1006-3 (SOT883), LCSC C478155. The older PMZ290UNE is end-of-life. Datasheet Rev. 1 (2015):
@@ -164,11 +167,21 @@ The circuit check (`docs/fab/board-v4-refcheck.md` on the t-0023 branch, datashe
    - Drains see VBAT (≤ 4.2 V) or, for Q4, the LED cathode below VBUS (≤ 5.5 V), against 20 V.
    - Still for the bench (refcheck): the Q2 charge interlock with a low cell.
 5. **C17 VREFP 100 nF.** SBAS502C Fig. 73 shows 10 µF + 0.1 µF at VREFP. C17 (100 nF 0201) sits on F beside C9, its VREFP pad next to C9's.
-6. **U3 TS: R13 stays; no NTC.** TI designs TS for "a 10-k NTC β = 3370 ... connected from the TS pin to VSS" and says to "use a 10-k NTC thermistor in the battery pack (103AT)" (SLUSBV8C §8.3.8, §9.2.2.1.3). An NTC only helps where it touches the cell, and no flex copper does:
+6. **U3 TS: R13 stays; no NTC.** C18 is a TS-to-GND *bypass*, not a temperature sensor and not a change in the TS network decision. TI designs TS for "a 10-k NTC β = 3370 ... connected from the TS pin to VSS" and says to "use a 10-k NTC thermistor in the battery pack (103AT)" (SLUSBV8C §8.3.8, §9.2.2.1.3). An NTC only helps where it touches the cell, and no flex copper does:
    - The cell sits in its pocket at s 1.5–14.9. The island starts at s 16.0 behind the rib (s 14.9–15.7), at least 1.1 from the cell's end through air and plastic.
    - In the cell section the flex is only the SIG1/SIG2 strips and the P4/P5 plate. The strips are Contact copper, one net each (Q97), so no TS track can ride on them. The plate folds against the wall at u 16.19–16.30 behind the standoffs, 4.3 from the cell's side (u 11.9); it would read the charge standoffs.
    - An NTC on the island next to U3 would read the board and stop charge on the board's temperature. That looks like protection and isn't.
    - What works: a cell with its own NTC on a third J2 contact. That changes J2 (a 3-way Pico-EZmate Slim; which part fits is UNVERIFIED) and the cell order (L4, already UNVERIFIED). **Rolf decides.** Until then R13 holds TS at the 10 kΩ level, and the 0–45 °C charge window is Rolf's sheet, not automatic (board-v2 §5).
+
+7. **Charger IEC capacitor check (t-0036).** TI BQ25100 SLUSBV8C §7.2 rates IN for **8 kV contact / 15 kV air** only when effective capacitance is ≥ 1 µF IN, ≥ 1 µF TS and ≥ 2 µF OUT, X5R or better. Murata SimSurfing **C-DC bias / Capacitance**, 25 °C, 0.1 Vrms, read **2026-09-25**: [online characteristics viewer](https://ds.murata.com/simsurfing/mlcc.html?lcid=en-us); product record [GRM155R61A106ME18](https://www.murata.com/en-global/products/productdetail?partno=GRM155R61A106ME18). Reproducible maker graph data: [10 µF graph](https://ds.murata.com/simserve/characteristics?callback=nothing&ReqType=Characteristics&ReqChara=%5B%7B%22partnumber%22%3A%22GRM155R61A106ME18%22%2C%22chara_type%22%3A%22c_dcbias_capacitance%22%2C%22parameter%22%3A%7B%22tc%22%3A%2225%22%2C%22ac%22%3A%220.1%22%7D%2C%22WorkInfo%22%3A%7B%7D%7D%5D&WorkInfo=test). Both are **0402, 10 V, X5R, ±20%**, per the maker's SimSurfing `mlcc.csv` product rows. Values below are graph µF, then graph × 0.8 (extra tolerance allowance); no nominal-value arithmetic or uncharacterized C16 is counted.
+
+   | Pin, part | DC bias | Maker graph | ×0.8 | IEC minimum | Margin after ×0.8 |
+   |---|---:|---:|---:|---:|---:|
+   | IN, C3 10 µF GRM155R61A106ME18 | 5.0 V | 2.277 µF | 1.821 µF | 1 µF | +0.821 µF |
+   | TS, C18 10 µF GRM155R61A106ME18 | 5.5 V upper bound (at or below VBUS) | 2.034 µF | 1.627 µF | 1 µF | +0.627 µF |
+   | OUT/VBAT, C14+C19 (2 × 10 µF GRM155R61A106ME18) | 4.2 V | 5.562 µF | 4.449 µF | 2 µF | +2.449 µF |
+
+   At 5.5 V IN the 10 µF curve is 2.034 µF (×0.8 = 1.627 µF). C3's VBUS pad is (14.40,16.72), 0.84 mm straight-line from IN ball U3.A2 (14.30,17.55). C18's TS pad is (15.07,20.22), 2.55 mm from U3.B1 (13.90,17.95). **C14's OUT pad is (13.67,27.20), 9.27 mm from U3.A1 (14.30,17.95)**; C19's OUT pad is (14.10,34.68), 16.73 mm away. Their DC capacitance is on VBAT but these lengths are not local high-frequency ESD bypasses. Multiplying again by 0.85 for the X5R ±15% temperature envelope gives IN 1.383 µF at 5.5 V, TS 1.383 µF at 5.5 V, OUT 3.782 µF at 4.2 V: all above 1/1/2 µF *by this independent allowance*, not by measured temperature/bias joint curves. Actual aging, mounted tolerances and contact-level response remain unmeasured. The parts are marked CONSIGNED in the BOM because a JLC supply code for this exact MPN was not verified. There is no claim of a P4 IEC test.
 
 ## 3. Layers against the JLC flex rules
 
@@ -273,14 +286,14 @@ The full table is `PLACE` in `hardware/board/build_v4.py`; §10 lists every part
 | CS/DRDY series, pad-23 decoupling, charge LED | F | u 11.05–14.65 × s 25.15–28.0 | R7, R27, C15, D2, R22, Q4, R28. R7 at u 11.05 and R27 turned so MOSI and CS leave U2's south row without a via (§9) |
 | SPI series | F | u 11.40 × s 29.6–32.6 | R6, R5, R8 in U2's pad order |
 | SW1 | F | (14.45, 31.10) rot 180 | Top 5.72 |
-| J4 TC2030-NL | F | (10.00, 35.40) | Just outside the RF band (u ≥ 6.455) |
+| J4 TC2030-NL, extra OUT bulk | F | J4 (10.00, 35.40); C19 (14.10, 34.20) | Just outside the RF band (u ≥ 6.455); C19 is remote from U3 |
 | U5 and caps | B | u 3.1–4.7 × s 17.1–18.3 | Under J2. U5, C16, C12, C13 |
 | Contact resistors R1, R2, C4 | B | s 17.25–17.45 | At the strip roots |
-| Charger | B | U3 (13.90, 17.75) rot 90 | U3, R11, C2, R25, C3 at the joint. Both charge nets arrive on B |
+| Charger | B and F | U3 (13.90, 17.75) B rot 90 | U3, R11, C2, R25 on B; C3 on F (14.40,17.20), C18 TS on B (15.07,20.70). Both charge nets arrive on B; OUT bulk C14/C19 is remote |
 | AFE gate and charge interlock | B | u 9.85–14.45 × s 18.6–23.9 | R15, Q3, R14, Q1, C5 (the west stack at u 9.85–10.80); Q2, R16, R17 beside the charger, so AFE_EN_HW is one short hop from Q2.3 to Q3.1 (§9.2) |
 | AFE LDO and RLD network | B | u 11.45–13.3 × s 21.25–24.7 | U4, C8, R4, C1, R24 (START pull-down) |
 | GPIO pull-downs | B | (14.95, 23.22), (14.40, 24.55) | R34, R35 (§2.1 item 3) |
-| REF resistor, dividers, VBAT bulk, TVS | B | u 12.40–14.55 × s 25.6–29.3 | R3, R20, R21, R18, R19 (u 12.40, U1-side pads west, so U1's east pads get a second via column), C14, D1 (§2.1 item 1) |
+| REF resistor, dividers, VBAT bulk, TVS | B | u 12.40–14.55 × s 25.6–29.3 | R3, R20, R21, R18, R19 (u 12.40, U1-side pads west), C14 10 µF, D1 far from charger (§2.1) |
 
 The same features seen from the Contact side are in §5: landings P1 (5.9, 22.0) and P2 (10.4, 33.1), R 3.2; lid posts at (5.9, 23.0) and (9.4, 32.1).
 
@@ -535,14 +548,14 @@ Pin map A (as built). Every fast SPI line is on a full-speed pin; the low-freque
 
 ## 9. Routing status
 
-**Routed.** `hardware/board/elicio-v4.kicad_pcb` as committed (t-0019):
+**Routed again (t-0036 ESD-cap revision).** `hardware/board/elicio-v4.kicad_pcb`:
 
-- 773 track segments (213 of them locked pre-routes) and 49 vias (28 locked). Every connection is closed.
+- 1047 track segments (210 locked pre-routes) and 56 vias (28 locked). Every connection is closed. D1 remains at the far end; see §2.1 for the conditional IEC rating and residual ESD risk.
 - The two GND pours (F and B, over the whole island) are filled and saved; the release DRC does not refill.
-- DRC (kicad-cli 10.0.6, project rules `elicio-v4.kicad_dru`, `--refill-zones --schematic-parity`, on the committed file in place), verbatim: `Found 25 violations`, `Found 0 unconnected items`, `Found 2 schematic parity issues`.
+- DRC (kicad-cli 10.0.6, project rules `elicio-v4.kicad_dru`, `--refill-zones --schematic-parity`, on the committed file in place), verbatim: `Found 28 violations`, `Found 0 unconnected items`, `Found 2 schematic parity issues`.
   - Errors: 0: no short, no clearance error, no starved thermal (§9.3). Unconnected: 0.
-  - Warnings: 24 `lib_footprint_mismatch`, 1 `via_dangling`. `build_v4.py` strips footprint silkscreen and hides fields, so the placed footprints differ from KiCad's library copies. `via_dangling` is the +VDD pre-route via at (7.60, 36.70), used on F only. The parity warnings are J2's two MP pads, which have no schematic pin.
-- `scripts/board/release.py --board elicio-v4 --routed`: exit 0, `routed: true`. ERC 0 errors and 0 warnings; DRC 0 errors, 25 warnings, 0 unconnected; 61 BOM rows and 61 CPL rows, no BOM line without a CPL row; 17 files in `gerbers/` (14 layers, PTH and NPTH drill, job file); STEP written without models for 5 footprints (Molex Pico-EZmate Slim, Texas DSBGA-6, Texas RSM0032, Texas X2SON-4, SOT-883). The outputs are in `hardware/board/release/elicio-v4/`; they're not committed, and the command writes them again.
+  - Warnings: 27 `lib_footprint_mismatch`, 1 `via_dangling`. `build_v4.py` strips footprint silkscreen and hides fields, so the placed footprints differ from KiCad's library copies. `via_dangling` is the +VDD pre-route via at (7.60, 36.70), used on F only. The parity warnings are J2's two MP pads, which have no schematic pin.
+- `scripts/board/release.py --board elicio-v4 --routed`: exit 0, `routed: true`. ERC 0 errors and 0 warnings; DRC 0 errors, 28 warnings, 0 unconnected; 63 BOM rows and 63 CPL rows, no BOM line without a CPL row; 17 files in `gerbers/` (14 layers, PTH and NPTH drill, job file); STEP written without models for 5 footprints (Molex Pico-EZmate Slim, Texas DSBGA-6, Texas RSM0032, Texas X2SON-4, SOT-883). The outputs are in `hardware/board/release/elicio-v4/`; they're not committed, and the command writes them again.
 - Unchanged: two copper layers, 0.10/0.10 track and clearance, 0.40/0.15 vias, the Contact class and the Q84/Q88/Q97 rule areas. The folded body is still 18 × 8.1 (§10.2).
 
 ### 9.1 What each router did
@@ -568,7 +581,10 @@ Pin map A (as built). Every fast SPI line is on a full-speed pin; the low-freque
 | same (t-0019 run 2), then `v4_finish.sh` | pass 4: placement at the knots and the corner pre-routes (relief 8) | 2 nets in conflict after 80 rounds (AFE_IN1P, AFE_IN1N). Finished: DRC 0 errors, 1 open: AFE_IN1N, 0.51 mm at U2 pins 3/4. The two inputs must cross once, which no routing order avoids |
 | same (t-0019 run 3) | pass 5: the IN1P/IN1N crossing locked, R13 moved (relief 9) | 2 nets in conflict after 80 rounds (AFE_IN1P, GND_B): U3.C2's GND boxed in. Not finished |
 | same (t-0019 run 4), then `v4_finish.sh` | pass 5b: a GND via for U3.C2's corner (relief 9) | 0 conflicts at round 16. Finished: DRC 0 errors, 2 open, both GND islands 0.40 mm from the main GND (P5's run north of U3; Q4.2's F pocket) |
-| same (t-0019 run 5), then `v4_finish.sh` | pass 6: two locked GND links (relief 10) | 0 conflicts at round 16. Finished: DRC 0 errors, 0 open. This is the committed board |
+| same (t-0019 run 5), then `v4_finish.sh` | pass 6: two locked GND links (relief 10) | 0 conflicts at round 16. Finished: DRC 0 errors, 0 open. Previous board |
+| t-0036 first trial (router only) | C3 F, C18 F, D1 unchanged | 3 conflicts at round 79 (AFE_IN1N, AFE_IN1P, GND_B) near (15.2,20.7); not finished |
+| t-0036 second trial, `v4_finish.sh` | C18 B, R17 moved west to u 13.70, C3 F and C14 larger; D1 unchanged | 0 conflicts at round 79, GND_C reported failed; finisher: DRC 0 errors, 0 unconnected; intermediate board |
+| t-0036 final trial, `v4_finish.sh` | C18 increased to 10 µF and C19 10 µF added at F (14.10,34.20); D1 unchanged | 0 conflicts at round 79, GND_C reported failed; finisher: DRC 0 errors, 0 unconnected, routed release passes. Current board |
 
 Freerouting stalled at this density: 0.10/0.10 rules, locked Contact copper, and B mostly keep-out (t-0012). The negotiated router lets nets share cells early and raises the price of shared cells each round until the nets separate; when nets still fight at round 80 the fight points at the placement. GND is the hard net: the pours reach only what the signal routing leaves open, so GND has to be in the negotiation from the start, but as one net it is too big to negotiate (it touches every part). What closed it: three regional GND nets, with locked copper at every knot that kept coming back (U2's GND core, the +3V0 hub, the charger corner, the IN1P/IN1N crossing). With those locked, the router converges in 16 rounds and the finisher joins the three GND regions through the pours.
 
@@ -583,7 +599,7 @@ Freerouting stalled at this density: 0.10/0.10 rules, locked Contact copper, and
 3. **Q2_G cluster.** R16 and R17 moved beside Q2's gate.
 4. **C14 turned so its VBAT pad faces east.** With the pad facing west, VBAT ran R14 → Q1 → C14 → R20 on B. That walls off AFE_VIN's path from U4 to C5 and Q1.3, so neither net could close without crossing the other.
 5. **West stack 0.10 west, GND pads turned east, VCAP1 pre-routed (t-0014).** The west stack (R15, Q3, R14, Q1, C5) sits at u 9.85 (815ca29: 9.95) and R24 at 9.30 (9.40), as far west as R14's and Q1's courtyards clear LAND_P1 (`check_keepouts` in `build_v4.py`). C8, C14 and C11 are turned so their GND pads face east, under U2's exposed pad; the B corridor between the two stacks beside Q1 grows from 0.42 to 0.52 mm and carries no GND. Q3 and R15 are turned so GND and AFE_EN_HW face west, away from that corridor, and AFE_GATE east. VCAP1 (C10 to U2.11) is a locked F pre-route west of U2's west row, because every router put +3V0's hop from B across that line. Relief 4 is reversed: C14's VBAT pad faces west again, one hop from Q1.2; with C14's GND pad east it no longer walls off AFE_VIN.
-6. **Pass 2 (t-0016).** R20, R21, R18 and R19 went one row east to u 12.40 with their U1-side pads west, so U1's east pads get a second via column at u 11.3, and s 25.05–26.5 stays free for AFE_DRDY's hop to R27 on B. The interlock (Q2, R16, R17) moved north beside the charger, and Q3 and R15 turned so Q2.3 faces R15.2 across the corridor's north end: AFE_EN_HW runs R15.2/Q3.1 → Q2.3, not to U1 (t-0016's finding), and is now one short hop that no longer crosses CHG_MON. Q1 and R14 turned (AFE_VIN east toward U4), C8 turned, C14 to the east pocket beside R20.1, C11 to F beside U2's east row, C3 closed up to U3.A2.
+6. **Pass 2 (t-0016).** R20, R21, R18 and R19 went one row east to u 12.40 with their U1-side pads west, so U1's east pads get a second via column at u 11.3, and s 25.05–26.5 stays free for AFE_DRDY's hop to R27 on B. The interlock (Q2, R16, R17) moved north beside the charger, and Q3 and R15 turned so Q2.3 faces R15.2 across the corridor's north end: AFE_EN_HW runs R15.2/Q3.1 → Q2.3, not to U1 (t-0016's finding), and is now one short hop that no longer crosses CHG_MON. Q1 and R14 turned (AFE_VIN east toward U4), C8 turned, C14 to the east pocket beside R20.1, C11 to F beside U2's east row, C3 closed up to U3.A2 (t-0019 only; t-0036 puts it on F).
 7. **Pass 3 (t-0019): refcheck parts and U2's GND core.** C17, R34, R35 and D1's SOD882 land (§2.1). U2's GND pads 10, 13 and 24 are tied to the exposed pad, and one exposed-pad via reaches U4.5, U4.2 and C8.2. VCAP2 runs to C11, GPIO1 and GPIO2 hop to R34 and R35. `v4_gnd_split.py` now joins locked GND copper to the region of the pad it touches.
 8. **Pass 4 (t-0019): placement at the knots and locked corner routes.** R13 and R4 turned, R16 0.35 south, C5 turned and 0.15 south, R24 to (11.45, 24.70), D1 to (14.30, 28.60) (§2.1 item 1). Locked in `u2_core_pre_routes` (`build_v4.py`):
    - U2's GND core: the exposed-pad via, Q2.S and Q3.S vias into the pad, an exit through pin 24 to C15.2 and C11.2 on F, and the east pocket's GND down the B edge lane.
@@ -593,6 +609,7 @@ Freerouting stalled at this density: 0.10/0.10 rules, locked Contact copper, and
    t-0014's second proposal, AFE_EN_HW across the P1 landing to U1, wasn't needed: after relief 6 AFE_EN_HW is a short B hop with no copper in LAND_P1's 7 × 7 zone, so Q97(c) is untouched.
 9. **Passes 5 and 5b (t-0019): the IN1P/IN1N crossing.** The two inputs must cross once: at the J3 neck IN1P lies north of IN1N, at the strips R1 (IN1P) lies west of R2 (IN1N). Locked in `in1_pre_routes`: IN1P crosses over R2 on F, and IN1N leaves R2 by a via just west of it. IN1P's trunk (along the top edge, toward the neck) and its branch (back east to pin 4) wrap round that via. VBUS, the trunk, IN1N and the branch pass the SIG2 root 0.105 apart and 0.21 from the SIG2 via (Contact class 0.20). R13 moved 0.65 east so IN1N and the branch drop between C17 and R12 to pins 3 and 4. Pass 5b: past the SIG2 root, VBUS and the trunk rise to s 16.45 and 16.66, and a locked GND via at (11.67, 17.15) on the R11.2–C2.2 link reaches R12.2 and U3.C2's via on F, since ISET and VBAT box U3.C2 in on B.
 10. **Pass 6 (t-0019): two GND links the finisher couldn't find.** P5's charge-return run ends on B north of U3, where ISET and VBUS box it in and the IN1P/VBUS pair holds the F edge: a locked B track takes it along the top edge, north of R11.1, to R11.2 (§5.4). Q4.2 (the charge-LED switch source) sat in an F pocket between LED_EN and VBUS: a locked GND via at (13.50, 28.58) beside D1.2 joins it to B.
+11. **t-0036 ESD caps:** C3 grew from 0201 1 µF to 0402 10 µF and moved to F (14.40,17.20), with its VBUS pad 0.84 mm from U3.A2. C14 grew from 0402 4.7 µF to 0402 10 µF at its previous site. C18 0402 10 µF TS/GND sits on B (15.07,20.70), 2.55 mm from U3.B1; R17 moved west 0.75 to leave its courtyard and GND return free. C19 0402 10 µF OUT bulk sits on F (14.10,34.20) for temperature margin. The F-side C18 trial conflicted with the IN1P/IN1N crossing; D1 stayed at the far VBUS end. The router did not finish GND_C, but `v4_finish.sh` closed it and the secondary LED_EN open with DRC 0 (§9.1).
 
 ### 9.3 Thermal connections (the starved-thermal decision)
 
@@ -600,10 +617,12 @@ DRC's starved-thermal check stays at KiCad's default: a GND pad with a thermal r
 
 - **Exposed pads and mounting pads connect solid** (`elicio-v4.kicad_dru`, rule "GND exposed and mounting pads solid"): U2 pad 33, U4 pad 5, U5 pad 5 and J2's two MP pads. They are reflowed, not hand-soldered, sit under their part and want the copper. A relief has no job there.
 - **Reliefs stay on every 0201 and 0402 pad** so nothing tombstones.
-- **Second connections are copper:** where the pour reaches a pad from one side only (its other sides are 0.10 routing), a 0.10 GND track runs from inside the pad through the 0.15 thermal gap into the pour, placed by `v4_thermal_stubs.py` and checked by DRC like any track. 3 such tracks on the committed board:
+- **Second connections are copper:** where the pour reaches a pad from one side only (its other sides are 0.10 routing), a 0.10 GND track runs from inside the pad through the 0.15 thermal gap into the pour, placed by `v4_thermal_stubs.py` and checked by DRC like any track. 5 such tracks on the t-0036 board:
   - U1.1 F.Cu: stub (9.550, 25.700) -> (9.350, 25.700) 0.200 mm
   - U1.14 F.Cu: stub (6.550, 28.600) -> (6.550, 28.825) 0.225 mm
   - U1.18 F.Cu: stub (6.550, 29.500) -> (6.550, 29.275) 0.225 mm
+  - R21.2 B.Cu: stub (12.950, 27.600) -> (13.150, 27.575) 0.202 mm
+  - C19.2 F.Cu: stub (14.400, 33.900) -> (14.600, 33.950) 0.206 mm
 - U2's pads 10, 13 and 24 had stubs in t-0014's state. They are now tied to the exposed pad by locked copper (§9.2 relief 7), and DRC finds no starved thermal on them.
 
 No Contact, creepage or clearance rule changed; the three Q84 rules are as in v2.
@@ -625,11 +644,11 @@ t-0014 left 10 connections open (5 GND, 2 AFE_VIN, 1 AFE_DRDY, 1 CHG_MON, 1 VBUS
 | GND: C11.2 | C11 moved to F; pin 24's exit reaches C11.2 and C15.2 (reliefs 6, 8) |
 | GND: P5's run, 0.37 from U3.C2 across ISET | The top-edge link from P5's run to R11.2 (relief 10) and the GND via for U3.C2's corner (relief 9) |
 
-The opens that came up on the way were AFE_IN1N's forced crossing (run 2) and two GND islands (run 4). Reliefs 9 and 10 closed them.
+The opens that came up on the way were AFE_IN1N's forced crossing (run 2) and two GND islands (run 4). Reliefs 9 and 10 closed them. On t-0036 the finisher additionally closed an LED_EN open at (12.40,29.77) to R28.1, then joined the GND island it displaced at C6.2; no opens remain.
 
 ### 9.5 Rebuild and re-route
 
-The committed board came from this sequence (scratch copies in `$W`; DRC needs `<stem>.kicad_pro`, `.kicad_dru` and `.kicad_sch` beside each copy; one router or KiCad batch at a time):
+The current board came from this sequence (scratch copies in `$W`; DRC needs `<stem>.kicad_pro`, `.kicad_dru` and `.kicad_sch` beside each copy; one router or KiCad batch at a time):
 
 ```bash
 cd hardware/board
@@ -638,16 +657,16 @@ PY=../../.venv/bin/python
 python3 gen_v4_sch.py                                   # schematic and project (netclasses); ERC must be clean
 $KP build_v4.py --out $W/new.kicad_pcb                  # placed board, locked pre-routes, pour outlines (no fill); "keep-out problems 0"
 $PY v4_gnd_split.py $W/new.kicad_pcb $W/news.kicad_pcb \
-    GND_A:C6.2,C7.2,C9.2,C10.2,C17.2,R23.2,U1.1,U1.7 \
-    GND_B:C2.2,C4.2,J2.2,R11.2,R12.2,R13.2,U3.C2,P5.1 \
-    GND_C:U2.10,U2.13,U2.24,U2.33,U4.2,U4.5,C8.2,C5.2,Q2.2,Q3.2,C15.2,C11.2,C3.2,R17.2,R34.2,R35.2,R24.2,R19.2,R21.2,R28.2,D1.2,Q4.2
+    GND_A:C6.2,C7.2,C9.2,C10.2,C17.2,C19.2,R23.2,U1.1,U1.7 \
+    GND_B:C2.2,C3.2,C18.2,C4.2,J2.2,R11.2,R12.2,R13.2,U3.C2,P5.1 \
+    GND_C:U2.10,U2.13,U2.24,U2.33,U4.2,U4.5,C8.2,C5.2,Q2.2,Q3.2,C15.2,C11.2,R17.2,R34.2,R35.2,R24.2,R19.2,R21.2,R28.2,D1.2,Q4.2
 $PY -u v4_route_pf.py --pcb $W/news.kicad_pcb --out $W/r.kicad_pcb --fresh --skip GND --rounds 80 --debug $W/r_conf.json
 zsh v4_finish.sh $W/r.kicad_pcb f                       # finisher (below) → $W/f_final.kicad_pcb, saved with filled zones
 cp $W/f_final.kicad_pcb elicio-v4.kicad_pcb
 cd ../.. && .venv/bin/python -m unittest discover -s tests -q && .venv/bin/python scripts/board/release.py --board elicio-v4 --routed
 ```
 
-The three GND regions are the west (GND_A), the charger corner with P5 (GND_B), and U2's core with every pad the locked GND copper touches (GND_C). `v4_route_pf.py` exits 1 while nets are still in conflict; run 5 converged at round 16. `v4_finish.sh` drops the conflicting copper and reconnects every net with the GND regions still live, restores the GND name, refills, runs the GND finisher with the pours as copper and the stitcher twice, adds thermal stubs, runs the soft-fill finisher on whatever is still open, and ends with a DRC with `--schematic-parity`. On run 5 the finisher added 66 items, joined the one GND piece left after the rename (the GND_A region round C6.2) with 12 more, and placed the 3 thermal stubs of §9.3.
+The three GND regions are the west plus C19 (GND_A), the charger corner with P5 plus C3/C18 (GND_B), and U2's core with every pad the locked GND copper touches (GND_C). On the t-0036 pass the router at round 79 had zero conflicts but reported `failed ['GND_C']`; the finisher joined its missing pieces. `v4_finish.sh` drops the conflicting copper and reconnects every net with the GND regions still live, restores the GND name, refills, runs the GND finisher with the pours as copper and the stitcher twice, adds thermal stubs, runs the soft-fill finisher on whatever is still open, and ends with a DRC with `--schematic-parity`. On t-0019 run 5 the finisher added 66 items and joined GND_A near C6.2. On t-0036 the finisher needed a soft-fill LED_EN reroute and then rejoined GND near C6.2; its final DRC has 0 errors and 0 opens and places the 5 thermal stubs of §9.3.
 
 `build_v4.py` overwrites the PCB, routing included, so route in scratch copies. `v4_pieces.py PCB NET` lists a net's pieces with their gaps; `v4_route_pf.py --debug` writes the conflict cells, which show where a knot is. Freerouting instead: `scripts/board/route_v4.py --work DIR --route`, one run at a time, `-Xmx4g`.
 
@@ -655,13 +674,13 @@ The three GND regions are the west (GND_A), the charger corner with P5 (GND_B), 
 
 ### 10.1 Flat PCB coordinates (u, s)
 
-From `python3 hardware/board/v4_tables.py --pads` on the committed board. Part centres, then pad by pad for the connectors, rings, J4 and SW1. The Gerber carries these (PCB x, y = u, s).
+From `python3 hardware/board/v4_tables.py --pads` on the t-0036 routed board. Part centres, then pad by pad for the connectors, rings, J4 and SW1. The Gerber carries these (PCB x, y = u, s).
 
 | ref | side | x (u) | y (s) | rot | footprint |
 |---|---|---:|---:|---:|---|
 | C1 | bottom | 13.30 | 23.65 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
 | C2 | bottom | 11.95 | 17.55 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
-| C3 | bottom | 14.55 | 19.60 | -90 | `Capacitor_SMD:C_0201_0603Metric` |
+| C3 | top | 14.40 | 17.20 | -90 | `Capacitor_SMD:C_0402_1005Metric` |
 | C4 | bottom | 7.25 | 17.45 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
 | C5 | bottom | 9.85 | 23.90 | 0 | `Capacitor_SMD:C_0201_0603Metric` |
 | C6 | top | 7.75 | 22.66 | 90 | `Capacitor_SMD:C_0402_1005Metric` |
@@ -676,6 +695,8 @@ From `python3 hardware/board/v4_tables.py --pads` on the committed board. Part c
 | C15 | top | 13.60 | 25.15 | 0 | `Capacitor_SMD:C_0201_0603Metric` |
 | C16 | bottom | 4.70 | 17.15 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
 | C17 | top | 11.10 | 18.60 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
+| C18 | bottom | 15.07 | 20.70 | -90 | `Capacitor_SMD:C_0402_1005Metric` |
+| C19 | top | 14.10 | 34.20 | 90 | `Capacitor_SMD:C_0402_1005Metric` |
 | D1 | bottom | 14.30 | 28.60 | 180 | `Diode_SMD:D_SOD-882` |
 | D2 | top | 14.65 | 26.10 | 0 | `LED_SMD:LED_0402_1005Metric` |
 | J2 | top | 5.45 | 18.90 | -90 | `Connector_Molex:Molex_Pico-EZmate_Slim_202656-0021_1x02-1MP_P1.20mm_Vertical` |
@@ -704,7 +725,7 @@ From `python3 hardware/board/v4_tables.py --pads` on the committed board. Part c
 | R14 | bottom | 9.85 | 21.85 | 0 | `Resistor_SMD:R_0201_0603Metric` |
 | R15 | bottom | 10.80 | 18.60 | -90 | `Resistor_SMD:R_0201_0603Metric` |
 | R16 | bottom | 13.75 | 19.70 | -90 | `Resistor_SMD:R_0201_0603Metric` |
-| R17 | bottom | 14.45 | 20.85 | 0 | `Resistor_SMD:R_0201_0603Metric` |
+| R17 | bottom | 13.70 | 20.85 | 0 | `Resistor_SMD:R_0201_0603Metric` |
 | R18 | bottom | 12.40 | 28.50 | 180 | `Resistor_SMD:R_0201_0603Metric` |
 | R19 | bottom | 12.40 | 29.30 | 0 | `Resistor_SMD:R_0201_0603Metric` |
 | R20 | bottom | 12.40 | 26.90 | 180 | `Resistor_SMD:R_0201_0603Metric` |
@@ -752,7 +773,7 @@ From `python3 hardware/board/v4_tables.py --pads` on the committed board. Part c
 
 ### 10.2 Folded shell sites (u, s, y)
 
-From `python3 hardware/board/v4_tables.py --folded` on the committed board. Shell u, s = flat u, s for everything that stays flat (the island and its parts); y comes from the thickness chain (§1.2) and the fold math (§4.4). Courtyards are line-centre boxes from the footprint text (the drawn line is 0.05 wide). The v4 target body is the r9 shell (branch `hp/elicio/t-0001-finish-the-earpiece-shell-v2f-wp14f-from`, 252afbb, not merged) with §7's changes on paper: walls u 1.5/16.5, floor 1.5, LID_Y 7.1, rib s 14.9–15.7 (y ≤ 4.5), bay s 15.7–38.2, EMG hex collars AF 8.4 (top y 3.5) at the P1/P2 sites, standoff landings R 3.2, lid posts Ø2.0, r9's SIG fold pockets and REF end-wall slot. Margins are in mm; a row passes when every margin is ≥ 0. F parts stand on the island top (y 5.12) under the lid; B parts hang from the island underside (y 5.01) over the collar top (3.5) where a collar box is below them, else over the floor (1.5). Heights are maxima from the sources in the table; the ones marked UNVERIFIED are package maxima (§11.1). The P2 lid post on U1 is by design (§5.3).
+From `python3 hardware/board/v4_tables.py --folded` on the t-0036 routed board. Shell u, s = flat u, s for everything that stays flat (the island and its parts); y comes from the thickness chain (§1.2) and the fold math (§4.4). Courtyards are line-centre boxes from the footprint text (the drawn line is 0.05 wide). The v4 target body is the r9 shell (branch `hp/elicio/t-0001-finish-the-earpiece-shell-v2f-wp14f-from`, 252afbb, not merged) with §7's changes on paper: walls u 1.5/16.5, floor 1.5, LID_Y 7.1, rib s 14.9–15.7 (y ≤ 4.5), bay s 15.7–38.2, EMG hex collars AF 8.4 (top y 3.5) at the P1/P2 sites, standoff landings R 3.2, lid posts Ø2.0, r9's SIG fold pockets and REF end-wall slot. Margins are in mm; a row passes when every margin is ≥ 0. F parts stand on the island top (y 5.12) under the lid; B parts hang from the island underside (y 5.01) over the collar top (3.5) where a collar box is below them, else over the floor (1.5). Heights are maxima from the sources in the table; the ones marked UNVERIFIED are package maxima (§11.1). The P2 lid post on U1 is by design (§5.3).
 
 #### Courtyards on the island (flat u, s = shell u, s; y from the fold math)
 
@@ -760,7 +781,7 @@ From `python3 hardware/board/v4_tables.py --folded` on the committed board. Shel
 |---|---|---:|---:|---|---|---:|---:|---:|---:|---:|---|
 | C1 | bottom | 12.95-13.65 | 22.95-24.35 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.85 | 7.25 | 3.16 (floor) | - | 3.91 | ok |
 | C2 | bottom | 11.25-12.65 | 17.20-17.90 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.85 | 1.50 | 3.16 (floor) | - | 3.54 | ok |
-| C3 | bottom | 14.20-14.90 | 18.90-20.30 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.60 | 3.20 | 3.16 (floor) | - | 5.27 | ok |
+| C3 | top | 13.94-14.86 | 16.29-18.11 | 0.60 (0402 C max, UNVERIFIED) | 5.12-5.72 | 1.64 | 0.59 | 1.38 (lid) | 8.41 | - | ok |
 | C4 | bottom | 6.55-7.95 | 17.10-17.80 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.05 | 1.40 | 1.16 (collar) | - | 1.05 | ok |
 | C5 | bottom | 9.15-10.55 | 23.55-24.25 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.95 | 7.85 | 1.16 (collar) | - | 0.40 | ok |
 | C6 | top | 7.29-8.21 | 21.75-23.57 | 0.60 (0402 C max, UNVERIFIED) | 5.12-5.72 | 5.79 | 6.05 | 1.38 (lid) | 0.39 | - | ok |
@@ -775,6 +796,8 @@ From `python3 hardware/board/v4_tables.py --folded` on the committed board. Shel
 | C15 | top | 12.90-14.30 | 24.80-25.50 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 2.20 | 9.10 | 1.63 (lid) | 6.23 | - | ok |
 | C16 | bottom | 4.35-5.05 | 16.45-17.85 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.85 | 0.75 | 1.16 (collar) | - | 1.04 | ok |
 | C17 | top | 10.75-11.45 | 17.90-19.30 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 5.05 | 2.20 | 1.63 (lid) | 5.10 | - | ok |
+| C18 | bottom | 14.61-15.53 | 19.79-21.61 | 0.60 (0402 C max, UNVERIFIED) | 4.41-5.01 | 0.97 | 4.09 | 2.91 (floor) | - | 5.52 | ok |
+| C19 | top | 13.64-14.56 | 33.29-35.11 | 0.60 (0402 C max, UNVERIFIED) | 5.12-5.72 | 1.94 | 3.09 | 1.38 (lid) | 3.40 | - | ok |
 | D1 | bottom | 13.50-15.10 | 28.00-29.20 | 0.50 (Nexperia SOD882 body 0.5) | 4.51-5.01 | 1.40 | 9.00 | 1.01 (collar) | - | 1.78 | ok |
 | D2 | top | 13.72-15.58 | 25.63-26.57 | 0.55 (0402 LED, UNVERIFIED) | 5.12-5.67 | 0.92 | 9.93 | 1.43 (lid) | 6.02 | - | ok |
 | J2 | top | 2.34-8.38 | 16.15-21.65 | 1.20 (§1.2 mated) | 5.12-6.32 | 0.84 | 0.45 | 0.78 (lid) | 0.35 | - | ok |
@@ -798,7 +821,7 @@ From `python3 hardware/board/v4_tables.py --folded` on the committed board. Shel
 | R14 | bottom | 9.15-10.55 | 21.50-22.20 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.95 | 5.80 | 1.16 (collar) | - | 0.05 | ok |
 | R15 | bottom | 10.45-11.15 | 17.90-19.30 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.35 | 2.20 | 3.16 (floor) | - | 2.09 | ok |
 | R16 | bottom | 13.40-14.10 | 19.00-20.40 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.40 | 3.30 | 3.16 (floor) | - | 4.47 | ok |
-| R17 | bottom | 13.75-15.15 | 20.50-21.20 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.35 | 4.80 | 3.16 (floor) | - | 4.69 | ok |
+| R17 | bottom | 13.00-14.40 | 20.50-21.20 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.10 | 4.80 | 3.16 (floor) | - | 3.94 | ok |
 | R18 | bottom | 11.70-13.10 | 28.15-28.85 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.40 | 9.35 | 1.16 (collar) | - | 1.24 | ok |
 | R19 | bottom | 11.70-13.10 | 28.95-29.65 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.40 | 8.55 | 1.16 (collar) | - | 0.49 | ok |
 | R20 | bottom | 11.70-13.10 | 26.55-27.25 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.40 | 10.85 | 3.16 (floor) | - | 2.79 | ok |
@@ -852,8 +875,8 @@ Shell changes this table needs, with numbers (all in §7): the rib cut back 0.50
 - **Hours of wear:** about 7 mA, inferred from EARPIECE_DESIGN.md "Seven hours of streaming" on 50 mAh. Not measured.
 - **Prices:** MDBT50Q; Molex 202656-0021 header and 202655 plug; HRO 1TS015A; M2.5 nuts (W16).
 - **Consignment fee** for the ISP1807.
-- **LCSC codes missing:** ISP1807, TPS7A0230 and Molex 202656 (none in the JLC library); 47 kΩ and 27 kΩ 0201; 4.7 µF 0402.
-- **D1 at the trunk's far end:** whether U3's own ESD rating covers a surge from P4 that reaches U3's VBUS ball before D1 (§2.1 item 1).
+- **LCSC codes missing:** ISP1807, TPS7A0230 and Molex 202656 (none in the JLC library); 47 kΩ and 27 kΩ 0201. The exact Murata C3/C14/C18/C19 ESD capacitor MPN has no verified JLC supply code; those lines are marked CONSIGNED.
+- **P4 ESD not demonstrated:** D1 is ≥ 11.06 mm straight-line from U3.A2 and behind it on the VBUS trunk; U3's conditional 8 kV contact / 15 kV air IN rating has the three effective capacitors numerically at 25 °C, but the nearest OUT bulk C14 is 9.27 mm away (C19 is 16.73 mm), no P4 contact-level IEC test was done, and bias/temperature/aging/assembly variation is not measured (§2.1). Do not equate the routed release with ESD proof.
 - **Library tier** of several v2 lines, and of the new 0201 lines beyond those read. The extended setup estimate of +$18–36.
 - **Assembly:** 0201 on FPC as a combination.
 - **Stiffeners:** the fee amount for ≥ 4 pieces; how JLC drills stiffeners (ring holes, J4 guide holes).
@@ -886,5 +909,6 @@ Shell changes this table needs, with numbers (all in §7): the rib cut back 0.50
 | Molex 202656-0021 sales drawing, https://www.molex.com/content/dam/molex/molex-dot-com/products/automated/en-us/salesdrawingpdf/202/202656/2026560021_sd.pdf | 2026-09-23 |
 | Hirose DF58 catalogue, https://www.hirose.com/en/product/series/DF58 | 2026-09-23 |
 | DigiKey ANNA-B402-00B, https://www.digikey.com/en/products/detail/u-blox/ANNA-B402-00B/13684241 | 2026-09-23 |
-| TI TLV713P (SBVS195F), TPS7A02 (SBVS277C), ADS1292 (SBAS502C), BQ25100 (SLUSBV8C) | 2026-09-23 |
+| TI TLV713P (SBVS195F), TPS7A02 (SBVS277C), ADS1292 (SBAS502C), BQ25100 (SLUSBV8C §7.2) | 2026-09-23; BQ25100 ESD conditions revisited 2026-09-25 |
+| Murata SimSurfing C-DC bias graph GRM155R61A106ME18, 25 °C, AC 0.1 Vrms (reproducible links in §2.1); maker CSV `https://ds.murata.com/simsurfing_data/data/mlcc.csv` (X5R, 10 V, 0402, ±20%) | 2026-09-25 |
 | Repo: `docs/fab/board-v2.md`, `plan-v2.md`, `open-questions.md`, `packing-v2.md`, `shell-v2.md`, `docs/EARPIECE_DESIGN.md`, `hardware/board/v4_parts.py`, `build_v4.py`, `make_v4_lib.py` | 2026-09-23 |
