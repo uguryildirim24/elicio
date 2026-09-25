@@ -1,5 +1,7 @@
 # Order the board (v2)
 
+**Not a v4 order sheet.** The current 18 mm v4 design uses different parts and is not routed. Do not use this sheet or its $50–90 shell reserve to order v4; see `orders-v2.md` for the v4 cost scenarios and open G8 record.
+
 Phone sheet. Order 1 is the assembled flex board. It is not the shell.
 No agent places this order. You pay only after every box in the
 checkout gate is ticked.
