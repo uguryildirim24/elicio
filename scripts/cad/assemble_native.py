@@ -249,7 +249,7 @@ def main():
                           **({"old_shell_commit":old_sha} if view=="old_new" else {})} for view in VIEWS},
         "simplifications":["Board and populated components are folded §10.2 courtyard envelopes, not a bent STEP or exact component CAD; cell is a dimensioned envelope without leads.",
                            "M2.5 titanium heads and wall charging heads are smooth visual proxies without threads; quarter is a plain 24.26 mm disc.",
-                           "The v4-snap shell predates the v4 base interior correction; the lid-off interior shows the older v4-snap geometry. No lid screw exists on v4-snap."]}
+                           "This v4-snap STL includes the local C6, U3 and U5 chip reliefs; its interior still differs from the v4 base interior correction. The snap latch is concealed; there is no lid screw. Nominal reliefs are not print-tolerance proof."]}
     (out/"captions.json").write_text(json.dumps(metadata,indent=2)+"\n")
     for f in out.iterdir():
         if f.suffix in (".png",".glb"):
