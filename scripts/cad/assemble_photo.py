@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assemble the committed v2 preview in Blender; see scripts/cad/README.md.
+"""Assemble the committed v4-snap earpiece in Blender; see scripts/cad/README.md.
 
 Run with Python 3.11+; this file re-executes itself under Blender's Python.
 No downloads or hand-positioned device parts. Units throughout are millimetres.
@@ -18,9 +18,10 @@ import sys
 import zlib
 
 ROOT = Path(__file__).resolve().parents[2]
-SHELL = ROOT / "docs/fab/cad/v2"
-BOARD = ROOT / "hardware/board/elicio-v2.kicad_pcb"
-PACKING = ROOT / "docs/fab/packing-v2.md"
+SHELL = ROOT / "docs/fab/cad/v4-snap"
+OLD_SHELL = ROOT / "docs/fab/cad/v2"
+BOARD = ROOT / "hardware/board/elicio-v4.kicad_pcb"
+DESIGN = ROOT / "docs/fab/board-v4-design.md"
 NUMBER = r"[-+]?\d+(?:\.\d+)?"
 
 
@@ -180,12 +181,26 @@ def render(out: Path, samples: int, only: str | None):
     out.mkdir(parents=True, exist_ok=True)
     manifest = json.loads((SHELL / "manifest.json").read_text())
     params = manifest["parameters"]
-    pack = PACKING.read_text()
-    sites = parse_packing(pack)
-    pins = pin_table(pack)
+    design = DESIGN.read_text()
+    # §10.2 is the folded assembly authority. The footprint table supplies
+    # physical courtyards and height intervals for the populated island.
+    folded = design.split("### 10.2 Folded shell sites", 1)[1]
+    sites = {}
+    for line in folded.splitlines():
+        m = re.match(r"\| (P[1-5]) ring .*?\| .*?\| \((" + NUMBER + r"), (" + NUMBER +
+                     r")(?:, (" + NUMBER + r"))?\)", line)
+        if m:
+            # Floor-ring entries have a y range after the coordinate pair;
+            # wall charge entries specify their axis as the third coordinate.
+            y = float(m[4]) if m[4] else float(re.search(r"floor (" + NUMBER + r")", line)[1])
+            sites[m[1]] = (float(m[2]), float(m[3]), y)
+    if len(sites) != 5:
+        raise ValueError(f"expected five §10.2 folded sites, got {sites}")
     footprints = parse_footprints(BOARD.read_text())
     shell_sha = source_commit(SHELL / "body_full_p15.step")
     board_sha = source_commit(BOARD)
+    old_sha = source_commit(OLD_SHELL / "body_full_p15.step")
+    interior_fix_sha = source_commit(ROOT / "docs/fab/cad/v4/body_full_p15.step")
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
 
@@ -230,12 +245,17 @@ def render(out: Path, samples: int, only: str | None):
             obj.modifiers.new("weighted normals", "WEIGHTED_NORMAL")
         return obj
 
-    def cyl(name, u, s, y, radius, height, mat, vertices=32):
+    def cyl(name, u, s, y, radius, height, mat, vertices=32, axis="y"):
         bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=height,
                                             location=body_point(u, s, y, params))
         obj = bpy.context.object
         obj.name = name
-        obj.rotation_euler[0] = math.pi / 2  # axis along shell y, not shell s
+        if axis == "y":
+            obj.rotation_euler[0] = math.pi / 2
+        elif axis == "u":
+            # A radial wall head points outward along the shell u coordinate.
+            a = math.asin(params["TOTAL_CHORD"] / (2*params["PATH_RADIUS"])) - s/params["PATH_RADIUS"]
+            obj.rotation_euler = Vector((math.cos(a), 0, math.sin(a))).to_track_quat("Z", "Y").to_euler()
         return assign(obj, mat)
 
     def curved_rect(name, u0, u1, s0, s1, y0, y1, mat):
@@ -282,110 +302,71 @@ def render(out: Path, samples: int, only: str | None):
     lid = objects[-1]
 
     floor = params["WALL_MEDIAL"]
-    top = manifest["stage_b"]["V2_BOARD_envelope"]["numbers"]["top"]
-    underside = manifest["stage_b"]["V2_BOARD_envelope"]["numbers"]["underside"]
+    top, underside = 5.12, 4.81  # §10.2 island, including 0.20 FR4 stiffener
     island_u = params["BOARD_ZONE_U"]
     island_s = params["BOARD_ZONE_S"]
     curved_rect("folded PI flex / populated island", *island_u, *island_s,
                 underside, top, flex)
-    # Two Eco1.User stiffener rectangles are drawn by the committed PCB.
-    pcb_text = BOARD.read_text()
-    for idx, rect in enumerate(balanced(pcb_text, "gr_rect"), 1):
-        if '(layer "Eco1.User")' not in rect:
+    # The released flat STEP cannot be used as an assembled board: its tabs
+    # occupy the flat manufacturing coordinates. Use §10.2 folded envelopes.
+    curved_rect("FR4 stiffener on flex island", *island_u, *island_s,
+                underside, underside + .20, pcb)
+
+    section = folded.split("#### Courtyards on the island", 1)[1].split("#### ", 1)[0]
+    count = 0
+    for line in section.splitlines():
+        cols = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cols) < 6 or not re.fullmatch(r"[A-Z]+\d+", cols[0]):
             continue
-        a = re.search(r"\(start\s+("+NUMBER+r")\s+("+NUMBER+r")\)", rect)
-        b = re.search(r"\(end\s+("+NUMBER+r")\s+("+NUMBER+r")\)", rect)
-        if a and b:
-            u0, s0 = float(a[1]), float(a[2]); u1, s1 = float(b[1]), float(b[2])
-            curved_rect(f"FR4 stiffener {idx} / KiCad Eco1.User", u0, u1, s0, s1,
-                        underside, underside + .4, pcb)
-    # The leftover / pocket island is the board's second stiffener outline;
-    # there is no committed 3D folded STEP. It stays at the packing board datum.
-    for ref in ("U2", "SW1", "J2"):
-        if ref in pins and ref in footprints:
-            _, u, s, _, wu, ws = pins[ref]
-            site_rect("PI flex beneath " + ref, u, s, wu, ws,
-                      (underside+top)/2, top-underside, flex)
-
-    for ref, (side, u, s, rot, wu, ws) in pins.items():
-        if ref.startswith(("P", "H")) or ref not in footprints:
+        ref, side = cols[:2]
+        if ref == "J3" or ref not in footprints:  # J3 is cut off per §10.2
             continue
-        fp = footprints[ref]
-        u, s = fp["u"], fp["s"]  # KiCad is the position authority, not the pin table
-        if ref == "U1":
-            wu, ws, height = 10.5, 15.5, 2.3  # board-v2 §11 / packing §7
-        elif ref == "U2":
-            height = 1.0  # packing §5 ADS1292
-        elif ref == "SW1":
-            height = 1.6  # board-v2 §18
-        elif ref == "J3":
-            height = 2.5  # packing §5
-        elif ref == "J2":
-            height = 3.0  # simplified JST-SH envelope, not manufacturer STEP
-        else:
-            height = .55  # illustrative: absent per-part heights in pin table
-            wu, ws = max(.4, wu-.12), max(.4, ws-.12)
-        side = fp["side"]
-        cy = top + height/2 if side == "top" else underside - height/2
-        site_rect(ref + " | KiCad courtyard proxy", u, s, wu, ws, cy, height,
-                  silicon if ref not in ("J2", "J3") else metal)
+        try:
+            u0, u1 = map(float, cols[2].split("-"))
+            s0, s1 = map(float, cols[3].split("-"))
+            y0, y1 = map(float, cols[5].split("-"))
+        except ValueError:
+            continue
+        if y1 <= y0:  # J4 is pads only, no component body
+            continue
+        site_rect(ref + " | §10.2 courtyard envelope", (u0+u1)/2, (s0+s1)/2,
+                  u1-u0, s1-s0, (y0+y1)/2, y1-y0,
+                  silicon if ref != "J2" else metal)
+        count += 1
+    if count < 40:
+        raise ValueError(f"only {count} component courtyards found in §10.2")
 
-    # Source §5d: folded pad centres, ring seat and neck-end folded runs.
-    strip_w = float(re.search(r"Tab strip width ("+NUMBER+r") mm", (ROOT / "docs/fab/board-v2.md").read_text())[1])
-    for pad, (u, s, y) in sites.items():
-        if pad in ("P1", "P2"):
-            curved_rect(pad + " | folded PI strip", u-strip_w/2, u+strip_w/2,
-                        min(s, island_s[0]), max(s, island_s[0]), y, y+.11, flex)
-        elif pad == "P3":
-            curved_rect("P3 | REF end-wall flex", u-strip_w/2, u+strip_w/2,
-                        island_s[1], s, y, y+.11, flex)
-        cyl(pad + " | gold ring / folded site", u, s, y+.06, 2.5, .12, gold)
-        if pad in ("P1", "P2", "P3"):
-            # Shell v2 §3: FR4 .2 at rings is assumed by packing but NOT drawn
-            # in the board; show it as a distinct missing-fabrication proxy.
-            cyl(pad + " | assumed ring backing (undrawn)", u, s, y+.21, 3, .2, pcb)
-            cyl(pad + " | brass female 5 AF standoff", u, s, y+.31+1.5, 2.89, 3, brass, 6)
-            cyl(pad + " | Ti M2.5x4 shaft", u, s, 2, 1.25, 4, titanium)
-            cyl(pad + " | Ti button head rim", u, s, -.23, 2.35, .46, titanium)
-            bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=12,
-                location=body_point(u, s, -.65, params))
-            cap = bpy.context.object
-            cap.name = pad + " | titanium button crown"
-            cap.scale = (2.17, .70, 2.17)
-            assign(cap, titanium)
-            cyl(pad + " | hex socket", u, s, -1.34, .68, .035, ink, 6)
-    # CHARGE folded rectangle is not attached to its flat KiCad root in 3D:
-    # the committed Gerber root is outside the body (board-v2 §11).
-    p4, p5 = sites["P4"], sites["P5"]
-    curved_rect("CHARGE folded tab proxy / disconnected root", min(p4[0], p5[0])-strip_w/2,
-                max(p4[0], p5[0])+strip_w/2, min(p4[1], p5[1]), max(p4[1], p5[1]),
-                floor+.14, floor+.25, flex)
+    # Curved PI landing strips and REF pocket. Their bend curvature is a
+    # schematic proxy, but their end sites are exactly the §10.2 fold sites.
+    for pad in ("P1", "P2", "P3"):
+        u, s, y = sites[pad]
+        curved_rect(pad + " | folded PI landing", u-1.25, u+1.25,
+                    min(s, island_s[0] if pad != "P3" else island_s[1]),
+                    max(s, island_s[0] if pad != "P3" else island_s[1]),
+                    y, y+.11, flex)
+        cyl(pad + " | ENIG ring", u, s, y+.06, 2.5, .12, gold)
+        cyl(pad + " | titanium M2.5 shaft", u, s, 1.85, 1.25, 3.7, titanium)
+        cyl(pad + " | titanium button rim", u, s, -.23, 2.35, .46, titanium)
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=12,
+            location=body_point(u, s, -.65, params))
+        cap = bpy.context.object
+        cap.name = pad + " | titanium button crown"
+        cap.scale = (2.17, .70, 2.17)
+        assign(cap, titanium)
+        cyl(pad + " | hex recess proxy", u, s, -1.34, .68, .035, ink, 6)
+    # §10.2 charge flap lies on the posterior wall; contact axes are radial.
+    curved_rect("P4/P5 folded charge flap proxy", 16.19, 16.50,
+                1.75, 14.85, 1.695, 6.895, flex)
+    for pad in ("P4", "P5"):
+        u, s, y = sites[pad]
+        cyl(pad + " | titanium posterior charging head", 17.05, s, y,
+            1.35, 1.2, titanium, axis="u")
+        cyl(pad + " | wall ENIG ring", 16.56, s, y, 1.6, .1, gold, axis="u")
 
-    # Cell dimensions from packing §5 and §7: 501012 13 x 10.1 x 5.1;
-    # pocket u,s from manifest's measured V2_CHARGE_pads (not hand positions).
-    pocket = manifest["stage_b"]["V2_CHARGE_pads"]["numbers"]
-    cell_w, cell_l, cell_h = (13.0, 10.1, 5.1)  # packing §7 in s,u,y order
-    cu = (pocket["cell_u0"]+pocket["cell_u1"])/2
-    cs = (pocket["cell_s0"]+pocket["cell_s1"])/2
-    # pack is shorter than pocket: centre it; 0.5-mm foam not included in metal
-    site_rect("501012 lithium pouch / foil envelope", cu, cs, cell_l, cell_w,
-              floor+cell_h/2, cell_h, metal)
-
-    # Q89 in committed open-questions.md specifies the next x8 screw. The
-    # committed shell manifest still describes x4. Use each source explicitly;
-    # do not silently treat the x8 as a repair to the old shell's missing boss.
-    closure = manifest["stage_b"]["V2_CLOSURE"]["numbers"]
-    shell_closure_note = manifest["notes"]["body_full_p15"]["closure"]
-    documented_length = float(re.search(r"M2\.5[×x](\d+)", shell_closure_note)[1])
-    next_note = (ROOT / "docs/fab/open-questions.md").read_text()
-    q89_built = next_note.split("WP14f, first half", 1)[1]
-    requested_length = float(re.search(r"\bthe M2\.5×(\d+) from the medial well", q89_built)[1])
-    uc, sc = closure["screw_u"], closure["screw_s"]
-    seat = closure["screw_tip_y"] - documented_length
-    cyl(f"closure | Ti M2.5x{requested_length:g} Q89 / fit UNVERIFIED", uc, sc,
-        seat+requested_length/2, 1.25, requested_length, titanium)
-    cyl("closure | titanium ISO 7380 head", uc, sc, seat-.38, 2.35, .76, titanium)
-    cyl("closure | hex socket", uc, sc, seat-.77, .68, .03, ink, 6)
+    # §1.4 width chain and §4.1 cell bay: 501012 pouch 10.1 × 13 × 5.1.
+    site_rect("501012 lithium pouch / foil envelope", (1.8+11.9)/2,
+              (1.5+14.9)/2, 10.1, 13.0, floor+.5+5.1/2, 5.1, metal)
+    # The v4-snap lid uses a hidden soft latch; there is no lid screw.
 
     # glTF distances are metres, Blender's numeric scene was millimetres.
     # Export a temporary 0.001-scaled instance, then restore the original mm
@@ -410,7 +391,7 @@ def render(out: Path, samples: int, only: str | None):
     scene.cycles.use_denoising = True
     scene.render.threads_mode = "FIXED"
     scene.render.threads = 4
-    scene.render.resolution_x, scene.render.resolution_y = 1600, 2000
+    scene.render.resolution_x, scene.render.resolution_y = 1050, 1300
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
@@ -451,7 +432,7 @@ def render(out: Path, samples: int, only: str | None):
     # Backdrop is replaced per view to stay behind the object.
     labelmat = material("print caption", (.16, .18, .19), roughness=1)
     caption = bpy.data.curves.new("caption lettering", "FONT")
-    caption.body = f"PREVIEW · PREVIOUS SHELL  |  shell {shell_sha[:9]} · board {board_sha[:9]}"
+    caption.body = f"V4 SNAP · 18 MM | shell {shell_sha[:9]} · board {board_sha[:9]}"
     caption.size = .74
     caption.space_character = 1.15
     capobj = bpy.data.objects.new("render caption (not in GLB)", caption)
@@ -466,6 +447,7 @@ def render(out: Path, samples: int, only: str | None):
         "exploded": (Vector((65, 90, 64)), 95),
         "inside_lid_off": (Vector((-35, 85, 75)), 85),
         "quarter_scale": (Vector((78, 80, 71)), 100),
+        "old_new": (Vector((35, 82, 55)), 110),
     }
     # Compare to a 24.26 mm US quarter: geometry is a scale prop only,
     # not an inference about coin metallurgy or numismatic detail.
@@ -485,6 +467,15 @@ def render(out: Path, samples: int, only: str | None):
         bpy.context.view_layer.update()
         capobj.location = camera.matrix_world @ Vector((-scale*.36, -scale*.46, -24))
         capobj.rotation_euler = camera.rotation_euler
+        if name == "old_new":
+            bpy.ops.wm.stl_import(filepath=str(OLD_SHELL / "body_full_p15.stl"))
+            old = bpy.context.object
+            old.name = "old 22 mm PA12 body / same scale"
+            old.location.x = -27
+            old.data.materials.append(nylon)
+            caption.body = f"22 MM shell {old_sha[:9]}  |  18 MM shell {shell_sha[:9]} · board {board_sha[:9]}"
+        else:
+            caption.body = f"V4 SNAP · 18 MM | shell {shell_sha[:9]} · board {board_sha[:9]}"
         if name == "quarter_scale":
             coin = cyl("US quarter / 24.26 mm scale prop", params["BODY_WIDTH"]+17,
                        params["BODY_ARC"]/2, -1, 12.13, 1.75, metal, 64)
@@ -495,31 +486,30 @@ def render(out: Path, samples: int, only: str | None):
         compact_png(out / (name + ".png"))
         if name == "quarter_scale":
             bpy.data.objects.remove(coin, do_unlink=True)
+        if name == "old_new":
+            bpy.data.objects.remove(old, do_unlink=True)
 
     metadata = {
-        "label": "preview, previous shell; natural grey PA12 with unplated titanium",
+        "label": "18 mm v4-snap; natural grey PA12 with titanium heads",
         "shell_commit": shell_sha, "board_commit": board_sha,
-        "shell_manifest_commit": manifest["commit"],
+        "old_shell_commit": old_sha,
+        "v4_interior_fix_commit": interior_fix_sha,
+        "interior_caveat": "The v4 base interior fix is not present in the committed v4-snap solids. Outside uses v4-snap; lid-off interior is its earlier state, not the corrected v4 base.",
         "board_source": str(BOARD.relative_to(ROOT)),
-        "shell_source": "docs/fab/cad/v2/{body_full_p15,lid}.stl (same assembled positions as STEP)",
-        "site_source": "docs/fab/packing-v2.md §5d folded sites / §7 cell; docs/fab/cad/v2/manifest.json frame and checks",
+        "flat_board_STEP_regenerated": "hardware/board/release/elicio-v4/elicio-v4.step",
+        "shell_source": "docs/fab/cad/v4-snap/{body_full_p15,lid}.stl",
+        "site_source": "docs/fab/board-v4-design.md §10.2 folded sites and courtyard envelopes; v4-snap manifest shell frame",
         "renderer": "Blender " + bpy.app.version_string + " Cycles CPU, 4 threads",
         "samples": samples,
-        "pictures": list(views),
+        "pictures": {name: {"shell_commit": shell_sha, "board_commit": board_sha,
+                            **({"old_shell_commit": old_sha} if name == "old_new" else {})}
+                     for name in views if not only or name == only},
         "simplifications": [
-            "No folded board STEP is committed: KiCad footprints become boxes at KiCad centres with §5d courtyards; heights for U1/U2/SW1/J3 from packing/board and remaining parts .55 mm illustrative proxies.",
-            "Island approximated by manifest board zone; leftover flex beneath U2/SW1/J2 by their KiCad courtyards; PI tabs follow folded packing sites, not a manufacturing bend simulation.",
-            "FR4 0.2 ring pieces are in packing but missing from the board Gerber; modelled distinctly; board tabs have no traces, pads, vias, silkscreen or solder joints.",
-            "Charging flex pad pair is folded to packing sites, but its flat PCB tab root is disconnected per board-v2 §11; shown as separate tab, not concealed with invented routing.",
-            "Nylon STL is the exact committed STEP's tessellation (0.02 mm export deflection); titanium screw threads/drive and standoff female bore omitted; coin has exact diameter but no relief detail.",
-            "Cell is the §7 501012 pack envelope, centred in manifest pocket with foil proxy; foam and harness are not modelled.",
-            "Closure length comes from committed open-questions.md Q89 (x8); shell manifest records x4 with no lid boss. The preview x8 shaft intersects old body; it is not falsely fitted.",
-        ],
-        "clashes": [
-            f"Shell V2_CLOSURE: documented x{documented_length:g} seat y={seat:.2f}, tip y={closure['screw_tip_y']:.2f}; lid underside y={closure['lid_underside_y']:.2f}, lid engagement {closure['lid_engagement']:.2f} mm. Q89 x{requested_length:g} preview tip y={seat+requested_length:.2f} intersects previous body tail (no lid boss).",
-            "Board-v2 §11: ring backing FR4 0.20 mm assumed by shell, absent from committed Gerber: without it standoff tops land y=4.61 vs island underside y=4.81, gap 0.20 mm.",
-            "Board-v2 §11: charging rectangle root starts on off-body J2 hang u=25.8 rather than packing leftover s=16.00; not joined in 3D.",
-            "KiCad J3 courtyard u=19.955–32.265 versus body outer width u=0–22: overhang 10.265 mm; visibly exposed on the lateral edge. R24 KiCad centre (18.75, 22.37) versus §5d table (18.49, 22.57): 0.26 mm u / -0.20 mm s disagreement; board is shown at KiCad centre.",
+            "The released flat board STEP cannot be bent directly; the populated island and folded sites are envelope geometry from §10.2, not copper traces or true bend transforms.",
+            "Component blocks occupy §10.2 courtyards and documented height intervals; unverified component heights remain unverified.",
+            "P4/P5 wall heads and the three button-head screws are titanium visual proxies without threads or detailed drives. Charging flap has no modelled bend radius or circuit traces.",
+            "Nylon geometry is the committed STEP's STL export; cell is the §1.4 envelope without leads, plug or foam; quarter is a plain 24.26 mm scale disc.",
+            "No lid screw: the v4-snap closure is concealed in the shell solids.",
         ],
     }
     (out / "captions.json").write_text(json.dumps(metadata, indent=2) + "\n")
@@ -532,7 +522,7 @@ def main():
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--samples", type=int, default=20)
     p.add_argument("--blender", default=os.environ.get("BLENDER", "blender"))
-    p.add_argument("--only", choices=["lateral", "medial", "top", "three_quarter", "exploded", "inside_lid_off", "quarter_scale"], help="render one view while adjusting lighting")
+    p.add_argument("--only", choices=["lateral", "medial", "top", "three_quarter", "exploded", "inside_lid_off", "quarter_scale", "old_new"], help="render one view while adjusting lighting")
     args = p.parse_args(argv)
     if args.samples < 1:
         p.error("--samples must be positive")
