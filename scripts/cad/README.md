@@ -2,7 +2,7 @@
 
 This folder builds the Stage B fit-gauge solids from plan §3.
 
-## V4-snap preview from committed solids (macOS)
+## V4-snap preview from committed solids
 
 `assemble_native.py` exports an assembled GLB and eight studio-style PNGs with
 commit captions. It uses the committed v4-snap STL pair, routed v4 board
@@ -16,20 +16,22 @@ present on v4-snap. These are assembly visualizations, **not** a clearance or
 buildability check; the committed v4-snap interior predates the later base-v4
 interior correction.
 
-On macOS with Python 3.11+, NumPy and Pillow available, and Xcode's Swift
-compiler / SceneKit:
+With Python 3.11+, NumPy and Pillow, render with SceneKit and Swift on macOS,
+or with Blender (including 4.0) on Linux:
 
 ```bash
 python scripts/cad/assemble_native.py --out /path/to/output
 ```
 
+The Linux Blender build used here has no OpenImageDenoiser, so it renders
+32 CPU samples without denoising. The camera keeps the hook and separated lid
+inside the picture in each view.
+
 `earpiece.glb` is glTF 2.0 in metres, with PA12 and metal materials;
 `captions.json` records full shell and board commits and the approximations.
-The renderer makes one SceneKit job for all eight views and cleans its
-temporary geometry on exit. It does not require Blender or download a model.
+The renderer makes one offline job for all eight views and cleans its
+temporary geometry on exit. No model is downloaded.
 The Blender/Cycles alternative is `assemble_photo.py` if Blender starts.
-
-## Install
 
 ## Install
 

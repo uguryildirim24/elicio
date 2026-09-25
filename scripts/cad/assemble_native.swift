@@ -84,10 +84,10 @@ let renderer=SCNRenderer(device:nil,options:nil)
 renderer.scene=scene
 renderer.pointOfView=cameraNode
 let views:[(String,SCNVector3,Double)] = [
-    ("lateral",vector(35,82,55),62),("medial",vector(-27,-89,55),62),
-    ("top",vector(28,28,95),62),("three_quarter",vector(78,80,71),65),
-    ("exploded",vector(65,90,64),79),("inside_lid_off",vector(-35,85,75),75),
-    ("quarter_scale",vector(78,80,71),88),("old_new",vector(35,82,55),94)]
+    ("lateral",vector(35,82,55),84),("medial",vector(-27,-89,55),84),
+    ("top",vector(28,28,95),82),("three_quarter",vector(78,80,71),96),
+    ("exploded",vector(65,90,64),100),("inside_lid_off",vector(-35,85,75),110),
+    ("quarter_scale",vector(78,80,71),88),("old_new",vector(35,82,55),135)]
 for (view, offset, scale) in views {
     for node in grouped["lid"] ?? [] {
         node.position=vector(view == "exploded" ? number("BODY_WIDTH")*1.25 : view == "inside_lid_off" ? number("BODY_WIDTH")*2 : 0,
@@ -99,8 +99,9 @@ for (view, offset, scale) in views {
     }
     for node in grouped["coin"] ?? [] { node.isHidden = view != "quarter_scale" }
     camera.orthographicScale=scale
-    cameraNode.position=plus(target,offset)
-    cameraNode.look(at:target,up:vector(0,1,0),localFront:vector(0,0,-1))
+    let aim = plus(target,vector(view == "old_new" ? -12 : 0,0,0))
+    cameraNode.position=plus(aim,offset)
+    cameraNode.look(at:aim,up:vector(0,1,0),localFront:vector(0,0,-1))
     let image=renderer.snapshot(atTime:0,with:CGSize(width:1050,height:1300),antialiasingMode:.multisampling4X)
     guard let tiff=image.tiffRepresentation, let bitmap=NSBitmapImageRep(data:tiff),
           let png=bitmap.representation(using:.png,properties:[:]) else { fatalError("snapshot failed") }
