@@ -175,12 +175,13 @@ The Stage B manifest keeps schema 1 and adds `stage`, `provisional`, `packing`, 
 
 Same construction and exit codes as above; `PACKING = "v2"` adds the `V2_*` checks for the packing-v2 layout named in the file. Each check reports a number or `NOT_MEASURED` by name, and the manifest lists the unmeasured ones under `stage_b_not_measured`. Today it exits 3: the floor-level REF tab crosses the cavity end wall (`V2_TAB_envelope`, `REF_WIRE_envelope`). `docs/fab/packing-v2.md` §6 has the numbers, and `tests/test_cad.py` checks them against a fresh build. The packing matrix and its drawings: `placement.py --all` (closers), `--kept-drawings` (the committed set) and `--all-drawings --out-dir <tmp>` (every run, never committed).
 
-## Assembled earpiece preview (not fabrication CAD)
+## Assembled v4-snap earpiece (visualisation, not fabrication CAD)
 
-With Blender 5.2+ on `PATH`, run from the repository root:
+With Blender 5.2+ on `PATH`, regenerate the flat board export, then render:
 
 ```bash
-python3 scripts/cad/assemble_photo.py --out .herdr-project/elicio-t-0003/library
+python3 scripts/board/release.py --board elicio-v4 --routed
+python3 scripts/cad/assemble_photo.py --out .herdr-project/elicio-t-0034/library --samples 12
 ```
 
-The one script uses only Python's standard library and Blender's bundled Python. It reads the committed v2 body/lid STL (the STEP exports' tessellation), manifest frame and checks, `packing-v2.md` §5d folded sites and §7 cell envelope, `open-questions.md` Q89, and the KiCad PCB's footprint positions and stiffener rectangles. No board STEP is committed; it models the PI flex as a swept island and folded-site strips, with courtyard/height proxies instead of real electronic packages and traces. This is a **preview, previous shell**, not a printable combined assembly or a verified fit. The GLB and seven 1600×2000 Cycles/CPU images stay in the untracked `library/` folder; `captions.json` records both source commits, colour, simplifications and clashes. The PNGs are compacted to six-bit/channel RGB without changing their dimensions. `--only medial` renders one view while adjusting lights; a full rerun replaces all pictures from the currently committed inputs. After the new shell and routed board land, rerun and check the fold and fit against their updated documentation before calling the result final.
+The script uses the committed v4-snap body/lid STL (the STEP exports' tessellation), shell manifest frame, routed v4 PCB footprints and `board-v4-design.md` §10.2 folded sites, courtyards and height intervals. The released KiCad STEP is **flat**, not a folded assembly; the model instead sweeps simplified flex/island envelopes and draws electronic parts as §10.2 courtyard blocks. The 501012 cell occupies the §1.4 pocket. Contact and charging hardware are visual titanium proxies without threads or complete electrical detail. The latch is hidden; **there is no lid screw**. The renders show natural grey PA12 and titanium. `earpiece.glb`, eight PNGs (including the previous 22 mm body at the same scale) and `captions.json` are written to the specified output folder. `--only lateral` renders one view; a complete rerun replaces all output from current commits. The v4 base-shell interior correction in t-0031 was not regenerated in the v4-snap variant: the outside is the chosen snap variant, while its lid-off interior remains the older revision. Do not use this assembly as fit or production proof.
