@@ -195,12 +195,9 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "C2": ("bottom", 11.95, 17.55, 0),
     "R25": ("bottom", 11.95, 18.35, 0),
     "C3": ("bottom", 14.55, 19.60, 270),  # closed up to U3.A2, 0.31 from the joint notch edge
-    # B under U2: AFE supply switch, LDO, bulk, RLD network.
-    # Relief 5 (t-0014, §9.2): the west stack sits 0.10 further west than 815ca29 (9.95 ->
-    # 9.85, R24 9.40 -> 9.30), as far as R14's and Q1's courtyards clear LAND_P1, and C8, C14
-    # and C11 are turned so their GND pads face east, away from the B corridor between the
-    # stacks. The corridor pinch beside Q1 grows from 0.42 to 0.52 mm and carries no GND: the
-    # east-side GND pads sit under U2's exposed pad and reach it by stitching vias.
+    # B under U2: AFE supply switch, LDO and RLD network. The west stack stays at u 9.85
+    # outside LAND_P1; R15 and Q3 moved north beside the charger. C8's GND pad faces west
+    # toward the exposed-pad via; C14 moved east by the dividers and C11 is now on F.
     "R14": ("bottom", 9.85, 21.85, 180),  # VBAT west, AFE_GATE east under Q3.3
     "Q1": ("bottom", 9.85, 22.80, 180),  # AFE_GATE and VBAT west, AFE_VIN east toward U4
     "C5": ("bottom", 9.85, 23.90, 180),  # AFE_VIN west (from Q1.3), GND east toward C8.2; 0.15 south for the +3V0 W via (pass 4)
