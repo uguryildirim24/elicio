@@ -116,7 +116,7 @@ def parts() -> list[Part]:
                 "13": "GND", "14": "+3V0", "15": "AFE_RESET", "16": "AFE_START", "17": None,
                 "18": "AFE_CS_AFE", "19": "AFE_MOSI_AFE", "20": "AFE_SCLK_AFE",
                 "21": "AFE_MISO_AFE", "22": "AFE_DRDY_AFE", "23": "+3V0", "24": "GND",
-                "25": None, "26": None, "27": "VCAP2", "28": "RLDINV", "29": "RLD_FB",
+                "25": "AFE_GPIO2", "26": "AFE_GPIO1", "27": "VCAP2", "28": "RLDINV", "29": "RLD_FB",
                 "30": "RLD_FB", "31": "+3V0", "32": "+3V0", "33": "GND",
             },
             lcsc="C89288", mpn="ADS1292IRSMT",
@@ -138,11 +138,16 @@ def parts() -> list[Part]:
         ),
         Part("Q1", "elicio:AO3401A", "WPM3027-3", DFN1006, {"1": "AFE_GATE", "2": "VBAT", "3": "AFE_VIN"},
              lcsc="C240195", mpn="WPM3027-3/TR"),
-        # N-FET, DFN1006-3, Vgs(th) max <= 1.0 V: part UNVERIFIED (no page read).
-        Part("Q2", "elicio:2N7002", "NMOS", DFN1006, {"1": "Q2_G", "2": "GND", "3": "AFE_EN_HW"}),
-        Part("Q3", "elicio:2N7002", "NMOS", DFN1006, {"1": "AFE_EN_HW", "2": "GND", "3": "AFE_GATE"}),
-        Part("Q4", "elicio:2N7002", "NMOS", DFN1006, {"1": "LED_EN", "2": "GND", "3": "CHG_LED_K"}),
-        Part("D1", "elicio:PESD5V0L1UL", "PESD5V0L1UL", "Diode_SMD:D_SOD-523",
+        # Nexperia PMZ290UNE2, DFN1006-3 (SOT883): pin 1 G, 2 S, 3 D as the land;
+        # VGS(th) 0.45-0.95 V, VDS 20 V, VGS +-8 V (refcheck t-0023, design note §2).
+        Part("Q2", "elicio:2N7002", "PMZ290UNE2", DFN1006, {"1": "Q2_G", "2": "GND", "3": "AFE_EN_HW"},
+             lcsc="C478155", mpn="PMZ290UNE2YL"),
+        Part("Q3", "elicio:2N7002", "PMZ290UNE2", DFN1006, {"1": "AFE_EN_HW", "2": "GND", "3": "AFE_GATE"},
+             lcsc="C478155", mpn="PMZ290UNE2YL"),
+        Part("Q4", "elicio:2N7002", "PMZ290UNE2", DFN1006, {"1": "LED_EN", "2": "GND", "3": "CHG_LED_K"},
+             lcsc="C478155", mpn="PMZ290UNE2YL"),
+        # SOD882 (DFN1006-2), Nexperia's package; pad 1 cathode on VBUS (refcheck t-0023).
+        Part("D1", "elicio:PESD5V0L1UL", "PESD5V0L1UL", "Diode_SMD:D_SOD-882",
              {"1": "VBUS", "2": "GND"}, lcsc="C24109", mpn="PESD5V0L1UL"),
         Part("D2", "Device:LED", "LED-0402", "LED_SMD:LED_0402_1005Metric",
              {"1": "CHG_LED_K", "2": "D2_A"}, lcsc="C72043", mpn="19-217/GHC-YR1S2/3T"),
@@ -201,6 +206,9 @@ def parts() -> list[Part]:
         r("R25", "10k", "ISET", "CHG_MON"),
         r("R27", "10k", "AFE_DRDY_AFE", "AFE_DRDY"),
         r("R28", "10k", "LED_EN", "GND"),
+        # ADS1292 GPIO1/GPIO2 default to inputs and must not float (SBAS502C §8.5.1.7).
+        r("R34", "10k", "AFE_GPIO1", "GND"),
+        r("R35", "10k", "AFE_GPIO2", "GND"),
         c("C1", "1.5nF", "RLD_FB", "RLDINV"),
         c("C2", "10nF", "ISET", "GND"),
         c("C3", "1uF", "VBUS", "GND"),
@@ -211,12 +219,13 @@ def parts() -> list[Part]:
         c("C8", "10uF", "+3V0", "GND", "0402"),
         c("C9", "10uF", "VREFP", "GND", "0402"),
         c("C10", "1uF", "VCAP1", "GND"),
-        c("C11", "100nF", "VCAP2", "GND"),
+        c("C11", "1uF", "VCAP2", "GND"),  # 1 uF at pin 27 (SBAS502C Fig. 73)
         c("C12", "100nF", "+VDD", "GND"),
         c("C13", "1uF", "+VDD", "GND"),
         c("C14", "4.7uF", "VBAT", "GND", "0402"),
         c("C15", "100nF", "+3V0", "GND"),
         c("C16", "1uF", "VBAT", "GND"),
+        c("C17", "100nF", "VREFP", "GND"),  # local VREFP bypass beside C9 (SBAS502C Fig. 73)
     ]
     flags = [("PF1", "GND"), ("PF2", "VBAT"), ("PF3", "VBUS"), ("PF5", "AFE_VIN")]
     out += [
