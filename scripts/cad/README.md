@@ -2,6 +2,35 @@
 
 This folder builds the Stage B fit-gauge solids from plan §3.
 
+## V4-snap preview from committed solids (macOS)
+
+`assemble_native.py` exports an assembled GLB and eight studio-style PNGs with
+commit captions. It uses the committed v4-snap STL pair, routed v4 board
+footprints, v4 shell manifest, and `board-v4-design.md` §10.2 folded sites
+and courtyard heights. A flat routed STEP cannot depict the board after its
+folds: the board and populated packages are curved envelope geometry rather
+than copper or exact package CAD. The cell is its 501012 envelope; the three
+M2.5 titanium heads, P4/P5 titanium wall heads and US quarter are simplified
+visuals. The old/new image loads the committed v2 body STL. No lid screw is
+present on v4-snap. These are assembly visualizations, **not** a clearance or
+buildability check; the committed v4-snap interior predates the later base-v4
+interior correction.
+
+On macOS with Python 3.11+, NumPy and Pillow available, and Xcode's Swift
+compiler / SceneKit:
+
+```bash
+python scripts/cad/assemble_native.py --out /path/to/output
+```
+
+`earpiece.glb` is glTF 2.0 in metres, with PA12 and metal materials;
+`captions.json` records full shell and board commits and the approximations.
+The renderer makes one SceneKit job for all eight views and cleans its
+temporary geometry on exit. It does not require Blender or download a model.
+The Blender/Cycles alternative is `assemble_photo.py` if Blender starts.
+
+## Install
+
 ## Install
 
 Python 3.13 is enough. build123d has a 3.13 wheel.
