@@ -122,6 +122,118 @@ retain the lid. A longer tail would violate the same-length requirement;
 a different fastener/closure needs Rolf's decision. No hardware board
 changes are requested.
 
+## Closure variants on the unchanged 48.40 mm arc (2026-09-25)
+
+Three **separate** body/lid builds, not edits to `cad/v4`: `cad/v4-m16`,
+`cad/v4-snap`, `cad/v4-snap-firm`. Rebuild one at a time with
+`build_shell_v4.py --closure m16|snap|snap-firm --out docs/fab/cad/v4-<name>`;
+`render_v4.py --single --out` on each directory generates the closure view.
+Each manifest contains the complete rerun of **all 97 base §10.2 solid
+checks** (courtyards, folded plate, cell, roots, posts, axes, keys), plus
+seated body/lid nonintersection and four closure occupancy probes:
+**102/102 passing, zero seated overlap, both STL meshes watertight for each**.
+The exterior renders cannot show the concealed catch or screw pilot; inspect
+STEP for that geometry. These are *nominal solids*, not validated print fits.
+
+### M1.6 cap screw — built, but **reject** for printing
+
+![M1.6 closure shell](cad/v4-m16/render_closure.png)
+
+The screw has moved from the blocked REF tail to **u14.10, s11.80** beside
+(but not through) the cell and folded charging plate. Medial entry in the
+floor: Ø3.34 head well (Ø3.14 maximum head + 0.20 clearance), seat y1.76,
+Ø1.80 clearance shank into a hanging lid boss Ø3.60; Ø1.40 pilot in PA12.
+A 4 mm shank ends at y5.76; the lid boss begins at y4.05 and has **1.71 mm
+nominal engagement**, only **1.01 mm after allowing two incomplete 0.35 mm
+threads** (Westfield's 4–6 mm shank-length tolerance is ±0.24 mm, so a
+short screw could leave only 0.77 mm of that effective engagement).
+Body boss Ø3.60 connects to the floor, with 0.10 mm separation
+from the lid boss. Neither changes the board, contact holes or hinge.
+The **minimum wall is just 0.13 mm radially at the head well**, though the
+lid pilot's radial wall is 1.10 mm (1.00 mm around a nominal Ø1.60 shank).
+JLC3DP's published PA12-HP MJF wall is **1 mm**, tolerance **±0.3 mm**
+([material page](https://jlc3dp.com/help/article/pa12-hp-nylon), accessed
+2026-09-25): this head pocket does not meet it. Do not order this shell.
+
+**Pull-out calculation, not a test:** an assumed printed-PA12 thread shear
+allowable of *half* the datasheet tensile strength (48/2 = 24 MPa) times
+π × nominal M1.6 diameter × 1.01 effective engagement gives **122 N ideal
+thread stripping force**. The factor of 1/2, stripped-thread geometry and
+print direction are unverified, so actual pull-out margin is **UNVERIFIED**;
+this is not a rated 122 N fastener. A failed 0.13 mm wall supersedes the
+thread estimate. The screw is a separate purchase: ISO 4762/DIN 912
+M1.6×4, hex 1.5 mm; **price and stocked SKU UNVERIFIED**
+([Westfield DIN 912 table](https://www.westfieldfasteners.co.uk/Standards/ScrewBolt-SHCap-M.html),
+accessed 2026-09-25). Printed body/lid price **UNVERIFIED** (JLC3DP
+[PA12-HP](https://jlc3dp.com/help/article/pa12-hp-nylon) advertises *from*
+$1.00, not this shell's quote; accessed 2026-09-25). One existing 1.5 mm
+hex key only, no insert, glue, solder or crimp.
+
+The same [Westfield table](https://www.westfieldfasteners.co.uk/Standards/ScrewBolt-SHCap-M.html)
+(accessed 2026-09-25) gives ISO 4762 M2 Ø3.98 max × 2.00 high,
+1.5 mm hex; M1.6 Ø3.14 max × 1.64 high, 1.5 mm hex. A trial of M2
+at the cell-side station left a disconnected boss because the Ø4.18 well
+exceeded a Ø4.00 pillar. A pillar with ≥1 mm wall there intersects the
+fixed folded charging plate/cell; it was **not exported as a valid variant**.
+The Westfield [ISO 7380-1 table](https://www.westfieldfasteners.co.uk/Standards/ScrewBolt-SHBtn-M.html)
+does not even specify M2 (starts at M3; M2.5 is a vendor extension). An M2
+button-head with a documented 1.5 mm hex, diameter, height and SKU is
+**UNVERIFIED**, not assumed R2-compatible.
+
+### PA12 snap with existing hinge — two release-feel candidates
+
+**Softer beam:** ![snap shell](cad/v4-snap/render_closure.png)
+
+**Firmer beam:** ![firm snap shell](cad/v4-snap-firm/render_closure.png)
+
+Both cut an end-wall recess u13.30–15.50, s38.05–40.05, y4.05–7.10 and
+replace the catch ledge at u13.40–15.50 × s39.80–40.80 × y5.35–6.35.
+The lid has a u13.65–15.35 beam from y7.18 down to y4.15, a 1.00-mm-high
+foot protruding to s40.02 under the ledge (0.22 mm nominal horizontal
+engagement; **0.20 mm** vertical clearance), and a 2.00 × 1.20 mm opening
+in its top to press the foot toward −s with the *existing* hex key before
+lifting. The **minimum new free wall is 1.00 mm** (beam thickness along s
+for the soft option; side wall u15.50–16.50; foot, ledge and remaining lid
+plate each 1.00 mm). The firm option thickens just the beam along s from
+1.00 to **1.15 mm**. Beam width 1.70 mm, effective cantilever length
+**2.95 mm** from lid underside y7.10 to foot y4.15; estimated release
+travel **0.25 mm**, more than the 0.22 mm engagement. Body and lid retain
+unchanged contact geometries and hinge. Neither adds purchased closure
+hardware. Parts: the v4 PA12 MJF body and lid only, **price UNVERIFIED**;
+[JLC3DP PA12-HP page](https://jlc3dp.com/help/article/pa12-hp-nylon)
+(accessed 2026-09-25) advertises from $1.00, not an approved quote.
+
+For a straight rectangular cantilever, ε≈3tδ/(2L²) gives **4.31%** soft
+and **4.96%** firm; below JLC3DP's published **20% elongation at break**
+(ASTM D638; same [PA12-HP datasheet](https://jlc3dp.com/help/article/pa12-hp-nylon),
+accessed 2026-09-25). With its published tensile modulus **1800 MPa**, the
+ideal lateral release force Ebt³δ/(4L³) is **7.45 N** soft or **11.33 N**
+firm. These are beam-model numbers, *not measured latch retention*.
+A crude upper bound on vertical force before an ideal unnotched beam
+cross-section reaches the published 48 MPa tensile strength is
+48 × 1.70 × t = **81.6 N / 93.8 N**, respectively; the real axial pull-off
+load and cycle life are **UNVERIFIED** (stress at the root/foot and key slot,
+no dynamic snap or physical coupon test). The 0.20–0.25 mm catch/clearance
+features are **smaller than ±0.3 mm print tolerance**, so a print can jam,
+fail to engage or open too easily. R2 is preserved: no solder, glue, crimp
+or wire stripping, and at most the one existing key to open.
+
+| Variant | Body / lid change | Minimum new wall | Nominal release or pull-out | §10.2 + seam + four closure probes | Parts / price | Status |
+|---|---|---:|---|---|---|---|
+| M1.6 × 4 cap | Floor pillar + medial well / lid pilot boss at s11.80 | **0.13 mm** head wall | 122 N *conditional* thread model; actual unknown | 102/102 | M1.6 screw price UNVERIFIED; shell price UNVERIFIED | Reject: below 1 mm print wall |
+| Soft snap | Tail notch and 1 mm ledge / 1 mm beam + key opening | **1.00 mm** | 7.45 N lateral model; axial unknown | 102/102 | PA12 body/lid only, price UNVERIFIED | Trial candidate |
+| Firm snap | Same / 1.15 mm beam | **1.00 mm** at body sidewall | 11.33 N lateral model; axial unknown | 102/102 | PA12 body/lid only, price UNVERIFIED | Trial candidate |
+
+**Recommendation:** choose the **soft snap for a print/coupon and cycle-fit
+experiment**, *not for wear or an order today*: it has no sub-1 mm new wall
+and the gentler release model. If repeated closures show insufficient
+engagement, try the firm beam. The 0.0894 mm U3 nominal clearance remains
+below print tolerance in *all* variants. The original M2.5×8 would require
+screw centre s≥50.25 and tip at least **s53.75** (centre + 2.50 head radius
++ 1.00 end wall), i.e. **5.35 mm extra arc**; at bow 3.0 the M1 chord gate
+would rise from **50.901** to **56.301 mm**. Lengthening is reference only,
+not built here, and would change the behind-ear fit.
+
 ## UNVERIFIED / do not order
 
 Physical PA12 print tolerance, snap/retention and S4 pull/drop, contact
