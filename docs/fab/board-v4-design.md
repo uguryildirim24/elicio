@@ -1,7 +1,7 @@
 # Board v4 — design note (smaller body)
 
-Draft. **Not routed**: DRC 0 errors with the project rules, but 10 connections are still open (5 GND, 2 AFE_VIN, 1 AFE_DRDY, 1 CHG_MON, 1 VBUS_DET); §9.4 lists them with pads and gaps.
-Date: 2026-09-23. Lanes t-0012 (Opus 5.5: design and first routing) and t-0014 (this state).
+Draft. **Routed**: DRC 0 errors and 0 unconnected after a zone refill, and `scripts/board/release.py --board elicio-v4 --routed` passes (§9). Rolf still decides the TS/NTC question (§2.1 item 6) and the antenna keep-out (§4.2); §11.1 lists what is still UNVERIFIED.
+Date: 2026-09-25. Lanes t-0012 (Opus 5.5: design and first routing), t-0014 (Fable 5.1: routed to 10 open), t-0016 (Fable 5.1: pass-2 placement) and t-0019 (Opus 5.5: passes 3–6 and the routed board).
 
 ## 1. Size levers
 
@@ -21,7 +21,7 @@ Baseline v2: W 22, T 9.0 (LID_Y 8.0 + lid 1.0), chord 47.90. The M1 gate is M1 �
 | L4 | J2: JST-SH (mated 2.95) → Molex Pico-EZmate Slim 202656-0021 (mated 1.20, top entry) | lets J2 sit on the island (part of L1) | 0 | lets J2 fit under LID_Y 7.1 (top 6.32; SH would reach 8.07) | The cell must come with a Pico-EZmate Slim plug fitted by a vendor. R2 forbids Rolf crimping. This changes the G1b/Q69 purchase route | Supply of a cell with that plug is UNVERIFIED | Header and plug prices UNVERIFIED. Not in the JLC library | **Yes** |
 | L5 | SW1: TS-1187A (4.5 × 4.5 × 1.6) → HRO 1TS015A (3.0 × 2.0 × 0.6) | area about 42 → 11 mm² | 0 | 0 (top 5.72) | Nothing (1.2 N press) | Low | C398746, 25,177 in stock (https://jlcpcb.com/partdetail/C398746, read 2026-09-23). Price UNVERIFIED | **Yes** |
 | L6 | Non-Contact R and C 0402 → 0201. 10 µF 0603 → 0402 | area about 40 mm² (35 parts) | 0 | 0 | Nothing | JLC lists FPC assembly and a 0201 minimum separately. That the two combine on FPC is UNVERIFIED | +$3.00 per new extended part number (L8 §2.2, read 2026-09-18). About 6–12 new lines gives +$18–36 (UNVERIFIED) | **Yes** |
-| L7 | Q1–Q4 SOT-23 → DFN1006-3. U4 SOT-23-5 → X2SON-4 | area about 57 mm² | 0 | 0 | Nothing | The Q2–Q4 part is not chosen (UNVERIFIED). U4 C3071062 has 0 stock at JLC | Q1 WPM3027-3 C240195. The rest UNVERIFIED | **Yes** |
+| L7 | Q1–Q4 SOT-23 → DFN1006-3. U4 SOT-23-5 → X2SON-4 | area about 57 mm² | 0 | 0 | Nothing | Q2–Q4 are PMZ290UNE2 (C478155, §2.1 item 4). U4 C3071062 has 0 stock at JLC | Q1 WPM3027-3 C240195. The rest UNVERIFIED | **Yes** |
 | L8 | Lid posts replace the two board screws and bosses (H1/H2 go) | area about 17 mm² | 0 | 0 | Nothing. Assembly step 5 ("Turn the board screws") goes | The P2 post presses on U1's top. Force not computed (G7) | None | **Yes** |
 | L9 | Drop the DNP parts and the part the SiP makes redundant (Q5, R9, R10, R29, R30, L1) | area about 21 mm² | 0 | 0 | The option to fit R29/R30 lead-off bias later | None | None | **Yes** |
 | L10 | Drop R26 (nRESET 10 kΩ pull-up). P0.18 set as RESET has its own pull-up (PS v1.11 §5.3.8.3 tPINR = 5 × 13 kΩ × C; §7.3 reference circuits have no reset resistor) | area about 0.6 mm² and one via | 0 | 0 | Nothing. Firmware must set UICR PSELRESET (§8) | Low | −1 BOM line | **Yes** |
@@ -153,7 +153,7 @@ The circuit check (`docs/fab/board-v4-refcheck.md` on the t-0023 branch, datashe
 1. **D1 land.** PESD5V0L1UL is made in Nexperia's SOD882 (DFN1006-2): "leadless ultra small plastic package; 2 terminals; body 1.0 × 0.6 × 0.5 mm" (datasheet Table 4). v2's SOD-523 land was another package.
    - Pinning (Table 3): pin 1 cathode, marked by the bar; pin 2 anode. Pad 1 is on VBUS, pad 2 on GND.
    - Land: KiCad `D_SOD-882`, pads 0.4 × 0.7 at 0.70 pitch, gap 0.30. Nexperia's reflow land (Fig. 13) is 0.3 × 0.6 at 0.60 pitch, gap 0.30. Same gap; KiCad's pads reach 0.10 further out on each side.
-   - D1 moved to B (14.60, 21.85) on the VBUS trunk, cathode east. C24109 is v2's LCSC code; that its listing is this package is UNVERIFIED.
+   - D1 sits on B at (14.30, 28.60), at the VBUS trunk's south end beside R18, cathode east (t-0019 pass 4, §9.2: the east column under U2 now holds the RLD and +3V0 vias and R34/R35). The cost: a surge from P4 reaches U3's VBUS ball (A2) first and D1 at least 11 mm of track later, so the clamp no longer sits between the contact and U3. Whether U3's own ESD rating covers that is UNVERIFIED. C24109 is v2's LCSC code; that its listing is this package is UNVERIFIED.
 2. **C11 (VCAP2) 1 µF.** TI shows 1 µF at VCAP2 (SBAS502C Fig. 73); v2 had 100 nF. Now 1 µF 0201 (C5142566), its pad 0.6 from pin 27 on a locked F track. The effective value at VCAP2's DC bias is UNVERIFIED (an 0201 X5R loses capacitance under bias).
 3. **GPIO1/GPIO2 pull-downs.** SBAS502C §8.5.1.7: the GPIO pins default to inputs and must not float. R34 (GPIO1, pin 26) and R35 (GPIO2, pin 25) are 10 kΩ to GND on B, each one via away from its pin. Firmware leaves both as inputs.
 4. **Q2–Q4 PMZ290UNE2.** Nexperia PMZ290UNE2YL, DFN1006-3 (SOT883), LCSC C478155. The older PMZ290UNE is end-of-life. Datasheet Rev. 1 (2015):
@@ -267,18 +267,20 @@ The full table is `PLACE` in `hardware/board/build_v4.py`; §10 lists every part
 | U1 ISP1807 | F | (6.45, 29.05) rot 270 | Module |
 | U2 ADS1292 | F | (11.85, 22.08) rot 270 | AFE |
 | J2 Pico-EZmate Slim | F | (5.45, 18.90) rot 270 | Courtyard u 2.29–8.43 × s 16.11–21.70. Cell leads come in at u < 8.43 |
-| AFE decoupling, RESET pull-down | F | u 7.75–10.2 × s 18.45–24.10 | C6, C7, C9, C10, R23 |
-| Charger pulls | F | (12.60, 18.15), (12.60, 18.95) | R12 (PRETERM), R13 (TS) |
+| AFE decoupling, RESET pull-down | F | u 7.75–11.1 × s 18.5–24.10 | C6, C7, C9, C10, C17 (VREFP 100 nF beside C9), R23 |
+| Charger pulls | F | (12.60, 18.15), (13.25, 18.97) | R12 (PRETERM), R13 (TS). R13 sits 0.65 east so AFE_IN1N and IN1P's branch drop between C17 and R12 to U2 pins 3 and 4 (§9.2) |
+| VCAP2 | F | (15.10, 23.20) rot 270 | C11, beside U2's east row, its pad toward pin 27 |
 | CS/DRDY series, pad-23 decoupling, charge LED | F | u 11.05–14.65 × s 25.15–28.0 | R7, R27, C15, D2, R22, Q4, R28. R7 at u 11.05 and R27 turned so MOSI and CS leave U2's south row without a via (§9) |
 | SPI series | F | u 11.40 × s 29.6–32.6 | R6, R5, R8 in U2's pad order |
 | SW1 | F | (14.45, 31.10) rot 180 | Top 5.72 |
 | J4 TC2030-NL | F | (10.00, 35.40) | Just outside the RF band (u ≥ 6.455) |
 | U5 and caps | B | u 3.1–4.7 × s 17.1–18.3 | Under J2. U5, C16, C12, C13 |
 | Contact resistors R1, R2, C4 | B | s 17.25–17.45 | At the strip roots |
-| Charger | B | U3 (13.90, 17.75) rot 90 | U3, R11, C2, R25, C3, D1 at the joint. Both charge nets arrive on B |
-| AFE gate | B | u 9.4–9.95 × s 19.95–24.65 | R15, Q3, R14, Q1, C5, R24 |
-| AFE LDO and bulk | B | u 11.65–13.3 × s 21.25–24.6 | U4, C8, C14, C11, R4, C1. C14's VBAT pad faces east (§9) |
-| REF resistor, dividers, interlock | B | u 11.45–14.60 × s 25.6–28.6 | R3, R16–R21, Q2. Kept east of u 11.1 so a via column at u 10.72 fits beside U1's east pads; R16/R17 sit at Q2's gate (§9) |
+| Charger | B | U3 (13.90, 17.75) rot 90 | U3, R11, C2, R25, C3 at the joint. Both charge nets arrive on B |
+| AFE gate and charge interlock | B | u 9.85–14.45 × s 18.6–23.9 | R15, Q3, R14, Q1, C5 (the west stack at u 9.85–10.80); Q2, R16, R17 beside the charger, so AFE_EN_HW is one short hop from Q2.3 to Q3.1 (§9.2) |
+| AFE LDO and RLD network | B | u 11.45–13.3 × s 21.25–24.7 | U4, C8, R4, C1, R24 (START pull-down) |
+| GPIO pull-downs | B | (14.95, 23.22), (14.40, 24.55) | R34, R35 (§2.1 item 3) |
+| REF resistor, dividers, VBAT bulk, TVS | B | u 12.40–14.55 × s 25.6–29.3 | R3, R20, R21, R18, R19 (u 12.40, U1-side pads west, so U1's east pads get a second via column), C14, D1 (§2.1 item 1) |
 
 The same features seen from the Contact side are in §5: landings P1 (5.9, 22.0) and P2 (10.4, 33.1), R 3.2; lid posts at (5.9, 23.0) and (9.4, 32.1).
 
@@ -391,8 +393,8 @@ Contact copper stays on the island: each Contact net ends at its 220 kΩ (R1–R
 | BENCH_SIG1 | F, 0.15 | J3.1 (22.40, 19.40) → (22.91, 18.30) → R31.2 (22.91, 16.80) |
 | BENCH_SIG2 | F, 0.15 | J3.2 (22.40, 21.94) → (21.61, 21.15) → R32.2 (18.51, 21.15) |
 | BENCH_REF | F, 0.15 | J3.3 (22.40, 24.48) → (22.91, 25.58) → R33.2 (22.91, 27.10) |
-| AFE_IN1P | F, 0.10 | R31.1 (21.89, 16.80) → (20.50, 16.80) → (20.50, 20.40) → (15.40, 20.40); the router joins it to R1.2 and U2 pad 4 |
-| AFE_IN1N | F, 0.10 | R32.1 (17.49, 21.15) → (15.40, 21.15); the router joins it to R2.2 and U2 pad 3 |
+| AFE_IN1P | F, 0.10 | R31.1 (21.89, 16.80) → (20.50, 16.80) → (20.50, 20.40) → (15.40, 20.40); the router joins it to the end of the locked trunk at (11.95, 16.66), and the trunk and its branch reach R1.2 and U2 pad 4 (§9.2, pass 5) |
+| AFE_IN1N | F, 0.10 | R32.1 (17.49, 21.15) → (15.40, 21.15); the router joins it to U2 pad 3, and a locked run joins pad 3 to R2.2 (§9.2, pass 5) |
 | RLD_FB | F, 0.10 | R33.1 (21.89, 27.10) → (20.90, 27.10) → (20.90, 21.90) → (15.40, 21.90); the router joins it to R3.2 and U2 pads 29/30 |
 
 - SIG2's strip copper is on F because P2 is plated. Each strip carries one net on one layer; the one Contact via is on the island at SIG2's strip root, not in a strip. SIG1 and REF have no via.
@@ -403,7 +405,7 @@ Charge copper, 0.20 track. It is only where skin can't reach: plate, flap and jo
 
 | Net | Path |
 |---|---|
-| P5 GND | B: ring → (17.95, 13.30) → (17.95, 15.75) [zone exit] → (17.95, 16.90) → (14.84, 16.90), then the router and the B pour |
+| P5 GND | B: ring → (17.95, 13.30) → (17.95, 15.75) [zone exit] → (17.95, 16.90) → (14.84, 16.90) → (14.35, 16.39) → (11.80, 16.39) → R11.2 along the top edge (0.10, locked, pass 6), then the B pour |
 | P4 VBUS | B: ring → via (16.514, 7.55) → F → (18.40, 8.55) → (18.40, 15.75) [zone exit] → via (18.40, 17.00) → B → (18.40, 18.40) → (14.65, 18.40) → U3 VBUS ball |
 
 - P4's via is its own net inside its own 7 × 7 zone, which is allowed.
@@ -434,7 +436,7 @@ Area check (courtyards):
 - Courtyard bounding boxes from the placed board, text parse. U1 counts only outside the RF band.
 - F usable = island minus the RF band minus the P1 post keep-out.
 - B usable = island minus the RF band, the landings and `STIFF_U1_B`.
-- Placed at W18: F parts 155.0 mm² (22 parts), B parts 45.7 mm² (33 parts). J3 and the rings are off the island.
+- Placed at W18 (t-0012's placement, before the refcheck parts): F parts 155.0 mm² (22 parts), B parts 45.7 mm² (33 parts). J3 and the rings are off the island.
 
 | W | Island u | Island mm² | F usable | B usable | F fill | B fill | Result |
 |---|---|---|---|---|---|---|---|
@@ -533,14 +535,15 @@ Pin map A (as built). Every fast SPI line is on a full-speed pin; the low-freque
 
 ## 9. Routing status
 
-**Not routed. Don't order this board.** `hardware/board/elicio-v4.kicad_pcb` as committed:
+**Routed.** `hardware/board/elicio-v4.kicad_pcb` as committed (t-0019):
 
-- 1457 track segments and 53 vias (69 of them locked pre-routes and vias). 10 connections are still open (5 GND, 2 AFE_VIN, 1 AFE_DRDY, 1 CHG_MON, 1 VBUS_DET); they are listed with their pads and gaps in §9.4.
+- 773 track segments (213 of them locked pre-routes) and 49 vias (28 locked). Every connection is closed.
 - The two GND pours (F and B, over the whole island) are filled and saved; the release DRC does not refill.
-- DRC (kicad-cli 10.0.6, project rules `elicio-v4.kicad_dru`, `--schematic-parity`), verbatim: `Found 75 violations`, `Found 10 unconnected items`, `Found 2 schematic parity issues`.
-  - Errors: 0: no short, no clearance error, no starved thermal (§9.3). Unconnected: 10.
-  - Warnings: 64 `lib_footprint_issues`, 10 `track_dangling`, 1 `via_dangling`. `via_dangling` is the +VDD pre-route via at (7.60, 36.70), used on F only. `track_dangling` marks the free ends of the open connections in §9.4. The parity warnings are J2's two MP pads, which have no schematic pin.
-- `scripts/board/release.py --board elicio-v4 --routed` refused: exit 1, `routed release refused: {"unconnected_items": 10}`. `release.py --board elicio-v4` without `--routed` then wrote the review outputs with `routed: false`: ERC 0 errors, DRC 0 errors, 58 BOM rows, 58 CPL rows, 17 Gerber files, STEP without models for 5 footprints (Molex, Texas, Texas, Texas, SOT-883.step). Review files, not order files.
+- DRC (kicad-cli 10.0.6, project rules `elicio-v4.kicad_dru`, `--refill-zones --schematic-parity`, on the committed file in place), verbatim: `Found 25 violations`, `Found 0 unconnected items`, `Found 2 schematic parity issues`.
+  - Errors: 0: no short, no clearance error, no starved thermal (§9.3). Unconnected: 0.
+  - Warnings: 24 `lib_footprint_mismatch`, 1 `via_dangling`. `build_v4.py` strips footprint silkscreen and hides fields, so the placed footprints differ from KiCad's library copies. `via_dangling` is the +VDD pre-route via at (7.60, 36.70), used on F only. The parity warnings are J2's two MP pads, which have no schematic pin.
+- `scripts/board/release.py --board elicio-v4 --routed`: exit 0, `routed: true`. ERC 0 errors and 0 warnings; DRC 0 errors, 25 warnings, 0 unconnected; 61 BOM rows and 61 CPL rows, no BOM line without a CPL row; 17 files in `gerbers/` (14 layers, PTH and NPTH drill, job file); STEP written without models for 5 footprints (Molex Pico-EZmate Slim, Texas DSBGA-6, Texas RSM0032, Texas X2SON-4, SOT-883). The outputs are in `hardware/board/release/elicio-v4/`; they're not committed, and the command writes them again.
+- Unchanged: two copper layers, 0.10/0.10 track and clearance, 0.40/0.15 vias, the Contact class and the Q84/Q88/Q97 rule areas. The folded body is still 18 × 8.1 (§10.2).
 
 ### 9.1 What each router did
 
@@ -560,8 +563,14 @@ Pin map A (as built). Every fast SPI line is on a full-speed pin; the low-freque
 | Finishing sequence (§9.5) on h3 and h5: `v4_route_fix.py --drop-drc --ripup 4` (drops the conflicting copper, reconnects every net, the GND groups included), GND names restored, refill, `--nets GND --ripup 4`, `v4_stitch.py`, again, `v4_thermal_stubs.py` | h3 → m, h5 → n | m: 0 DRC errors, 9 open (3 GND pieces, VBAT, VBUS_DET ×2, VCAP1, AFE_VIN, AFE_GATE). n: 0 DRC errors, 10 open (5 GND pieces, AFE_DRDY, AFE_VIN ×2, CHG_MON, VBUS_DET) |
 | `v4_route_fix.py --ripup 12 --pen 6` on the unfilled m and n boards | m1, n1 | m: 4 signal opens left (VBAT, VBUS_DET ×2, VCAP1); n: 5 nets still open, AFE_EN_HW and CHG_MON trading places every round |
 | `v4_route_fix.py --soft-fills --ripup 8 --pen 6` on the filled n board: a pour blocks only its own net, every other net routes through it as if unfilled (the pour yields on refill), then GND finisher, stitching, stubs | n | the same 10 open connections: the rip-up moves each blocker and finds no other home for it; on GND it rips eight ISET items four rounds running and reverts each time |
+| `v4_route_pf.py --fresh --skip GND --rounds 80`, GND in regional nets (t-0016 run 2) | pass 2 (§9.2 relief 6) | 7 knots, all north of s 25 |
+| same (t-0019 run 1) | pass 3: refcheck parts, U2's GND core locked (relief 7) | 15 nets in conflict after 60 rounds, round U2's north side and the charger |
+| same (t-0019 run 2), then `v4_finish.sh` | pass 4: placement at the knots and the corner pre-routes (relief 8) | 2 nets in conflict after 80 rounds (AFE_IN1P, AFE_IN1N). Finished: DRC 0 errors, 1 open: AFE_IN1N, 0.51 mm at U2 pins 3/4. The two inputs must cross once, which no routing order avoids |
+| same (t-0019 run 3) | pass 5: the IN1P/IN1N crossing locked, R13 moved (relief 9) | 2 nets in conflict after 80 rounds (AFE_IN1P, GND_B): U3.C2's GND boxed in. Not finished |
+| same (t-0019 run 4), then `v4_finish.sh` | pass 5b: a GND via for U3.C2's corner (relief 9) | 0 conflicts at round 16. Finished: DRC 0 errors, 2 open, both GND islands 0.40 mm from the main GND (P5's run north of U3; Q4.2's F pocket) |
+| same (t-0019 run 5), then `v4_finish.sh` | pass 6: two locked GND links (relief 10) | 0 conflicts at round 16. Finished: DRC 0 errors, 0 open. This is the committed board |
 
-Freerouting stalled at this density: 0.10/0.10 rules, locked Contact copper, and B mostly keep-out (t-0012). The negotiated router lets nets share cells early and raises the price of shared cells each round until the nets separate; when nets still fight at round 80 the fight points at the placement. GND is the hard net: the pours reach only what the signal routing leaves open, so GND has to be in the negotiation from the start, but as one net it is too big to negotiate (it touches every part). Three regional GND nets was the best compromise found; the remaining knots are between signal nets in the two B corridors of the island.
+Freerouting stalled at this density: 0.10/0.10 rules, locked Contact copper, and B mostly keep-out (t-0012). The negotiated router lets nets share cells early and raises the price of shared cells each round until the nets separate; when nets still fight at round 80 the fight points at the placement. GND is the hard net: the pours reach only what the signal routing leaves open, so GND has to be in the negotiation from the start, but as one net it is too big to negotiate (it touches every part). What closed it: three regional GND nets, with locked copper at every knot that kept coming back (U2's GND core, the +3V0 hub, the charger corner, the IN1P/IN1N crossing). With those locked, the router converges in 16 rounds and the finisher joins the three GND regions through the pours.
 
 ### 9.2 Placement reliefs that made it route
 
@@ -574,6 +583,16 @@ Freerouting stalled at this density: 0.10/0.10 rules, locked Contact copper, and
 3. **Q2_G cluster.** R16 and R17 moved beside Q2's gate.
 4. **C14 turned so its VBAT pad faces east.** With the pad facing west, VBAT ran R14 → Q1 → C14 → R20 on B. That walls off AFE_VIN's path from U4 to C5 and Q1.3, so neither net could close without crossing the other.
 5. **West stack 0.10 west, GND pads turned east, VCAP1 pre-routed (t-0014).** The west stack (R15, Q3, R14, Q1, C5) sits at u 9.85 (815ca29: 9.95) and R24 at 9.30 (9.40), as far west as R14's and Q1's courtyards clear LAND_P1 (`check_keepouts` in `build_v4.py`). C8, C14 and C11 are turned so their GND pads face east, under U2's exposed pad; the B corridor between the two stacks beside Q1 grows from 0.42 to 0.52 mm and carries no GND. Q3 and R15 are turned so GND and AFE_EN_HW face west, away from that corridor, and AFE_GATE east. VCAP1 (C10 to U2.11) is a locked F pre-route west of U2's west row, because every router put +3V0's hop from B across that line. Relief 4 is reversed: C14's VBAT pad faces west again, one hop from Q1.2; with C14's GND pad east it no longer walls off AFE_VIN.
+6. **Pass 2 (t-0016).** R20, R21, R18 and R19 went one row east to u 12.40 with their U1-side pads west, so U1's east pads get a second via column at u 11.3, and s 25.05–26.5 stays free for AFE_DRDY's hop to R27 on B. The interlock (Q2, R16, R17) moved north beside the charger, and Q3 and R15 turned so Q2.3 faces R15.2 across the corridor's north end: AFE_EN_HW runs R15.2/Q3.1 → Q2.3, not to U1 (t-0016's finding), and is now one short hop that no longer crosses CHG_MON. Q1 and R14 turned (AFE_VIN east toward U4), C8 turned, C14 to the east pocket beside R20.1, C11 to F beside U2's east row, C3 closed up to U3.A2.
+7. **Pass 3 (t-0019): refcheck parts and U2's GND core.** C17, R34, R35 and D1's SOD882 land (§2.1). U2's GND pads 10, 13 and 24 are tied to the exposed pad, and one exposed-pad via reaches U4.5, U4.2 and C8.2. VCAP2 runs to C11, GPIO1 and GPIO2 hop to R34 and R35. `v4_gnd_split.py` now joins locked GND copper to the region of the pad it touches.
+8. **Pass 4 (t-0019): placement at the knots and locked corner routes.** R13 and R4 turned, R16 0.35 south, C5 turned and 0.15 south, R24 to (11.45, 24.70), D1 to (14.30, 28.60) (§2.1 item 1). Locked in `u2_core_pre_routes` (`build_v4.py`):
+   - U2's GND core: the exposed-pad via, Q2.S and Q3.S vias into the pad, an exit through pin 24 to C15.2 and C11.2 on F, and the east pocket's GND down the B edge lane.
+   - The +3V0 hub on B from U4.1 over C8.1, with arms to U2's four sides; the west via sits outside LAND_P1's 3.4 mm circle. This is t-0014's first proposed pre-route.
+   - VBAT's row south of U3 to R15; ISET, TS, PRETERM and CHG_MON; VBUS to C3 and R16; Q2_G; AFE_EN_HW, AFE_GATE (through Q1's pad gap) and AFE_VIN; AFE_START and AFE_RESET out of U2's south-west corner; the RLD_FB and RLDINV vias and B links.
+
+   t-0014's second proposal, AFE_EN_HW across the P1 landing to U1, wasn't needed: after relief 6 AFE_EN_HW is a short B hop with no copper in LAND_P1's 7 × 7 zone, so Q97(c) is untouched.
+9. **Passes 5 and 5b (t-0019): the IN1P/IN1N crossing.** The two inputs must cross once: at the J3 neck IN1P lies north of IN1N, at the strips R1 (IN1P) lies west of R2 (IN1N). Locked in `in1_pre_routes`: IN1P crosses over R2 on F, and IN1N leaves R2 by a via just west of it. IN1P's trunk (along the top edge, toward the neck) and its branch (back east to pin 4) wrap round that via. VBUS, the trunk, IN1N and the branch pass the SIG2 root 0.105 apart and 0.21 from the SIG2 via (Contact class 0.20). R13 moved 0.65 east so IN1N and the branch drop between C17 and R12 to pins 3 and 4. Pass 5b: past the SIG2 root, VBUS and the trunk rise to s 16.45 and 16.66, and a locked GND via at (11.67, 17.15) on the R11.2–C2.2 link reaches R12.2 and U3.C2's via on F, since ISET and VBAT box U3.C2 in on B.
+10. **Pass 6 (t-0019): two GND links the finisher couldn't find.** P5's charge-return run ends on B north of U3, where ISET and VBUS box it in and the IN1P/VBUS pair holds the F edge: a locked B track takes it along the top edge, north of R11.1, to R11.2 (§5.4). Q4.2 (the charge-LED switch source) sat in an F pocket between LED_EN and VBUS: a locked GND via at (13.50, 28.58) beside D1.2 joins it to B.
 
 ### 9.3 Thermal connections (the starved-thermal decision)
 
@@ -581,54 +600,32 @@ DRC's starved-thermal check stays at KiCad's default: a GND pad with a thermal r
 
 - **Exposed pads and mounting pads connect solid** (`elicio-v4.kicad_dru`, rule "GND exposed and mounting pads solid"): U2 pad 33, U4 pad 5, U5 pad 5 and J2's two MP pads. They are reflowed, not hand-soldered, sit under their part and want the copper. A relief has no job there.
 - **Reliefs stay on every 0201 and 0402 pad** so nothing tombstones.
-- **Second connections are copper:** where the pour reaches a pad from one side only (its other sides are 0.10 routing), a 0.10 GND track runs from inside the pad through the 0.15 thermal gap into the pour, placed by `v4_thermal_stubs.py` and checked by DRC like any track. 9 such tracks:
-  - C5.2 B.Cu: stub (9.300, 23.850) -> (9.100, 23.875) 0.202 mm
+- **Second connections are copper:** where the pour reaches a pad from one side only (its other sides are 0.10 routing), a 0.10 GND track runs from inside the pad through the 0.15 thermal gap into the pour, placed by `v4_thermal_stubs.py` and checked by DRC like any track. 3 such tracks on the committed board:
+  - U1.1 F.Cu: stub (9.550, 25.700) -> (9.350, 25.700) 0.200 mm
   - U1.14 F.Cu: stub (6.550, 28.600) -> (6.550, 28.825) 0.225 mm
-  - C13.2 B.Cu: stub (4.150, 18.500) -> (4.125, 18.700) 0.202 mm
   - U1.18 F.Cu: stub (6.550, 29.500) -> (6.550, 29.275) 0.225 mm
-  - R24.2 B.Cu: stub (8.850, 24.450) -> (8.825, 24.250) 0.202 mm
-  - U2.10 F.Cu: stub (10.200, 21.050) -> (10.400, 21.050) 0.200 mm
-  - U2.13 F.Cu: stub (10.200, 22.250) -> (10.400, 22.250) 0.200 mm
-  - U2.24 F.Cu: stub (13.175, 23.750) -> (13.100, 23.550) 0.214 mm
-  - R28.2 F.Cu: stub (13.250, 27.150) -> (13.225, 26.950) 0.202 mm
+- U2's pads 10, 13 and 24 had stubs in t-0014's state. They are now tied to the exposed pad by locked copper (§9.2 relief 7), and DRC finds no starved thermal on them.
 
 No Contact, creepage or clearance rule changed; the three Q84 rules are as in v2.
 
-### 9.4 Open connections
+### 9.4 The open connections, closed
 
-10 connections are open (5 GND, 2 AFE_VIN, 1 AFE_DRDY, 1 CHG_MON, 1 VBUS_DET). Each row is one piece that does not reach its net's main piece, the copper it would have to reach, and the straight-line gap between them on the layer named (0.10 track plus clearance needs 0.30 of free width, so a 0.4 mm gap holds one foreign track):
+t-0014 left 10 connections open (5 GND, 2 AFE_VIN, 1 AFE_DRDY, 1 CHG_MON, 1 VBUS_DET). All are closed on the committed board. What changed at each spot (reliefs in §9.2):
 
-| Net | Open piece | Nearest main copper | Layer | Gap mm |
-|---|---|---|---|---:|
-| AFE_DRDY | U1.46 | F track (11.38, 30.40)–(11.35, 30.40) of the main piece (50 items) | F | 0.47 |
-| AFE_VIN | B tracks only, u 8.30–10.62 × s 19.50–19.93 | B track (8.00, 19.82)–(7.97, 19.80) of the main piece (18 items) | B | 0.34 |
-| AFE_VIN | U4.3, U4.4 | Q1.3 of the main piece (18 items) | B | 1.50 |
-| CHG_MON | U1.44 | B track (8.07, 25.00)–(8.10, 25.02) of the main piece (101 items) | B | 0.54 |
-| GND | U2.10, U2.13, U2.24, U2.33 | F pour u 6.6–13.8 × s 16.9–22.2 of the main piece (310 items) | F | 0.35 |
-| GND | P5 | U3.C2 of the main piece (310 items) | B | 0.37 |
-| GND | U4.2, U4.5 | B pour u 11.1–13.7 × s 18.9–20.6 of the main piece (310 items) | B | 0.41 |
-| GND | C14.2, C8.2 | B pour u 14.7–15.8 × s 19.8–25.1 of the main piece (310 items) | B | 0.40 |
-| GND | C11.2 | B pour u 9.9–10.9 × s 23.5–25.1 of the main piece (310 items) | B | 0.87 |
-| VBUS_DET | R19.1, R18.2 | B track (10.25, 26.68)–(10.22, 27.35) of the main piece (16 items) | B | 0.34 |
+| t-0014 open piece | What changed |
+|---|---|
+| AFE_DRDY: U1.46 to R27, across AFE_MOSI on F | The dividers at u 12.40 leave s 25.05–26.5 free for DRDY's hop to R27 on B (relief 6) |
+| AFE_VIN: B tracks at u 8.30–10.62 × s 19.50–19.93, across AFE_EN_HW | AFE_EN_HW is a short hop to Q2.3 after the interlock moved north (relief 6); AFE_VIN is locked (relief 8) |
+| AFE_VIN: U4.3, U4.4 to Q1.3, across VBAT and AFE_GATE | Q1 turned so AFE_VIN faces U4 (relief 6); AFE_GATE is locked through Q1's pad gap (relief 8) |
+| CHG_MON: U1.44, across AFE_EN_HW on B | AFE_EN_HW no longer runs south past U1 (relief 6); CHG_MON is locked (relief 8) |
+| VBUS_DET: R18.2, R19.1 to U1, across CHG_MON on B | U1's east pads have a second via column at u 11.3 (relief 6) |
+| GND: U2.10, U2.13, U2.24, U2.33 inside U2's pad ring | Pads 10, 13 and 24 are tied to the exposed pad, which has its own via (relief 7) |
+| GND: U4.2, U4.5 | The exposed-pad via reaches them on B (relief 7) |
+| GND: C14.2, C8.2 | C8.2 is on the exposed-pad via (relief 7); C14 moved to the east pocket beside R20.1 (relief 6) |
+| GND: C11.2 | C11 moved to F; pin 24's exit reaches C11.2 and C15.2 (reliefs 6, 8) |
+| GND: P5's run, 0.37 from U3.C2 across ISET | The top-edge link from P5's run to R11.2 (relief 10) and the GND via for U3.C2's corner (relief 9) |
 
-Where they sit and what is in the way (measured on the committed board with `v4_pieces.py` and the finisher's grid):
-
-- **GND inside U2's pad ring (the F pour with the exposed pad and pads 10, 13, 24):** 0.35 mm from U2.13 to the main F pour west of it, with +3V0's F track (eight segments along U2's west row) between. A via from the exposed pad to the B pour underneath has 578 candidate cells; every one is inside the clearance of +3V0's B track in the corridor, of C8.1 or C14.1 (+3V0 and VBAT on B) or of U2's own west-row pads.
-- **GND islands on B under U2 (U4.2 with U4.5; C8.2 with C14.2; C11.2 alone):** 0.41 mm from U4.5 to the main B pour north of it across U4.1 (+3V0) and its track; 0.40 mm from the C8/C14 island's east edge to the east B pour across VBUS's track at u 14.5; 0.87 mm from C11.2 to the pour west of it across +3V0's B track and C11.1. No F pour lies over any of them (U2's pads and exposed pad are above), so no via can join them.
-- **GND in the north-east corner (the P5 charge run's B island, u 12.55–15.1 × s 16.3–18.15):** 0.37 mm from U3.C2 across ISET's track from C2.1 to U3.B2, which has to pass north of U3.C2 because the 0.4 mm ball pitch leaves no other way to B2. 103 cells of the island lie under the main F pour; all are inside the clearance of ISET (B) or AFE_IN1P (F).
-- **AFE_VIN (U4.3/U4.4 to Q1.3 and C5.1), two gaps on B:** 0.39 mm at (8.0–8.3, 19.5–19.8) across AFE_EN_HW's track (R15.2 and Q3.1 down to U1), and the corridor crossing from U4's pads to Q1.3, 1.50 mm across VBAT's pad and track, AFE_GATE's track and the GND pour. SOT-883 puts pins 1 and 2 on one side and 3 on the other, so Q1 and Q3 each force AFE_VIN to cross VBAT or AFE_GATE locally.
-- **CHG_MON (U1.44 to R20/R21):** 0.59 mm on B at (8.1–8.7, 25.0–25.25) across AFE_EN_HW's track.
-- **VBUS_DET (R18.2/R19.1 to U1):** 0.39 mm on B at (10.25–10.57, 26.4–26.7) across CHG_MON's track. CHG_MON, VBUS_DET, AFE_DRDY and VBAT_SENSE leave U1's east pads on F, drop to B in one via column at u 10.6–10.8 and fan out east to R18/R20/R21, R19 and Q2; the last two to arrive cross.
-- **AFE_DRDY (U1.46 to R27):** 0.52 mm on F at (11.0–11.35, 29.95–30.40) across AFE_MOSI's track and pad. The four SPI_AFE lines run on F from U1 to U2's south row at u 10.4–12.5, AFE_DRDY has to cross one of them, and the B side below is inside LAND_P2's via ban.
-
-+3V0 is in the way of three of the five GND pieces and AFE_EN_HW of two signal opens; the rest are ISET, VBUS, CHG_MON, AFE_MOSI and VBAT. The finisher's rip-up (up to 12 rounds, with and without the pours as obstacles) moves the blocker and finds no other home for it: both layers of both corridors are full.
-
-What would close it, cheapest first; none is tried:
-
-1. **Locked pre-routes for the two common blockers, then a fresh route** (one router run plus `v4_finish.sh`, about two hours): +3V0 from U4.1 over C8.1 to U2's supply pads on B, kept east of the corridor, and U1's supply from the F side; AFE_EN_HW from Q3.1 to a via at about (9.0, 21.0), just outside LAND_P1, then on F across the P1 landing (tracks are allowed there) to U1's pad.
-2. **Placement:** R18, R20, R21 and R19 one row further east (u 12.4 and beyond) so U1's east pads get a second via column; Q1 turned so AFE_VIN's pin faces U4; C11 moved out from under U2 so the B pour can reach C8/C14 from the south. Then a fresh route.
-3. **Rules:** 0.075 track and clearance in the two corridors only would give each one more track. JLC's floor for two-layer flex is 0.10/0.10 (§3.2), so this needs their confirmation first, and no vendor contact was allowed in this lane.
-4. **A third copper layer:** closes it for certain and changes the stack-up and the thickness chain (§1.2).
+The opens that came up on the way were AFE_IN1N's forced crossing (run 2) and two GND islands (run 4). Reliefs 9 and 10 closed them.
 
 ### 9.5 Rebuild and re-route
 
@@ -641,35 +638,18 @@ PY=../../.venv/bin/python
 python3 gen_v4_sch.py                                   # schematic and project (netclasses); ERC must be clean
 $KP build_v4.py --out $W/new.kicad_pcb                  # placed board, locked pre-routes, pour outlines (no fill); "keep-out problems 0"
 $PY v4_gnd_split.py $W/new.kicad_pcb $W/news.kicad_pcb \
-    GND_A:C5.2,C6.2,C7.2,C9.2,C10.2,Q3.2,R23.2,R24.2,U1.1,U1.7 \
-    GND_B:C2.2,C3.2,C4.2,D1.2,J2.2,R11.2,R12.2,R13.2,U3.C2 \
-    GND_C:C15.2,R19.2,R21.2,R28.2
-$PY -u v4_route_pf.py --pcb $W/news.kicad_pcb --out $W/h.kicad_pcb --fresh --skip GND --rounds 80 --debug $W/h_conf.json
-kicad-cli pcb drc --format json -o $W/h0_drc.json $W/h.kicad_pcb
-$PY -u v4_route_fix.py --pcb $W/h.kicad_pcb --drop-drc $W/h0_drc.json --ripup 4 --out $W/h1.kicad_pcb
-$PY v4_gnd_split.py --back $W/h1.kicad_pcb $W/h2.kicad_pcb
-kicad-cli pcb drc --refill-zones --save-board --format json -o $W/h2_drc.json $W/h2.kicad_pcb
-$PY -u v4_route_fix.py --pcb $W/h2.kicad_pcb --nets GND --ripup 4 --out $W/h3.kicad_pcb
-$PY v4_stitch.py $W/h3.kicad_pcb GND $W/h4.kicad_pcb 1.5
-kicad-cli pcb drc --refill-zones --save-board --format json -o $W/h4_drc.json $W/h4.kicad_pcb
-$PY -u v4_route_fix.py --pcb $W/h4.kicad_pcb --nets GND --ripup 4 --out $W/h5.kicad_pcb
-$PY v4_stitch.py $W/h5.kicad_pcb GND $W/h6.kicad_pcb 1.5
-kicad-cli pcb drc --refill-zones --save-board --format json -o $W/h6_drc.json $W/h6.kicad_pcb
-$PY v4_thermal_stubs.py $W/h6.kicad_pcb $W/h6_drc.json $W/h7.kicad_pcb 0.8
-kicad-cli pcb drc --refill-zones --save-board --format json --schematic-parity -o $W/h7_drc.json $W/h7.kicad_pcb
-# while connections stay open: the soft-fill finisher, then GND again
-$PY -u v4_route_fix.py --pcb $W/h7.kicad_pcb --soft-fills --ripup 8 --pen 6 --out $W/p1.kicad_pcb
-kicad-cli pcb drc --refill-zones --save-board --format json -o $W/p1_drc.json $W/p1.kicad_pcb
-$PY -u v4_route_fix.py --pcb $W/p1.kicad_pcb --soft-fills --nets GND --ripup 4 --pen 6 --out $W/p2.kicad_pcb
-$PY v4_stitch.py $W/p2.kicad_pcb GND $W/p3.kicad_pcb 1.5
-kicad-cli pcb drc --refill-zones --save-board --format json -o $W/p3_drc.json $W/p3.kicad_pcb
-$PY v4_thermal_stubs.py $W/p3.kicad_pcb $W/p3_drc.json $W/p4.kicad_pcb 0.8
-kicad-cli pcb drc --refill-zones --save-board --format json --schematic-parity -o $W/p4_drc.json $W/p4.kicad_pcb
-cp $W/p4.kicad_pcb elicio-v4.kicad_pcb                  # saved with filled zones
+    GND_A:C6.2,C7.2,C9.2,C10.2,C17.2,R23.2,U1.1,U1.7 \
+    GND_B:C2.2,C4.2,J2.2,R11.2,R12.2,R13.2,U3.C2,P5.1 \
+    GND_C:U2.10,U2.13,U2.24,U2.33,U4.2,U4.5,C8.2,C5.2,Q2.2,Q3.2,C15.2,C11.2,C3.2,R17.2,R34.2,R35.2,R24.2,R19.2,R21.2,R28.2,D1.2,Q4.2
+$PY -u v4_route_pf.py --pcb $W/news.kicad_pcb --out $W/r.kicad_pcb --fresh --skip GND --rounds 80 --debug $W/r_conf.json
+zsh v4_finish.sh $W/r.kicad_pcb f                       # finisher (below) → $W/f_final.kicad_pcb, saved with filled zones
+cp $W/f_final.kicad_pcb elicio-v4.kicad_pcb
 cd ../.. && .venv/bin/python -m unittest discover -s tests -q && .venv/bin/python scripts/board/release.py --board elicio-v4 --routed
 ```
 
-`hardware/board/v4_finish.sh` runs the part after the router. `build_v4.py` overwrites the PCB, routing included, so route in scratch copies. `v4_pieces.py PCB NET` lists a net's pieces with their gaps. Freerouting instead: `scripts/board/route_v4.py --work DIR --route`, one run at a time, `-Xmx4g`.
+The three GND regions are the west (GND_A), the charger corner with P5 (GND_B), and U2's core with every pad the locked GND copper touches (GND_C). `v4_route_pf.py` exits 1 while nets are still in conflict; run 5 converged at round 16. `v4_finish.sh` drops the conflicting copper and reconnects every net with the GND regions still live, restores the GND name, refills, runs the GND finisher with the pours as copper and the stitcher twice, adds thermal stubs, runs the soft-fill finisher on whatever is still open, and ends with a DRC with `--schematic-parity`. On run 5 the finisher added 66 items, joined the one GND piece left after the rename (the GND_A region round C6.2) with 12 more, and placed the 3 thermal stubs of §9.3.
+
+`build_v4.py` overwrites the PCB, routing included, so route in scratch copies. `v4_pieces.py PCB NET` lists a net's pieces with their gaps; `v4_route_pf.py --debug` writes the conflict cells, which show where a knot is. Freerouting instead: `scripts/board/route_v4.py --work DIR --route`, one run at a time, `-Xmx4g`.
 
 ## 10. Flat and folded tables
 
@@ -681,21 +661,22 @@ From `python3 hardware/board/v4_tables.py --pads` on the committed board. Part c
 |---|---|---:|---:|---:|---|
 | C1 | bottom | 13.30 | 23.65 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
 | C2 | bottom | 11.95 | 17.55 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
-| C3 | bottom | 14.40 | 19.95 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
+| C3 | bottom | 14.55 | 19.60 | -90 | `Capacitor_SMD:C_0201_0603Metric` |
 | C4 | bottom | 7.25 | 17.45 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
-| C5 | bottom | 9.85 | 23.75 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
+| C5 | bottom | 9.85 | 23.90 | 0 | `Capacitor_SMD:C_0201_0603Metric` |
 | C6 | top | 7.75 | 22.66 | 90 | `Capacitor_SMD:C_0402_1005Metric` |
 | C7 | top | 8.78 | 22.66 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
-| C8 | bottom | 11.65 | 22.55 | 0 | `Capacitor_SMD:C_0402_1005Metric` |
+| C8 | bottom | 11.65 | 22.55 | 180 | `Capacitor_SMD:C_0402_1005Metric` |
 | C9 | top | 10.20 | 18.50 | 90 | `Capacitor_SMD:C_0402_1005Metric` |
 | C10 | top | 9.10 | 18.60 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
-| C11 | bottom | 11.65 | 24.60 | 0 | `Capacitor_SMD:C_0201_0603Metric` |
+| C11 | top | 15.10 | 23.20 | -90 | `Capacitor_SMD:C_0201_0603Metric` |
 | C12 | bottom | 3.10 | 18.30 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
 | C13 | bottom | 4.60 | 18.30 | 180 | `Capacitor_SMD:C_0201_0603Metric` |
-| C14 | bottom | 11.65 | 23.60 | 0 | `Capacitor_SMD:C_0402_1005Metric` |
+| C14 | bottom | 14.15 | 27.20 | 0 | `Capacitor_SMD:C_0402_1005Metric` |
 | C15 | top | 13.60 | 25.15 | 0 | `Capacitor_SMD:C_0201_0603Metric` |
 | C16 | bottom | 4.70 | 17.15 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
-| D1 | bottom | 12.60 | 19.70 | 180 | `Diode_SMD:D_SOD-523` |
+| C17 | top | 11.10 | 18.60 | 90 | `Capacitor_SMD:C_0201_0603Metric` |
+| D1 | bottom | 14.30 | 28.60 | 180 | `Diode_SMD:D_SOD-882` |
 | D2 | top | 14.65 | 26.10 | 0 | `LED_SMD:LED_0402_1005Metric` |
 | J2 | top | 5.45 | 18.90 | -90 | `Connector_Molex:Molex_Pico-EZmate_Slim_202656-0021_1x02-1MP_P1.20mm_Vertical` |
 | J3 | top | 22.40 | 19.40 | 0 | `Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Horizontal` |
@@ -705,38 +686,40 @@ From `python3 hardware/board/v4_tables.py --pads` on the committed board. Part c
 | P3 | top | 8.50 | 43.00 | 0 | `elicio:RING_PAD_D5_H2.7` |
 | P4 | bottom | 16.51 | 4.35 | 180 | `elicio:RING_1S_D4.6_NPTH2.7` |
 | P5 | bottom | 16.51 | 12.10 | 180 | `elicio:RING_1S_D4.6_NPTH2.7` |
-| Q1 | bottom | 9.85 | 22.80 | 180 | `Package_TO_SOT_SMD:SOT-883` |
-| Q2 | bottom | 13.35 | 27.60 | 180 | `Package_TO_SOT_SMD:SOT-883` |
-| Q3 | bottom | 9.85 | 20.90 | 0 | `Package_TO_SOT_SMD:SOT-883` |
+| Q1 | bottom | 9.85 | 22.80 | 0 | `Package_TO_SOT_SMD:SOT-883` |
+| Q2 | bottom | 12.50 | 19.55 | 180 | `Package_TO_SOT_SMD:SOT-883` |
+| Q3 | bottom | 10.65 | 19.90 | 180 | `Package_TO_SOT_SMD:SOT-883` |
 | Q4 | top | 14.60 | 28.00 | 0 | `Package_TO_SOT_SMD:SOT-883` |
 | R1 | bottom | 5.90 | 17.30 | -90 | `Resistor_SMD:R_0402_1005Metric` |
 | R2 | bottom | 9.39 | 17.25 | 180 | `Resistor_SMD:R_0402_1005Metric` |
 | R3 | bottom | 14.55 | 25.60 | 180 | `Resistor_SMD:R_0402_1005Metric` |
-| R4 | bottom | 13.30 | 22.15 | 90 | `Resistor_SMD:R_0201_0603Metric` |
+| R4 | bottom | 13.30 | 22.15 | -90 | `Resistor_SMD:R_0201_0603Metric` |
 | R5 | top | 11.40 | 31.12 | 90 | `Resistor_SMD:R_0201_0603Metric` |
 | R6 | top | 11.40 | 29.63 | 90 | `Resistor_SMD:R_0201_0603Metric` |
 | R7 | top | 11.05 | 25.50 | 90 | `Resistor_SMD:R_0201_0603Metric` |
 | R8 | top | 11.40 | 32.61 | 90 | `Resistor_SMD:R_0201_0603Metric` |
 | R11 | bottom | 12.00 | 16.75 | 180 | `Resistor_SMD:R_0201_0603Metric` |
 | R12 | top | 12.60 | 18.15 | 180 | `Resistor_SMD:R_0201_0603Metric` |
-| R13 | top | 12.60 | 18.95 | 0 | `Resistor_SMD:R_0201_0603Metric` |
-| R14 | bottom | 9.85 | 21.85 | 180 | `Resistor_SMD:R_0201_0603Metric` |
-| R15 | bottom | 9.85 | 19.95 | 180 | `Resistor_SMD:R_0201_0603Metric` |
-| R16 | bottom | 14.60 | 27.10 | -90 | `Resistor_SMD:R_0201_0603Metric` |
-| R17 | bottom | 14.60 | 28.55 | -90 | `Resistor_SMD:R_0201_0603Metric` |
-| R18 | bottom | 11.80 | 25.60 | 180 | `Resistor_SMD:R_0201_0603Metric` |
-| R19 | bottom | 13.30 | 26.52 | 0 | `Resistor_SMD:R_0201_0603Metric` |
-| R20 | bottom | 11.80 | 26.40 | 180 | `Resistor_SMD:R_0201_0603Metric` |
-| R21 | bottom | 11.80 | 27.20 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R13 | top | 13.25 | 18.97 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R14 | bottom | 9.85 | 21.85 | 0 | `Resistor_SMD:R_0201_0603Metric` |
+| R15 | bottom | 10.80 | 18.60 | -90 | `Resistor_SMD:R_0201_0603Metric` |
+| R16 | bottom | 13.75 | 19.70 | -90 | `Resistor_SMD:R_0201_0603Metric` |
+| R17 | bottom | 14.45 | 20.85 | 0 | `Resistor_SMD:R_0201_0603Metric` |
+| R18 | bottom | 12.40 | 28.50 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R19 | bottom | 12.40 | 29.30 | 0 | `Resistor_SMD:R_0201_0603Metric` |
+| R20 | bottom | 12.40 | 26.90 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R21 | bottom | 12.40 | 27.70 | 0 | `Resistor_SMD:R_0201_0603Metric` |
 | R22 | top | 14.60 | 27.02 | 180 | `Resistor_SMD:R_0201_0603Metric` |
 | R23 | top | 7.95 | 24.10 | 180 | `Resistor_SMD:R_0201_0603Metric` |
-| R24 | bottom | 9.30 | 24.65 | 180 | `Resistor_SMD:R_0201_0603Metric` |
+| R24 | bottom | 11.45 | 24.70 | 0 | `Resistor_SMD:R_0201_0603Metric` |
 | R25 | bottom | 11.95 | 18.35 | 180 | `Resistor_SMD:R_0201_0603Metric` |
 | R27 | top | 12.45 | 25.50 | -90 | `Resistor_SMD:R_0201_0603Metric` |
 | R28 | top | 13.35 | 27.70 | 90 | `Resistor_SMD:R_0201_0603Metric` |
 | R31 | top | 22.40 | 16.80 | 0 | `Resistor_SMD:R_0402_1005Metric` |
 | R32 | top | 18.00 | 21.15 | 0 | `Resistor_SMD:R_0402_1005Metric` |
 | R33 | top | 22.40 | 27.10 | 0 | `Resistor_SMD:R_0402_1005Metric` |
+| R34 | bottom | 14.95 | 23.22 | -90 | `Resistor_SMD:R_0201_0603Metric` |
+| R35 | bottom | 14.40 | 24.55 | 0 | `Resistor_SMD:R_0201_0603Metric` |
 | SW1 | top | 14.45 | 31.10 | 180 | `elicio:SW_HRO_1TS015A` |
 | U1 | top | 6.45 | 29.05 | -90 | `elicio:InsightSiP_ISP1807` |
 | U2 | top | 11.85 | 22.08 | -90 | `elicio:Texas_RSM0032` |
@@ -777,28 +760,29 @@ From `python3 hardware/board/v4_tables.py --folded` on the committed board. Shel
 |---|---|---:|---:|---|---|---:|---:|---:|---:|---:|---|
 | C1 | bottom | 12.95-13.65 | 22.95-24.35 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.85 | 7.25 | 3.16 (floor) | - | 3.91 | ok |
 | C2 | bottom | 11.25-12.65 | 17.20-17.90 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.85 | 1.50 | 3.16 (floor) | - | 3.54 | ok |
-| C3 | bottom | 14.05-14.75 | 19.25-20.65 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.75 | 3.55 | 3.16 (floor) | - | 5.06 | ok |
+| C3 | bottom | 14.20-14.90 | 18.90-20.30 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.60 | 3.20 | 3.16 (floor) | - | 5.27 | ok |
 | C4 | bottom | 6.55-7.95 | 17.10-17.80 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.05 | 1.40 | 1.16 (collar) | - | 1.05 | ok |
-| C5 | bottom | 9.15-10.55 | 23.40-24.10 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.95 | 7.70 | 1.16 (collar) | - | 0.34 | ok |
+| C5 | bottom | 9.15-10.55 | 23.55-24.25 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.95 | 7.85 | 1.16 (collar) | - | 0.40 | ok |
 | C6 | top | 7.29-8.21 | 21.75-23.57 | 0.60 (0402 C max, UNVERIFIED) | 5.12-5.72 | 5.79 | 6.05 | 1.38 (lid) | 0.39 | - | ok |
 | C7 | top | 8.43-9.13 | 21.96-23.36 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 6.93 | 6.26 | 1.63 (lid) | 1.53 | - | ok |
 | C8 | bottom | 10.74-12.56 | 22.09-23.01 | 0.60 (0402 C max, UNVERIFIED) | 4.41-5.01 | 3.94 | 6.39 | 2.91 (floor) | - | 1.64 | ok |
 | C9 | top | 9.74-10.66 | 17.59-19.41 | 0.60 (0402 C max, UNVERIFIED) | 5.12-5.72 | 5.84 | 1.89 | 1.38 (lid) | 4.26 | - | ok |
 | C10 | top | 8.75-9.45 | 17.90-19.30 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 7.05 | 2.20 | 1.63 (lid) | 3.67 | - | ok |
-| C11 | bottom | 10.95-12.35 | 24.25-24.95 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 4.15 | 8.55 | 3.16 (floor) | - | 2.33 | ok |
+| C11 | top | 14.75-15.45 | 22.50-23.90 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 1.05 | 6.80 | 1.63 (lid) | 7.85 | - | ok |
 | C12 | bottom | 2.40-3.80 | 17.95-18.65 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 0.90 | 2.25 | 1.16 (collar) | - | 0.75 | ok |
 | C13 | bottom | 3.90-5.30 | 17.95-18.65 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.40 | 2.25 | 1.16 (collar) | - | 0.20 | ok |
-| C14 | bottom | 10.74-12.56 | 23.14-24.06 | 0.60 (0402 C max, UNVERIFIED) | 4.41-5.01 | 3.94 | 7.44 | 2.91 (floor) | - | 1.77 | ok |
+| C14 | bottom | 13.24-15.06 | 26.74-27.66 | 0.60 (0402 C max, UNVERIFIED) | 4.41-5.01 | 1.44 | 10.54 | 2.91 (floor) | - | 2.94 | ok |
 | C15 | top | 12.90-14.30 | 24.80-25.50 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 2.20 | 9.10 | 1.63 (lid) | 6.23 | - | ok |
 | C16 | bottom | 4.35-5.05 | 16.45-17.85 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.85 | 0.75 | 1.16 (collar) | - | 1.04 | ok |
-| D1 | bottom | 11.35-13.85 | 19.00-20.40 | 0.80 (SOD-523 max, UNVERIFIED) | 4.21-5.01 | 2.65 | 3.30 | 2.71 (floor) | - | 2.48 | ok |
+| C17 | top | 10.75-11.45 | 17.90-19.30 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 5.05 | 2.20 | 1.63 (lid) | 5.10 | - | ok |
+| D1 | bottom | 13.50-15.10 | 28.00-29.20 | 0.50 (Nexperia SOD882 body 0.5) | 4.51-5.01 | 1.40 | 9.00 | 1.01 (collar) | - | 1.78 | ok |
 | D2 | top | 13.72-15.58 | 25.63-26.57 | 0.55 (0402 LED, UNVERIFIED) | 5.12-5.67 | 0.92 | 9.93 | 1.43 (lid) | 6.02 | - | ok |
 | J2 | top | 2.34-8.38 | 16.15-21.65 | 1.20 (§1.2 mated) | 5.12-6.32 | 0.84 | 0.45 | 0.78 (lid) | 0.35 | - | ok |
 | J3 | top | 20.63-32.94 | 17.63-26.25 | 0.00 (no height: UNVERIFIED) | cut off with the tab (Q91) | - | - | - | - | - | exterior |
 | J4 | top | 6.50-13.50 | 33.40-37.40 | 0.00 (pads only) | 5.12-5.12 | 3.00 | 0.80 | 1.98 (lid) | 0.30 | - | ok |
 | Q1 | bottom | 9.15-10.55 | 22.30-23.30 | 0.40 (DFN1006 max, UNVERIFIED) | 4.61-5.01 | 5.95 | 6.60 | 1.11 (collar) | - | 0.06 | ok |
-| Q2 | bottom | 12.65-14.05 | 27.10-28.10 | 0.40 (DFN1006 max, UNVERIFIED) | 4.61-5.01 | 2.45 | 10.10 | 3.11 (floor) | - | 2.28 | ok |
-| Q3 | bottom | 9.15-10.55 | 20.40-21.40 | 0.40 (DFN1006 max, UNVERIFIED) | 4.61-5.01 | 5.95 | 4.70 | 1.11 (collar) | - | 0.10 | ok |
+| Q2 | bottom | 11.80-13.20 | 19.05-20.05 | 0.40 (DFN1006 max, UNVERIFIED) | 4.61-5.01 | 3.30 | 3.35 | 3.11 (floor) | - | 3.01 | ok |
+| Q3 | bottom | 9.95-11.35 | 19.40-20.40 | 0.40 (DFN1006 max, UNVERIFIED) | 4.61-5.01 | 5.15 | 3.70 | 1.11 (collar) | - | 1.15 | ok |
 | Q4 | top | 13.90-15.30 | 27.50-28.50 | 0.40 (DFN1006 max, UNVERIFIED) | 5.12-5.52 | 1.20 | 9.70 | 1.58 (lid) | 4.76 | - | ok |
 | R1 | bottom | 5.43-6.37 | 16.37-18.23 | 0.45 (0402 R max, UNVERIFIED) | 4.56-5.01 | 3.93 | 0.67 | 1.06 (collar) | - | 0.57 | ok |
 | R2 | bottom | 8.46-10.32 | 16.78-17.72 | 0.45 (0402 R max, UNVERIFIED) | 4.56-5.01 | 6.18 | 1.08 | 1.06 (collar) | - | 1.79 | ok |
@@ -810,24 +794,26 @@ From `python3 hardware/board/v4_tables.py --folded` on the committed board. Shel
 | R8 | top | 11.05-11.75 | 31.91-33.31 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 4.75 | 4.89 | 1.63 (lid) | 0.65 | - | ok |
 | R11 | bottom | 11.30-12.70 | 16.40-17.10 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.80 | 0.70 | 3.16 (floor) | - | 4.09 | ok |
 | R12 | top | 11.90-13.30 | 17.80-18.50 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 3.20 | 2.10 | 1.63 (lid) | 6.50 | - | ok |
-| R13 | top | 11.90-13.30 | 18.60-19.30 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 3.20 | 2.90 | 1.63 (lid) | 6.05 | - | ok |
+| R13 | top | 12.55-13.95 | 18.62-19.32 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 2.55 | 2.92 | 1.63 (lid) | 6.60 | - | ok |
 | R14 | bottom | 9.15-10.55 | 21.50-22.20 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.95 | 5.80 | 1.16 (collar) | - | 0.05 | ok |
-| R15 | bottom | 9.15-10.55 | 19.60-20.30 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.95 | 3.90 | 1.16 (collar) | - | 0.47 | ok |
-| R16 | bottom | 14.25-14.95 | 26.40-27.80 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.55 | 10.40 | 3.16 (floor) | - | 3.35 | ok |
-| R17 | bottom | 14.25-14.95 | 27.85-29.25 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.55 | 8.95 | 1.16 (collar) | - | 2.24 | ok |
-| R18 | bottom | 11.10-12.50 | 25.25-25.95 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 4.00 | 9.55 | 3.16 (floor) | - | 2.93 | ok |
-| R19 | bottom | 12.60-14.00 | 26.17-26.87 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.50 | 10.47 | 3.16 (floor) | - | 3.41 | ok |
-| R20 | bottom | 11.10-12.50 | 26.05-26.75 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 4.00 | 10.35 | 3.16 (floor) | - | 3.19 | ok |
-| R21 | bottom | 11.10-12.50 | 26.85-27.55 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 4.00 | 10.65 | 3.16 (floor) | - | 2.39 | ok |
+| R15 | bottom | 10.45-11.15 | 17.90-19.30 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 5.35 | 2.20 | 3.16 (floor) | - | 2.09 | ok |
+| R16 | bottom | 13.40-14.10 | 19.00-20.40 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 2.40 | 3.30 | 3.16 (floor) | - | 4.47 | ok |
+| R17 | bottom | 13.75-15.15 | 20.50-21.20 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.35 | 4.80 | 3.16 (floor) | - | 4.69 | ok |
+| R18 | bottom | 11.70-13.10 | 28.15-28.85 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.40 | 9.35 | 1.16 (collar) | - | 1.24 | ok |
+| R19 | bottom | 11.70-13.10 | 28.95-29.65 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.40 | 8.55 | 1.16 (collar) | - | 0.49 | ok |
+| R20 | bottom | 11.70-13.10 | 26.55-27.25 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.40 | 10.85 | 3.16 (floor) | - | 2.79 | ok |
+| R21 | bottom | 11.70-13.10 | 27.35-28.05 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.40 | 10.15 | 3.16 (floor) | - | 2.01 | ok |
 | R22 | top | 13.90-15.30 | 26.67-27.37 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 1.20 | 10.83 | 1.63 (lid) | 5.53 | - | ok |
 | R23 | top | 7.25-8.65 | 23.75-24.45 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 5.75 | 8.05 | 1.63 (lid) | 0.54 | - | ok |
-| R24 | bottom | 8.60-10.00 | 24.30-25.00 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 6.50 | 8.60 | 1.16 (collar) | - | 0.35 | ok |
+| R24 | bottom | 10.75-12.15 | 24.35-25.05 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 4.35 | 8.65 | 3.16 (floor) | - | 2.19 | ok |
 | R25 | bottom | 11.25-12.65 | 18.00-18.70 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 3.85 | 2.30 | 3.16 (floor) | - | 3.09 | ok |
 | R27 | top | 12.10-12.80 | 24.80-26.20 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 3.70 | 9.10 | 1.63 (lid) | 5.46 | - | ok |
 | R28 | top | 13.00-13.70 | 27.00-28.40 | 0.35 (0201 max, UNVERIFIED) | 5.12-5.47 | 2.80 | 9.80 | 1.63 (lid) | 4.16 | - | ok |
 | R31 | top | 21.47-23.33 | 16.33-17.27 | 0.45 (0402 R max, UNVERIFIED) | cut off with the tab (Q91) | - | - | - | - | - | exterior |
 | R32 | top | 17.07-18.93 | 20.68-21.62 | 0.45 (0402 R max, UNVERIFIED) | cut off with the tab (Q91) | - | - | - | - | - | exterior |
 | R33 | top | 21.47-23.33 | 26.63-27.57 | 0.45 (0402 R max, UNVERIFIED) | cut off with the tab (Q91) | - | - | - | - | - | exterior |
+| R34 | bottom | 14.60-15.30 | 22.52-23.92 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.20 | 6.82 | 3.16 (floor) | - | 5.52 | ok |
+| R35 | bottom | 13.70-15.10 | 24.20-24.90 | 0.35 (0201 max, UNVERIFIED) | 4.66-5.01 | 1.40 | 8.50 | 3.16 (floor) | - | 4.90 | ok |
 | SW1 | top | 13.20-15.70 | 28.95-33.25 | 0.60 (§1.2) | 5.12-5.72 | 0.80 | 4.95 | 1.38 (lid) | 2.80 | - | ok |
 | U1 | top | 2.20-10.70 | 24.80-33.30 | 1.00 (§1.2) | 5.12-6.12 | 0.70 | 4.90 | 0.98 (lid) | -1.00 (post on the part) | - | ok |
 | U2 | top | 9.22-14.48 | 19.45-24.71 | 1.00 (TI RSM) | 5.12-6.12 | 2.02 | 3.75 | 0.98 (lid) | 2.32 | - | ok |
@@ -866,7 +852,8 @@ Shell changes this table needs, with numbers (all in §7): the rib cut back 0.50
 - **Hours of wear:** about 7 mA, inferred from EARPIECE_DESIGN.md "Seven hours of streaming" on 50 mAh. Not measured.
 - **Prices:** MDBT50Q; Molex 202656-0021 header and 202655 plug; HRO 1TS015A; M2.5 nuts (W16).
 - **Consignment fee** for the ISP1807.
-- **LCSC codes missing:** ISP1807, TPS7A0230 and Molex 202656 (none in the JLC library); Q2–Q4 N-FET (no part chosen); 47 kΩ and 27 kΩ 0201; 4.7 µF 0402.
+- **LCSC codes missing:** ISP1807, TPS7A0230 and Molex 202656 (none in the JLC library); 47 kΩ and 27 kΩ 0201; 4.7 µF 0402.
+- **D1 at the trunk's far end:** whether U3's own ESD rating covers a surge from P4 that reaches U3's VBUS ball before D1 (§2.1 item 1).
 - **Library tier** of several v2 lines, and of the new 0201 lines beyond those read. The extended setup estimate of +$18–36.
 - **Assembly:** 0201 on FPC as a combination.
 - **Stiffeners:** the fee amount for ≥ 4 pieces; how JLC drills stiffeners (ring holes, J4 guide holes).
