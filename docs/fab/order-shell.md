@@ -1,9 +1,11 @@
 # Order the shell (v2)
 
-**Not an order-ready sheet.** The committed v2f shell has a J2/P5 hardware
-collision, and the newer 18 mm v4 board needs a different shell. Do not upload
-the v2 solids for v4. This sheet stays blocked until the board/shell pairing
-and assembled clearances are measured on a built solid.
+**Not an order-ready or v4 order sheet.** The 22 mm v2f solid has a J2/P5
+hardware collision; the 18 mm v4 board needs a new, measured shell. Do not
+upload the v2 solids for v4 or use the old $50–90 shell reserve. See
+`orders-v2.md` for v4 cost scenarios and the open G8 record. This sheet stays
+blocked until the board/shell pairing and assembled clearances are measured
+on a built solid.
 
 Phone sheet. Order 2 is the printed body and lid. It is not the board.
 No agent places this order. You pay only after every box in the
