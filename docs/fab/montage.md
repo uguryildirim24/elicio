@@ -478,6 +478,10 @@ line. Both are **open: needs S2 data**.
 | 3.9 | Three yawns: 0 confirmation pairs; 0 actions above NONE | same criterion (harness). |
 | 3.10 | Five wide smiles, five hard blinks: ≤ 1 of 5 NONE triggers per set; 0 above NONE | same criterion (harness). |
 
+Lines 3.1 to 3.3 (noise, flex and clench numbers) are scored by the
+analysis pipeline after the session; `receive-check` stops only on the
+same-criterion lines 3.5 to 3.10 (Q96).
+
 The bench montage procedure in §2 is re-targeted to the board on its
 stand with the plan v2 §5.6 leads when that board exists. No dry data
 was judged against this table.
