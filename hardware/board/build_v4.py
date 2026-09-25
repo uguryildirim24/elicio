@@ -164,6 +164,7 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     # cross; R12 turns PRETERM's pad toward its via east of the pulls.
     "C9": ("top", 10.20, 18.50, 90),
     "C10": ("top", 9.10, 18.60, 90),
+    "C17": ("top", 11.10, 18.60, 90),  # VREFP 100 nF beside C9 (refcheck t-0023): VREFP pad south, next to C9.1
     "R12": ("top", 12.60, 18.15, 180),
     "R13": ("top", 12.60, 18.95, 0),
     # F corner above SW1: CS/DRDY series, pad-23 decoupling, charge LED.
@@ -194,7 +195,7 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "C2": ("bottom", 11.95, 17.55, 0),
     "R25": ("bottom", 11.95, 18.35, 0),
     "C3": ("bottom", 14.55, 19.60, 270),  # closed up to U3.A2, 0.31 from the joint notch edge
-    "D1": ("bottom", 14.45, 23.75, 270),  # east column on the VBUS trunk, which passes it on the edge side
+    "D1": ("bottom", 14.60, 21.85, 0),  # SOD882 between R17 and C11 on the VBUS trunk: cathode (VBUS) east, GND west
     # B under U2: AFE supply switch, LDO, bulk, RLD network.
     # Relief 5 (t-0014, §9.2): the west stack sits 0.10 further west than 815ca29 (9.95 ->
     # 9.85, R24 9.40 -> 9.30), as far as R14's and Q1's courtyards clear LAND_P1, and C8, C14
@@ -209,6 +210,10 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     "C8": ("bottom", 11.65, 22.55, 0),  # +3V0 pad east under U4.1, GND pad west
     "C14": ("bottom", 14.15, 27.20, 180),  # east pocket: VBAT pad west beside R20.1
     "C11": ("top", 15.10, 23.20, 270),  # F beside U2's east row: VCAP2 pad north toward U2.27
+    # B under the east column, freed by D1: the GPIO pull-downs (refcheck t-0023), each a stub
+    # from its via beside U2.26 / U2.25. Pads stop at u 15.15 so VBUS keeps the B edge lane.
+    "R34": ("bottom", 14.95, 23.22, 270),  # GPIO1 north, GND south
+    "R35": ("bottom", 14.40, 24.55, 180),  # GPIO2 west, GND east
     "R4": ("bottom", 13.30, 22.15, 90),
     "C1": ("bottom", 13.30, 23.65, 90),
     # B pocket right of the stiffener: REF resistor, dividers, charge interlock.
@@ -639,6 +644,35 @@ def pre_routes(board) -> None:
     p14, p16, p18 = (pad_center(board, "U1", n) for n in ("14", "16", "18"))
     for a, b in ((p14, p16), (p16, p18)):
         add_locked_via(board, ((a[0] + b[0]) / 2 + 0.05, (a[1] + b[1]) / 2), gnd)
+    u2_core_pre_routes(board)
+
+
+def u2_core_pre_routes(board) -> None:
+    """U2's core (pass 3, t-0019). The GND pads 10, 13 and 24 tie to the exposed pad inside
+    the pad ring, and one via in the exposed pad drops between U4 and C8 to U4's GND pads
+    and C8.2, so U2, U4 and C8 share one GND piece before routing. VCAP2 runs straight to
+    C11; GPIO1 and GPIO2 each hop to their pull-down on B through one via in the east lane."""
+    bcu, fcu = pcbnew.B_Cu, pcbnew.F_Cu
+    gnd = ensure_net(board, "GND")
+    ep_via = (11.65, 22.00)
+    add_locked_via(board, ep_via, gnd)
+    for ref, n in (("U4", "5"), ("U4", "2"), ("C8", "2")):
+        add_locked_path(board, [ep_via, pad_center(board, ref, n)], gnd, bcu, FLEX_TRACK)
+    for n, end in (("10", (10.60, 21.08)), ("13", (10.60, 22.28)), ("24", (13.20, 23.40))):
+        add_locked_path(board, [pad_center(board, "U2", n), end], gnd, fcu, FLEX_TRACK)
+    p27 = pad_center(board, "U2", "27")
+    add_locked_path(board, [p27, (14.70, p27[1]), pad_center(board, "C11", "1")], ensure_net(board, "VCAP2"),
+                    fcu, FLEX_TRACK)
+    for pin, via, ref in (("26", (14.45, 23.15), "R34"), ("25", (14.45, 23.85), "R35")):
+        net = ensure_net(board, board_pad_net(board, "U2", pin))
+        add_locked_path(board, [pad_center(board, "U2", pin), via], net, fcu, FLEX_TRACK)
+        add_locked_via(board, via, net)
+        add_locked_path(board, [via, pad_center(board, ref, "1")], net, bcu, FLEX_TRACK)
+
+
+def board_pad_net(board, ref: str, num: str) -> str:
+    fp = next(f for f in board.GetFootprints() if f.GetReference() == ref)
+    return next(p for p in fp.Pads() if p.GetNumber() == num).GetNetname()
 
 
 def fp_pos(board, ref: str) -> tuple[float, float]:
