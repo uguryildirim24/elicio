@@ -35,8 +35,8 @@ def esd_cap(ref: str, value: str, net: str, mpn: str) -> Part:
                 {"1": net, "2": "GND"}, lcsc="C36626211", mpn=mpn + "D")
 
 # (value, size) -> (LCSC, MPN). Filled from research; "" = not yet read.
-# Parts JLC cannot supply carry CONSIGNED in the LCSC field, so the BOM says
-# so plainly (design note §2): U1 ISP1807, U5 TPS7A0230, J2 Molex 202656.
+# Parts without verified JLC stock carry CONSIGNED: U1 ISP1807,
+# U3 BQ25100YFPR and J2 Molex 202656 (see sourcing ledger).
 CONSIGNED = "CONSIGNED"
 LCSC: dict[tuple[str, str], tuple[str, str]] = {
     ("220k", "0402"): ("C881401", ""),
@@ -136,7 +136,7 @@ def parts() -> list[Part]:
             lcsc=CONSIGNED, mpn="BQ25100YFPR",
         ),
         Part(
-            "U4", "elicio:TLV71330PDQN", "TLV71330PDQNT", "Package_SON:Texas_X2SON-4_1x1mm_P0.65mm",
+            "U4", "elicio:TLV71330PDQN", "TLV71330PDQNR", "Package_SON:Texas_X2SON-4_1x1mm_P0.65mm",
             {"4": "AFE_VIN", "3": "AFE_VIN", "1": "+3V0", "2": "GND", "5": "GND"},
             lcsc="C2863576", mpn="TLV71330PDQNR",
         ),
