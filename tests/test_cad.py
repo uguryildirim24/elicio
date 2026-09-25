@@ -1233,6 +1233,29 @@ class CadShellV4ManifestTests(unittest.TestCase):
         self.assertEqual(rows[0]["overlap_mm3"], 0.0)
         self.assertGreater(payload["notes"]["shell_measure"]["flap_relief_removed_mm3"], 0)
 
+    def test_snap_key_volume_and_opposing_print_offsets(self) -> None:
+        payload = json.loads((ROOT / "docs/fab/cad/v4-snap/manifest.json").read_text())
+        checks = payload["checks"]
+        self.assertEqual(len(checks), 104)
+        self.assertTrue(all(c["passed"] for c in checks))
+        flap = next(c for c in checks if c["item"] == "P4/P5 folded flap")
+        self.assertEqual(flap["overlap_mm3"], 0)
+        keys = [c for c in checks if c["item"].startswith("key ")]
+        self.assertEqual(len(keys), 3)
+        for key in keys:
+            with self.subTest(key=key["item"]):
+                self.assertEqual(key["body_overlap_mm3"], 0)
+                self.assertLessEqual(key["lid_overlap_mm3"], .001)
+        self.assertGreater(keys[-1]["intended_foot_contact_mm3"], 0)
+        offsets = [c for c in checks if c["kind"] == "rebuilt opposing tolerance stack"]
+        self.assertEqual(len(offsets), 2)
+        for row in offsets:
+            with self.subTest(offset=row["ledge_offset_mm"]):
+                self.assertGreater(row["engagement_mm"], 0)
+                self.assertLess(row["closing_overlap_mm3"], .001)
+                self.assertGreater(row["vertical_ledge_gap_worst_mm"], 0)
+                self.assertGreater(row["vertical_floor_gap_worst_mm"], 0)
+
 
 class CadShellV2PackingSourceTests(unittest.TestCase):
     def test_pinned_packing_matches_this_repo(self) -> None:
