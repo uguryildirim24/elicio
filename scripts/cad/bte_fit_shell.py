@@ -243,6 +243,7 @@ OVERRIDABLE_KEYS = frozenset(
         "V2_IFACE",
         "V2_STANDOFF",
         "V2_RECESS",
+        "SHELL_V4",
         "STAGE",
         *REFERENCE_M_KEYS,
     }
@@ -267,6 +268,7 @@ STAGE_B_ONLY_KEYS = frozenset(
         "V2_IFACE",
         "V2_STANDOFF",
         "V2_RECESS",
+        "SHELL_V4",
         "STAGE",
         "TAIL_DS",
         "TAIL_S0",
@@ -302,6 +304,7 @@ STAGE_B_OVERLAY_KEYS = frozenset(
         "V2_IFACE",
         "V2_STANDOFF",
         "V2_RECESS",
+        "SHELL_V4",
         "STAGE",
     }
 )
@@ -795,6 +798,10 @@ def packing_is_v2(params: Mapping[str, Any]) -> bool:
 
 def stage_is_shell(params: Mapping[str, Any]) -> bool:
     return str(params.get("STAGE", "")).lower() == "shell"
+
+
+def shell_v4(params: Mapping[str, Any]) -> bool:
+    return stage_is_shell(params) and bool(params.get("SHELL_V4", False))
 
 
 def _inactive_detail(detail: str) -> bool:
@@ -1297,6 +1304,12 @@ def _apply_v2_packing(p: dict[str, Any]) -> None:
         p["BOARD_ZONE_S"] = [float(result.board_s[0]), float(result.board_s[1])]
         p["RIB_S"] = [float(result.rib_s[0]), float(result.rib_s[1])]
         p["TAIL_S0"] = SHELL_TAPER_S0 + spec.arc_plus
+        if shell_v4(p):
+            p["CAVITY_U"] = [1.5, 16.5]
+            p["BOARD_ZONE_U"] = [2.25, 15.75]
+            p["BOARD_ZONE_S"] = [16.0, 37.6]
+            p["CAVITY_S"] = [1.5, 38.2]
+            p["RIB_S"] = [14.9, 15.7]
     else:
         p["CAVITY_U"] = [float(layout.cavity_u[0]), float(layout.cavity_u[1])]
         p["CAVITY_S"] = [float(layout.cavity_s[0]), float(layout.cavity_s[1])]
@@ -4452,13 +4465,17 @@ def _lofted_shell_lid(path: PathGeom, params: Mapping[str, Any]) -> Shape:
     span = s1 - s0
     count = max(6, int(math.ceil(abs(span) / 2.5)) + 1)
     faces: list[Face] = []
-    y_rim = lid_y + SHELL_LID_RIM_T
+    # v4's 1.0 lid must end at 8.1. The r9 extra 1.25 rim + 0.90
+    # crown would make the v4 envelope 9.25, not the specified 8.1.
+    y_rim = lid_y + (1.0 if shell_v4(params) else SHELL_LID_RIM_T)
+    crown_height = 0.0 if shell_v4(params) else SHELL_LID_CROWN
     for i in range(count):
         s = s0 + span * i / (count - 1)
         u0, u1 = _shell_lid_u(s, params)
         fade_s = math.sin(math.pi * (s - s0) / span) if span > 1e-9 else 0.0
-        y_mid = y_rim + SHELL_LID_CROWN * max(0.0, fade_s)
-        faces.append(_lid_station_face(path, s, u0, u1, lid_y, y_rim, y_mid))
+        y_mid = y_rim + crown_height * max(0.0, fade_s)
+        faces.append(_lid_station_face(path, s, u0, u1, lid_y, y_rim, y_mid,
+                                       rim_r=0.80 if shell_v4(params) else SHELL_LID_RIM_R))
     return _one_solid(loft(faces), "shell_lid")
 
 
@@ -4526,6 +4543,58 @@ def _measured_lid_rim_r(lid: Solid, path: PathGeom, lid_y: float, width: float) 
             if fitted > 0.2:
                 found.append(fitted)
     return min(found) if found else 0.0
+
+
+def _apply_v4_features(
+    body: Shape, lid: Shape, path: PathGeom, params: Mapping[str, Any],
+    notes: dict[str, Any], measure: dict[str, Any],
+) -> tuple[Shape, Shape]:
+    """v4's folded wall plate replaces the proud v2 charging sockets."""
+    maker = path_solid_for(path, params)
+    lid_y = float(params["LID_Y"])
+    slot = maker(16.0, 16.5, 14.9, 15.7, 1.5, 4.5)
+    measure["rib_slot_removed_mm3"] = round(_overlap_volume(body, slot), 4)
+    for u0, u1 in ((4.15, 7.65), (8.65, 12.15)):
+        body = body.cut(maker(u0, u1, 14.4, 16.0, 1.5, 4.5))
+    # Two floor-standing tangential keys for each 5 AF standoff. The
+    # standoff ends at u=13.19; its end and the folded plate stay open.
+    for site in (4.35, 12.10):
+        for s0, s1 in ((site - 3.8, site - 2.8), (site + 2.8, site + 3.8)):
+            body = body.fuse(maker(13.19, 16.19, s0, s1, 1.5, 4.3))
+        body = body.cut(_u_cylinder(path, 16.15, site, 4.295, 1.35, 2.0))
+    body = body.cut(slot)
+    # The vertical flap continues past the rib to s19.30. The r9 bay
+    # shoulder occupies its lower y1.695–3.905 volume there; the short
+    # rib slot alone leaves a real solid collision. Recess the inner
+    # 0.5 mm of that shoulder while keeping the 1.5 mm outer wall.
+    flap_relief = maker(16.0, 16.5, 15.7, 19.3, 1.5, 4.5)
+    measure["flap_relief_removed_mm3"] = round(_overlap_volume(body, flap_relief), 4)
+    body = body.cut(flap_relief)
+    # The v2 island corner pad occupied the v4 joint's relief notch.
+    # It is not a v4 support: the island is held between lid posts and
+    # contact standoffs, with its high-u edge notched from s16 to 19.6.
+    body = body.cut(maker(15.09, 16.30, 16.30, 19.30, 3.80, 5.12))
+    # The r9 hinge is translated down with the lid, not discarded.
+    hu0, hu1 = shell_hinge_u(params)
+    dy = lid_y - 8.0
+    body = body.cut(maker(hu0, hu1, SHELL_HINGE_S[0],
+                          SHELL_HINGE_S[1] + 0.08,
+                          SHELL_HINGE_Y0 + dy, SHELL_HINGE_Y1 + dy))
+    lid = _lofted_shell_lid(path, params)
+    lip = maker(hu0 + 0.15, hu1 - 0.15, SHELL_HINGE_S[0] + 0.08,
+                1.52, SHELL_HINGE_Y0 + dy + 0.05, SHELL_HINGE_Y1 + dy - 0.05)
+    strap = maker(hu0 + 0.15, hu1 - 0.15, 1.50, 1.90,
+                  SHELL_HINGE_Y1 + dy - 0.08, lid_y + 0.08)
+    lid = lid.fuse(lip).fuse(strap)
+    for u, s, length in ((5.90, 23.00, 1.98), (9.40, 32.10, 0.98)):
+        pt = _vec(path, u, s, lid_y - length)
+        lid = lid.fuse(_y_cylinder(pt.X, lid_y - length, pt.Z, 1.0, length + 0.1))
+    # No screw: with length unchanged the 50.25 mm minimum screw station is
+    # outside the 48.4 mm body. Do not substitute a latch without approval.
+    notes["closure"] = "UNVERIFIED: screw cannot fit beyond REF; hinge only, no closure"
+    notes["shell_measure"] = measure
+    notes["winner"] = "v4 flex W18 T8.1"
+    return body, lid
 
 
 def _apply_shell_features(
@@ -4622,7 +4691,7 @@ def _apply_shell_features(
 
     # Q82: bosses first so the floor tab groove (Q83) nicks only the boss
     # base; OD is measured at mid-height.
-    bosses = _shell_boss_sites(layout, v2, params)
+    bosses = [] if shell_v4(params) else _shell_boss_sites(layout, v2, params)
     for name, u, s in bosses:
         boss_h = layout.boss_top_y - floor_y
         origin = _vec(path, u, s, floor_y)
@@ -4669,6 +4738,9 @@ def _apply_shell_features(
                 body = body.cut(
                     maker(box.u0, box.u1, box.s0, box.s1, box.y0, box.y1)
                 )
+
+    if shell_v4(params):
+        return _apply_v4_features(body, lid, path, params, notes, measure)
 
     # Q90/Q93: P4/P5 as clamped button-heads in the posterior side wall.
     # Ø2.7 through the 1.50 wall, RING_PAD on the inner face, 3.0 standoff
