@@ -1,6 +1,6 @@
 # Board v4 — design note (smaller body)
 
-Draft. **Routed, not a complete ESD fix**: DRC 0 errors and 0 unconnected after a zone refill, and `scripts/board/release.py --board elicio-v4 --routed` passes (§9). U3 now has DC-bias-characterized IN/TS/OUT capacitors meeting the numerical IEC rating conditions, but D1 still clamps at the far end of VBUS and the nearest OUT bulk is 9.3 mm from U3; the conditional IC rating is not a contact-level test (§2.1). Rolf chose off-ear-only charging with fixed TS and a two-wire J2 (no cell NTC); the antenna keep-out still needs his decision (§4.2). §11.1 lists what is still UNVERIFIED.
+Draft. **Routed, not a complete ESD fix**: DRC 0 errors and 0 unconnected after a zone refill, and `scripts/board/release.py --board elicio-v4 --routed` passes (§9). U3 now has DC-bias-characterized IN/TS/OUT capacitors meeting the numerical IEC rating conditions, but D1 still clamps at the far end of VBUS and the nearest OUT bulk is 9.3 mm from U3; the conditional IC rating is not a contact-level test (§2.1). Rolf chose off-ear-only charging with fixed TS and a two-wire J2 (no cell NTC); the antenna keep-out still needs his decision (§4.2). The later built snap shell is a print-trial solid, not a verified fit; see `shell-v4.md`. §11.1 lists what is still UNVERIFIED.
 Date: 2026-09-25. Lanes t-0012 (Opus 5.5: design and first routing), t-0014 (Fable 5.1: routed to 10 open), t-0016 (Fable 5.1: pass-2 placement), t-0019 (Opus 5.5: passes 3–6 and the first routed board), t-0036 (charger ESD capacitor changes and reroute).
 
 ## 1. Size levers
@@ -349,7 +349,7 @@ All strips are 2.5 wide with cap R 3.2, one Contact net each.
 
 See §3.3. No B-side part sits on `STIFF_U1_B` (the build script checks this). The P1 landing circle carries no B part.
 
-### 4.8 Cavity tests (by numbers; the shell solid is not built)
+### 4.8 Prebuild cavity tests (by numbers; the later built shell is checked in `shell-v4.md`)
 
 | Test | Result |
 |---|---|
@@ -773,7 +773,7 @@ From `python3 hardware/board/v4_tables.py --pads` on the t-0036 routed board. Pa
 
 ### 10.2 Folded shell sites (u, s, y)
 
-From `python3 hardware/board/v4_tables.py --folded` on the t-0036 routed board. Shell u, s = flat u, s for everything that stays flat (the island and its parts); y comes from the thickness chain (§1.2) and the fold math (§4.4). Courtyards are line-centre boxes from the footprint text (the drawn line is 0.05 wide). The v4 target body is the r9 shell (branch `hp/elicio/t-0001-finish-the-earpiece-shell-v2f-wp14f-from`, 252afbb, not merged) with §7's changes on paper: walls u 1.5/16.5, floor 1.5, LID_Y 7.1, rib s 14.9–15.7 (y ≤ 4.5), bay s 15.7–38.2, EMG hex collars AF 8.4 (top y 3.5) at the P1/P2 sites, standoff landings R 3.2, lid posts Ø2.0, r9's SIG fold pockets and REF end-wall slot. Margins are in mm; a row passes when every margin is ≥ 0. F parts stand on the island top (y 5.12) under the lid; B parts hang from the island underside (y 5.01) over the collar top (3.5) where a collar box is below them, else over the floor (1.5). Heights are maxima from the sources in the table; the ones marked UNVERIFIED are package maxima (§11.1). The P2 lid post on U1 is by design (§5.3).
+From `python3 hardware/board/v4_tables.py --folded` on the t-0036 routed board. These are the prebuild board-to-shell targets, not measured clearances in the later built snap solid; see `shell-v4.md` for those checks. Shell u, s = flat u, s for everything that stays flat (the island and its parts); y comes from the thickness chain (§1.2) and the fold math (§4.4). Courtyards are line-centre boxes from the footprint text (the drawn line is 0.05 wide). The original v4 target body was the r9 shell (branch `hp/elicio/t-0001-finish-the-earpiece-shell-v2f-wp14f-from`, 252afbb, not merged) with §7's changes on paper: walls u 1.5/16.5, floor 1.5, LID_Y 7.1, rib s 14.9–15.7 (y ≤ 4.5), bay s 15.7–38.2, EMG hex collars AF 8.4 (top y 3.5) at the P1/P2 sites, standoff landings R 3.2, lid posts Ø2.0, r9's SIG fold pockets and REF end-wall slot. Margins are in mm; a row passes when every margin is ≥ 0. F parts stand on the island top (y 5.12) under the lid; B parts hang from the island underside (y 5.01) over the collar top (3.5) where a collar box is below them, else over the floor (1.5). Heights are maxima from the sources in the table; the ones marked UNVERIFIED are package maxima (§11.1). The P2 lid post on U1 is by design (§5.3).
 
 #### Courtyards on the island (flat u, s = shell u, s; y from the fold math)
 
@@ -891,7 +891,7 @@ Shell changes this table needs, with numbers (all in §7): the rib cut back 0.50
 - **Part heights** in §10.2 beyond U1, J2, SW1 (§1.2) and the TI outlines: package maxima, no page read.
 - **U1 VSS vias:** the coverlay window over the U1 land and solder wicking into the two 0.15 holes between pads 14/16/18 at reflow (§3.1).
 - **REF drop:** the strip's descent from the island (y 5.01) to the end-wall slot (y 1.50–1.96) inside the 0.60 gap is v2's geometry, not re-derived here.
-- **P4/P5 keying walls and the closure** (§7): proposals by numbers; the r9 shell has not been rebuilt with them.
+- **P4/P5 keying walls and the closure** (§7): the r9 shell was not rebuilt; the later `v4-snap` trial solid includes these features, but its physical latch, keying-wall retention and print tolerance remain UNVERIFIED (`shell-v4.md`).
 
 ### 11.2 Sources
 
