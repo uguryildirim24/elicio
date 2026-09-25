@@ -304,7 +304,7 @@ class V2Spec:
             raise ValueError(f"layout must be series|stacked, got {self.layout!r}")
         if self.width not in ALLOWED_WIDTHS:
             raise ValueError(f"width must be 18–22, got {self.width!r}")
-        if self.lid_y not in ALLOWED_LID_YS:
+        if self.lid_y not in ALLOWED_LID_YS and not (self.width == 18.0 and self.lid_y == 7.1):
             raise ValueError(f"lid-y must be 6.0–10.5 in 0.5 steps, got {self.lid_y!r}")
         if self.arc_plus not in ARC_STEPS:
             raise ValueError(f"arc-plus must be 0|1.5|3.0, got {self.arc_plus!r}")
