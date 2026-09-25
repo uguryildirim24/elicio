@@ -105,9 +105,9 @@ v2 list from the v2 netlist (board-v2.md G2/BOM). v4 list from `hardware/board/v
 | — | — | C16 1 µF 0201 on VBAT | **add** | U5 input |
 | L1 | 10 µH 0603, C1045 | — | **remove** | Stops nothing: DCCH is not brought out; the SiP carries its own DC/DC parts |
 | Q1 | AO3401A SOT-23, C15127 | WPM3027-3 DFN1006-3, C240195 | change | Vgs(th) max −1.0, 800 mΩ max at −2.5 V |
-| Q2–Q4 | 2N7002 SOT-23, C2128 | N-FET DFN1006-3 (SOT-883 land) | change | Part UNVERIFIED (Vgs(th) ≤ 1.0 needed) |
+| Q2–Q4 | 2N7002 SOT-23, C2128 | Nexperia PMZ290UNE2YL DFN1006-3 (SOT883), C478155 | change | Refcheck t-0023 (§2.1). Pin 1 G, 2 S, 3 D, as the SOT-883 land |
 | Q5 | 2N7002, DNP | — | **remove** | Stops nothing: DNP, BAT_MEAS_EN was never driven |
-| D1 | PESD5V0L1UL SOD-523, C24109 | same | keep | VBUS TVS |
+| D1 | PESD5V0L1UL SOD-523, C24109 | same part on Nexperia's SOD882 land (KiCad `D_SOD-882`) | change land | Refcheck t-0023 (§2.1). VBUS TVS, pad 1 cathode on VBUS |
 | D2 | LED 0402, C72043 | same | keep | Charge LED |
 | J2 | SM02B-SRSS-TB, C160402 | Molex 202656-0021 Pico-EZmate Slim | change | Mated 1.20. Not in the JLC library. The cell needs the matching plug (L4) |
 | J3 | HDR-3-RA, C49257 | same, on a break-off tab behind R31–R33 | keep | Q91. Pin order as v2 (J3.1 SIG1 side, J3.2 SIG2, J3.3 REF). Each pin has its own 220 kΩ on the tab (§5.4) |
@@ -119,7 +119,8 @@ v2 list from the v2 netlist (board-v2.md G2/BOM). v4 list from `hardware/board/v
 | R1–R3 | 220 kΩ 0402, C881401 | same | keep | Contact, not shrunk |
 | — | — | R31–R33 220 kΩ 0402, C881401 | **add** | The bench header's own 220 kΩ per pin (R7), on the break-off tab; they leave with it |
 | R4, R17, R20, R21 | 1 MΩ 0402, C26083 | 0201, C473482 | change | |
-| R5–R8, R13, R25, R27, R28 | 10 kΩ 0402, C25744 | 0201, C473048 | change | |
+| R5–R8, R13, R25, R27, R28 | 10 kΩ 0402, C25744 | 0201, C473048 | change | R13 stays a fixed 10 kΩ on TS: no flex copper touches the cell for an NTC (§2.1) |
+| — | — | R34, R35 10 kΩ 0201, C473048 | **add** | U2 GPIO1/GPIO2 to GND (refcheck t-0023, §2.1) |
 | R26 | 10 kΩ 0402, nRESET pull-up | — | **remove** | Stops nothing: P0.18 as RESET has its own pull-up (L10). Firmware sets UICR PSELRESET (§8) |
 | R9, R10 | 5.1 kΩ, DNP | — | **remove** | Stops nothing: USB-C CC with no receptacle (Q81, Q95) |
 | R11 | 6.80 kΩ 0402, C25917 | 0201, C4104700 | change | ISET unchanged (≈ 19.85 mA) |
@@ -134,7 +135,9 @@ v2 list from the v2 netlist (board-v2.md G2/BOM). v4 list from `hardware/board/v
 | C3–C5, C10, C13 | 1 µF 0402, C15849 | 0201, C5142566 | change | |
 | C6, C8, C9 | 10 µF 0603, C19702 | 0402, C15525 (Basic) | change | |
 | C7, C15 | 100 nF 0603, C14663 | 0201, C307380 | change | |
-| C11, C12 | 100 nF 0402, C1525 | 0201, C307380 | change | |
+| C11 | 100 nF 0402, C1525 | 1 µF 0201, C5142566 | change | VCAP2 (refcheck t-0023, §2.1) |
+| C12 | 100 nF 0402, C1525 | 0201, C307380 | change | |
+| — | — | C17 100 nF 0201, C307380 | **add** | VREFP local bypass beside C9 (refcheck t-0023, §2.1) |
 | C14 | 4.7 µF 0402, C19675 | 4.7 µF 0402 | keep size | Code UNVERIFIED (v2's C19675 was never checked in board-v2) |
 
 J1 (USB-C) and USBLC6 were already absent in v2 (Q81).
@@ -142,6 +145,30 @@ J1 (USB-C) and USBLC6 were already absent in v2 (Q81).
 v4 placement: 59 parts plus P1–P5. On the island, 22 are on F (J4 included) and 33 on B; J3, R31 and R33 are on the tab and R32 on its neck. J4 and P1–P5 are not in the BOM, which leaves 58 lines.
 
 **No removal changes function.** Every removed part was DNP, or is replaced by the SiP (L1), by the lid posts (H1/H2) or by the nRF's own reset pull-up (R26). The charger, charge interlock, AFE supply gate, VBUS_DET, VBAT_SENSE, CHG_MON, LED, SW1, J3 and J4 all stay.
+
+### 2.1 Refcheck t-0023 changes
+
+The circuit check (`docs/fab/board-v4-refcheck.md` on the t-0023 branch, datasheets read 2026-09-25) named six order blockers. Five are fixed in the schematic and on the board, and the schematic ERC is clean. The NTC doesn't fit (item 6). The antenna keep-out (13 mm against 18) stays as it is; it's on Rolf's list (§4.2).
+
+1. **D1 land.** PESD5V0L1UL is made in Nexperia's SOD882 (DFN1006-2): "leadless ultra small plastic package; 2 terminals; body 1.0 × 0.6 × 0.5 mm" (datasheet Table 4). v2's SOD-523 land was another package.
+   - Pinning (Table 3): pin 1 cathode, marked by the bar; pin 2 anode. Pad 1 is on VBUS, pad 2 on GND.
+   - Land: KiCad `D_SOD-882`, pads 0.4 × 0.7 at 0.70 pitch, gap 0.30. Nexperia's reflow land (Fig. 13) is 0.3 × 0.6 at 0.60 pitch, gap 0.30. Same gap; KiCad's pads reach 0.10 further out on each side.
+   - D1 moved to B (14.60, 21.85) on the VBUS trunk, cathode east. C24109 is v2's LCSC code; that its listing is this package is UNVERIFIED.
+2. **C11 (VCAP2) 1 µF.** TI shows 1 µF at VCAP2 (SBAS502C Fig. 73); v2 had 100 nF. Now 1 µF 0201 (C5142566), its pad 0.6 from pin 27 on a locked F track. The effective value at VCAP2's DC bias is UNVERIFIED (an 0201 X5R loses capacitance under bias).
+3. **GPIO1/GPIO2 pull-downs.** SBAS502C §8.5.1.7: the GPIO pins default to inputs and must not float. R34 (GPIO1, pin 26) and R35 (GPIO2, pin 25) are 10 kΩ to GND on B, each one via away from its pin. Firmware leaves both as inputs.
+4. **Q2–Q4 PMZ290UNE2.** Nexperia PMZ290UNE2YL, DFN1006-3 (SOT883), LCSC C478155. The older PMZ290UNE is end-of-life. Datasheet Rev. 1 (2015):
+   - Pins (Table 2): 1 G, 2 S, 3 D, the order of the SOT-883 land.
+   - VGS(th) 0.45–0.95 V at ID 250 µA; RDSon ≤ 1.19 Ω at VGS 1.5 V; IDSS ≤ 1 µA at 20 V (Table 7). VDS 20 V, VGS ±8 V (Table 5).
+   - Gate drive: Q2 from R16/R17 (VBUS × 1/1.1: 4.5 V at 5.0 V, 5.0 V at 5.5 V); Q3 from AFE_EN_HW (VBAT through R15, 3.0–4.2 V); Q4 from LED_EN (3.0 V). Each is at least 3× VGS(th) max and under the 8 V gate limit.
+   - Off state: without VBUS, R17 holds Q2's gate at 0 V, and 1 µA of IDSS drops 0.1 V across R15. With VBUS, Q2 holds AFE_EN_HW near 0 V (42 µA through ≤ 1.19 Ω), so Q3 is off.
+   - Drains see VBAT (≤ 4.2 V) or, for Q4, the LED cathode below VBUS (≤ 5.5 V), against 20 V.
+   - Still for the bench (refcheck): the Q2 charge interlock with a low cell.
+5. **C17 VREFP 100 nF.** SBAS502C Fig. 73 shows 10 µF + 0.1 µF at VREFP. C17 (100 nF 0201) sits on F beside C9, its VREFP pad next to C9's.
+6. **U3 TS: R13 stays; no NTC.** TI designs TS for "a 10-k NTC β = 3370 ... connected from the TS pin to VSS" and says to "use a 10-k NTC thermistor in the battery pack (103AT)" (SLUSBV8C §8.3.8, §9.2.2.1.3). An NTC only helps where it touches the cell, and no flex copper does:
+   - The cell sits in its pocket at s 1.5–14.9. The island starts at s 16.0 behind the rib (s 14.9–15.7), at least 1.1 from the cell's end through air and plastic.
+   - In the cell section the flex is only the SIG1/SIG2 strips and the P4/P5 plate. The strips are Contact copper, one net each (Q97), so no TS track can ride on them. The plate folds against the wall at u 16.19–16.30 behind the standoffs, 4.3 from the cell's side (u 11.9); it would read the charge standoffs.
+   - An NTC on the island next to U3 would read the board and stop charge on the board's temperature. That looks like protection and isn't.
+   - What works: a cell with its own NTC on a third J2 contact. That changes J2 (a 3-way Pico-EZmate Slim; which part fits is UNVERIFIED) and the cell order (L4, already UNVERIFIED). **Rolf decides.** Until then R13 holds TS at the 10 kΩ level, and the 0–45 °C charge window is Rolf's sheet, not automatic (board-v2 §5).
 
 ## 3. Layers against the JLC flex rules
 
@@ -495,6 +522,14 @@ Pin map A (as built). Every fast SPI line is on a full-speed pin; the low-freque
 - `firmware/elicio_stream/elicio_stream.ino` reads VBUS through `NRF_POWER->USBREGSTATUS`. It must switch to the VBUS_DET GPIO (R18/R19 divider).
 
 **First load.** VDD is 3.0 V from U5 from power-up, so v2's REGOUT0 1.8 V first-load issue is gone. A 3.3 V probe sits at VDD + 0.3, not over it. G4 still verifies.
+
+**AFE inputs while +3V0 is off or ramping (firmware lane t-0022).** SBAS502C §10.1: "Before device power-up, all digital and analog inputs must be low. At the time of power-up, all of these signals should remain low until the power supplies have stabilized". The MCU runs from U5 all the time, but +3V0 is off whenever VBUS is present (Q2 → Q3 → Q1, §5.4 interlock). So while a charger is on, the MCU's lines to U2 face an unpowered chip. U2's inputs have no pull resistors of their own; the limits are digital input ≤ DVDD + 0.3 and ±10 mA continuous per pin (§6.1).
+
+- **CS, SCLK, MOSI** reach U2 through R7, R6, R5 (10 kΩ). A line left high into an unpowered U2 feeds at most (3.0 − 0.3) / 10 kΩ ≈ 0.27 mA into its clamp: no harm, but it lifts +3V0 partway and spoils the power-up. Firmware releases them (output low, or input disconnected) and they carry nothing. **No pull-downs needed.** A pull-down on U2's side would cost 30 µA per line at 100 kΩ while CS idles high.
+- **RESET and START** are wired straight to U2, with R23 and R24 (100 kΩ) already pulling them low. Released, they sit low as §10.1 wants. There's no series resistor, so RESET held high by mistake would back-feed U2 through its clamp. Once C8 is charged the current is U2's own supply draw, under the ±10 mA limit. No part change; this is a firmware rule.
+- **Firmware rule.** While VBUS_DET is high, and from boot until +3V0 has been up for tPOR (2¹² tMOD, Table 29), drive CS, SCLK, MOSI, START and RESET low or disconnect them; never high. VBUS_DET rises with VBUS (R18/R19), while +3V0 falls only after Q2, Q3 and Q1 have switched; a few milliseconds of overlap are harmless at these currents. After VBUS goes away, +3V0 comes back once R17 has drained Q2's gate. Then wait tPOR, pulse RESET and configure. MISO and DRDY are inputs at the MCU behind R8 and R27 and need nothing.
+
+**CHG_MON range (t-0022).** CHG_MON is ISET seen through R25 (10 kΩ) on P0.30/AIN6. The BQ25100 regulates ISET against a 1.5 V fast-charge reference (SLUSBV8C §8.2 block diagram; the table has no V_ISET row, so UNVERIFIED as a number), and less than that in precharge and taper. Without VBUS the charger is "dead" with every pin high impedance (§8.4.1), and R11 holds ISET at 0 V. So CHG_MON stays at 1.5 V or below, inside U1's VDD 3.0 (VI/O ≤ VDD + 0.3, nRF52840 PS Table 185). If R11 fails open, ISET's voltage isn't specified (UNVERIFIED); its absolute maximum is 7 V (§7.1), and even at 7 V R25 limits the current into U1's clamp to ≤ 0.4 mA. The SAADC sees about 17 kΩ of source (R25 plus R11), so firmware sets its acquisition time for that.
 
 ## 9. Routing status
 
