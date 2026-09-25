@@ -142,7 +142,7 @@ v2 list from the v2 netlist (board-v2.md G2/BOM). v4 list from `hardware/board/v
 
 J1 (USB-C) and USBLC6 were already absent in v2 (Q81).
 
-v4 placement: 59 parts plus P1–P5. On the island, 22 are on F (J4 included) and 33 on B; J3, R31 and R33 are on the tab and R32 on its neck. J4 and P1–P5 are not in the BOM, which leaves 58 lines.
+v4 placement: 62 parts plus P1–P5. On the island, 24 are on F (J4 included) and 34 on B; J3, R31 and R33 are on the tab and R32 on its neck. J4 and P1–P5 are not in the BOM, which leaves 61 lines.
 
 **No removal changes function.** Every removed part was DNP, or is replaced by the SiP (L1), by the lid posts (H1/H2) or by the nRF's own reset pull-up (R26). The charger, charge interlock, AFE supply gate, VBUS_DET, VBAT_SENSE, CHG_MON, LED, SW1, J3 and J4 all stay.
 
