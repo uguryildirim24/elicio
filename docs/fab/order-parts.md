@@ -1,5 +1,7 @@
 # Order the small parts (v2)
 
+**Not a v4 order sheet.** V4 needs a factory-fitted protected cell with a different connector and an insulated charge cable; this sheet lists the older parts. Do not use it to order v4; see `orders-v2.md` for the v4 cost scenarios and open G8 record.
+
 Phone sheet. Order 3 is screws, standoffs, cell, tools, foam, plugs,
 leads, electrodes, and the nickel kit or your written waiver. The
 conditional first-load kit is a separate cart if G4 falls to you.

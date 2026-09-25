@@ -1,5 +1,7 @@
 # Order the shell (v2)
 
+**Not a v4 order sheet.** These files and the $50–90 reserve describe the older 22 mm shell, not the unbuilt 18 mm v4 shell. Do not order v4 with this sheet; see `orders-v2.md` for the v4 cost scenarios and open G8 record.
+
 Phone sheet. Order 2 is the printed body and lid. It is not the board.
 No agent places this order. You pay only after every box in the
 checkout gate is ticked.
