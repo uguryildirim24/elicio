@@ -119,14 +119,91 @@ def measure(body, lid, path, params):
     return checks
 
 
+def closure_variant(body, lid, path, params, name):
+    """Independent closure prototypes on the unchanged v4 solid."""
+    if name == "hinge":
+        return body, lid, {"type": "hinge only"}
+    if name in ("snap", "snap-firm"):
+        maker = cad.path_solid_for(path, params)
+        beam_start = 38.25 if name == "snap-firm" else 38.40
+        # End-wall notch leaves the existing hinge untouched. The beam runs
+        # down from the lid; its foot catches under the wall's replacement lip.
+        body = body.cut(maker(13.30, 15.50, 38.05, 40.05, 4.05, 7.10))
+        body = body.fuse(maker(13.40, 15.50, 39.80, 40.80, 5.35, 6.35))
+        lid = lid.fuse(maker(13.65, 15.35, beam_start, 39.40, 4.15, 7.18))
+        lid = lid.fuse(maker(13.65, 15.35, 39.35, 40.02, 4.15, 5.15))
+        # Key access to press the foot towards -s before lifting the lid.
+        lid = lid.cut(maker(13.50, 15.50, 39.46, 40.66, 7.09, 8.20))
+        return body, lid, {"type": "PA12 cantilever " + name, "beam_u_mm": [13.65, 15.35],
+                           "beam_s_mm": [beam_start, 39.40], "beam_y_mm": [4.15, 7.18],
+                           "foot_s_mm": [39.35, 40.02], "lip_s_mm": [39.80, 40.80],
+                           "lip_y_mm": [5.35, 6.35], "deflection_mm": 0.25}
+    diameter, head, height, boss_od = (1.6, 3.14, 1.64, 3.6)
+    u, s = 14.10, 11.80
+    xyz = cad._vec(path, u, s, 0)
+    # The shank is 4 mm measured from the head seat. A 0.10 mm face
+    # clearance separates the floor pillar from the hanging lid boss.
+    # This is a deliberate diagnostic prototype: the head's radial wall
+    # is thinner than the published MJF minimum, so it is not for printing.
+    seat = height + 0.12
+    tip = seat + 4.0
+    body_boss_top = 3.95
+    lid_boss_bottom = 4.05
+    body_boss_od = boss_od  # narrow gap beside the folded charging plate
+    body = body.fuse(cad._y_cylinder(xyz.X, 1.48, xyz.Z, body_boss_od / 2, body_boss_top - 1.48))
+    lid = lid.fuse(cad._y_cylinder(xyz.X, lid_boss_bottom, xyz.Z, boss_od / 2,
+                                    7.20 - lid_boss_bottom))
+    body = body.cut(cad._y_cylinder(xyz.X, -0.05, xyz.Z, head / 2 + 0.10, seat + 0.05))
+    body = body.cut(cad._y_cylinder(xyz.X, seat - 0.01, xyz.Z, diameter / 2 + 0.10,
+                                     body_boss_top - seat + 0.02))
+    lid = lid.cut(cad._y_cylinder(xyz.X, lid_boss_bottom - 0.01, xyz.Z,
+                                   (diameter - 0.2) / 2, tip - lid_boss_bottom + 0.02))
+    return body, lid, {"type": "ISO 4762 medial-access socket screw", "thread": name,
+                       "u": u, "s": s, "head_max_mm": head, "head_height_max_mm": height,
+                       "key_mm": 1.5, "head_seat_y_mm": seat, "nominal_screw_length_mm": 4,
+                       "tip_y_mm": tip, "lid_engagement_mm": round(tip - lid_boss_bottom, 3),
+                       "body_boss_od_mm": body_boss_od, "lid_boss_od_mm": boss_od,
+                       "head_well_radial_wall_mm": round((body_boss_od - head - .20) / 2, 3),
+                       "lid_boss_radial_wall_mm": round((boss_od - diameter) / 2, 3),
+                       "head_well_floor_radial_mm": round(min(u - (head / 2 + .1),
+                                                              18 - u - (head / 2 + .1)), 3)}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=ROOT / "docs/fab/cad/v4")
+    parser.add_argument("--closure", choices=("hinge", "m16", "snap", "snap-firm"), default="hinge")
     args = parser.parse_args()
     params, unused = cad.build_reference_params(variant="full", preload=1.5,
         overrides=cad.load_params_file(PARAMS), crease_bow_from_m=False)
     body, lid, path, notes = cad.build_body_and_lid(params)
+    body, lid, closure = closure_variant(body, lid, path, params, args.closure)
+    body, lid = cad._one_solid(body, 'closure body'), cad._one_solid(lid, 'closure lid')
     checks = measure(body,lid,path,params)
+    checks.append({"item":"seated lid vs body", "kind":"solid overlap",
+                   "margin_mm":round(cad._overlap_volume(body,lid),4),
+                   "passed":cad._overlap_volume(body,lid)<0.001})
+    if args.closure.startswith('snap'):
+        for item, solid, u, s, y, occupied in (
+            ('snap beam root', lid, 14.5, 38.50, 6.90, True),
+            ('snap foot', lid, 14.5, 39.9, 4.5, True),
+            ('snap ledge', body, 14.5, 39.9, 5.7, True),
+            ('snap hex-key access', lid, 14.5, 39.7, 7.5, False),
+        ):
+            present = cad._inside_uys(solid,path,u,s,y)
+            checks.append({'item':item,'kind':'closure solid probe','margin_mm':0,
+                           'passed':present == occupied})
+    elif args.closure == 'm16':
+        for item, solid, y, occupied in (
+            ('screw head air', body, 0.8, False),
+            ('screw shank air', body, 3.0, False),
+            ('screw lid pilot air', lid, 5.0, False),
+            ('screw lid boss wall', lid, 5.0, True),
+        ):
+            u = 15.65 if item == 'screw lid boss wall' else 14.10
+            present = cad._inside_uys(solid,path,u,11.80,y)
+            checks.append({'item':item,'kind':'closure solid probe','margin_mm':0,
+                           'passed':present == occupied})
     assembled, lid_s = cad.assemble_shell(body,lid,params,notes)
     args.out.mkdir(parents=True,exist_ok=True)
     files = {}
@@ -135,7 +212,7 @@ def main():
         if not cad.stl_watertight(args.out/f"{name}.stl"):
             raise cad.CheckFail(f"{name}: STL not watertight")
     manifest = {"schema": 1,"stage":"shell-v4", "provisional":True,
-                "closure":"hinge only; NO SCREW OR LATCH (50.25 mm needed beyond 48.4 mm arc)",
+                "closure":closure,
                 "source_table":"docs/fab/board-v4-design.md §10.2",
                 "parameters":{k:v for k,v in params.items() if not k.startswith('_') and cad._jsonable(v)},
                 "params_sha256":cad.sha256_file(PARAMS), "checks":checks,
