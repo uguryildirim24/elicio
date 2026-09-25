@@ -1,9 +1,9 @@
-# Shell v4 — W18 × T8.1, same 48.4 mm arc (prototype, NOT CLOSED)
+# Shell v4 — W18 × T8.1, same 48.4 mm arc (snap print trial only)
 
-The v4 board's folded **courtyard boxes**, not only pin centres, clear the built
-shell nominally. **This is not a wearable/print release**: the screw cannot fit
-at the unchanged length and the lid has only its hinge. Rolf must choose
-whether to change the length or the closure concept. No latch was substituted.
+The unmodified `cad/v4` shell has only a hinge; it is **not closed**. The
+separate `cad/v4-snap` shell has a ramped two-arm latch and a full-width key
+corridor, but printed fit, retention and repeatability remain unverified.
+Do not wear or order it as a finished product.
 
 ## Build / difference from v2f
 
@@ -130,16 +130,16 @@ changes are requested.
 
 ## Closure variants on the unchanged 48.40 mm arc (2026-09-25)
 
-Three **separate** body/lid builds, not edits to `cad/v4`: `cad/v4-m16`,
-`cad/v4-snap`, `cad/v4-snap-firm`. Rebuild one at a time with
-`build_shell_v4.py --closure m16|snap|snap-firm --out docs/fab/cad/v4-<name>`;
-`render_v4.py --single --out` on each directory generates the closure view.
-Each manifest contains the complete rerun of **all 97 base §10.2 solid
-checks** (courtyards, folded plate, cell, roots, posts, axes, keys), plus
-seated body/lid nonintersection and four closure occupancy probes:
-**102/102 passing, zero seated overlap, both STL meshes watertight for each**.
-The exterior renders cannot show the concealed catch or screw pilot; inspect
-STEP for that geometry. These are *nominal solids*, not validated print fits.
+Two **separate** body/lid builds, not edits to `cad/v4`: `cad/v4-m16` and
+`cad/v4-snap`. Rebuild one at a time with `build_shell_v4.py --closure
+m16|snap --out docs/fab/cad/v4-<name>`; `render_v4.py --single --out` on
+each directory makes the closure view. The base table now has **98** solid
+checks, including the full P4/P5 folded flap. M1.6 was rebuilt too: **103/103 checks passed**, but its 0.13 mm wall
+rejects it. The snap was rebuilt on the r19 flap fix:
+**104/104 checks passed** (98 base, seated overlap, three swept-key checks,
+two tolerance builds); zero seated overlap, zero flap overlap, both STLs
+watertight. The exterior render cannot expose the concealed hook: inspect
+STEP for that geometry. These are CAD solids, not validated print fits.
 
 ### M1.6 cap screw — built, but **reject** for printing
 
@@ -186,59 +186,70 @@ does not even specify M2 (starts at M3; M2.5 is a vendor extension). An M2
 button-head with a documented 1.5 mm hex, diameter, height and SKU is
 **UNVERIFIED**, not assumed R2-compatible.
 
-### PA12 snap with existing hinge — two release-feel candidates
+### Ramped twin-arm PA12 snap with existing hinge — trial candidate
 
-**Softer beam:** ![snap shell](cad/v4-snap/render_closure.png)
+![snap shell](cad/v4-snap/render_closure.png)
 
-**Firmer beam:** ![firm snap shell](cad/v4-snap-firm/render_closure.png)
+**Close:** align the hinge, then lower the lid. The foot slides down the two
+sloping ledges; the two arms bend toward the hinge and spring back when the
+foot passes underneath. Do not force a jammed print. **Open:** find the
+rectangular opening in the lid beside the tail at s39.80–44.60; insert the
+existing 1.5 mm hex key vertically in the *middle* (u≈12, s≈43.38), down
+to the foot (tip y≈3.35). Push the key **toward the hinge** (decreasing s)
+to move the foot clear of both side ledges; hold it there and lift the lid.
+Do not pry against the floor or either ledge. No second tool, glue or crimp.
 
-Both cut an end-wall recess u13.30–15.50, s38.05–40.05, y4.05–7.10 and
-replace the catch ledge at u13.40–15.50 × s39.80–40.80 × y5.35–6.35.
-The lid has a u13.65–15.35 beam from y7.18 down to y4.15, a 1.00-mm-high
-foot protruding to s40.02 under the ledge (0.22 mm nominal horizontal
-engagement; **0.20 mm** vertical clearance), and a 2.00 × 1.20 mm opening
-in its top to press the foot toward −s with the *existing* hex key before
-lifting. The **minimum new free wall is 1.00 mm** (beam thickness along s
-for the soft option; side wall u15.50–16.50; foot, ledge and remaining lid
-plate each 1.00 mm). The firm option thickens just the beam along s from
-1.00 to **1.15 mm**. Beam width 1.70 mm, effective cantilever length
-**2.95 mm** from lid underside y7.10 to foot y4.15; estimated release
-travel **0.25 mm**, more than the 0.22 mm engagement. Body and lid retain
-unchanged contact geometries and hinge. Neither adds purchased closure
-hardware. Parts: the v4 PA12 MJF body and lid only, **price UNVERIFIED**;
-[JLC3DP PA12-HP page](https://jlc3dp.com/help/article/pa12-hp-nylon)
-(accessed 2026-09-25) advertises from $1.00, not an approved quote.
+The body pocket is u9.50–14.50, s38.05–44.60, y2.50–7.10, retaining a
+1.00 mm floor. Its paired ramped ledges lie on u9.50–10.90 and
+13.10–14.50; the left rail joins the tail at s47.50, the right at s45.00.
+Their undersides start at s41.30, y4.85. Two 1.00 mm-thick, 1.10 mm-wide
+lid arms (s39.70–40.70) extend to y3.15; a 1.00-mm-high foot spans
+u9.80–14.20, s40.60–42.00. Horizontal engagement is **0.70 mm** nominal;
+with *opposing* ±0.30 mm errors on ledge and foot it is **0.10–1.30 mm**.
+Each wing overlaps its side ledge 1.10 mm across u, at least 0.50 mm
+after opposing ±0.30 mm errors. The foot-to-ledge vertical air is 0.70 mm
+nominal, at least 0.10 mm for opposing errors; floor-to-foot air is 0.65 mm
+nominal, at least 0.05 mm.
+The full 1.5 mm across-flats hex prism plus 0.20 mm per flat was swept
+through the opening and down the approach, then along the initial release
+stroke: zero body/lid collision except the deliberately contacted foot.
+The two extreme ledge/foot solids were rebuilt with opposing ±0.30 mm
+s offsets: each retained positive engagement and a zero-volume collision
+when the entire foot was posed behind the ledge at closing (0.12 and
+1.32 mm travel, respectively). These are rigid clearance checks, not a
+nonlinear simulation of bending or a physical release test.
 
-For a straight rectangular cantilever, ε≈3tδ/(2L²) gives **4.31%** soft
-and **4.96%** firm; below JLC3DP's published **20% elongation at break**
-(ASTM D638; same [PA12-HP datasheet](https://jlc3dp.com/help/article/pa12-hp-nylon),
-accessed 2026-09-25). With its published tensile modulus **1800 MPa**, the
-ideal lateral release force Ebt³δ/(4L³) is **7.45 N** soft or **11.33 N**
-firm. These are beam-model numbers, *not measured latch retention*.
-A crude upper bound on vertical force before an ideal unnotched beam
-cross-section reaches the published 48 MPa tensile strength is
-48 × 1.70 × t = **81.6 N / 93.8 N**, respectively; the real axial pull-off
-load and cycle life are **UNVERIFIED** (stress at the root/foot and key slot,
-no dynamic snap or physical coupon test). The 0.20–0.25 mm catch/clearance
-features are **smaller than ±0.3 mm print tolerance**, so a print can jam,
-fail to engage or open too easily. R2 is preserved: no solder, glue, crimp
-or wire stripping, and at most the one existing key to open.
+For a straight rectangular beam, worst-case ε≈3tδ/(2L²) with t=1.00,
+δ=1.32 and L≈3.95 mm gives **12.69%** surface strain, below published
+**20% elongation at break** by a factor **1.58**. This is a simplified
+beam model, not a fatigue guarantee: the joining bridge and root may
+concentrate stress. Source: [JLC3DP PA12-HP MJF material datasheet](https://jlc3dp.com/help/article/pa12-hp-nylon),
+20% ASTM D638 elongation, 1800 MPa tensile modulus and 48 MPa tensile
+strength; accessed 2026-09-25. Approximate two-arm lateral force at 1.32 mm:
+Ebt³δ/(4L³) with total arm width 2.20 mm = **21.2 N** (model only).
+Actual axial retention, wear, fatigue, closure force and key leverage remain
+**UNVERIFIED**. Minimum pocket floor, arm thickness, ledge height and foot
+height are 1.00 mm; each arm is 1.10 mm wide. The right outer wall near
+s44.60 is approximately 0.99 mm by the taper formula and requires print
+review. The central corridor
+is 2.20 mm between ledges; the 1.9 mm AF inflated key leaves 0.15 mm
+on each side. Parts: printed PA12 body/lid, price **UNVERIFIED** (JLC page
+advertises from $1.00, not a quote for this shell). No added closure hardware.
+The former 1.15 mm firm arm was **dropped**: it had an impassable key slot,
+a blocked ledge path and sub-tolerance 0.22 mm engagement. Thickening it
+cannot fix those defects.
 
-| Variant | Body / lid change | Minimum new wall | Nominal release or pull-out | §10.2 + seam + four closure probes | Parts / price | Status |
-|---|---|---:|---|---|---|---|
-| M1.6 × 4 cap | Floor pillar + medial well / lid pilot boss at s11.80 | **0.13 mm** head wall | 122 N *conditional* thread model; actual unknown | 102/102 | M1.6 screw price UNVERIFIED; shell price UNVERIFIED | Reject: below 1 mm print wall |
-| Soft snap | Tail notch and 1 mm ledge / 1 mm beam + key opening | **1.00 mm** | 7.45 N lateral model; axial unknown | 102/102 | PA12 body/lid only, price UNVERIFIED | Trial candidate |
-| Firm snap | Same / 1.15 mm beam | **1.00 mm** at body sidewall | 11.33 N lateral model; axial unknown | 102/102 | PA12 body/lid only, price UNVERIFIED | Trial candidate |
+| Variant | Minimum closure wall | Retention evidence | Solid checks | Parts / price | Status |
+|---|---:|---|---:|---|---|
+| M1.6 × 4 cap | **0.13 mm** head wall | 122 N conditional thread model; actual unknown | 103/103 | screw price UNVERIFIED; shell price UNVERIFIED | Unsuitable: below 1 mm |
+| Twin-arm snap | **≈0.99 mm right tail wall** (1.00 mm arm thickness) | 0.10–1.30 mm tolerance engagement; axial pull-off UNVERIFIED | 104/104 | PA12 body/lid only, price UNVERIFIED | Trial candidate, tail wall needs print review |
 
-**Recommendation:** choose the **soft snap for a print/coupon and cycle-fit
-experiment**, *not for wear or an order today*: it has no sub-1 mm new wall
-and the gentler release model. If repeated closures show insufficient
-engagement, try the firm beam. The 0.0894 mm U3 nominal clearance remains
-below print tolerance in *all* variants. The original M2.5×8 would require
-screw centre s≥50.25 and tip at least **s53.75** (centre + 2.50 head radius
-+ 1.00 end wall), i.e. **5.35 mm extra arc**; at bow 3.0 the M1 chord gate
-would rise from **50.901** to **56.301 mm**. Lengthening is reference only,
-not built here, and would change the behind-ear fit.
+**Recommendation:** assess the new snap geometry on a first test print and
+cycle it before use. The 0.0894 mm U3 nominal clearance is still below
+print tolerance. The original M2.5×8 needs screw centre s≥50.25 and tip
+at least **s53.75** (centre + 2.50 head radius + 1.00 end wall): **5.35 mm
+extra arc**; at bow 3.0 the M1 chord gate rises from **50.901** to
+**56.301 mm**. The longer body is reference only, not built, and changes fit.
 
 ## UNVERIFIED / do not order
 
@@ -251,5 +262,8 @@ Even though all nominal box checks pass, a nominal U3 gap of 0.0894 does
 not absorb a ±0.3 mm print tolerance. The two exterior renders show the
 shell; the folded-board view contains **schematic envelopes**, not an actual
 PCB assembly. All three PNGs and STEP/STL/3MF file hashes are in the v4
-manifest. The body is **not ready to print or wear** without a working
-closure and physical verification.
+manifest. The CAD is a **test-print candidate, not a wearable release**; the first
+print must prove that the key actually reaches and releases the foot, that
+both hooks engage and close without fracture across repeated cycles, and
+that the seam and U3 clearance remain usable. Do not order or wear as a
+finished product before that evidence.

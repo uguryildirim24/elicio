@@ -590,6 +590,13 @@
       "passed": true
     },
     {
+      "item": "P4/P5 folded flap",
+      "kind": "reserved air",
+      "margin_mm": 0.0,
+      "overlap_mm3": 0.0,
+      "passed": true
+    },
+    {
       "item": "P4/P5 joint root",
       "kind": "reserved air",
       "margin_mm": 0.0,
@@ -819,28 +826,28 @@
   },
   "files": {
     "body_full_p15.3mf": {
-      "bytes": 547654,
-      "sha256": "f2802d20aae91bd698710634514a0d485138a1dd578a4919b644d77a3dfe1d0d"
+      "bytes": 545854,
+      "sha256": "df51fed1e2017ea4d1669cc9f5e96fb576449e18295cf7b1bd48ab34ec0d48e9"
     },
     "body_full_p15.step": {
-      "bytes": 1273609,
-      "sha256": "6c20f64b0937101daf9261584ba80862af3564d39679f2dca4c4e89eba67aea4"
+      "bytes": 1263390,
+      "sha256": "1efad69f7efd005af0787fbe6650b813cbf082a819518e0bb55dffce4a9a291c"
     },
     "body_full_p15.stl": {
-      "bytes": 2022784,
-      "sha256": "ad21af2a8c6f40591d3d723d33bb0f22a6fcf4e5a04e6259d11b1cc538fdfe39"
+      "bytes": 2018584,
+      "sha256": "a18dbda917714b1716bc5fe59c797aa047925628b1a824df91d952e0d824831b"
     },
     "lid.3mf": {
-      "bytes": 63865,
-      "sha256": "5384f174271b470155c279428542af548fcb506c3892009b2913103e40e05535"
+      "bytes": 63877,
+      "sha256": "00b4e261b66325222362306708443e4d35d9097f77fc1a1932a9f1311e11a8d9"
     },
     "lid.step": {
-      "bytes": 430387,
-      "sha256": "41776001efe4616a95226bf130ae78c36494d5cc401a7b69c99599c7d5176e74"
+      "bytes": 430281,
+      "sha256": "15d0157d01bff23da87c4f07427d3c005277eb0d04a5f60393401e12d1125105"
     },
     "lid.stl": {
       "bytes": 238584,
-      "sha256": "8c930a74bea97e96e9f3acee2d4522314f911b1b6951822362bca00e668cfb3f"
+      "sha256": "837347dd4f1a42b54dd6d47caebf1e013034197afc53f037951b94dd89adc80d"
     }
   },
   "hash_rule": "SHA256 raw bytes; STEP pinned timestamp; STL/3MF CAD meshing 0.02 mm, 5 degrees",
@@ -858,6 +865,7 @@
     "shell_measure": {
       "boss_top_y": 4.31,
       "bosses": 0,
+      "flap_relief_removed_mm3": 2.5755,
       "q59_clear_s": 0.2,
       "q59_clear_u": 0.2,
       "q59_clear_y": 0.15,
@@ -1003,8 +1011,8 @@
   "stage": "shell-v4",
   "views": {
     "render_closure.png": {
-      "bytes": 51623,
-      "sha256": "0d7ebdc83d34a195fd5ebe044303252a74376025aaf9906a7e9909cdfb461467"
+      "bytes": 54975,
+      "sha256": "a1ad5ab25d6663cb7534f0e9c09adcedf32f56a912ed5b51b3bbcc161fe85a26"
     }
   }
 }
