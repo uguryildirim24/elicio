@@ -1,135 +1,186 @@
-# Earpiece delivered-cost worksheet — v4, Massachusetts
+# Earpiece delivered-cost worksheet — routed v4 + built 18 mm shell, Massachusetts
 
-**Pre-route planning scenarios, not a current quote: $730 low / $1,268 likely / $2,983 high (USD).** These figures used the earlier 58-placement board; the routed board has 61 placements and needs a fresh basket and price. The scenarios include five assembled boards, one shell body and two lids, purchased packs of small parts, one factory-fitted protected cell and the *conditional* first-load kit. The three largest likely cost drivers are board fabrication/assembly and its import ($491), small parts including the fitted cell and 100-pack of standoffs ($483), and consigned components/forwarding ($175). The ranges remain wide because the board is not orderable, the narrower shell has no printable solid, the fitted cell has no published price, freight is checkout-dependent, and tariff classification and carrier collection are unresolved. **The high column is a scenario allowance, not a guaranteed ceiling. Do not buy against it.** The v2 `order-board.md`, `order-shell.md` and `order-parts.md` sheets still specify the older board, USB-C charging, cell and $50–90 shell reserve; they are **not v4 checkout instructions**. Do not use those sheets to pay for this design.
+**Planning total, USD: $750.09 low / $1,338.99 likely / $3,176.23 high.** The three largest likely drivers are the board delivered ($536.09), small parts including the custom fitted cell and 100-pack of spacers ($483), and purchase/forwarding of consigned parts ($190). Board fabrication/acceptance, unselected or unavailable parts, the custom fitted cell, PA12 print/finish, freight, import and tax **remain ranges**: none is a complete delivered checkout price. High is an allowance, **not** a ceiling or a quote. The board has 63 placed components of 27 types after the charger-ESD change; the selected shell is the *built* 18 mm snap trial, not the older 22 mm mesh. Nothing is ordered until Rolf supplies his ceiling and a supported delivered maximum fits beneath it.
 
-All web pages below were read or attempted **2026-09-25** unless an earlier observation date is stated. USD, quantities as purchased, not per usable earpiece. `UNVERIFIED` means a planning interval, *not* a seller offer. Low/likely/high are three separate scenarios; no unpriced item is silently zeroed except optional ownership/waiver choices explicitly described. No quote request, upload, account or purchase was made. The earlier $569–$880 / $658 figures were withdrawn by review: they omitted services and incorrectly subtotaled consignment and shell duty.
+Public pages were read **2026-09-25**, in USD unless stated otherwise. No upload, account, quote request, vendor contact or purchase was made. `UNVERIFIED` denotes an explicit planning interval rather than a vendor price. The v2 `order-board.md`, `order-shell.md`, and `order-parts.md` remain instructions for an older design, **not** a v4 checkout. No manual final assembly labor, failed-board rerun, new engineering labor, medical certification or skin approval is included.
 
-## Scope and public-page key
+## Built evidence and price-source key
 
-Five two-layer ENIG flex PCBAs, both sides assembled, six FR4 stiffeners and **61 placements** (the earlier cost worksheet priced 58; `hardware/board/v4_parts.py`; `docs/fab/board-v4-design.md` §2–4). C17, R34 and R35 add placements of already represented component types; the earlier 27-type assumption still needs checkout verification. Three types (U1, U5, J2) are consigned; 24 proposed JLC types, only C15525 identified Basic, hence **23 potential Extended type fees**. Four proposed JLC types have no selected library code; U4 stock was zero. V4 is routed with zero unconnected items in the reported release (§9); this does not clear assembly acceptance, electrical protection or shell fit. X-ray, 0201-on-flex, J3 through-hole, consignment, fixtures and two-sided assembly require acceptance. One 18 × 8.1 mm PA12 MJF body and two lids are *intended*, but the only built solid is the older 22 mm-wide v2f reference (`docs/fab/cad/v2/manifest.json`); its J2/P5 hardware gap is −4.93 mm and it is not a v4 shell. One protected 501012-class ~40 mAh cell with factory-fitted **polarity-verified Molex Pico-EZmate Slim mating plug** is mandatory; bare cell + loose pre-crimps violate `plan-v2.md` R2 (no soldering/crimping/stripping).
+`hardware/board/v4_parts.py` and the released `hardware/board/elicio-v4.kicad_pcb` have **63 BOM placements, 27 types**, 4 consigned types (U1, U5, J2, **C3/C14/C18/C19**), 23 proposed JLC types: 1 Basic, 22 potential Extended (18 currently valid coded Extended, 2 blank, 2 stale/unavailable coded). J4 and P1–P5 are copper/contact footprints, not purchased parts; J3 is the only through-hole placement. Parsing the released board footprints for all 63 BOM references yields **341 SMT pads + 3 through-hole pads per board**, i.e. 1,705 SMT joints and 15 manual joints for five boards. These are *pad-based* estimates, not an assembly acceptance or an assertion every pad is billable. Both sides assembled on two-layer ENIG flex; six FR4 stiffeners still require JLC approval. The bare-board fabrication cost is dynamic, not obtainable from a public fixed-price schedule without submitting files.
 
-- **J** [JLC PCBA price](https://jlcpcb.com/help/article/pcb-assembly-price), [Basic/Extended](https://jlcpcb.com/help/article/pcb-assembly-basic-parts-vs-extended-parts), [FPC extra charges](https://jlcpcb.com/help/article/fpc-extra-charges), [consignment](https://jlcpcb.com/help/article/consigned-parts-service-introduction), [flex capability](https://jlcpcb.com/capabilities/flex-pcb-capabilities): public schedule read 2026-09-24, PCBA page re-read 2026-09-25. The FPC page does **not** quote six ordinary stiffeners; $8.14 is for stacked stiffeners. No Gerber/assembly checkout exists.
-- **P** [JLC3DP PA12 information](https://jlc3dp.com/help/article/pa12-hp-nylon), [US MJF alternative, Xometry](https://www.xometry.com/capabilities/3d-printing/hp-mjf/): capabilities, not a price for these files. Older mesh *illustration* from the prior worksheet (2026-09-24): $1.21 material + $2 process + $4.50 black dye = $7.71 before freight. The $3.21 undyed print is an **old-shell upper comparator for size alone**, not a proven upper bound on the changed v4 geometry or an accepted file.
-- **D** [Mouser U1 ISP1807-LR-RS](https://www.mouser.com/ProductDetail/Insight-SiP/ISP1807-LR-RS), [DigiKey U5 TPS7A0230PDQNR](https://www.digikey.com/en/products/detail/texas-instruments/TPS7A0230PDQNR/9995577): access denied / 403 on this machine. [LCSC search U1](https://www.lcsc.com/search?q=ISP1807-LR-RS) loaded but produced no verified U1 unit price. No public maker checkout located for [Molex 202656-0021](https://www.molex.com/content/dam/molex/molex-dot-com/products/automated/en-us/salesdrawingpdf/202/202656/2026560021_sd.pdf). Former $13.65/$0.62/$0.75 unit inputs (2026-09-24) therefore remain **UNVERIFIED**, not newly page-read prices.
-- **S** [Sortafast M2.5×4 titanium ten-pack](https://sortafast.com/products/sortafast-titanium-screws-button-head-10pk-m2-5) **$17.50 for 10**, page read 2026-09-24, sold out; length and closure material unresolved. [Spacer Express LAI-FF-M2.5-SW5-L3-100](https://spacer-express.com/female-female/875-hexagonal-female-female-threaded-spacer-nickel-plated-brass-m2-5-5-mm-across-flats.html) **€91.08 ex VAT for 100**, read 2026-09-17; not $8–12 for three. The 3 mm height is still unqualified; changing height changes SKU/cost.
-- **B** [PKCELL custom packs](https://www.pkcell.com/product-category/custom-battery-pack/) advertises protection and low MOQ without a numeric MOQ or this connector's price; [EEMB custom battery service](https://www.eemb.com/service/7) has no posted fitted-501012 price. Read 2026-09-25. [Bare 501012 comparison](https://www.aliexpress.us/item/3256804164251088.html), previously read 2026-09-23, ~$3.50–5, **not** a protected fitted pack. No one-unit custom-connector offer or setup fee established; a battery-pack assembler must certify insulation, PCM, pinout and polarity. Battery shipping may need a separate parcel.
-- **K** [Tag-Connect TC2030-IDC-NL](https://www.tag-connect.com/product/tc2030-idc-nl) $33.95 and [Adafruit Raspberry Pi Debug Probe](https://www.adafruit.com/product/5699) $12, read 2026-09-24, plus unverified $1.95 jumpers. Two sellers, not one free-shipped kit. The probe's fixed 3.3 V I/O is **not safe for first load of the erased 1.8 V v2 module** (`order-parts.md`); v4 instead supplies U1 at 3.0 V from U5 at power-up (`board-v4-design.md` §7). J4 wiring, measured target voltage and probe compatibility still require G4 verification before selecting the v4 kit; if a different probe is needed, reprice it.
+- **J**, all read 2026-09-25: [JLC PCBA public schedule](https://jlcpcb.com/help/article/pcb-assembly-price) (Standard PCBA: double-side setup $51.12, double stencil $16.42, flexible-PCB two fixtures $49.25 at 1–29 pcs, pre-reflow $0.016/joint, SMT $0.0016/joint, manual $0.0164/joint and $3.58 hand-solder labor, feeder loading **$1.53 per Basic/Extended type**, confirmation $0.45, packing $0.50 plus area), [Basic vs Extended](https://jlcpcb.com/help/article/pcb-assembly-basic-parts-vs-extended-parts), [flex charges](https://jlcpcb.com/help/article/fpc-extra-charges), [consignment terms](https://jlcpcb.com/help/article/consigned-parts-service-introduction), [flex capability](https://jlcpcb.com/capabilities/flex-pcb-capabilities). The $8.14 stacked-stiffener fee is **not** a quote for these six ordinary stiffeners. JLC does not promise to assemble the consigned parts or 0201-on-flex at these rates.
+- **P**, read 2026-09-25: [JLC3DP PA12-HP MJF](https://jlc3dp.com/help/article/pa12-hp-nylon) advertises **from $1.00**, tolerance ±0.3 mm (under 100 mm), minimum wall 1 mm, *not* a price for this body or either lid. [US MJF alternative](https://www.xometry.com/capabilities/3d-printing/hp-mjf/) has no public matching delivered price. Prior v2 mesh illustration ($1.21 material + $2 process + $4.50 dye, read 2026-09-24) is **not** a quote or upper bound for v4.
+- **D/S/B/K**, source status: [Mouser U1](https://www.mouser.com/ProductDetail/Insight-SiP/ISP1807-LR-RS), [DigiKey U5](https://www.digikey.com/en/products/detail/texas-instruments/TPS7A0230PDQNR/9995577) blocked/403 on 2026-09-25; [Molex J2 drawing](https://www.molex.com/content/dam/molex/molex-dot-com/products/automated/en-us/salesdrawingpdf/202/202656/2026560021_sd.pdf) has no unit offer. U1 $13.65/U5 $0.62/J2 $0.75 are **old unverified comparators**, not newly page-read prices. [Sortafast M2.5×4 ten-pack](https://sortafast.com/products/sortafast-titanium-screws-button-head-10pk-m2-5) $17.50/10, sold out (read 2026-09-24); [Spacer Express LAI-FF-M2.5-SW5-L3-100](https://spacer-express.com/female-female/875-hexagonal-female-female-threaded-spacer-nickel-plated-brass-m2-5-5-mm-across-flats.html) €91.08 ex VAT/100 (read 2026-09-17). [PKCELL custom packs](https://www.pkcell.com/product-category/custom-battery-pack/) and [EEMB custom service](https://www.eemb.com/service/7), rechecked 2026-09-25, offer no one-unit fitted 501012 price. [Tag-Connect TC2030-IDC-NL](https://www.tag-connect.com/product/tc2030-idc-nl) $33.95 and [Adafruit Debug Probe](https://www.adafruit.com/product/5699) $12 (read 2026-09-24); jumper $1.95 remains an unverified estimate.
 
-## Orders and delivered amounts
+### Part basket (one board ×5; JLC public catalogue unit prices)
 
-Each dollar interval below is explicitly **UNVERIFIED planning** unless identified as a public catalogue input above. For mixed catalogue and uncertain work the *whole row* is UNVERIFIED; a known unit price is not a known delivered bill. Low uses a favorable checkout/owned tool/waiver, likely reserves typical separate parcels, high reserves scarce stock, extra tooling and entry fees. These are *not* vendor-defined upper limits. Import is broken out below and counted once. Each table's subtotal is the sum of its displayed columns.
+Each linked **JLC part page**, read **2026-09-25**, supplies the displayed 1-piece tier (except as marked), library class and observed warehouse stock; quantity in the `×5` column is five boards' *placements*, **not** a confirmed minimum purchase, feeder waste or order price. Prices are USD per component. `0` or `<qty` stock is flagged; warehouse figures change. Every `CONSIGNED` row is **not** assigned a JLC price, even if a similarly named catalogue entry exists. Code and placement grouping reflect the merged `v4_parts.py`, not a substituted design.
 
-### 1 — JLC China board order (five assembled boards; excludes consigned purchase)
+| Refs / value | JLC/LCSC code; class | Qty ×5 | Public unit tier; stock | Evidence |
+| --- | --- | ---: | --- | --- |
+| U1 ISP1807-LR-RS | CONSIGNED; n/a | 5 | UNVERIFIED $13.65 prior comparator; six purchased for attrition | D |
+| U2 ADS1292IRSMT | C89288; Extended | 5 | $6.4422 (1–9); 97 | [part](https://jlcpcb.com/partdetail/C89288) |
+| U3 BQ25100YFPR | C527572; Extended | 5 | $2.4912 (1–9); **0, out of stock** | [part](https://jlcpcb.com/partdetail/C527572) |
+| U4 TLV71330PDQNT | C3071062; **unverified/stale code** | 5 | Page resolves `null`, no catalogue price or class | [attempted](https://jlcpcb.com/partdetail/C3071062) |
+| U5 TPS7A0230PDQNR | CONSIGNED; n/a | 5 | UNVERIFIED $0.62 prior comparator; ten purchased | D |
+| Q1 WPM3027-3/TR | C240195; Extended | 5 | $0.0400 (1–199); 9,846 | [part](https://jlcpcb.com/partdetail/C240195) |
+| Q2–Q4 PMZ290UNE2YL | C478155; Extended | 15 | $0.0553 (1–49); 2,712 | [part](https://jlcpcb.com/partdetail/C478155) |
+| D1 PESD5V0L1UL | C24109; **WRONG code, not priced** | 5 | Page names *TLV320AIC3204IRHBR*, not a PESD diode; **do not buy this code** | [part](https://jlcpcb.com/partdetail/C24109) |
+| D2 LED 19-217/GHC-YR1S2/3T | C72043; Extended | 5 | $0.0238 (1–499); **1, insufficient** | [part](https://jlcpcb.com/partdetail/C72043) |
+| J2 202656-0021 | CONSIGNED; n/a | 5 | UNVERIFIED $0.75 prior comparator; ten purchased | D |
+| J3 2.54-1*3PPin | C49257; Extended | 5 | $0.0275 (1–199); 225,607 | [part](https://jlcpcb.com/partdetail/C49257) |
+| SW1 1TS015A-1200-0600-CT | C398746; Extended | 5 | $0.0835 (1–49); 233 | [part](https://jlcpcb.com/partdetail/C398746) |
+| R1–R3, R31–R33 220k 0402 | C881401; Extended | 30 | $0.0012 (1–999); 9,884 | [part](https://jlcpcb.com/partdetail/C881401) |
+| R4,R17,R20,R21 1M 0201 | C473482; Extended | 20 | $0.0015 (1–999); 373,564 | [part](https://jlcpcb.com/partdetail/C473482) |
+| R5–R8,R13,R25,R27,R28,R34,R35 10k 0201 | C473048; Extended | 50 | $0.0014 (1–999); 10,110,616 | [part](https://jlcpcb.com/partdetail/C473048) |
+| R11 6.8k 0201 | C4104700; Extended | 5 | $0.0087 (1–9); **0, out of stock** | [part](https://jlcpcb.com/partdetail/C4104700) |
+| R12 6.04k 0201 | C270341; Extended | 5 | $0.0014 (1–999); 149,721 | [part](https://jlcpcb.com/partdetail/C270341) |
+| R14–R16,R23,R24 100k 0201 | C270364; Extended | 25 | $0.0015 (1–999); 623,686 | [part](https://jlcpcb.com/partdetail/C270364) |
+| R18 47k 0201 | **no code; proposed Extended** | 5 | UNVERIFIED; no selected MPN/code | [part list](../../hardware/board/v4_parts.py) |
+| R19 27k 0201 | **no code; proposed Extended** | 5 | UNVERIFIED; no selected MPN/code | [part list](../../hardware/board/v4_parts.py) |
+| R22 1k 0201 | C270365; Extended | 5 | $0.0013 (1–999); 1,874,512 | [part](https://jlcpcb.com/partdetail/C270365) |
+| C1 1.5nF 0201 | C285104; Extended | 5 | $0.0014 (1–999); 26,543 | [part](https://jlcpcb.com/partdetail/C285104) |
+| C2 10nF 0201 | C43380; Extended | 5 | $0.0011 (1–999); **10, very thin stock** | [part](https://jlcpcb.com/partdetail/C43380) |
+| C3,C14,C18,C19 GRM155R61A106ME18 10uF 0402 | CONSIGNED; n/a | 20 | UNVERIFIED: cap selected for DC-bias/ESD; no verified JLC code or public purchased-pack price | [part list](../../hardware/board/v4_parts.py) |
+| C4,C5,C10,C11,C13,C16 1uF 0201 | C5142566; Extended | 30 | $0.0052 (1–499); 347,988 | [part](https://jlcpcb.com/partdetail/C5142566) |
+| C6,C8,C9 10uF 0402 | C15525; **Basic** | 15 | $0.0255 (1–999); 8,670,930; **different MPN from ESD caps** | [part](https://jlcpcb.com/partdetail/C15525) |
+| C7,C12,C15,C17 100nF 0201 | C307380; Extended | 20 | $0.0061 (1–999); 995,525 | [part](https://jlcpcb.com/partdetail/C307380) |
 
-| Charge / basis | Low | Likely | High |
+**Four proposed JLC types cannot be closed from this release:** R18 and R19 have no chosen MPN/library code; U4's listed C3071062 returns a null catalogue page; D1's C24109 is a different IC. Selecting a lookalike footprint without electrical/assembly qualification would change the board BOM, which this task cannot edit. Three *additional* coded types have supply blockers (U3 and R11 at zero, D2 one piece). The four GRM capacitors are a **fourth consigned type**, not one of the four proposed JLC blanks/stale types. Nineteen valid coded JLC types' five-board 1-piece-tier extensions sum **$47.274** (includes U3/R11/D2 *as if restocked*). The $55/$85/$165 board-basket scenarios below include **UNVERIFIED** $7.73/$37.73/$117.73 for the four unpriced types, stock substitutions, minimum buys and attrition; $47.274 alone cannot buy a working set. Do not infer an order can currently be placed.
+
+## Delivered order estimates (USD)
+
+Each row marked UNVERIFIED remains a range even where its cited public schedule supplies one input. Column sums below count all services and parcels once. Public schedule J is **Standard**, not the Economic-only $3.07 Extended feeder charge. For a five-board assembly, 27 types × $1.53 = $41.31 is an *illustration* if all 27 (including four consigned types) incur feeder loading; if JLC applies a different classification, reprice. The X-ray count assumes U1 only; other leadless packages could increase it. J3 manual assembly is 15 pads × $0.0164 + $3.58 = $3.83 rounded. JLC may refuse consignment, thin-stock passives, through-hole header or 0201 flex; acceptance is open.
+
+### 1 — China JLC board order, five two-sided assembled flex boards
+
+| Charge, source and arithmetic (UNVERIFIED unless public schedule explicitly says fixed) | Low | Likely | High |
 | --- | ---: | ---: | ---: |
-| UNVERIFIED bare ENIG flex, five; dynamic Gerber price (J) | 15 | 20 | 70 |
-| UNVERIFIED six ordinary stiffeners (J; not stacked-fee quote) | 8 | 20 | 70 |
-| UNVERIFIED two-sided setup; J schedule $25.56 × 2 = $51.12 if accepted | 51.12 | 51.12 | 80 |
-| UNVERIFIED two stencils; J $8.21 × 2 = $16.42 if accepted | 16.42 | 16.42 | 40 |
-| UNVERIFIED two flex carriers; J example $24.63 each, rounded $49.25 | 49.25 | 49.25 | 120 |
-| UNVERIFIED joints; earlier 58-placement estimate: 1,750 × J $0.0016 = $2.80 provisional; reprice for 61 placements | 2.80 | 2.80 | 10 |
-| UNVERIFIED J3 through-hole; J $3.58 + 15 × $0.017 ≈ $3.83 | 3.83 | 3.83 | 25 |
-| UNVERIFIED Extended setup; 23 types × J $3 = $69 if all accepted | 69 | 69 | 90 |
-| UNVERIFIED consignment handling, parcel/feeder terms (J) | 10 | 20 | 50 |
-| UNVERIFIED 24 JLC component types; earlier $44.38 for five excluded the three new placements, four codes open | 44.38 | 55 | 110 |
-| UNVERIFIED module X-ray; $1.64 × 5 = $8.20 plan v2 §9, acceptance open | 8.20 | 8.20 | 40 |
-| UNVERIFIED rails, tooling, feeder attrition, factory image (no price) | 0 | 30 | 150 |
-| UNVERIFIED JLC → Massachusetts international shipping, one small protected parcel | 18 | 35 | 85 |
-| UNVERIFIED US import duties on board **including consigned value** (classification below) | 0 | 70 | 220 |
-| UNVERIFIED carrier brokerage/disbursement on board import (below) | 0 | 20 | 65 |
-| UNVERIFIED MA sales/use tax on taxable portions, subject to credit | 0 | 20 | 45 |
-| **Order 1 delivered** | **296.00** | **490.62** | **1,270.00** |
+| ENIG two-layer flex fabrication ×5; J dynamic/no files submitted | 15 | 25 | 90 |
+| Six ordinary FR4 stiffeners; J no price for this geometry | 8 | 20 | 70 |
+| Standard double-side assembly setup; J $51.12 | 51.12 | 51.12 | 80 |
+| Double-side stencil; J $16.42 | 16.42 | 16.42 | 40 |
+| Two flexible carriers/fixtures; J $24.63 ×2 = $49.25 schedule | 49.25 | 49.25 | 120 |
+| Pre-reflow; 1,705 pads × J $0.016 = $27.28 | 27.28 | 27.28 | 27.28 |
+| SMT assembly; 1,705 pads × J $0.0016 = $2.728 | 2.73 | 2.73 | 10 |
+| J3 manual pads + hand-solder labor; 15 × J $0.0164 + $3.58 ≈ $3.83 | 3.83 | 3.83 | 25 |
+| Standard feeder; 27 types × J $1.53 = $41.31 (consigned applicability open) | 41.31 | 41.31 | 90 |
+| JLC handling of four consigned types; J terms not a handling quote | 12 | 30 | 75 |
+| Basket above, including four unpriced/stock-blocked JLC types | 55 | 85 | 165 |
+| U1 X-ray; 5 × J $1.64 = $8.20, more packages may qualify | 8.20 | 8.20 | 40 |
+| J part-placement confirmation $0.45 + packing at least $0.50 | 0.95 | 0.95 | 0.95 |
+| Rails, tooling, feeder attrition, factory image (unpriced) | 0 | 30 | 150 |
+| [JLC shipping methods](https://jlcpcb.com/help/article/shipping-methods), no MA price; parcel range | 18 | 35 | 85 |
+| China→US board duty on declared goods **including consigned value**, headings open (import section) | 0 | 70 | 220 |
+| Carrier entry/disbursement, no verified schedule for this parcel | 0 | 20 | 65 |
+| MA sales/use tax on taxable portion, less collected tax credit | 0 | 20 | 45 |
+| **Order 1 delivered** | **309.09** | **536.09** | **1,398.23** |
 
-Board duty allowance is *not* 25% of the whole assembly invoice as an asserted legal rule. Likely $70 roughly represents a China-origin goods basis around $280 at 25%; high $220 reserves a larger customs value including the consigned components and layered rates. Tax and duty bases differ; neither freight nor a DDP label automatically cancels duties. $0 low duty is the alternate heading/exclusion or already-paid DDP **incremental checkout** case, not de-minimis exemption.
+### 1a — buy and directly forward four consigned types to JLC China
 
-### 1a — buy and forward three consigned part types to JLC (direct-export route)
-
-| Charge / basis | Low | Likely | High |
+| Charge (all UNVERIFIED; D; purchased units not only fitted) | Low | Likely | High |
 | --- | ---: | ---: | ---: |
-| UNVERIFIED U1, six × former $13.65 = $81.90 (D; price blocked) | 81.90 | 100 | 150 |
-| UNVERIFIED U5, ten × former $0.62 = $6.20 (D; 403) | 6.20 | 8 | 18 |
-| UNVERIFIED J2, ten × former $0.75 = $7.50 (D; no maker price) | 7.50 | 12 | 32 |
-| UNVERIFIED US distributor/forwarder → JLC China, tracked parts parcel | 20 | 40 | 90 |
-| UNVERIFIED export forwarding/China customs handling if charged | 0 | 15 | 50 |
-| **Order 1a (direct export)** | **115.60** | **175.00** | **340.00** |
+| U1 six × old $13.65 comparator = $81.90 | 81.90 | 100 | 150 |
+| U5 ten × old $0.62 comparator = $6.20 | 6.20 | 8 | 18 |
+| J2 ten × old $0.75 comparator = $7.50 | 7.50 | 12 | 32 |
+| GRM155R61A106ME18 ESD caps, minimum supply/attrition not quoted | 5 | 15 | 40 |
+| Tracked US distributor → JLC parcel | 20 | 40 | 90 |
+| Export forwarding/China customs | 0 | 15 | 50 |
+| **Order 1a direct export** | **120.60** | **190.00** | **380.00** |
 
-The parts alone total **$95.60 low**; US tax is *not* added to a genuine direct export. If a US distributor must instead ship first to a Massachusetts forwarder, add **UNVERIFIED $0/$12/$25 domestic freight and $6/$9/$15 possible MA tax**, then keep China forwarding as above: order 1a becomes **$121.60/$196/$380**. Do not count both routes. Board import duty above includes the consigned value once; this table has no second US duty on it.
+If shipment must first go to a Massachusetts forwarder instead, **add** domestic freight $0/$12/$25 and possible MA tax $6/$9/$15, all UNVERIFIED: order 1a **$126.60/$211/$420**; choose one route. Board customs may include the value of these components but the board order does **not** repurchase them. No second US duty on a genuine direct export.
 
-### 2 — shell, China print route (one body + two lids)
+### 2 — built 18 mm PA12 snap shell, one body + two lids
 
-| Charge / basis | Low | Likely | High |
+Measured with repo CAD environment (`uv venv .venv; uv pip install --python .venv/bin/python 'build123d==0.11.1' 'cadquery-ocp-novtk==7.9.3.1.1'`) and `build123d.import_step`, on committed `docs/fab/cad/v4-snap/{body_full_p15,lid}.step`, 2026-09-25. Units mm, mm³; axis-aligned STEP boxes include hook/hinge, not merely the nominal W18 × T8.1 package.
+
+| Solid | STEP volume | Bounding min (x,y,z) | Bounding max (x,y,z) | Box size |
+| --- | ---: | --- | --- | --- |
+| Body | 3,340.434 mm³ | (−21.787, −1.554, −51.346) | (21.000, 7.235, 15.344) | 42.787 × 8.789 × 66.690 mm |
+| Lid, each ×2 | 900.197 mm³ | (0.096, 1.764, −49.925) | (20.850, 8.234, 4.408) | 20.754 × 6.470 × 54.333 mm |
+| **One body + two lids** | **5,140.828 mm³ = 5.141 cm³** | — | — | Three separate printed parts |
+
+This is the `v4-snap` *print-trial candidate* with Rolf's preferred flat 1 mm lid; `docs/fab/shell-v4.md` says physical latch, ±0.3 mm tolerance, retention and fit are not proven. No printable solid or quote file was uploaded. P only offers **from $1**, not a formula for minimum processing, orientation, dye, three-part packing or chargeable bounding volume. The old v2 $3.21 undyed illustration is a scale comparator, not this shell's price; $5/$12/$45 print is a reasoned **UNVERIFIED** low/likely/high for 5.14 cm³ and three small parts, not a JLC3DP unit rate. Low omits optional black finish; likely includes it.
+
+| Charge, P or import section; all UNVERIFIED | Low | Likely | High |
 | --- | ---: | ---: | ---: |
-| UNVERIFIED PA12 print; old 22 mm mesh was $3.21 undyed (P); 18 mm v4 rework unknown | 3 | 3.21 | 25 |
-| UNVERIFIED black finish; old mesh $4.50, optional in low (P) | 0 | 4.50 | 15 |
-| UNVERIFIED JLC3DP → Massachusetts separate parcel | 12 | 22 | 55 |
-| UNVERIFIED China duties on shell goods, not freight (below) | 0 | 2 | 12 |
-| UNVERIFIED carrier entry/advance fee, only if separate bill (below) | 0 | 15 | 50 |
-| UNVERIFIED MA sales/use tax, subject to credit | 0 | 1 | 3 |
-| **Order 2 China delivered** | **15.00** | **47.71** | **160.00** |
+| PA12 MJF print, one body + two lids (P from $1 per part only) | 5 | 12 | 45 |
+| Black finish; old-shell $4.50 comparator, optional in low | 0 | 5 | 15 |
+| Separate JLC3DP→MA parcel; no public case price | 12 | 22 | 55 |
+| China-origin shell duty on goods, heading open | 0 | 3 | 16 |
+| Separate carrier brokerage if billed | 0 | 15 | 50 |
+| MA tax less any seller-collected tax | 0 | 1 | 4 |
+| **Order 2 delivered** | **$17** | **$58** | **$185** |
 
-A US-printed MJF alternative **exists** (P) but cannot be priced without the new solid; *alternative*, not added to China total: UNVERIFIED print/finish **$30/$100/$250**, US freight **$0/$18/$40**, MA tax **$2/$8/$20** → **$32/$126/$310 delivered**, with $0 US import duty and brokerage for a US-made print. Switching shell route alone changes the overall total to **$747/$1,346.52/$3,133**. US manufacture, material and dye must be confirmed; a US vendor reselling a Chinese print is not this route.
+A US-printed shell is an **alternative**, not added to China route: print/finish $30/$100/$250, freight $0/$18/$40, MA tax $2/$8/$20, all UNVERIFIED (P US alternative page): **$32/$126/$310 delivered** if actually US-made. It would replace order 2 and have no US import duty/brokerage.
 
-### 3 — small parts (purchased packs, not only pieces consumed)
+### 3 — small parts, purchased packs (not pieces consumed)
 
-| Charge / basis | Low | Likely | High |
+All delivered rows UNVERIFIED even when a catalogue price is cited. **S** and **B** source key above; other items have no selected SKU, so the row states why it is a range. The snap lid needs no M2.5 closure screw, but five skin/charge screws remain, and length/source must be qualified. 3.0 mm standoff height is not qualified. A factory-fitted **protected** ~40 mAh 501012-class cell with polarity-verified Pico-EZmate Slim mating plug is mandatory; bare cell plus loose pre-crimps are not acceptable. Battery shipping may require a separate regulated parcel.
+
+| Charge and basis | Low | Likely | High |
 | --- | ---: | ---: | ---: |
-| UNVERIFIED five skin/charge screws plus any v4 closure fastener; Sortafast M2.5×4 $17.50/10 sold out (S), closure length/route and alternate qualification open | 17.50 | 25 | 50 |
-| UNVERIFIED three 3.0 mm hex standoffs bought as **100** (S); €91.08 ex VAT; illustrative USD conversion/stock allowance | 100 | 115 | 155 |
-| UNVERIFIED **one factory-fitted protected** 501012 cell; custom pack maker, possible setup/MOQ (B), not bare cell | 35 | 90 | 250 |
-| UNVERIFIED mating insulated charge cable for P4/P5 (7.75 mm pad spacing), no qualified drawing | 10 | 25 | 60 |
-| UNVERIFIED three electrode leads, snap electrodes and gel, multiple packs | 15 | 35 | 80 |
-| UNVERIFIED pre-cut foam, 1.5 mm hex key, insulated plugs/consumables | 10 | 25 | 50 |
-| UNVERIFIED nickel screening kit, or Rolf's written waiver (low $0) | 0 | 25 | 55 |
-| UNVERIFIED multimeter if not already owned (low/likely assume owned) | 0 | 0 | 30 |
-| UNVERIFIED fitted-cell parcel freight/regulated handling to MA | 12 | 25 | 70 |
-| UNVERIFIED EU standoff parcel to MA (separate supplier) | 20 | 40 | 90 |
-| UNVERIFIED other US small-parts seller parcels combined | 15 | 40 | 100 |
-| UNVERIFIED standoff import duty + carrier entry/advance fee (origin, classification open) | 0 | 20 | 60 |
-| UNVERIFIED MA tax on taxable items, credit any seller-collected tax | 8 | 18 | 40 |
-| **Order 3 delivered** | **242.50** | **483.00** | **1,090.00** |
+| Skin/charge screws, S $17.50 ten-pack sold out; substitute needed | 17.50 | 25 | 50 |
+| Three standoffs bought as **100**, S €91.08 ex VAT; FX/stock allowance | 100 | 115 | 155 |
+| Factory-fitted protected cell, B no one-unit offer/setup/MOQ | 35 | 90 | 250 |
+| Insulated P4/P5 charge cable, spacing 7.75 mm; drawing/source open | 10 | 25 | 60 |
+| Electrode leads, snaps, gel; unselected packs | 15 | 35 | 80 |
+| Pre-cut foam, 1.5 mm hex key, insulated consumables; no SKU | 10 | 25 | 50 |
+| Nickel screen or Rolf's written waiver (low = waiver) | 0 | 25 | 55 |
+| Multimeter if not owned (low/likely assume owned) | 0 | 0 | 30 |
+| Protected-cell separate parcel/regulated handling, unknown origin | 12 | 25 | 70 |
+| EU spacer parcel to MA, separate supplier | 20 | 40 | 90 |
+| Other US small-parts parcels combined | 15 | 40 | 100 |
+| Spacer import duty + carrier fees, origin/classification unconfirmed | 0 | 20 | 60 |
+| MA tax on taxable parts less collected tax credit | 8 | 18 | 40 |
+| **Order 3 delivered** | **$242.50** | **$483** | **$1,090** |
 
-$35/$90/$250 for the pack is a **scenario**, not a manufacturer's published MOQ: low presumes a one-off protected custom termination, high allows minimum pack quantity/setup. If the actual maker requires more than this, even the high total fails. Rolf must not fit a loose connector. Battery imports, if sent directly from China rather than a US-stocked pack seller, can add tariff/entry costs not proven covered by the small-parts interval; resolve origin/route before ordering. The €91.08 line's USD range is a conversion and FX/stock allowance, **not** a verified exchange rate.
+If the custom maker requires more than the high cell allowance, this worksheet's high is exceeded. Cell country of origin and import treatment are not proved covered by the small-parts interval; resolve before ordering.
 
-### 4 — conditional first-load kit, assumed needed in all totals
+### 4 — conditional first-load kit (included in totals)
 
-| Charge / basis | Low | Likely | High |
+**K** key above, read date as stated there; all delivered amounts UNVERIFIED. J4 wiring and measured v4 target voltage/probe suitability require verification before purchase; do not apply a fixed-3.3 V probe to the erased 1.8 V v2 module. The v4 has a 3.0 V U5 supply at power-up but this is **not** approval of the kit.
+
+| Charge and basis | Low | Likely | High |
 | --- | ---: | ---: | ---: |
-| UNVERIFIED cable; Tag-Connect $33.95 catalogue (K), stock/variant open | 33.95 | 33.95 | 45 |
-| UNVERIFIED v4 probe; Adafruit $12 catalogue (K), J4/target-voltage fit and stock open | 12 | 12 | 20 |
-| UNVERIFIED jumpers, former $1.95 estimate | 1.95 | 1.95 | 5 |
-| UNVERIFIED two US-seller postage charges to MA | 10 | 20 | 45 |
-| UNVERIFIED MA sales/use tax | 3 | 4 | 8 |
-| **Order 4 delivered if needed** | **60.90** | **71.90** | **123.00** |
+| Tag-Connect cable, K $33.95 catalogue, stock/variant open | 33.95 | 33.95 | 45 |
+| Adafruit probe, K $12 catalogue, J4/voltage approval open | 12 | 12 | 20 |
+| Jumpers, old unverified $1.95 estimate | 1.95 | 1.95 | 5 |
+| Two separate US-seller parcels | 10 | 20 | 45 |
+| MA tax less seller-collected tax | 3 | 4 | 8 |
+| **Order 4 if needed** | **$60.90** | **$71.90** | **$123** |
 
-If the assembler supplies and verifies the factory image, subtract this order: **$669.10/$1,196.33/$2,860** on the China-shell direct-export scenario. This is a conditional saving, not a promise that programming is included.
+Only if the assembler supplies and verifies the factory image can order 4 be removed; that changes the direct-export/China-shell total to **$689.19/$1,267.09/$3,053.23**. This is not a claim factory programming is included.
 
-## Import method and freight evidence (not free under $800)
+## Import, freight and stop rule
 
-[Executive Order 14324](https://www.whitehouse.gov/presidential-actions/2025/07/suspending-duty-free-de-minimis-treatment-for-all-countries/) suspends duty-free de minimis for all countries from 2025-08-29; [CBP guidance](https://content.govdelivery.com/accounts/USDHSCBP/bulletins/41fa7f0) confirms the suspension. Read 2026-09-25. A small parcel is **not** automatically free. [USITC HTS search](https://hts.usitc.gov/reststop/search?keyword=8517.62), [9018.19](https://hts.usitc.gov/reststop/search?keyword=9018.19), [3926.90.99](https://hts.usitc.gov/reststop/search?keyword=3926.90.99), read 2026-09-25: candidate board headings **8517.62.00** (data transmitter, general **Free**) or **9018.19.95** (EEG/EMG apparatus subline .35, general **Free**; .75 printed circuit assemblies for parameter acquisition modules also Free). Candidate PA12 shell **3926.90.99** (other plastic article, general **5.3%**). These are hypotheses, *not* a binding classification of an unfinished board/shell. General rates alone do not give the landed rate.
+[Executive Order 14324](https://www.whitehouse.gov/presidential-actions/2025/07/suspending-duty-free-de-minimis-treatment-for-all-countries/) and [CBP guidance](https://content.govdelivery.com/accounts/USDHSCBP/bulletins/41fa7f0) (read 2026-09-25) suspend duty-free de minimis from 2025-08-29; being below $800 does **not** make a parcel automatically duty-free. [USITC candidates 8517.62](https://hts.usitc.gov/reststop/search?keyword=8517.62), [9018.19](https://hts.usitc.gov/reststop/search?keyword=9018.19) (board, general Free) and [3926.90.99](https://hts.usitc.gov/reststop/search?keyword=3926.90.99) (plastic shell, general 5.3%) were read 2026-09-25; none is a binding product classification. [USTR List 3](https://ustr.gov/sites/default/files/enforcement/301Investigations/83%20FR%2047974.pdf) lists 8517.62.00 **except suffix .0090**; [25% modification](https://ustr.gov/sites/default/files/enforcement/301Investigations/84_FR_20459.pdf). [USTR List 4](https://ustr.gov/sites/default/files/enforcement/301Investigations/Notice_of_Modification_%28List_4A_and_List_4B%29.pdf) and [USITC 9903.88.15](https://hts.usitc.gov/reststop/search?keyword=9903.88.15) show 7.5% on candidate shell heading 3926.90.99. Read 2026-09-25. Model board 0–25% potential Section 301 and shell candidate 5.3% + 7.5% = 12.8% on applicable *goods* values, plus an **UNVERIFIED 0–12.5% contingency** for any other applicable measure until primary notice and origin/classification are confirmed; do **not** charge all rates as facts. Board duty includes declared consigned value once. Low $0 duty models a confirmed alternate heading/exclusion or a fully prepaid DDP *incremental* charge, not de minimis. Actual tariff stacks, seller DDP terms, MA 6.25% taxable base and carrier fees remain unsettled.
 
-[USTR List 3 notice (83 FR 47974)](https://ustr.gov/sites/default/files/enforcement/301Investigations/83%20FR%2047974.pdf), read 2026-09-25, explicitly lists **8517.62.00** in note 20(g) **except statistical suffix .0090**; the other 8517.62 entries appear in the notice's list. [USTR's modification to 25%](https://ustr.gov/sites/default/files/enforcement/301Investigations/84_FR_20459.pdf) and [List 3 index](https://ustr.gov/issue-areas/enforcement/section-301-investigations/section-301-china/200-billion-trade-action) establish that a matching China-origin List 3 item can face **+25%**. [USTR List 4 notice](https://ustr.gov/sites/default/files/enforcement/301Investigations/Notice_of_Modification_%28List_4A_and_List_4B%29.pdf), read 2026-09-25, lists **3926.90.99** in the 9903.88.15 group; [current USITC 9903.88.15 entry](https://hts.usitc.gov/reststop/search?keyword=9903.88.15) shows **+7.5%**. The precise board statistical suffix, whether it is instead 9018.19, and product-specific exclusions remain unverified. Model board China Section 301 **0–25%**; *if* the shell classifies at 3926.90.99 with no exclusion, its general 5.3% plus List 4 **7.5% = 12.8%** (if another heading/exclusion is confirmed, revise), not 25% merely because it is Chinese. Board general 0% yields **0–25%** before other measures. Plan v2 §9/§12 mentions CBP CSMS 69326983 and a potential **12.5%** separate measure, but its applicability to either parcel has **not been established** here; the [CBP bulletin above](https://content.govdelivery.com/accounts/USDHSCBP/bulletins/41fa7f0) concerns de minimis, **not this rate**. Reserve **0–12.5% only as an UNVERIFIED contingency** until an applicable primary notice is identified; it is not a charge claimed due. Thus possible modeled stacks are board **0–37.5%**, shell **12.8–25.3% under the candidate heading** of the applicable declared *goods* value, not the freight/entire service invoice. US-made shell: no US import. No exemption claimed for EU standoffs. Before checkout, get written classification/origin, applicable Chapter 99 lines, declared goods values (including U1/U5/J2), and DDP tax/fee breakout from sellers/carrier.
+[JLC shipping methods](https://jlcpcb.com/help/article/shipping-methods) and [US tariff FAQ](https://jlcpcb.com/help/article/u-s-tariff-policy-faq), read 2026-09-25, provide no MA freight price for this board. Board $18–85, shell $12–55, US distributor→JLC $20–90 and EU spacers $20–90 are separate parcel allowances, **not** shipping offers. [UPS fees](https://www.ups.com/us/en/shipping/international-shipping/import-fees.page) and [FedEx ancillary clearance](https://www.fedex.com/en-us/ancillary-clearance-service.html) were blocked on this machine (2026-09-25); board $0/$20/$65, shell $0/$15/$50 and spacer combined duty/fee $0/$20/$60 are unverified per-parcel reserves, $0 only when confirmed prepaid/no bill. No freight or tax is silently waived by a DDP label; apply credit for tax already collected once.
 
-Freight cannot be retrieved without package mass, origin, service and a real checkout: [JLC shipping methods](https://jlcpcb.com/help/article/shipping-methods) and [JLC US tariff FAQ](https://jlcpcb.com/help/article/u-s-tariff-policy-faq) were read 2026-09-25 but display **no price** for this board. The board's $18–85 assumes a small China→MA express parcel, US distributor→JLC $20–90 assumes tracked consigned components, shell $12–55 assumes a *separate* light JLC3DP→MA parcel. Do not combine parcels unless checkout explicitly does. US shell freight $0–40 assumes pickup/free shipping possible but unconfirmed. [UPS import-fees page](https://www.ups.com/us/en/shipping/international-shipping/import-fees.page) returned **Access Denied** and [FedEx ancillary-clearance page](https://www.fedex.com/en-us/ancillary-clearance-service.html) returned **System Down / permission denied** here (2026-09-25); DHL public customs page also timed out. Therefore the carrier's actual disbursement/entry schedule is **UNVERIFIED**, not $0 by default: board **$0/$20/$65**, separate shell **$0/$15/$50**, imported EU standoffs included in their **$0/$20/$60** combined duty-and-fee row. Zero only if seller prepays *and* confirms no bill on delivery. These are per-parcel allowances, not claimed UPS/FedEx/DHL posted tariffs. Massachusetts 6.25% sales/use tax is modeled on plausible taxable purchases; tax line ranges allow exemptions, vendor collection and credit, **not** a universal rate on import duty plus shipping.
+**Column arithmetic, China snap shell + direct-export consignment + first-load kit:**
 
-## Reconciliation and stop rule
+| Delivered order | Low | Likely | High |
+| --- | ---: | ---: | ---: |
+| 1 board | 309.09 | 536.09 | 1,398.23 |
+| 1a consigned parts | 120.60 | 190.00 | 380.00 |
+| 2 snap shell | 17.00 | 58.00 | 185.00 |
+| 3 small parts | 242.50 | 483.00 | 1,090.00 |
+| 4 first load | 60.90 | 71.90 | 123.00 |
+| **Sum** | **$750.09** | **$1,338.99** | **$3,176.23** |
 
-**Historical 58-placement scenario; reprice the routed 61-placement board before using these amounts.** China shell + direct-export consignment + first-load kit: low **$296 + $115.60 + $15 + $242.50 + $60.90 = $730**; likely **$490.62 + $175 + $47.71 + $483 + $71.90 = $1,268.23**; high **$1,270 + $340 + $160 + $1,090 + $123 = $2,983**. Substituting the US shell or the MA-forwarder amounts above changes exactly that order, not the other columns. A US flex-assembler path exists in principle but no publicly priced *equivalent* five-board service including fixtures, 0201, consignment and X-ray was found. For comparison **only**, replace orders 1 **and** 1a with an entirely **UNVERIFIED** US assembly/fabrication interval **$800/$1,600/$4,000** (one job, five populated flex boards, tooling and inspection provisionally included), consigned U1/U5/J2 **$95.60/$120/$200** (D), US distributor→assembler postage **$0/$15/$40**, assembler→MA freight **$15/$35/$90**, MA sales/use tax **$56/$110/$260** (6.25% of a provisional taxable goods/services basis): **$966.60/$1,880/$4,590 delivered**. No US customs duty or brokerage for a verified US-made board; merely using a US mailing address would not qualify. With the **China shell** and orders 3–4 unchanged, this alternative is **$1,285/$2,482.61/$5,963**. These numbers are scenario allowances, *not* a verified quote, source-certified domestic origin, or proof an assembler will build it. Do not present a generic US assembler page as a $1,200 offer. No manual final assembly labor, new CAD/board design labor, failed-board retry, medical certification or skin approval is included.
+Low **309.09 + 120.60 + 17 + 242.50 + 60.90 = 750.09**; likely **536.09 + 190 + 58 + 483 + 71.90 = 1,338.99**; high **1,398.23 + 380 + 185 + 1,090 + 123 = 3,176.23**. Replacing China shell only with the unverified US-made alternative gives **$765.09/$1,406.99/$3,301.23**. No row is a final checkout ledger. The shell remains a print trial, not a qualified wearable release; confirmed printed fit, latch strength and any revised CAD may change its price.
 
-### Live G8 record — not yet filled
+### Live G8 ceiling record — **open; do not order**
 
-The scenario tables above are **not** a checkout ledger or a reserved delivered maximum. The old plan's $50–90 shell allowance cannot reserve the unbuilt v4 shell: even the unverified China-shell high scenario is $160. Record a supported, complete delivered shell maximum **before** paying for a board or parts. Write v4 order sheets against the released files; the v2 sheets named above cannot close G8 for v4.
-
-| Required live entry (USD unless stated) | Route / SKU, quantity, evidence date | Goods + services | Freight | Import duty + carrier fees | MA sales/use tax (collected or payable) | Delivered maximum |
+| Required delivered maximum (USD) | SKU/route, quantity, dated evidence | Goods + services | Freight | Import/carrier | MA tax | Maximum |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Board, including tooling, programming or first-load route, and consignment handling | pending | pending | pending | pending | pending | pending |
-| Consigned U1/U5/J2, including any MA forwarding and export handling; **one** direct-export or MA-forwarder route | pending | pending | pending | pending | pending | pending |
-| V4 body + lids, selected finish, **reserved before board payment** | pending | pending | pending | pending | pending | pending |
-| Small parts: each seller/parcel, including a qualified fitted cell and charge cable (add rows per parcel) | pending | pending | pending | pending | pending | pending |
-| First-load kit if needed; each seller/parcel (or documented factory programming included in board) | pending | pending | pending | pending | pending | pending |
-| **Whole project: sum of delivered maxima including the shell reserve** | — | — | — | — | — | **pending** |
-| **Rolf's ceiling (Q33)** | **pending — Rolf supplies it** | — | — | — | — | **pending** |
+| Board, tooling, programming, consignment handling | pending | pending | pending | pending | pending | pending |
+| Four consigned types, one forward route | pending | pending | pending | pending | pending | pending |
+| Snap body + two lids, print finish, **reserved before board payment** | pending | pending | pending | pending | pending | pending |
+| Small parts by seller including fitted cell/charge cable | pending | pending | pending | pending | pending | pending |
+| First load by seller or documented factory inclusion | pending | pending | pending | pending | pending | pending |
+| **Sum of delivered maxima** | — | — | — | — | — | **pending** |
+| **Rolf's ceiling** | **Rolf supplies it** | — | — | — | — | **pending** |
 
-A catalogue part price alone cannot fill a delivered maximum; get a checkout/quote or a documented reserve that covers the still-open charges. Count consigned value in board customs value without repurchasing the parts in the board row; include tax collected at checkout or payable later, but never both for the same taxable amount; count DDP duties and carrier fees only once. Mark not-needed entries explicitly with the reason, never silently as $0. If the shell maximum cannot be supported or the summed maximum exceeds Rolf's ceiling, G8 fails. Recalculate after each checkout; don't substitute the low/likely/high scenarios for these entries.
-
-Before **any** payment, independently verify the routed release on the committed board, resolve the charger input ESD and TS/NTC choices, and finish the v4 shell solid/closure; verify maker accepts the 61-placement assembly, custom cell, charge cable and standoff length; obtain actual basket quantities, shipping, customs classification, import fees and tax per parcel. Compare the resulting full delivered maximum to the ceiling **Rolf sets**. Until then plan v2 G8 remains open; neither $2,983 nor the alternative high is an authorization to order.
+Before *any* payment: confirm the board release/ESD and TS choices, resolve wrong/missing codes and depleted inventory, get JLC written acceptance of flex, 0201, both sides, consignment and X-ray, prove the physical snap fit, cell insulation/PCM/polarity, charge cable and standoff height, and document all route-specific shipping, import, tax and max prices. Compare the summed delivered **maximum** (not these low/likely/high scenarios) to the ceiling **Rolf sets**. If the shell maximum cannot be supported or total exceeds the ceiling, G8 fails. The v2 order sheets cannot close G8 for v4.
