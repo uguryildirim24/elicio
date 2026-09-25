@@ -1222,6 +1222,18 @@ class CadShellV2StampTests(unittest.TestCase):
         self.assertEqual(payload["commit"], CAD.git_commit_solids(ROOT, CAD.V2_DIR))
 
 
+class CadShellV4ManifestTests(unittest.TestCase):
+    def test_folded_wall_flap_is_checked_and_clear(self) -> None:
+        # The original plate check stopped at s14.85. The lower flap past
+        # the rib hit 1.184 mm³ of the r9 bay shoulder despite 97 passes.
+        payload = json.loads((ROOT / "docs/fab/cad/v4/manifest.json").read_text())
+        rows = [c for c in payload["checks"] if c["item"] == "P4/P5 folded flap"]
+        self.assertEqual(len(rows), 1)
+        self.assertTrue(rows[0]["passed"])
+        self.assertEqual(rows[0]["overlap_mm3"], 0.0)
+        self.assertGreater(payload["notes"]["shell_measure"]["flap_relief_removed_mm3"], 0)
+
+
 class CadShellV2PackingSourceTests(unittest.TestCase):
     def test_pinned_packing_matches_this_repo(self) -> None:
         """Review r7: the shell reads §5d from this repo at a pinned sha, never another worktree."""

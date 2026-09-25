@@ -1,0 +1,21 @@
+# v4 flex shell, board-v4-design.md §§4,7,10.2; no closure screw fits
+PACKING = "v2"
+STAGE = "shell"
+SHELL_V4 = true
+V2_ARCH = "A"
+V2_CELL = "pack501012"
+V2_LAYOUT = "series"
+V2_WIDTH = 18.0
+V2_LID_Y = 7.1
+V2_ARC_PLUS = 0.0
+V2_IFACE = "II"
+V2_STANDOFF = 3.0
+MOCK_CONTACTS = false
+CLOSURE_PASSED = false
+TAB_HEIGHT = 2.0
+CABLE_EXIT_S = 35.0
+CONTACT_SOURCE = "board-v4-design.md §10.2"
+CONTACT_1_U = 5.9
+CONTACT_1_S = 22.0
+CONTACT_REF_U = 8.5
+CONTACT_REF_S = 43.0
