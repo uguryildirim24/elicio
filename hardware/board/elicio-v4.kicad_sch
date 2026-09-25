@@ -6471,7 +6471,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C527572"
+		(property "LCSC" "CONSIGNED"
 			(at 236.22 43.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6645,7 +6645,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C3071062"
+		(property "LCSC" "CONSIGNED"
 			(at 307.34 40.64 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7479,7 +7479,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C24109"
+		(property "LCSC" "CONSIGNED"
 			(at 157.48 185.42 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7593,7 +7593,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C72043"
+		(property "LCSC" "CONSIGNED"
 			(at 210.82 185.42 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9844,7 +9844,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C4104700"
+		(property "LCSC" "CONSIGNED"
 			(at 185.42 259.08 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10642,7 +10642,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "CONSIGNED"
 			(at 505.46 259.08 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10745,7 +10745,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "CONSIGNED"
 			(at 48.26 289.56 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12102,7 +12102,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C43380"
+		(property "LCSC" "CONSIGNED"
 			(at 93.98 322.58 0)
 			(show_name no)
 			(do_not_autoplace no)
