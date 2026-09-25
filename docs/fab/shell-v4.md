@@ -53,8 +53,10 @@ line-centre u/s bounds and y extents), including the four exterior tab
 components, plus envelopes and hardware. For each component the margin below
 is the **minimum OCCT distance from its entire courtyard prism to the body or
 lid solid**, in mm, provided both intersections have zero volume; it is *not*
-a placement coordinate or a print-tolerance guarantee. U1 touching the
-second post by design has zero margin. Exterior tab rows are absent from the
+a placement coordinate or a print-tolerance guarantee. U1 seated on the
+P2 lid post by design has zero margin but zero solid overlap; the post occupancy
+and landing datum are checked separately. Every other interior component must
+measure ≥0.40 mm or the build fails. Exterior tab rows are absent from the
 closed shell after cutting and have no distance. Post rows report occupied
 volume (mm³), not free distance. All measured interior intersections are
 **0 mm³**. Table source: `board-v4-design.md` §10.2, not §10.1 pin centres.
@@ -62,10 +64,10 @@ volume (mm³), not free distance. All measured interior intersections are
 | Row | margin | Row | margin | Row | margin |
 |---|---:|---|---:|---|---:|
 | C1 | 2.0900 | C2 | 1.6096 | C3 | 0.8319 |
-| C4 | 1.1938 | C5 | 1.1600 | C6 | 0.3900 |
-| C7 | 1.5300 | C8 | 0.9109 | C9 | 1.3800 |
-| C10 | 1.6200 | C11 | 1.0500 | C12 | 0.5850 |
-| C13 | 1.0755 | C14 | 1.4400 | C15 | 1.6300 |
+| C4 | 1.1938 | C5 | 1.1600 | C6 | 0.4200 |
+| C7 | 1.5600 | C8 | 0.9109 | C9 | 1.3800 |
+| C10 | 1.6200 | C11 | 1.0500 | C12 | 0.6584 |
+| C13 | 1.1172 | C14 | 1.4400 | C15 | 1.6300 |
 | C16 | 0.8237 | C17 | 1.6300 | C18 | 0.9700 |
 | C19 | 1.3800 | D1 | 1.1989 | | |
 | D2 | 0.9200 | J2 | 0.4320 | J3 | cut off |
@@ -75,14 +77,14 @@ volume (mm³), not free distance. All measured interior intersections are
 | R5 | 0.9398 | R6 | 1.6200 | R7 | 1.6300 |
 | R8 | 0.9192 | R11 | 0.8037 | R12 | 1.6300 |
 | R13 | 1.6300 | R14 | 1.1600 | R15 | 1.6687 |
-| R16 | 1.9785 | R17 | 2.0900 | R18 | 1.3014 |
+| R16 | 2.0675 | R17 | 2.0900 | R18 | 1.3014 |
 | R19 | 1.1600 | R20 | 2.0900 | R21 | 1.8846 |
 | R22 | 1.2000 | R23 | 0.5696 | R24 | 1.7258 |
 | R25 | 2.0900 | R27 | 1.6300 | R28 | 1.6300 |
 | R31 | cut off | R32 | cut off | R33 | cut off |
 | R34 | 1.2000 | R35 | 1.4000 | SW1 | 0.8000 |
-| U1 | 0.0000 | U2 | 0.9800 | U3 | 0.0894 |
-| U4 | 1.1100 | U5 | 0.3100 | | |
+| U1 | 0.0000 (P2 seat) | U2 | 0.9800 | U3 | 0.4219 |
+| U4 | 1.1100 | U5 | 0.4200 | | |
 
 | Additional §10.2 row / test | measured margin, mm (or occupied volume) |
 |---|---:|
@@ -106,9 +108,18 @@ volume (mm³), not free distance. All measured interior intersections are
 | Body vs seated lid interiors | 0 mm³ overlap |
 | STL body / lid | both watertight |
 
-The earliest side clearance to a component is U5 0.31 mm; U3 is only
-**0.0894 mm** from the nearest shell surface. These are nominal CAD
-numbers, not tolerance-stack release. J4 height is pads-only; a mating
+Local 0.42-mm courtyard reliefs cut back the C6-facing edge of the P1 lid
+post, the U3-facing bay shoulder and the U5-facing rib. The closest free
+component is now C6/U5 at **0.4200 mm**, followed by U3 at **0.4219 mm**;
+U1 alone seats deliberately on the P2 post at zero distance. The U5 recess
+begins at u1.97, leaving ≥1.97 mm to the outer anterior edge (the wall
+minimum is 1 mm); U3's begins at u12.42 and does not thin the 1.5-mm
+outer wall. The C6-facing cut shaves ≈0.03 mm from the P1 post's 1 mm
+radius over a short arc (≈0.97 mm locally), below the 1 mm nominal feature
+minimum; the post still occupies 6.1375 mm³ in its landing region, but its
+load-bearing strength needs print review. No outer surface, overall width,
+height or length changed. These are nominal CAD gaps, not tolerance-stack
+release. J4 height is pads-only; a mating
 fixture is not included. The P4/P5 plate and flap checks probe bounding
 prisms, not a 3D model of its bends or actual hardware.
 
@@ -247,8 +258,8 @@ cannot fix those defects.
 | Twin-arm snap | **≈0.99 mm right tail wall** (1.00 mm arm thickness) | 0.10–1.30 mm tolerance engagement; axial pull-off UNVERIFIED | 106/106 | PA12 body/lid only, price UNVERIFIED | Trial candidate, tail wall needs print review |
 
 **Recommendation:** assess the new snap geometry on a first test print and
-cycle it before use. The 0.0894 mm U3 nominal clearance is still below
-print tolerance. The original M2.5×8 needs screw centre s≥50.25 and tip
+cycle it before use. The minimum free component clearance is 0.42 mm nominal;
+±0.3 mm print tolerance still needs physical verification. The original M2.5×8 needs screw centre s≥50.25 and tip
 at least **s53.75** (centre + 2.50 head radius + 1.00 end wall): **5.35 mm
 extra arc**; at bow 3.0 the M1 chord gate rises from **50.901** to
 **56.301 mm**. The longer body is reference only, not built, and changes fit.
@@ -257,15 +268,14 @@ extra arc**; at bow 3.0 the M1 chord gate rises from **50.901** to
 
 Physical PA12 print tolerance, snap/retention and S4 pull/drop, contact
 installation, actual folded-board bend radii and P5 interrupted-key strength,
-post load on U1, flap recess strength, package maxima marked UNVERIFIED
+post load on U1, relieved P1 post strength, flap recess strength, package maxima marked UNVERIFIED
 in §10.2, cell lead
 routing, RF/antenna range, skin fit, seam and visual approval are not proven.
-Even though all nominal box checks pass, a nominal U3 gap of 0.0894 does
-not absorb a ±0.3 mm print tolerance. The two exterior renders show the
+Even though all nominal box checks pass, print fit is not verified. The two exterior renders show the
 shell; the folded-board view contains **schematic envelopes**, not an actual
 PCB assembly. All three PNGs and STEP/STL/3MF file hashes are in the v4
 manifest. The CAD is a **test-print candidate, not a wearable release**; the first
 print must prove that the key actually reaches and releases the foot, that
 both hooks engage and close without fracture across repeated cycles, and
-that the seam and U3 clearance remain usable. Do not order or wear as a
+that the seam and chip clearances remain usable. Do not order or wear as a
 finished product before that evidence.
