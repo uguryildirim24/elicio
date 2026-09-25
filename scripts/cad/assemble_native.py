@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Offline v4-snap assembly for macOS SceneKit when Blender cannot start.
+"""Offline v4-snap assembly from committed shell STLs and §10.2 folded sites.
 
-Uses the committed shell STLs and documented §10.2 folded courtyards; exports
-GLB in metres, renders via assemble_native.swift in millimetres. Requires NumPy
-and Pillow (available in the local conda python). No board STEP is bent: the
-flat STEP is not the geometry of the folded assembly.
+Exports GLB in metres and renders in millimetres via SceneKit on macOS or
+Blender on Linux. Requires NumPy and Pillow. No board STEP is bent: the flat
+STEP is not the geometry of the folded assembly.
 """
 from __future__ import annotations
 
@@ -212,7 +211,7 @@ def export_glb(path: Path, parts):
 def caption_png(path:Path, caption:str):
     image=Image.open(path).convert("RGB")
     draw=ImageDraw.Draw(image)
-    font_path=Path("/System/Library/Fonts/Supplemental/Arial.ttf")
+    font_path=ROOT/"scripts/cad/fonts/LiberationSans-Regular.ttf"
     font=ImageFont.truetype(str(font_path),18)
     draw.rounded_rectangle((22,image.height-74,image.width-22,image.height-22),radius=10,fill=(234,231,225))
     draw.text((40,image.height-60),caption,fill=(41,44,47),font=font)
@@ -228,7 +227,12 @@ def main():
         tmp=Path(d);parts,params=make_scene(tmp)
         export_glb(out/"earpiece.glb",parts)
         (tmp/"scene.json").write_text(json.dumps({"parts":parts,"materials":MATERIALS,"params":params,"out":str(out)}))
-        subprocess.run(["swift",str(Path(__file__).with_suffix(".swift")),str(tmp/"scene.json")],check=True)
+        if sys.platform == "darwin":
+            renderer = ["swift", str(Path(__file__).with_suffix(".swift")), str(tmp/"scene.json")]
+        else:
+            renderer = ["blender", "-b", "-noaudio", "-t", "4", "--python",
+                        str(Path(__file__).with_name("assemble_blender.py")), "--", str(tmp/"scene.json")]
+        subprocess.run(renderer, check=True)
     shell_sha=source_commit(SHELL/"body_full_p15.step")
     board_sha=source_commit(BOARD)
     old_sha=source_commit(OLD_SHELL/"body_full_p15.step")
@@ -240,7 +244,7 @@ def main():
         "shell_commit":shell_sha,"board_commit":board_sha,"old_shell_commit":old_sha,
         "shell_source":"docs/fab/cad/v4-snap/{body_full_p15,lid}.stl",
         "board_source":"hardware/board/elicio-v4.kicad_pcb and docs/fab/board-v4-design.md §10.2",
-        "renderer":"macOS SceneKit offline, orthographic; Pillow caption overlays",
+        "renderer":("macOS SceneKit" if sys.platform == "darwin" else "Blender Cycles CPU") + ", orthographic; Pillow caption overlays",
         "pictures":{view:{"shell_commit":shell_sha,"board_commit":board_sha,
                           **({"old_shell_commit":old_sha} if view=="old_new" else {})} for view in VIEWS},
         "simplifications":["Board and populated components are folded §10.2 courtyard envelopes, not a bent STEP or exact component CAD; cell is a dimensioned envelope without leads.",
