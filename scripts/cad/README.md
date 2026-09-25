@@ -2,6 +2,37 @@
 
 This folder builds the Stage B fit-gauge solids from plan §3.
 
+## V4-snap preview from committed solids
+
+`assemble_native.py` exports an assembled GLB and eight studio-style PNGs with
+commit captions. It uses the committed v4-snap STL pair, routed v4 board
+footprints, v4 shell manifest, and `board-v4-design.md` §10.2 folded sites
+and courtyard heights. A flat routed STEP cannot depict the board after its
+folds: the board and populated packages are curved envelope geometry rather
+than copper or exact package CAD. The cell is its 501012 envelope; the three
+M2.5 titanium heads, P4/P5 titanium wall heads and US quarter are simplified
+visuals. The old/new image loads the committed v2 body STL. No lid screw is
+present on v4-snap. These are assembly visualizations, **not** a clearance or
+buildability check; the committed v4-snap interior predates the later base-v4
+interior correction.
+
+With Python 3.11+, NumPy and Pillow, render with SceneKit and Swift on macOS,
+or with Blender (including 4.0) on Linux:
+
+```bash
+python scripts/cad/assemble_native.py --out /path/to/output
+```
+
+The Linux Blender build used here has no OpenImageDenoiser, so it renders
+32 CPU samples without denoising. The camera keeps the hook and separated lid
+inside the picture in each view.
+
+`earpiece.glb` is glTF 2.0 in metres, with PA12 and metal materials;
+`captions.json` records full shell and board commits and the approximations.
+The renderer makes one offline job for all eight views and cleans its
+temporary geometry on exit. No model is downloaded.
+The Blender/Cycles alternative is `assemble_photo.py` if Blender starts.
+
 ## Install
 
 Python 3.13 is enough. build123d has a 3.13 wheel.
@@ -174,3 +205,14 @@ The Stage B manifest keeps schema 1 and adds `stage`, `provisional`, `packing`, 
 ```
 
 Same construction and exit codes as above; `PACKING = "v2"` adds the `V2_*` checks for the packing-v2 layout named in the file. Each check reports a number or `NOT_MEASURED` by name, and the manifest lists the unmeasured ones under `stage_b_not_measured`. Today it exits 3: the floor-level REF tab crosses the cavity end wall (`V2_TAB_envelope`, `REF_WIRE_envelope`). `docs/fab/packing-v2.md` §6 has the numbers, and `tests/test_cad.py` checks them against a fresh build. The packing matrix and its drawings: `placement.py --all` (closers), `--kept-drawings` (the committed set) and `--all-drawings --out-dir <tmp>` (every run, never committed).
+
+## Assembled v4-snap earpiece (visualisation, not fabrication CAD)
+
+With Blender 5.2+ on `PATH`, regenerate the flat board export, then render:
+
+```bash
+python3 scripts/board/release.py --board elicio-v4 --routed
+python3 scripts/cad/assemble_photo.py --out .herdr-project/elicio-t-0034/library --samples 12
+```
+
+The script uses the committed v4-snap body/lid STL (the STEP exports' tessellation), shell manifest frame, routed v4 PCB footprints and `board-v4-design.md` §10.2 folded sites, courtyards and height intervals. The released KiCad STEP is **flat**, not a folded assembly; the model instead sweeps simplified flex/island envelopes and draws electronic parts as §10.2 courtyard blocks. The 501012 cell occupies the §1.4 pocket. Contact and charging hardware are visual titanium proxies without threads or complete electrical detail. The latch is hidden; **there is no lid screw**. The renders show natural grey PA12 and titanium. `earpiece.glb`, eight PNGs (including the previous 22 mm body at the same scale) and `captions.json` are written to the specified output folder. `--only lateral` renders one view; a complete rerun replaces all output from current commits. The v4 base-shell interior correction in t-0031 was not regenerated in the v4-snap variant: the outside is the chosen snap variant, while its lid-off interior remains the older revision. Do not use this assembly as fit or production proof.
