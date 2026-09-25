@@ -238,11 +238,11 @@ This table comes from committed `hardware/board/elicio-v4.kicad_sch` and
 `elicio-v4.kicad_pcb`, U1's pad nets, checked against Insight SiP's ISP1807
 R19 datasheet §3 pin table (pp. 10–11),
 https://www.insightsip.com/fichiers_insightsip/pdf/ble/ISP1807/isp_ble_DS1807.pdf
-(read 2026-09-25). Relevant table rows, quoted as pad : signal:
-"4 : P0.10/NFC2", "6 : P0.26", "13 : P0.18/RESET", "32 : P0.08",
-"34 : P0.06", "36 : P0.05/AIN3", "38 : P0.03/AIN1", "40 : P0.02/AIN0",
-"42 : P0.31/AIN7", "44 : P0.30/AIN6", "46 : P0.29/AIN5",
-"48 : P0.28/AIN4". These are module **pad numbers**, not Arduino pins.
+(read 2026-09-25). Relevant rows (datasheet's `Pin` and `Name` cells; names use underscores):
+"4 P0_10 NFC2", "6 P0_26", "13 P0_18 RESET", "32 P0_08",
+"34 P0_06", "36 P0_05 AIN3", "38 P0_03 AIN1", "40 P0_02 AIN0",
+"42 P0_31 AIN7", "44 P0_30 AIN6", "46 P0_29 AIN5",
+"48 P0_28 AIN4". These are module **pad numbers**, not Arduino pins.
 
 | U1 net | Pad | nRF pin | Direction at nRF | Constraint |
 |---|---:|---|---|---|
