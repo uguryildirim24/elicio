@@ -27,6 +27,12 @@ R0201 = "Resistor_SMD:R_0201_0603Metric"
 C0201 = "Capacitor_SMD:C_0201_0603Metric"
 DFN1006 = "Package_TO_SOT_SMD:SOT-883"  # DFN1006-3: 1 G, 2 S, 3 D
 
+
+def esd_cap(ref: str, value: str, net: str, mpn: str) -> Part:
+    """Murata 10 V X5R 0402, DC-bias characterized in the design note §2.1."""
+    return Part(ref, "Device:C", value, C0402,
+                {"1": net, "2": "GND"}, lcsc="CONSIGNED", mpn=mpn)
+
 # (value, size) -> (LCSC, MPN). Filled from research; "" = not yet read.
 # Parts JLC cannot supply carry CONSIGNED in the LCSC field, so the BOM says
 # so plainly (design note §2): U1 ISP1807, U5 TPS7A0230, J2 Molex 202656.
@@ -211,7 +217,7 @@ def parts() -> list[Part]:
         r("R35", "10k", "AFE_GPIO2", "GND"),
         c("C1", "1.5nF", "RLD_FB", "RLDINV"),
         c("C2", "10nF", "ISET", "GND"),
-        c("C3", "1uF", "VBUS", "GND"),
+        esd_cap("C3", "10uF", "VBUS", "GRM155R61A106ME18"),
         c("C4", "1uF", "VBAT", "GND"),
         c("C5", "1uF", "AFE_VIN", "GND"),
         c("C6", "10uF", "+3V0", "GND", "0402"),
@@ -222,7 +228,9 @@ def parts() -> list[Part]:
         c("C11", "1uF", "VCAP2", "GND"),  # 1 uF at pin 27 (SBAS502C Fig. 73)
         c("C12", "100nF", "+VDD", "GND"),
         c("C13", "1uF", "+VDD", "GND"),
-        c("C14", "4.7uF", "VBAT", "GND", "0402"),
+        esd_cap("C14", "10uF", "VBAT", "GRM155R61A106ME18"),
+        esd_cap("C18", "10uF", "TS", "GRM155R61A106ME18"),
+        esd_cap("C19", "10uF", "VBAT", "GRM155R61A106ME18"),
         c("C15", "100nF", "+3V0", "GND"),
         c("C16", "1uF", "VBAT", "GND"),
         c("C17", "100nF", "VREFP", "GND"),  # local VREFP bypass beside C9 (SBAS502C Fig. 73)
