@@ -802,16 +802,19 @@ def in1_pre_routes(board) -> None:
     that via. Trunk, IN1N and branch pass the SIG2 root at s 17.165 / 17.37 / 17.575 with
     VBUS at 16.96, 0.105 apart, 0.21 from the SIG2 via (Contact 0.20) and 0.115 from C9.2;
     VBUS keeps its F loop round the IN1P via to its via south of it. IN1N and the branch
-    drop between C17 and R12 to pins 3 and 4, the branch east of the +3V0 N via."""
+    drop between C17 and R12 to pins 3 and 4, the branch east of the +3V0 N via. Past the
+    root VBUS and the trunk rise to the top edge, so a GND via on the R11.2-C2.2 link
+    reaches R12.2 and U3.C2's via on F: ISET and VBAT box U3.C2 in on B."""
     fcu, bcu = pcbnew.F_Cu, pcbnew.B_Cu
     w = FLEX_TRACK
-    in1p, in1n, vbus = (ensure_net(board, n) for n in ("AFE_IN1P", "AFE_IN1N", "VBUS"))
+    in1p, in1n, vbus, gnd = (ensure_net(board, n) for n in ("AFE_IN1P", "AFE_IN1N", "VBUS", "GND"))
     pc = lambda ref, n: pad_center(board, ref, n)  # noqa: E731
     s_vbus, s_trunk, s_in1n, s_branch = 16.96, 17.165, 17.37, 17.575
     j_via, n_via, vbus_via = (6.38, 17.45), (8.35, s_in1n), (6.70, 18.30)
     add_locked_via(board, j_via, in1p)
     add_locked_path(board, [j_via, pc("R1", "2")], in1p, bcu, w)
-    add_locked_path(board, [j_via, (6.83, 17.00), (9.50, 17.00), (9.665, s_trunk), (11.95, s_trunk)], in1p, fcu, w)
+    add_locked_path(board, [j_via, (6.83, 17.00), (9.50, 17.00), (9.665, s_trunk), (10.80, s_trunk), (11.305, 16.66),
+                            (11.95, 16.66)], in1p, fcu, w)
     add_locked_path(board, [j_via, (6.69, 17.76), (8.95, 17.76), (9.135, s_branch), (11.075, s_branch),
                             (11.50, 18.00), (11.50, 18.90), (11.95, 19.35), pc("U2", "4")], in1p, fcu, w)
     add_locked_via(board, n_via, in1n)
@@ -820,7 +823,11 @@ def in1_pre_routes(board) -> None:
                     in1n, fcu, w)
     add_locked_via(board, vbus_via, vbus)
     add_locked_path(board, [vbus_via, (6.10, 17.70), (6.00, 17.60), (6.00, 16.95), (6.20, 16.75), (9.55, 16.75),
-                            (9.76, s_vbus), (11.95, s_vbus)], vbus, fcu, w)
+                            (9.76, s_vbus), (10.60, s_vbus), (11.11, 16.45), (11.95, 16.45)], vbus, fcu, w)
+    g_via, g_mid = (11.67, 17.15), (12.28, 17.15)
+    add_locked_via(board, g_via, gnd)
+    add_locked_path(board, [g_via, g_mid, pc("R12", "2")], gnd, fcu, w)
+    add_locked_path(board, [g_mid, (12.50, 17.15), (13.00, 17.65)], gnd, fcu, w)
 
 
 def board_pad_net(board, ref: str, num: str) -> str:
