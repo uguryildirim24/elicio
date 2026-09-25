@@ -1,5 +1,7 @@
 # v4 circuit check against maker references — 2026-09-25
 
+**Snapshot before the routed revision.** Findings below describe the schematic and board inspected at the time, not today's checked-in files. The routed revision fixes the D1 land, C11 value, GPIO pull-downs and Q2–Q4 selection and reports zero open connections (`board-v4-design.md` §§2.1, 9). TS/NTC and antenna range still need Rolf's decisions; D1 now sits downstream of the charger's input, with ESD protection there unverified. This snapshot is not permission to order.
+
 The circuit does **not** yet match the makers' reference designs closely enough to order. In particular, the ADS1292's VCAP2 and unused GPIO wiring, the charger's missing battery-temperature sensor, an unverified FET selection and the TVS footprint need correction or an explicit safety decision before this one-board build. The checked-in v4 PCB also has **10 open connections**, including five on GND (design note §9.4); closing the schematic findings alone would not make it order-ready. This is a **schematic** review, not a routed-copper or medical-safety approval.
 
 ## Order blockers first
