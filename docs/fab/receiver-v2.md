@@ -44,7 +44,9 @@ or flat for more than 200 sample intervals, counted on the acquisition
 stream). Q75: a 3.4 dropout is a report, not a stop. Exit 3 stays a
 distinct code. S2 continues. The dropout count goes in the session
 note (`sidecar.json`). Lines 3.5 to 3.10 stay stops (exit 1). Exit 1
-and 2 stay stops.
+and 2 stay stops. Lines 3.1 to 3.3 (noise, flex and clench numbers)
+are scored by the analysis pipeline after the session; `receive-check`
+stops only on the same-criterion lines 3.5 to 3.10 (Q96).
 
 | Code | Meaning |
 |---:|---|
