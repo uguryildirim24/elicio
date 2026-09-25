@@ -1,5 +1,10 @@
 # Order the shell (v2)
 
+**Not an order-ready sheet.** The committed v2f shell has a J2/P5 hardware
+collision, and the newer 18 mm v4 board needs a different shell. Do not upload
+the v2 solids for v4. This sheet stays blocked until the board/shell pairing
+and assembled clearances are measured on a built solid.
+
 Phone sheet. Order 2 is the printed body and lid. It is not the board.
 No agent places this order. You pay only after every box in the
 checkout gate is ticked.
@@ -45,10 +50,10 @@ Stop. Do not pay if any line is true.
 
 1. G8 above is not ticked.
 2. `docs/fab/cad/v2/manifest.json` is missing, or its
-   `stage_b_failing` list is not empty. On this tree it lists
-   `V2_CLOSURE`, `V2_EDGE_radii`, `V2_USB_end`, `V2_WALL_minima`
-   (review r6, decisions 70 and 71). Rows marked NOT_MEASURED are named
-   in `shell-v2.md` §6 and are not a pass.
+   `stage_b_failing` list is not empty. On this tree it is empty, but that
+   tests the v2 shell alone: `V2_CAVITY_v3` still reports a −4.93 mm J2/P5
+   hardware gap. Do not order until the assembled fit is cleared on a
+   board-matched shell. Rows marked NOT_MEASURED are not a pass.
 3. You have not approved both renders (`render_medial.png` and
    `render_lateral.png` in `docs/fab/cad/v2/`, expected from WP14).
 4. M1 is below 50.90 mm (`measure.md`, `packing-v2.md` §6).
