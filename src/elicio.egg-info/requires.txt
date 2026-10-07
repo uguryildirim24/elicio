@@ -1,0 +1,6 @@
+numpy>=2.0
+
+[research]
+scikit-learn>=1.5
+torch>=2.4
+wfdb>=4.1
