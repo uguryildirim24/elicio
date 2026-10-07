@@ -1,0 +1,469 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-25T14:28:00",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "key": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "key": "silk_over_copper"
+        },
+        {
+            "description": "PTH inside courtyard",
+            "key": "pth_inside_courtyard"
+        },
+        {
+            "description": "NPTH inside courtyard",
+            "key": "npth_inside_courtyard"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning"
+    ],
+    "kicad_version": "10.0.6",
+    "schematic_parity": [],
+    "source": "elicio-v4.kicad_pcb",
+    "unconnected_items": [],
+    "violations": [
+        {
+            "description": "Via is not connected or connected on only one layer",
+            "items": [
+                {
+                    "description": "Via [+VDD] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 7.6,
+                        "y": 36.7
+                    },
+                    "uuid": "b18c1a13-393b-4b7e-8917-c1186a8e1e09"
+                }
+            ],
+            "severity": "warning",
+            "type": "via_dangling"
+        },
+        {
+            "description": "Footprint 'LED_0402_1005Metric' does not match copy in library 'LED_SMD'",
+            "items": [
+                {
+                    "description": "Footprint D2",
+                    "pos": {
+                        "x": 14.65,
+                        "y": 26.1
+                    },
+                    "uuid": "0e9d3bde-7559-4380-93cf-34781630c0a8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C19",
+                    "pos": {
+                        "x": 14.1,
+                        "y": 34.2
+                    },
+                    "uuid": "1ea26d3b-d159-44ca-9aee-2c5cc80795fd"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Molex_Pico-EZmate_Slim_202656-0021_1x02-1MP_P1.20mm_Vertical' does not match copy in library 'Connector_Molex'",
+            "items": [
+                {
+                    "description": "Footprint J2",
+                    "pos": {
+                        "x": 5.45,
+                        "y": 18.9
+                    },
+                    "uuid": "201fbd1e-2aa5-4fb2-8f2f-adf9f527d94d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical' does not match copy in library 'Connector'",
+            "items": [
+                {
+                    "description": "Footprint J4",
+                    "pos": {
+                        "x": 10.0,
+                        "y": 35.4
+                    },
+                    "uuid": "596dc5e9-634f-4a07-b04e-8e2a3a419629"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'InsightSiP_ISP1807' does not match copy in library 'elicio'",
+            "items": [
+                {
+                    "description": "Footprint U1",
+                    "pos": {
+                        "x": 6.45,
+                        "y": 29.05
+                    },
+                    "uuid": "619828ac-da08-4a4e-a008-ac23a6f18286"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R32",
+                    "pos": {
+                        "x": 18.0,
+                        "y": 21.15
+                    },
+                    "uuid": "789509c6-6f40-4de2-a9b3-fd9f31f32a05"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x03_P2.54mm_Horizontal' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J3",
+                    "pos": {
+                        "x": 22.4,
+                        "y": 19.4
+                    },
+                    "uuid": "8c1bc823-cb8a-4deb-bca8-68e9c33ddd1b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R31",
+                    "pos": {
+                        "x": 22.4,
+                        "y": 16.8
+                    },
+                    "uuid": "a073881f-8bbf-4ba1-bc77-6f16d59e3392"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Texas_RSM0032' does not match copy in library 'elicio'",
+            "items": [
+                {
+                    "description": "Footprint U2",
+                    "pos": {
+                        "x": 11.85,
+                        "y": 22.08
+                    },
+                    "uuid": "a5239efb-ad34-42d2-829a-d27e41cf04bf"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C6",
+                    "pos": {
+                        "x": 7.75,
+                        "y": 22.66
+                    },
+                    "uuid": "a7997682-3a91-405f-b8cd-07c9a7745eb6"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C3",
+                    "pos": {
+                        "x": 14.4,
+                        "y": 17.2
+                    },
+                    "uuid": "aae78f7a-33ad-460c-8ef9-cfe489028339"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C9",
+                    "pos": {
+                        "x": 10.2,
+                        "y": 18.5
+                    },
+                    "uuid": "baf5dfc7-9327-44b0-bf92-ec521bab1eef"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'SOT-883' does not match copy in library 'Package_TO_SOT_SMD'",
+            "items": [
+                {
+                    "description": "Footprint Q4",
+                    "pos": {
+                        "x": 14.6,
+                        "y": 28.0
+                    },
+                    "uuid": "bec89654-fdf8-45be-9f6f-3ba68abee762"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R33",
+                    "pos": {
+                        "x": 22.4,
+                        "y": 27.1
+                    },
+                    "uuid": "cd35ad7a-5ad6-44ad-a9c5-a18316dcbfa5"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'SOT-883' does not match copy in library 'Package_TO_SOT_SMD'",
+            "items": [
+                {
+                    "description": "Footprint Q1",
+                    "pos": {
+                        "x": 9.85,
+                        "y": 22.8
+                    },
+                    "uuid": "05e8e95b-4f5a-44c6-88bd-7bfe3fded52c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'SOT-883' does not match copy in library 'Package_TO_SOT_SMD'",
+            "items": [
+                {
+                    "description": "Footprint Q2",
+                    "pos": {
+                        "x": 12.5,
+                        "y": 19.55
+                    },
+                    "uuid": "1cf45530-c572-4df3-8739-4084e40fbdf2"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'SOT-883' does not match copy in library 'Package_TO_SOT_SMD'",
+            "items": [
+                {
+                    "description": "Footprint Q3",
+                    "pos": {
+                        "x": 10.65,
+                        "y": 19.9
+                    },
+                    "uuid": "22a5677f-ddcc-4f3d-b74e-0d1f34c3fe3c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'D_SOD-882' does not match copy in library 'Diode_SMD'",
+            "items": [
+                {
+                    "description": "Footprint D1",
+                    "pos": {
+                        "x": 14.3,
+                        "y": 28.6
+                    },
+                    "uuid": "29671089-891b-4b9f-9dfe-1ddb38faa601"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R1",
+                    "pos": {
+                        "x": 5.9,
+                        "y": 17.3
+                    },
+                    "uuid": "60773155-6f7b-4467-82b9-2563f3b1c7b6"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R2",
+                    "pos": {
+                        "x": 9.39,
+                        "y": 17.25
+                    },
+                    "uuid": "8435a27c-b5d7-4589-851b-63e9a715a76b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Texas_YFP0006_V4' does not match copy in library 'elicio'",
+            "items": [
+                {
+                    "description": "Footprint U3",
+                    "pos": {
+                        "x": 13.9,
+                        "y": 17.75
+                    },
+                    "uuid": "998d005a-8ee1-4706-827b-2808c7c74503"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R3",
+                    "pos": {
+                        "x": 14.55,
+                        "y": 25.6
+                    },
+                    "uuid": "a0075466-429e-4f1a-a89e-31057c2e0976"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C18",
+                    "pos": {
+                        "x": 15.07,
+                        "y": 20.7
+                    },
+                    "uuid": "b024996d-04ea-4b9b-8f77-a67b66e8e202"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C14",
+                    "pos": {
+                        "x": 14.15,
+                        "y": 27.2
+                    },
+                    "uuid": "e31cca37-6058-4c26-9ee1-7a7cd1c1159a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Texas_X2SON-4_1x1mm_P0.65mm' does not match copy in library 'Package_SON'",
+            "items": [
+                {
+                    "description": "Footprint U4",
+                    "pos": {
+                        "x": 11.65,
+                        "y": 21.25
+                    },
+                    "uuid": "e520b01f-9a94-4b4e-9083-15c5fc72ba49"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C8",
+                    "pos": {
+                        "x": 11.65,
+                        "y": 22.55
+                    },
+                    "uuid": "ed986dbf-97fa-4e0c-a5ae-c94d6e76973b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Texas_X2SON-4_1x1mm_P0.65mm' does not match copy in library 'Package_SON'",
+            "items": [
+                {
+                    "description": "Footprint U5",
+                    "pos": {
+                        "x": 3.3,
+                        "y": 17.1
+                    },
+                    "uuid": "f708fad4-05a7-4359-9f1b-8badb3f3b5c7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        }
+    ]
+}
