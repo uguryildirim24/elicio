@@ -1,0 +1,12 @@
+numpy>=2.0
+
+[cad]
+build123d>=0.7
+trimesh>=4
+matplotlib>=3.9
+pypdf>=5
+
+[research]
+scikit-learn>=1.5
+torch>=2.4
+wfdb>=4.1
