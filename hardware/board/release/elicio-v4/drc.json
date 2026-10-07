@@ -1,0 +1,805 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-23T22:29:19",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "key": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "key": "silk_over_copper"
+        },
+        {
+            "description": "PTH inside courtyard",
+            "key": "pth_inside_courtyard"
+        },
+        {
+            "description": "NPTH inside courtyard",
+            "key": "npth_inside_courtyard"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning"
+    ],
+    "kicad_version": "10.0.6",
+    "schematic_parity": [],
+    "source": "elicio-v4.kicad_pcb",
+    "unconnected_items": [
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [GND] of Q3 on B.Cu",
+                    "pos": {
+                        "x": 9.5,
+                        "y": 20.675
+                    },
+                    "uuid": "1efdb89c-1a38-46e6-b541-5088f3e03ab6"
+                },
+                {
+                    "description": "Pad 10 [GND] of U2 on F.Cu",
+                    "pos": {
+                        "x": 9.925,
+                        "y": 21.08
+                    },
+                    "uuid": "6aae5829-4f0b-47b4-a025-88b4c288ac70"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Zone 'GND_POUR_F' [GND] on F.Cu, priority 0",
+                    "pos": {
+                        "x": 2.25,
+                        "y": 16.0
+                    },
+                    "uuid": "f6a039af-9311-4685-9ef2-56d53383649b"
+                },
+                {
+                    "description": "Zone 'GND_POUR_B' [GND] on B.Cu, priority 0",
+                    "pos": {
+                        "x": 2.25,
+                        "y": 16.0
+                    },
+                    "uuid": "ab1548d0-dba7-4279-9002-4906a458ce53"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [GND] of C11 on B.Cu",
+                    "pos": {
+                        "x": 11.97,
+                        "y": 24.6
+                    },
+                    "uuid": "ef2fc5cc-787c-411f-9d60-2493daf6ef5d"
+                },
+                {
+                    "description": "Zone 'GND_POUR_B' [GND] on B.Cu, priority 0",
+                    "pos": {
+                        "x": 2.25,
+                        "y": 16.0
+                    },
+                    "uuid": "ab1548d0-dba7-4279-9002-4906a458ce53"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Zone 'GND_POUR_B' [GND] on B.Cu, priority 0",
+                    "pos": {
+                        "x": 2.25,
+                        "y": 16.0
+                    },
+                    "uuid": "ab1548d0-dba7-4279-9002-4906a458ce53"
+                },
+                {
+                    "description": "Zone 'GND_POUR_F' [GND] on F.Cu, priority 0",
+                    "pos": {
+                        "x": 2.25,
+                        "y": 16.0
+                    },
+                    "uuid": "f6a039af-9311-4685-9ef2-56d53383649b"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [GND] on F.Cu, length 0.0354 mm",
+                    "pos": {
+                        "x": 14.1,
+                        "y": 18.0
+                    },
+                    "uuid": "38692a25-4c15-48a0-b404-83e228622ad9"
+                },
+                {
+                    "description": "Track [GND] on B.Cu, length 3.1100 mm",
+                    "pos": {
+                        "x": 17.95,
+                        "y": 16.9
+                    },
+                    "uuid": "af9e294c-b8bf-40fc-935b-e93db62c89e6"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [AFE_DRDY] on F.Cu, length 1.4752 mm",
+                    "pos": {
+                        "x": 11.0,
+                        "y": 29.95
+                    },
+                    "uuid": "041f13e2-1c07-44c8-b97e-228696aceb42"
+                },
+                {
+                    "description": "Track [AFE_DRDY] on F.Cu, length 0.0250 mm",
+                    "pos": {
+                        "x": 11.375,
+                        "y": 30.4
+                    },
+                    "uuid": "124aee5f-422f-4105-b3b3-be3938ba118f"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [VBUS_DET] on B.Cu, length 0.9546 mm",
+                    "pos": {
+                        "x": 11.25,
+                        "y": 25.7
+                    },
+                    "uuid": "62d66c09-3d3e-463c-b694-8933d20e6d98"
+                },
+                {
+                    "description": "Track [VBUS_DET] on B.Cu, length 0.6755 mm",
+                    "pos": {
+                        "x": 10.25,
+                        "y": 26.675
+                    },
+                    "uuid": "0cd02f89-ef97-42f1-9d11-2fe047ea4a7e"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [CHG_MON] on B.Cu, length 0.0250 mm",
+                    "pos": {
+                        "x": 8.7,
+                        "y": 25.25
+                    },
+                    "uuid": "073f4162-b801-44d9-9158-2fec8f9aafdf"
+                },
+                {
+                    "description": "Track [CHG_MON] on B.Cu, length 0.0354 mm",
+                    "pos": {
+                        "x": 8.075,
+                        "y": 25.0
+                    },
+                    "uuid": "d1e520d3-8c9d-4011-a90b-fdde3c873085"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [AFE_VIN] on B.Cu, length 2.0514 mm",
+                    "pos": {
+                        "x": 8.3,
+                        "y": 19.5
+                    },
+                    "uuid": "a7d4dfcc-e7ce-4a2c-9373-09e9cb0e3ab2"
+                },
+                {
+                    "description": "Track [AFE_VIN] on B.Cu, length 0.0354 mm",
+                    "pos": {
+                        "x": 8.025,
+                        "y": 19.85
+                    },
+                    "uuid": "321d988c-2680-4d44-8bfc-c8834136cefe"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [AFE_VIN] on B.Cu, length 0.5154 mm",
+                    "pos": {
+                        "x": 10.875,
+                        "y": 20.275
+                    },
+                    "uuid": "57ee5d1e-403e-408d-9e30-d5c2ba719058"
+                },
+                {
+                    "description": "Track [AFE_VIN] on B.Cu, length 0.1031 mm",
+                    "pos": {
+                        "x": 10.6,
+                        "y": 19.825
+                    },
+                    "uuid": "8ef2ab10-10cc-4eb0-b03a-85d2d2128a2e"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        }
+    ],
+    "violations": [
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [AFE_DRDY] on F.Cu, length 1.4752 mm",
+                    "pos": {
+                        "x": 11.0,
+                        "y": 29.95
+                    },
+                    "uuid": "041f13e2-1c07-44c8-b97e-228696aceb42"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [AFE_DRDY] on F.Cu, length 0.0250 mm",
+                    "pos": {
+                        "x": 11.375,
+                        "y": 30.4
+                    },
+                    "uuid": "124aee5f-422f-4105-b3b3-be3938ba118f"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Via is not connected or connected on only one layer",
+            "items": [
+                {
+                    "description": "Via [+VDD] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 7.6,
+                        "y": 36.7
+                    },
+                    "uuid": "e1d68716-a796-480d-81c5-622962a46241"
+                }
+            ],
+            "severity": "warning",
+            "type": "via_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [VBUS_DET] on B.Cu, length 0.6755 mm",
+                    "pos": {
+                        "x": 10.25,
+                        "y": 26.675
+                    },
+                    "uuid": "0cd02f89-ef97-42f1-9d11-2fe047ea4a7e"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [VBUS_DET] on B.Cu, length 0.9546 mm",
+                    "pos": {
+                        "x": 11.25,
+                        "y": 25.7
+                    },
+                    "uuid": "62d66c09-3d3e-463c-b694-8933d20e6d98"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [CHG_MON] on B.Cu, length 0.0250 mm",
+                    "pos": {
+                        "x": 8.7,
+                        "y": 25.25
+                    },
+                    "uuid": "073f4162-b801-44d9-9158-2fec8f9aafdf"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [CHG_MON] on B.Cu, length 0.0354 mm",
+                    "pos": {
+                        "x": 8.075,
+                        "y": 25.0
+                    },
+                    "uuid": "d1e520d3-8c9d-4011-a90b-fdde3c873085"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [AFE_VIN] on B.Cu, length 0.5154 mm",
+                    "pos": {
+                        "x": 10.875,
+                        "y": 20.275
+                    },
+                    "uuid": "57ee5d1e-403e-408d-9e30-d5c2ba719058"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [AFE_VIN] on B.Cu, length 0.1031 mm",
+                    "pos": {
+                        "x": 10.6,
+                        "y": 19.825
+                    },
+                    "uuid": "8ef2ab10-10cc-4eb0-b03a-85d2d2128a2e"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [AFE_VIN] on B.Cu, length 0.0354 mm",
+                    "pos": {
+                        "x": 8.0,
+                        "y": 19.825
+                    },
+                    "uuid": "97cf2ab4-9599-4e69-b2c6-2060c94a9365"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [AFE_VIN] on B.Cu, length 2.0514 mm",
+                    "pos": {
+                        "x": 8.3,
+                        "y": 19.5
+                    },
+                    "uuid": "a7d4dfcc-e7ce-4a2c-9373-09e9cb0e3ab2"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C9",
+                    "pos": {
+                        "x": 10.2,
+                        "y": 18.5
+                    },
+                    "uuid": "041b5e4a-caaf-4a59-83dc-0a00c896d97f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'SOT-883' does not match copy in library 'Package_TO_SOT_SMD'",
+            "items": [
+                {
+                    "description": "Footprint Q4",
+                    "pos": {
+                        "x": 14.6,
+                        "y": 28.0
+                    },
+                    "uuid": "345d5631-62f0-46a3-a8cf-4a24389a22cd"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C6",
+                    "pos": {
+                        "x": 7.75,
+                        "y": 22.66
+                    },
+                    "uuid": "34a478f3-0b91-4f6b-a7b4-ad0920a8b4f6"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R31",
+                    "pos": {
+                        "x": 22.4,
+                        "y": 16.8
+                    },
+                    "uuid": "41746c0e-6a49-4cd4-bb0b-2bcb88238b49"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'InsightSiP_ISP1807' does not match copy in library 'elicio'",
+            "items": [
+                {
+                    "description": "Footprint U1",
+                    "pos": {
+                        "x": 6.45,
+                        "y": 29.05
+                    },
+                    "uuid": "4c3ea461-b524-4266-a974-086047e48cf8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x03_P2.54mm_Horizontal' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J3",
+                    "pos": {
+                        "x": 22.4,
+                        "y": 19.4
+                    },
+                    "uuid": "4cc88109-7aed-4b0d-b180-7d436feb1fe9"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Texas_RSM0032' does not match copy in library 'elicio'",
+            "items": [
+                {
+                    "description": "Footprint U2",
+                    "pos": {
+                        "x": 11.85,
+                        "y": 22.08
+                    },
+                    "uuid": "59a55217-6d96-45f3-8a6a-962eb4d8299e"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'LED_0402_1005Metric' does not match copy in library 'LED_SMD'",
+            "items": [
+                {
+                    "description": "Footprint D2",
+                    "pos": {
+                        "x": 14.65,
+                        "y": 26.1
+                    },
+                    "uuid": "741026b6-e4be-45aa-b9ce-676f6e62483f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R32",
+                    "pos": {
+                        "x": 18.0,
+                        "y": 21.15
+                    },
+                    "uuid": "9a241410-8586-4c72-8834-7346a27f8738"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical' does not match copy in library 'Connector'",
+            "items": [
+                {
+                    "description": "Footprint J4",
+                    "pos": {
+                        "x": 10.0,
+                        "y": 35.4
+                    },
+                    "uuid": "ca975937-db25-4f0e-b504-2f6e5560e33f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Molex_Pico-EZmate_Slim_202656-0021_1x02-1MP_P1.20mm_Vertical' does not match copy in library 'Connector_Molex'",
+            "items": [
+                {
+                    "description": "Footprint J2",
+                    "pos": {
+                        "x": 5.45,
+                        "y": 18.9
+                    },
+                    "uuid": "da52636b-dd95-4eaa-8c87-89053d36ebe3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R33",
+                    "pos": {
+                        "x": 22.4,
+                        "y": 27.1
+                    },
+                    "uuid": "f186492c-d8b0-4242-8b78-136337c7195f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Texas_YFP0006_V4' does not match copy in library 'elicio'",
+            "items": [
+                {
+                    "description": "Footprint U3",
+                    "pos": {
+                        "x": 13.9,
+                        "y": 17.75
+                    },
+                    "uuid": "07e90a31-f15b-4d3d-8bac-126695ec5a95"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R1",
+                    "pos": {
+                        "x": 5.9,
+                        "y": 17.3
+                    },
+                    "uuid": "4f064b05-f79f-4ee7-841d-9b8bae82b723"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Texas_X2SON-4_1x1mm_P0.65mm' does not match copy in library 'Package_SON'",
+            "items": [
+                {
+                    "description": "Footprint U5",
+                    "pos": {
+                        "x": 3.3,
+                        "y": 17.1
+                    },
+                    "uuid": "598a7bb7-75c6-4b31-810e-24d8ee03e277"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'SOT-883' does not match copy in library 'Package_TO_SOT_SMD'",
+            "items": [
+                {
+                    "description": "Footprint Q1",
+                    "pos": {
+                        "x": 9.85,
+                        "y": 22.8
+                    },
+                    "uuid": "85d47d25-7656-4fe1-b6e5-8cafd025f963"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C14",
+                    "pos": {
+                        "x": 11.65,
+                        "y": 23.6
+                    },
+                    "uuid": "a9183ae7-ef35-453e-840f-e9e99182c5ab"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R2",
+                    "pos": {
+                        "x": 9.39,
+                        "y": 17.25
+                    },
+                    "uuid": "b2b54181-3df7-4686-a45c-5ef7040c1818"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'SOT-883' does not match copy in library 'Package_TO_SOT_SMD'",
+            "items": [
+                {
+                    "description": "Footprint Q3",
+                    "pos": {
+                        "x": 9.85,
+                        "y": 20.9
+                    },
+                    "uuid": "b448595e-8eb0-4db1-9ef2-6deab316c756"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'Texas_X2SON-4_1x1mm_P0.65mm' does not match copy in library 'Package_SON'",
+            "items": [
+                {
+                    "description": "Footprint U4",
+                    "pos": {
+                        "x": 11.65,
+                        "y": 21.25
+                    },
+                    "uuid": "c493e50a-7fd4-405e-96fe-270acf263036"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'D_SOD-523' does not match copy in library 'Diode_SMD'",
+            "items": [
+                {
+                    "description": "Footprint D1",
+                    "pos": {
+                        "x": 12.6,
+                        "y": 19.7
+                    },
+                    "uuid": "ce974684-0844-4afd-a5d6-b5c566bea87c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'SOT-883' does not match copy in library 'Package_TO_SOT_SMD'",
+            "items": [
+                {
+                    "description": "Footprint Q2",
+                    "pos": {
+                        "x": 13.35,
+                        "y": 27.6
+                    },
+                    "uuid": "ed0abed4-847b-48b6-8754-c86131c1462c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'C_0402_1005Metric' does not match copy in library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C8",
+                    "pos": {
+                        "x": 11.65,
+                        "y": 22.55
+                    },
+                    "uuid": "efd0560d-ffb7-4fbb-b2e6-de8e5796ff13"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0402_1005Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R3",
+                    "pos": {
+                        "x": 14.55,
+                        "y": 25.6
+                    },
+                    "uuid": "f9cef820-fbe8-497d-90a1-da7260afa59a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        }
+    ]
+}

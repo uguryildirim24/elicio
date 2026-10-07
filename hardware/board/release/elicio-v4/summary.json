@@ -1,0 +1,62 @@
+{
+  "board": "elicio-v4",
+  "routed": false,
+  "routed_requested": false,
+  "refused": {},
+  "pcb_tracks": 1457,
+  "pcb_nets": 105,
+  "pcb_pads": 339,
+  "pcb_pads_without_net": 0,
+  "erc_errors": 0,
+  "erc_warnings": 0,
+  "drc_errors": 0,
+  "drc_warnings": 35,
+  "unconnected_items": 10,
+  "bom_rows": 58,
+  "placed_parts": 58,
+  "cpl_rows": 58,
+  "bom_refs_without_cpl": [],
+  "gerber_files": [
+    "elicio-v4-B_Cu.gbr",
+    "elicio-v4-B_Mask.gbr",
+    "elicio-v4-B_Paste.gbr",
+    "elicio-v4-B_Silkscreen.gbr",
+    "elicio-v4-Edge_Cuts.gbr",
+    "elicio-v4-F_Cu.gbr",
+    "elicio-v4-F_Mask.gbr",
+    "elicio-v4-F_Paste.gbr",
+    "elicio-v4-F_Silkscreen.gbr",
+    "elicio-v4-NPTH.drl",
+    "elicio-v4-PTH.drl",
+    "elicio-v4-User_1.gbr",
+    "elicio-v4-User_Comments.gbr",
+    "elicio-v4-User_Drawings.gbr",
+    "elicio-v4-User_Eco1.gbr",
+    "elicio-v4-User_Eco2.gbr",
+    "elicio-v4-job.gbrjob"
+  ],
+  "step_missing_models": [
+    "Molex_Pico-EZmate_Slim_202656-0021_1x02-1MP_P1.20mm_Vertical.step",
+    "Texas_DSBGA-6_0.95x1.488mm_Layout2x3_P0.4mm.step",
+    "Texas_RSM0032.step",
+    "Texas_X2SON-4_1x1mm_P0.65mm.step",
+    "SOT-883.step"
+  ],
+  "outputs": {
+    "erc.json": true,
+    "drc.json": true,
+    "bom.csv": true,
+    "cpl.csv": true,
+    "elicio-v4.step": true,
+    "gerbers": true
+  },
+  "commands": {
+    "erc": 0,
+    "drc": 0,
+    "bom": 0,
+    "pos": 0,
+    "gerbers": 0,
+    "drill": 0,
+    "step": 0
+  }
+}
