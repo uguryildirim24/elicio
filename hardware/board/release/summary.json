@@ -1,0 +1,61 @@
+{
+  "routed": false,
+  "routed_requested": true,
+  "refused": {
+    "unconnected_items": 84
+  },
+  "pcb_tracks": 278,
+  "pcb_nets": 90,
+  "pcb_pads": 238,
+  "pcb_pads_without_net": 0,
+  "erc_errors": 0,
+  "erc_warnings": 0,
+  "drc_errors": 0,
+  "drc_warnings": 11,
+  "unconnected_items": 84,
+  "bom_rows": 55,
+  "placed_parts": 55,
+  "cpl_rows": 55,
+  "bom_refs_without_cpl": [],
+  "gerber_files": [
+    "elicio-v2-B_Cu.gbr",
+    "elicio-v2-B_Mask.gbr",
+    "elicio-v2-B_Paste.gbr",
+    "elicio-v2-B_Silkscreen.gbr",
+    "elicio-v2-Edge_Cuts.gbr",
+    "elicio-v2-F_Cu.gbr",
+    "elicio-v2-F_Mask.gbr",
+    "elicio-v2-F_Paste.gbr",
+    "elicio-v2-F_Silkscreen.gbr",
+    "elicio-v2-NPTH.drl",
+    "elicio-v2-PTH.drl",
+    "elicio-v2-User_1.gbr",
+    "elicio-v2-User_Comments.gbr",
+    "elicio-v2-User_Drawings.gbr",
+    "elicio-v2-User_Eco1.gbr",
+    "elicio-v2-User_Eco2.gbr",
+    "elicio-v2-job.gbrjob"
+  ],
+  "step_missing_models": [
+    "SW_Push_1P1T_XKB_TS-1187A.step",
+    "Texas_DSBGA-6_0.95x1.488mm_Layout2x3_P0.4mm.step",
+    "Texas_RSM0032.step"
+  ],
+  "outputs": {
+    "erc.json": true,
+    "drc.json": true,
+    "bom.csv": true,
+    "cpl.csv": true,
+    "elicio-v2.step": true,
+    "gerbers": true
+  },
+  "commands": {
+    "erc": 0,
+    "drc": 0,
+    "bom": 0,
+    "pos": 0,
+    "gerbers": 0,
+    "drill": 0,
+    "step": 0
+  }
+}
