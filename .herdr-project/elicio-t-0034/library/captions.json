@@ -1,0 +1,49 @@
+{
+  "label": "18 mm v4-snap, natural grey PA12 with titanium heads",
+  "shell_commit": "b541ba139a6d897966ad9262cecd66e951010571",
+  "board_commit": "3df33056b282e4195739896b8ce630938bed496f",
+  "old_shell_commit": "f7675ec099ffa9e1b5bab14fad3920c5d666262e",
+  "shell_source": "docs/fab/cad/v4-snap/{body_full_p15,lid}.stl",
+  "board_source": "hardware/board/elicio-v4.kicad_pcb and docs/fab/board-v4-design.md \u00a710.2",
+  "renderer": "macOS SceneKit offline, orthographic; Pillow caption overlays",
+  "pictures": {
+    "lateral": {
+      "shell_commit": "b541ba139a6d897966ad9262cecd66e951010571",
+      "board_commit": "3df33056b282e4195739896b8ce630938bed496f"
+    },
+    "medial": {
+      "shell_commit": "b541ba139a6d897966ad9262cecd66e951010571",
+      "board_commit": "3df33056b282e4195739896b8ce630938bed496f"
+    },
+    "top": {
+      "shell_commit": "b541ba139a6d897966ad9262cecd66e951010571",
+      "board_commit": "3df33056b282e4195739896b8ce630938bed496f"
+    },
+    "three_quarter": {
+      "shell_commit": "b541ba139a6d897966ad9262cecd66e951010571",
+      "board_commit": "3df33056b282e4195739896b8ce630938bed496f"
+    },
+    "exploded": {
+      "shell_commit": "b541ba139a6d897966ad9262cecd66e951010571",
+      "board_commit": "3df33056b282e4195739896b8ce630938bed496f"
+    },
+    "inside_lid_off": {
+      "shell_commit": "b541ba139a6d897966ad9262cecd66e951010571",
+      "board_commit": "3df33056b282e4195739896b8ce630938bed496f"
+    },
+    "quarter_scale": {
+      "shell_commit": "b541ba139a6d897966ad9262cecd66e951010571",
+      "board_commit": "3df33056b282e4195739896b8ce630938bed496f"
+    },
+    "old_new": {
+      "shell_commit": "b541ba139a6d897966ad9262cecd66e951010571",
+      "board_commit": "3df33056b282e4195739896b8ce630938bed496f",
+      "old_shell_commit": "f7675ec099ffa9e1b5bab14fad3920c5d666262e"
+    }
+  },
+  "simplifications": [
+    "Board and populated components are folded \u00a710.2 courtyard envelopes, not a bent STEP or exact component CAD; cell is a dimensioned envelope without leads.",
+    "M2.5 titanium heads and wall charging heads are smooth visual proxies without threads; quarter is a plain 24.26 mm disc.",
+    "The v4-snap shell predates the v4 base interior correction; the lid-off interior shows the older v4-snap geometry. No lid screw exists on v4-snap."
+  ]
+}
