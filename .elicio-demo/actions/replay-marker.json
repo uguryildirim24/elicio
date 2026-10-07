@@ -1,0 +1,9 @@
+{
+  "action": "record a local demonstration marker",
+  "event": {
+    "confidence": 0.7252960669739406,
+    "symbol": "wrist_down",
+    "timestamp": 1.02
+  },
+  "schema_version": 1
+}

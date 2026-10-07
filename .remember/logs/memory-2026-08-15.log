@@ -1,0 +1,6 @@
+11:19:42 [hook] session-start: PROJECT_DIR=/home/user/Documents/projects/elicio PIPELINE_DIR=/home/user/.claude/plugins/cache/claude-plugins-official/remember/0.20.0 REMEMBER_DIR=/home/user/Documents/projects/elicio/.remember
+11:19:42 [hook] run-consolidation: PROJECT_DIR=/home/user/Documents/projects/elicio PIPELINE_DIR=/home/user/.claude/plugins/cache/claude-plugins-official/remember/0.20.0 PYTHON=python3 REMEMBER_DIR=/home/user/Documents/projects/elicio/.remember
+11:19:43 [hook] session-start: PROJECT_DIR=/home/user/Documents/projects/elicio PIPELINE_DIR=/home/user/.claude/plugins/cache/claude-plugins-official/remember/0.20.0 REMEMBER_DIR=/home/user/Documents/projects/elicio/.remember
+11:19:44 [hook] run-consolidation: PROJECT_DIR=/home/user/Documents/projects/elicio PIPELINE_DIR=/home/user/.claude/plugins/cache/claude-plugins-official/remember/0.20.0 PYTHON=python3 REMEMBER_DIR=/home/user/Documents/projects/elicio/.remember
+11:19:44 [consolidation] another consolidation holds the lock, skip
+11:31:04 [consolidation] ERROR: staging snapshot failed — 

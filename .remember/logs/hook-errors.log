@@ -1,0 +1,6 @@
+cat: stdout: Broken pipe
+/home/user/.claude/plugins/cache/claude-plugins-official/remember/0.20.0/scripts/session-start-hook.sh: line 1000: echo: write error: Broken pipe
+/home/user/.claude/plugins/cache/claude-plugins-official/remember/0.20.0/scripts/session-start-hook.sh: line 1082: echo: write error: Broken pipe
+/home/user/.claude/plugins/cache/claude-plugins-official/remember/0.20.0/scripts/session-start-hook.sh: line 1089: echo: write error: Broken pipe
+/home/user/.claude/plugins/cache/claude-plugins-official/remember/0.20.0/scripts/session-start-hook.sh: line 1090: echo: write error: Broken pipe
+/home/user/.claude/plugins/cache/claude-plugins-official/remember/0.20.0/scripts/session-start-hook.sh: line 1092: echo: write error: Broken pipe
