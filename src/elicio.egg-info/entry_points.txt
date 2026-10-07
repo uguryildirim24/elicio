@@ -1,0 +1,3 @@
+[console_scripts]
+elicio = elicio.cli:main
+elicio-emg = elicio.pipeline.cli:main

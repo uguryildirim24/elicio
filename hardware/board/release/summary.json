@@ -1,0 +1,45 @@
+{
+  "erc_errors": 0,
+  "erc_warnings": 13,
+  "drc_errors": 893,
+  "drc_warnings": 33,
+  "unconnected_items": 0,
+  "bom_rows": 59,
+  "placed_parts": 59,
+  "cpl_rows": 55,
+  "gerber_files": [
+    "elicio-v2-B_Cu.gbr",
+    "elicio-v2-B_Mask.gbr",
+    "elicio-v2-B_Paste.gbr",
+    "elicio-v2-B_Silkscreen.gbr",
+    "elicio-v2-Edge_Cuts.gbr",
+    "elicio-v2-F_Cu.gbr",
+    "elicio-v2-F_Mask.gbr",
+    "elicio-v2-F_Paste.gbr",
+    "elicio-v2-F_Silkscreen.gbr",
+    "elicio-v2-NPTH.drl",
+    "elicio-v2-PTH.drl",
+    "elicio-v2-User_Comments.gbr",
+    "elicio-v2-User_Drawings.gbr",
+    "elicio-v2-User_Eco1.gbr",
+    "elicio-v2-User_Eco2.gbr",
+    "elicio-v2-job.gbrjob"
+  ],
+  "outputs": {
+    "erc.json": true,
+    "drc.json": true,
+    "bom.csv": true,
+    "cpl.csv": true,
+    "elicio-v2.step": true,
+    "gerbers": true
+  },
+  "commands": {
+    "erc": 0,
+    "drc": 0,
+    "bom": 0,
+    "pos": 0,
+    "gerbers": 0,
+    "drill": 0,
+    "step": 0
+  }
+}

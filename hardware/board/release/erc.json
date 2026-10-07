@@ -1,0 +1,228 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-17T21:07:21",
+    "ignored_checks": [
+        {
+            "description": "Global label only appears once in the schematic",
+            "key": "single_global_label"
+        },
+        {
+            "description": "Four connection points are joined together",
+            "key": "four_way_junction"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning"
+    ],
+    "kicad_version": "10.0.6",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/420b5650-2bf7-4a1a-b8d9-f0e848e2539f",
+            "violations": [
+                {
+                    "description": "Symbol 'BQ25100' doesn't match copy in library 'elicio'",
+                    "items": [
+                        {
+                            "description": "Symbol U3 [BQ25100]",
+                            "pos": {
+                                "x": 0.508,
+                                "y": 1.651
+                            },
+                            "uuid": "260174c5-cd4b-4202-ab97-45160e45ba65"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol 'AO3401A' doesn't match copy in library 'Transistor_FET'",
+                    "items": [
+                        {
+                            "description": "Symbol Q1 [AO3401A]",
+                            "pos": {
+                                "x": 0.9144,
+                                "y": 1.397
+                            },
+                            "uuid": "458bbe02-826e-4321-9655-47fb8b17e93a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol 'TLV71330PDBV' doesn't match copy in library 'Regulator_Linear'",
+                    "items": [
+                        {
+                            "description": "Symbol U4 [TLV71330PDBV]",
+                            "pos": {
+                                "x": 0.9144,
+                                "y": 1.651
+                            },
+                            "uuid": "8000a5e5-86d0-4f11-b0dc-5e5bf8150652"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol '2N7002' doesn't match copy in library 'Transistor_FET'",
+                    "items": [
+                        {
+                            "description": "Symbol Q2 [2N7002]",
+                            "pos": {
+                                "x": 1.143,
+                                "y": 1.397
+                            },
+                            "uuid": "a7668ba6-fcd0-4206-9c25-228e61dd1e1f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol '2N7002' doesn't match copy in library 'Transistor_FET'",
+                    "items": [
+                        {
+                            "description": "Symbol Q5 [2N7002]",
+                            "pos": {
+                                "x": 1.27,
+                                "y": 0.381
+                            },
+                            "uuid": "e720d75c-0bd9-415e-8c67-5e96b711a6c0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol 'PESD5V0L1UL' doesn't match copy in library 'Diode'",
+                    "items": [
+                        {
+                            "description": "Symbol D1 [PESD5V0L1UL]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 0.508
+                            },
+                            "uuid": "4700bff7-c0bd-452f-8257-63d2ce4b5822"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol '2N7002' doesn't match copy in library 'Transistor_FET'",
+                    "items": [
+                        {
+                            "description": "Symbol Q3 [2N7002]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 1.397
+                            },
+                            "uuid": "21428db7-5ad3-4d47-87ca-350b1c4a8bb5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol '2N7002' doesn't match copy in library 'Transistor_FET'",
+                    "items": [
+                        {
+                            "description": "Symbol Q4 [2N7002]",
+                            "pos": {
+                                "x": 1.6002,
+                                "y": 1.651
+                            },
+                            "uuid": "6f45f455-c279-4e04-824c-aadad2ff7155"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol 'USBLC6-2SC6' doesn't match copy in library 'Power_Protection'",
+                    "items": [
+                        {
+                            "description": "Symbol U5 [USBLC6-2SC6]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 0.508
+                            },
+                            "uuid": "d153ffc8-b158-44fe-a403-119221865885"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Connector_PinHeader_2.54'",
+                    "items": [
+                        {
+                            "description": "Symbol J3 [Conn_01x03_Pin]",
+                            "pos": {
+                                "x": 2.032,
+                                "y": 1.397
+                            },
+                            "uuid": "67635db8-6e3c-4bb9-9ce4-0d690b3f876c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "Symbol 'PAD_8x8' doesn't match copy in library 'elicio'",
+                    "items": [
+                        {
+                            "description": "Symbol P1 [PAD_8x8]",
+                            "pos": {
+                                "x": 2.54,
+                                "y": 0.508
+                            },
+                            "uuid": "18f79d66-f108-4e06-b623-83dc67da485d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol 'PAD_8x8' doesn't match copy in library 'elicio'",
+                    "items": [
+                        {
+                            "description": "Symbol P2 [PAD_8x8]",
+                            "pos": {
+                                "x": 2.54,
+                                "y": 0.762
+                            },
+                            "uuid": "46a3cbe7-4503-4368-b7d3-06518de1b802"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol 'PAD_8x8' doesn't match copy in library 'elicio'",
+                    "items": [
+                        {
+                            "description": "Symbol P3 [PAD_8x8]",
+                            "pos": {
+                                "x": 2.54,
+                                "y": 1.016
+                            },
+                            "uuid": "787fd27e-f58e-46ed-8af2-44d752684cb4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                }
+            ]
+        }
+    ],
+    "source": "elicio-v2.kicad_sch"
+}
