@@ -1,4 +1,6 @@
-# L2: Manufacturing Services for a One-Off Skin-Contact Shell
+# Historical manufacturing source survey
+
+Retained source evidence, not an ordering instruction. The board is unfinished, unordered and unmeasured. Prices are historical estimates, not quotes. Supplier and skin-contact claims need review. Current constraints are in `plan-v2.md` and `shell-v4.md`.
 
 Erratum, 2026-09-17: the finding that no bureau prints conductive TPU was superseded on 2026-09-16, the day this report was written (Palmiga prints it; plan §2 row 5). The plan does not use conductive TPU.
 

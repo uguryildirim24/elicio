@@ -2417,7 +2417,7 @@ Measured on the built `A_501015_series_w20_y8_iII_s3` solid (review r5; `tests/t
 - `V2_HARNESS`: 100 ± 3 mm is a routed length
 - Nominal and deformed cell clearance for Interface I: packing arithmetic, not a solid probe. G5/G7 remain open.
 - E73 antenna sheet: unreachable; v1 12.4 × 3.8 used.
-- M1 on Rolf (Q34): default 52 used for the gate.
+- M1 (Q34): unmeasured. Reference default 52 used for the gate.
 - REF tab lid-to-wall gap: packing treats the cavity end wall as solid from floor 1.5 to LID_Y 8.0; a gap under the lid was not probed on the solid.
 - 501015 pack in ones: none found (`docs/fab/L7-research-v4.md` §2). DTP301120 is sold in ones (SparkFun PRT-25270). LP501218JH is sold in ones (DigiKey 1908-LP501218JH+PCM+2WIRE50MM-ND) with bare 2-wire leads; plan v2 R2, Rolf solders nothing, so it is a candidate only if the assembler or the seller terminates the leads. This package does not order.
 - 501015 pack with PCM: DNK/Benzo sheets give 17 × 10 × 5.0 (L7-research-v4.md §7 and §7.8). The 17.0 mm pack was not probed on a solid; packing arithmetic only. The 501012 13.0 × 10.1 × 5.1 figure is an eBay marketplace quote (L7 §7), not a manufacturer sheet.

@@ -1,10 +1,6 @@
-# L8 — Research v5: JLC Edge Rule, FPC Sides, Router, Tail Screw
+# Historical flex, routing and closure source survey
 
-**Package:** WP17c — Research v5: the JLC edge rule, FPC assembly sides, a router, a screw  
-**Lane:** w5  
-**Worktree:** `/Users/rolfie/projects/elicio/.worktrees/w5`  
-**Branch:** `lane/w5`  
-**Date:** 2026-09-18  
+Retained source evidence dated 2026-09-18. Private worktree metadata is omitted. The board is unfinished, unordered and unmeasured. Prices are historical estimates. This report is not a current build plan or independent validation. Current limits are in `board-v4-design.md` and `shell-v4.md`.
 
 ---
 

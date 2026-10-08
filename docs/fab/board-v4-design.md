@@ -1,13 +1,13 @@
 # Board v4 — design note (smaller body)
 
 Draft. **Routed, not orderable yet**: DRC 0 errors and 0 unconnected after a zone refill, and `scripts/board/release.py --board elicio-v4 --routed` passes (§9), but some parts still require verified external supply (`bom-v4-orderable.md`). U3 now has DC-bias-characterized IN/TS/OUT capacitors meeting the numerical IEC rating conditions, but D1 still clamps at the far end of VBUS and the nearest OUT bulk is 9.3 mm from U3; the conditional IC rating is not a contact-level test (§2.1). Rolf chose off-ear-only charging with fixed TS and a two-wire J2 (no cell NTC); the antenna keep-out still needs his decision (§4.2). The later built snap shell is a print-trial solid, not a verified fit; see `shell-v4.md`. §11.1 lists what is still UNVERIFIED.
-Date: 2026-09-25. Lanes t-0012 (Opus 5.5: design and first routing), t-0014 (Fable 5.1: routed to 10 open), t-0016 (Fable 5.1: pass-2 placement), t-0019 (Opus 5.5: passes 3–6 and the first routed board), t-0036 (charger ESD capacitor changes and reroute).
+Design snapshot: 2026-09-25. AI coding agents produced the design and routing records under Rolf's direction. Reported KiCad release counts below are historical claims, not a freshly reproduced manufacturing release. The board is unfinished and has not been ordered.
 
 ## 1. Size levers
 
 Frame: u = width (anterior 0 → posterior), s = arc from the hook end, y = thickness from the skin face. All sizes in mm. Flat PCB (x, y) = (u, s).
 
-Baseline v2: W 22, T 9.0 (LID_Y 8.0 + lid 1.0), chord 47.90. The M1 gate is M1 ≥ chord + 3 = 50.9. Default M1 is 52 (Q34, not measured; Rolf: "i have big ears").
+Baseline v2: W 22, T 9.0 (LID_Y 8.0 + lid 1.0), chord 47.90. The M1 gate is M1 ≥ chord + 3 = 50.9. Default M1 is a 52 mm reference example, not a personal measurement.
 
 "W/L/T saved" is the body dimension saved. Where a lever only frees board area, the area is given instead, as courtyard mm². The area levers together are what let the island shrink from 17.5 to 13.5 wide.
 
@@ -61,7 +61,7 @@ A Raytac on the v4 island would top out at 7.42. With 0.3 clearance that is T �
 
 ### 1.3 Hours of wear (estimate, UNVERIFIED)
 
-`docs/EARPIECE_DESIGN.md` says a 501015 at 50 mAh gives "Seven hours of streaming". That implies about 7 mA average. Nothing here was measured.
+The historical runtime model assumes about 7 mA average load. That assumption has no measured current trace or runtime report here. The table is capacity divided by an assumed load, not a result.
 
 | Cell | mAh | Hours at ~7 mA |
 |---|---|---|
@@ -872,7 +872,7 @@ Shell changes this table needs, with numbers (all in §7): the rib cut back 0.50
 
 ### 11.1 UNVERIFIED
 
-- **Hours of wear:** about 7 mA, inferred from EARPIECE_DESIGN.md "Seven hours of streaming" on 50 mAh. Not measured.
+- **Hours of wear:** the model assumes about 7 mA. No current or runtime measurement supports it.
 - **Prices:** MDBT50Q; Molex 202656-0021 header and 202655 plug; HRO 1TS015A; M2.5 nuts (W16).
 - **Consignment fee** for the ISP1807.
 - **Supply blockers (2026-09-25):** U3 exact JLC code has 0 stock; the stocked A variant regulates to 4.30 V and cannot charge the specified 4.2 V cell. U1 and J2 are not in the JLC catalog with usable stock. These three lines remain CONSIGNED (`bom-v4-orderable.md`). The correct SOD882 TVS and 0402 LED now have stocked codes; no land or copper changed.

@@ -1,4 +1,6 @@
-# L4 — Stage B Pod Electronics, Envelope, and One-Off PCB Fabrication
+# Historical electronics and fabrication source survey
+
+Retained source evidence, not a current circuit or safety approval. The board is unfinished, unordered and unmeasured. Prices are historical estimates. The circuit proposals below were superseded. Current limits are in `board-v4-design.md`. Fault-current arithmetic does not establish safe on-body operation.
 
 This report evaluates electronic components, enclosure envelope, PCB manufacturing, safety architecture, and streaming firmware for the Elicio Stage B behind-the-ear (BTE) pod.
 
@@ -261,7 +263,7 @@ The 19.1 µA hardware fault ceiling is below human perception (~1 mA) and strict
 1. **Galvanic Isolation:** The worn pod runs exclusively on its internal 3.7 V LiPo cell with zero connection to AC mains or earth ground.
 2. **Physical Interlock:**
    - Charging pads (magnetic pogo pins) are located on the **inner, skin-facing surface of the pod**.
-   - When worn, the charging pads are pressed against the mastoid skin, making it **physically impossible to connect a charging cable while worn**. The user must remove the pod to dock it.
+   - When worn, the charging pads are pressed against the mastoid skin, making it **physically impossible to connect a charging cable while worn**. Rolf would need to remove the pod to dock it.
 
 ---
 
