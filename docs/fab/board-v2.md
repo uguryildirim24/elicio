@@ -134,7 +134,7 @@ Target runs from its own cell, off-body, electrodes disconnected. TC2030-IDC-NL 
 
 SW1 is 4.5 × 4.5 × 1.6 (XKB TS-1187A). Double-press recovery is WP13's.
 
-Q64 — REGOUT0 and first-load. L7-research-v4.md §1 (lane/w5, 2026-09-17) quotes nRF52840 Product Specification v1.7, https://infocenter.nordicsemi.com/pdf/nRF52840_PS_v1.7.pdf:
+Q64: REGOUT0 and first-load. The historical review quotes nRF52840 Product Specification v1.7, https://infocenter.nordicsemi.com/pdf/nRF52840_PS_v1.7.pdf:
 
 - Verbatim: "Output voltage from the REG0 regulator stage. The voltage is only applied when the high voltage (HV) operating conditions are supplied to the device." Default: "0: 1.8 V (default)". An erased part is **1.8 V** on first power-up.
 - Verbatim, Absolute maximum ratings: "VI/O VDD ≤ 3.6 V -0.3 V VDD + 0.3 V". At VDD = 1.8 V that is **2.1 V**.
@@ -273,7 +273,7 @@ A board that uses B is a different placement, not a stuffing option on this land
 
 ## 11. Contacts — interface II (this board)
 
-The whole board is a 2-layer polyimide flex with FR4 stiffeners under the parts. Three flex tabs each end in a ring pad Ø5.0 mm with a Ø2.7 mm hole. The ring is ENIG on both copper layers. The brass standoff bottom face is the contact. An ISO 7380 M2.5×4 screw from outside passes the 1.5 floor and the ring into the standoff's female thread and clamps the ring between floor and standoff. No nut (plan v2 §5.3). Stack: floor 1.5 + ring 0.31 (PI 0.11 + FR4 0.2) + standoff 3.0 = y 4.81 in packing and the shell. Review r6: this Gerber draws no ring FR4 (§12), so as drawn the ring is 0.11, the standoff top lands at 4.61 and the island hangs 0.2 above it; either three FR4 0.2 ring pieces (count 5, over JLC's extra-fee threshold of 4) or a shell 0.2 lower closes it (decision 72 in `tasks/reviews/code-r6.md`). With the 0.31 ring, where the board island rests on the standoff tops; the screw projects 2.5 past the floor and ends 0.81 below the standoff top (`packing-v2.md` §5, Stage B `V2_CONTACT_STACK`). The lane's DIN 439 nut stack (2.50) was v1's.
+The whole board is a 2-layer polyimide flex with FR4 stiffeners under the parts. Three flex tabs each end in a ring pad Ø5.0 mm with a Ø2.7 mm hole. The ring is ENIG on both copper layers. The brass standoff bottom face is the contact. An ISO 7380 M2.5×4 screw from outside passes the 1.5 floor and the ring into the standoff's female thread and clamps the ring between floor and standoff. No nut (plan v2 §5.3). Stack: floor 1.5 + ring 0.31 (PI 0.11 + FR4 0.2) + standoff 3.0 = y 4.81 in packing and the shell. Review r6: this Gerber draws no ring FR4 (§12), so as drawn the ring is 0.11, the standoff top lands at 4.61 and the island hangs 0.2 above it; either three FR4 0.2 ring pieces (count 5, over JLC's extra-fee threshold of 4) or a shell 0.2 lower closes it (Q72 in `open-questions.md`). With the 0.31 ring, where the board island rests on the standoff tops; the screw projects 2.5 past the floor and ends 0.81 below the standoff top (`packing-v2.md` §5, Stage B `V2_CONTACT_STACK`). The lane's DIN 439 nut stack (2.50) was v1's.
 
 Review r7: the table below is the flat pattern this Gerber carries (packing §5d pin table v2.1, Q83 neck-end fold, Q85, Q86). The round 6 table (left/right edge strips of 7.0, unfolded rings at (−4.75, 22.00) and (24.75, 33.10)) described the WP12b outline and is gone.
 
@@ -285,7 +285,7 @@ Review r7: the table below is the flat pattern this Gerber carries (packing §5d
 | P4 | CHARGE_VBUS (net VBUS) | (14.70, 4.30) | (37.47, 2.80) | CHARGE tab through the rib slot, Z-fold (Q86) |
 | P5 | CHARGE_GND (net GND) | (17.70, 11.72) | (30.05, 5.80) | same tab |
 
-SIG1 and SIG2 leave the island's neck end (s 16.00) toward −s and fold 180° at R 1.5 under the island to their seats (Q83). REF leaves the tail flat. The CHARGE rectangle carries P4 and P5 flat beside the J2 hang; it folds through the rib slot and drops 3.31 to the hook-end floor (packing §5d). Review r7 finding: the rectangle's root meets the board only through the J2 hang at u 25.8, s 7.4–8.6, outside the body, while §5d's prose puts it at the leftover s 16.00 (decision in `tasks/reviews/code-r7.md`).
+SIG1 and SIG2 leave the island's neck end (s 16.00) toward −s and fold 180° at R 1.5 under the island to their seats (Q83). REF leaves the tail flat. The CHARGE rectangle carries P4 and P5 flat beside the J2 hang; it folds through the rib slot and drops 3.31 to the hook-end floor (packing §5d). Review r7 finding: the rectangle's root meets the board only through the J2 hang at u 25.8, s 7.4–8.6, outside the body, while §5d's prose puts it at the leftover s 16.00 (historical geometry finding, not a current manufacturing approval).
 
 Tab strip width 2.5 mm. Outline cap radius 3.0 mm around the Ø5.0 pad (JLC copper-to-edge ≥ 0.3 mm). Strain relief: 4 mm of flex at each tab root has no via, no part, and no stiffener. Neck s 12.0–18.6 is the drop from the board island (underside y 4.81) to the pocket; same rule.
 
@@ -364,7 +364,7 @@ J4 NPTH holes are a B.Cu keep-out Ø1.39 at the KiCad hole centres (drill 0.9906
 
 ## 13. BOM (placed, in-BOM, not DNP)
 
-Release job writes `hardware/board/release/bom.csv` (gitignored). LCSC numbers were re-read on JLC/LCSC pages on 2026-09-17 after L7-research-v4.md §4.1 (`git show lane/w5:docs/fab/L7-research-v4.md`). Take L7 only where the page still shows that MPN. Stock and unit price on JLC partdetail pages were often not displayed (tier label only). LCSC.com did show some qty-1 prices.
+Release job writes `hardware/board/release/bom.csv` (gitignored). The historical LCSC review was dated 2026-09-17. Recheck exact MPNs and supply against maker and supplier pages before relying on any code. Source pointers are retained in `references.md`. Stock and unit price on JLC partdetail pages were often not displayed (tier label only). LCSC.com did show some qty-1 prices.
 
 U1: **C5118826** is MDBT50Q-1MV2 Extended, X-ray (https://jlcpcb.com/partdetail/C5118826, 2026-09-17). **C5142646** is a GOOSVN screw terminal GS034-3.81-02P (https://jlcpcb.com/partdetail/C5142646). L7 §4.1's "C5142646 is LCSC catalog code" for the Raytac module does **not** match the page. This board uses C5118826.
 

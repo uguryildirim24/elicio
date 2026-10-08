@@ -1,6 +1,8 @@
-# Packing options (WP6b, corrected in review r3)
+# Historical v1 packing options
 
-**Only C closes.** A, B and E leave the ADS1292 with no site once both signal lugs lie flat and their leads can leave the barrels. Reply with the one line at the bottom.
+These nominal calculations explain the retained v1 drawings and existing placement checks. They are not the current v4 flex-board design or purchasing advice. The current board is unfinished and unordered. No physical assembly was checked.
+
+**Only C closes.** This is the historical reference search, not the v4 board. A, B and E leave the ADS1292 with no site once both signal lugs lie flat and their leads can leave the barrels.
 
 | Option | Closes? | Shell change | You give up |
 |---|---|---|---|
@@ -9,11 +11,11 @@
 | C. Wider | **Yes**: all named parts, 25 of 25 0402s, no conflicts | BODY_WIDTH 17 → 20; board 19 × 12.5 → 19 × 15.5 | 3 mm of width in the crease |
 | E. Two-sided | **No**: no VQFN site (arrays and 8 0402s go lateral) | none | a two-sided build, and it still does not fit |
 
-The short Q13 tab (ends under its pad) is **not a row**: it is not buildable with a crimp lug (WP5b). The shortest lug read, TE 31428 (contacts.md §8.1), reaches 8.85 mm from the contact centre.
+The short Q13 tab (ends under its pad) is **not a row**: it is not buildable with a crimp lug (WP5b). The shortest lug read, TE 31428 (historical C-31428 drawing, source pointer in references.md), reaches 8.85 mm from the contact centre.
 
-## Recommendation
+## Reference search result
 
-Pick **C**. It is the only option where every part has a site with the real lug.
+**C** is the only option where this calculation finds a site for every part with the retained lug envelope.
 
 - The lug is TE 31428, flat, barrel end 8.85 mm from the contact centre, 1.96 wide, plus 0.5 in the copper mask.
 - Each lead leaves its barrel straight and bends at 3 mm (plan §3.3). That rules out any barrel aimed at a wall. WP6b's first sheet had them aimed at walls (SIG2 ended 0.13 mm from the side wall), which is why it said A closes.
@@ -57,15 +59,11 @@ Drawings: `docs/fab/cad/v1/placement_C.svg`, `placement_A.svg` (also `placement.
 
 | Number | From |
 |---|---|
-| TE 31428 barrel end 8.85 from centre (drawing 8.788 max, so 0.06 conservative), 6.27 past the ring edge, width 1.96 max | C-31428 rev D4; contacts.md §8.1.1 |
+| TE 31428 barrel end 8.85 from centre (drawing 8.788 max, so 0.06 conservative), 6.27 past the ring edge, width 1.96 max | C-31428 rev D4; references.md |
 | Lead Ø1.3, bend radius 3 | plan §3.3 script checks and WIRE_CHANNEL route; `LEAD_BEND_R` |
 | Required 79.30 mm² | VQFN 21.16 (RSM 4.10 max, TI 4219108/B); two BAV199S-Q 12.46 (Fig. 8); BQ 2.94; LDO 2.25; 25 × 0402 40.50 (IPC-7351B) |
 | Board 19 × 12.5 at y 4.3, parts ≤ 1.2 tall | plan §5 |
 | B +3.5 length, C +3 width | plan §10 interface decision 1; interface §8.2 |
 | Lateral face (E): module 15.8 × 10.8, RF zone, rim; height lid 8.0 − board top 5.3 = 2.7, 2.2 under the 0.5 foam strip | plan §5 lateral row and battery-pocket row; Raytac Spec K p.7, p.9, p.13; `LATERAL_H`, `LATERAL_H_FOAM` |
 
-WP8 changes CAD solids only after you pick.
-
-## What you answer
-
-Reply with one line: `I pick C` (width, moved pads, one wire crossing), or `No C: <what to try instead>` (for example a shorter solder lug, or moving the contacts).
+The historical selection reply was `I pick C`. That reply is not approval to fabricate the current board. The original selection dialogue is retired. The current candidate and its limits are in `board-v4-design.md` and `shell-v4.md`.

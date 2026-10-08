@@ -1,4 +1,6 @@
-# L1 — CAD Tool, Ear Geometry, Starting Models, and Design Rules
+# Historical CAD and geometry source survey
+
+Retained source evidence, not a current build plan. The board is unfinished, unordered and unmeasured. Prices are historical estimates. Agent-written fit and fabrication claims were not independently validated. Current limits are in `board-v4-design.md` and `shell-v4.md`.
 
 - **Report path:** `docs/fab/L1-cad.md`
 - **Lane:** L1 (CAD Tool, Ear Geometry, Starting Models, Design Rules)

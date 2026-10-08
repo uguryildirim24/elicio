@@ -4149,7 +4149,7 @@ def packing_markdown(rows: list[V2Result]) -> str:
         "- Nominal and deformed cell clearance for Interface I: packing arithmetic, not a solid probe. G5/G7 remain open."
     )
     lines.append("- E73 antenna sheet: unreachable; v1 12.4 × 3.8 used.")
-    lines.append("- M1 on Rolf (Q34): default 52 used for the gate.")
+    lines.append("- M1 (Q34): unmeasured. Reference default 52 used for the gate.")
     lines.append(
         "- REF tab lid-to-wall gap: packing treats the cavity end wall as solid from floor "
         f"{FLOOR_Y:g} to LID_Y 8.0; a gap under the lid was not probed on the solid."

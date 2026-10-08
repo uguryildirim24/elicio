@@ -1,9 +1,11 @@
-# Elicio earpiece — mechanical interface
+# Historical mechanical interface
 
-Version **2**. Date 2026-09-17. Plan revision 5, commit `0c5d0eb`.
+This is a v1/v2 geometry reference retained by the generator and existing checks. It does not describe the selected v4 assembly or authorize an order. The current board is unfinished and unordered. No physical fit or electrical safety result exists. Historical section labels below identify earlier design assumptions, not current fabrication gates.
 
-This file is the mechanical contract between the shell (WP2/WP8), the
-contact hardware (WP5), and the Stage B board (WP6). All coordinates
+Reference version **2**. Date 2026-09-17.
+
+This file records the earlier mechanical contract between the shell,
+contact hardware and Stage B board. All coordinates
 are millimetres in the **body frame** of plan §3.2, using path
 coordinates `(u, s, y)` and the map `P(u, s, y)`. Contact axes are
 −y. The medial face is y = 0.
@@ -526,8 +528,8 @@ The plan wins. These are not silent CAD changes.
 | Source | URL | Used for |
 |---|---|---|
 | Plan | `docs/fab/plan.md` at `0c5d0eb` | Contract numbers |
-| L3 | `docs/fab/L3-contacts.md` | Pitch band, three contacts |
-| L4 | `docs/fab/L4-pod.md` | Module, ADS1292, 501015, charger, clamps |
+| Contacts | `docs/fab/contacts.md` | Historical contact interface study |
+| Current circuit | `docs/fab/board-v4-design.md` | Current circuit and unresolved fit/electrical limits |
 | ISO 7380-1 manufacturer table | https://www.westfieldfasteners.co.uk/Standards/ScrewBolt-SHBtn-M.html | M2.5 dk 4.5, k 1.5, s 1.5; standard itself starts at M3 |
 | ISO 7380-1:2022 scope | https://www.iso.org/standard/78699.html | M3–M16 only |
 | ISO 4035 / DIN 439 | https://www.fasteners.eu/standards/iso/4035/ | Thin nut m 1.6, s 5 |

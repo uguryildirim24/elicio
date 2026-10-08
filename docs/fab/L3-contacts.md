@@ -1,4 +1,6 @@
-# L3 — Auricular Anatomy and Skin Contacts for a Manufactured Shell
+# Historical anatomy and contact source survey
+
+Retained literature and supplier evidence, not Rolf's measurements or an on-body protocol. The board is unfinished, unordered and unmeasured. Prices are historical estimates. Current contact constraints are in `contacts.md`; electrical and physical validation remain open.
 
 - **Report path:** `docs/fab/L3-contacts.md`
 - **Lane:** L3 (Auricular Anatomy and Skin Contacts)

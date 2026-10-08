@@ -1,4 +1,6 @@
-# Research for Plan v2 (L5 Research Report, 2026-09-17)
+# Historical v2 source survey (2026-09-17)
+
+Retained source evidence for the v2 reference calculations. The board is unfinished, unordered and unmeasured. Prices are historical estimates. This report is not a current purchasing plan or independent validation. Current limits are in `board-v4-design.md` and `open-questions.md`.
 
 This report delivers web research for Plan v2 per `tasks/WP10-research-v2.md`. All data points cite source URLs, the date read (2026-09-17), and verbatim quotes, or the tag `UNVERIFIED`.
 

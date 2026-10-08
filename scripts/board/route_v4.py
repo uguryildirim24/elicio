@@ -3,7 +3,7 @@
 
 Locked pre-routes (Contact strips and branches, charge runs, nRESET, +VDD)
 export as fixed wires, so Freerouting routes around them. One router at
-a time, heap capped at 4 GB (this Mac ran out of memory once).
+a time, with the heap capped at 4 GB.
 
   route_v4.py --work DIR --dsn-check     export and check the DSN only
   route_v4.py --work DIR --route         route, import into a copy in DIR

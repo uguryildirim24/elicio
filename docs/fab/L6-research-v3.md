@@ -1,4 +1,6 @@
-# Research v3 for the Build Rounds (L6 Research Report, 2026-09-17)
+# Historical v3 source survey (2026-09-17)
+
+Retained source evidence for the v2 reference calculations. The board is unfinished, unordered and unmeasured. Prices are historical estimates. This report is not a current purchasing plan or independent validation. Current limits are in `board-v4-design.md` and `open-questions.md`.
 
 This document provides verified technical facts, catalog records, manufacturer statements, and pricing for Plan v2 build rounds per `tasks/WP17-research-v3.md`.
 

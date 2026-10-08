@@ -1,4 +1,6 @@
-# Research v4: The Probe, The Cell in Ones, The Assembler Fees (L7 Research Report, 2026-09-17)
+# Historical probe, cell and assembly source survey (2026-09-17)
+
+Retained source evidence for the v2 reference calculations. The board is unfinished, unordered and unmeasured. Prices are historical estimates, not current quotes. This report is not a purchasing plan or independent validation. Current limits are in `board-v4-design.md` and `open-questions.md`.
 
 This document provides verified technical facts, catalog records, manufacturer statements, and pricing for Plan v2 per `tasks/WP17b-research-v4.md`.
 
