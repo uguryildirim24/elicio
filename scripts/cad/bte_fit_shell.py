@@ -346,9 +346,9 @@ SHELL_PARAMS_FILE = SCRIPT_DIR / "params" / "shell_v2.toml"
 # packing-v2.md §5d (pin table v2.1, WP11f) is frozen. Live shell sites
 # come from §5e at S5E_PACKING_SHA (flat pattern v3, WP11g). Read from
 # this repository only (review r7: never another worktree).
-S5C_PACKING_SHA = "e4b857c2b2b9c48a36afada114372556d3a3d874"
+S5C_PACKING_SHA = "e9fba35b712ff027825df0f28f13edd3f89b2dce"
 S5D_PACKING_SHA = S5C_PACKING_SHA
-S5E_PACKING_SHA = "ab9ce9588d55aff5143828f6dd88f5d22ed8223c"
+S5E_PACKING_SHA = "e0eef82fcb4be6b013b01dd535ac53ca186f7fc6"
 S5C_PACKING_REL = "docs/fab/packing-v2.md"
 # Delay the tail loft. Cavity end stays at CAVITY_S[1] (38.2). Stage B v2
 # does not set this. P4/P5 are clamped button-heads in the posterior wall
@@ -423,7 +423,7 @@ SHELL_LID_INSET = 0.15  # laps the 1.5 wall tops (plan v2 §7)
 SHELL_LID_RIM_R = 1.0
 SHELL_SWITCH_RECESS = 0.5
 SHELL_USB_CORNER_R = 0.6
-# packing-v2.md §5 on lane/w3 at 284ec05, table REF_end_wall_slot.
+# packing-v2.md §5 on lane/w3 at 71fa9ea, table REF_end_wall_slot.
 # Cavity ends at s 38.20; Ø7.5 tail pocket starts at s 39.25; 1.05 mm of
 # nylon between them. Every REF route crosses that wall (Q59).
 REF_SLOT_U = (7.25, 9.75)
@@ -4641,7 +4641,7 @@ def _apply_shell_features(
         "q59_pack_vol_mm3": REF_SLOT_PACK_VOL,
     }
 
-    # Q59: packing-v2.md §5 on lane/w3 at 284ec05. No in-cavity REF route.
+    # Q59: packing-v2.md §5 on lane/w3 at 71fa9ea. No in-cavity REF route.
     # Cut REF_end_wall_slot (u 7.25–9.75, s 38.20–39.25, y 1.50–1.81) plus
     # the stated flex clearance. Stage B without STAGE=shell is not slotted.
     if spec.iface == "II" and "REF" in layout.tabs:
@@ -4658,7 +4658,7 @@ def _apply_shell_features(
         measure["q59_removed_mm3"] = round(_overlap_volume(body, slot), 4)
         body = body.cut(slot)
         notes["q59"] = (
-            "packing-v2.md §5 on lane/w3 at 284ec05 (git show 284ec05): "
+            "packing-v2.md §5 on lane/w3 at 71fa9ea (git show 71fa9ea): "
             "no in-cavity REF tab route; REF_end_wall_slot u 7.25–9.75, "
             "s 38.20–39.25, y 1.50–1.81, width 2.50, through 1.05, height "
             f"0.31, 0.814 mm³, plus flex clearance {REF_SLOT_CLEAR_U:g} mm "

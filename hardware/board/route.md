@@ -175,9 +175,9 @@ The committed `elicio-v2.kicad_pcb` is unchanged.
 9. Run Freerouting 2.4.1 on OpenJDK 25 with `--gui.enabled=false -de -do -mp -mt`.
 10. Import the SES only after `§5c final <sha>`; then DRC and hand-fix residue.
 
-## 8. WP12d place and route (`c6bd2fe`)
+## 8. WP12d place and route (`6a4da67`)
 
-Pinned from `hardware/board/packing_5c_norec.md` (`c6bd2fe` on lane/w3, second §5c table: smallest all-64, no receptacle, width 22, chord 47.90, two sides, fold neck). Width 22 island u 2.25–19.75, s 16.00–37.60. 66 table parts plus H1/H2. 38 footprints flipped to B.Cu. R1–R3 on the island. P4/P5 RING_PAD at (0.75, 44.00) and (21.25, 44.00). J1/U5 absent. Holes (13.45, 17.70) and (17.95, 17.70). Neck-end strips SIG1 10.71 mm, SIG2 21.81 mm. Tracks 0.
+Pinned from `hardware/board/packing_5c_norec.md` (`6a4da67` on lane/w3, second §5c table: smallest all-64, no receptacle, width 22, chord 47.90, two sides, fold neck). Width 22 island u 2.25–19.75, s 16.00–37.60. 66 table parts plus H1/H2. 38 footprints flipped to B.Cu. R1–R3 on the island. P4/P5 RING_PAD at (0.75, 44.00) and (21.25, 44.00). J1/U5 absent. Holes (13.45, 17.70) and (17.95, 17.70). Neck-end strips SIG1 10.71 mm, SIG2 21.81 mm. Tracks 0.
 
 Jar: `~/.local/opt/freerouting/freerouting-2.4.1.jar`. OpenJDK 25.0.4.1.
 
@@ -261,9 +261,9 @@ P2 RING_PAD at (10.40, 33.10) is inside U1's courtyard (U1 at (8.00, 29.35), 11.
 
 Contact class 1.0 mm and J4 NPTH vs B.Cu remain after any route of this land.
 
-## 9. WP12e place and route (`408a476`)
+## 9. WP12e place and route (`7efb19d`)
 
-Pinned from `hardware/board/packing_v2_flat.md` (`408a476` packing-v2.md §5d). Folded-site table ignored. Width 22 island u 2.25–19.75, s 16.00–37.60. 66 table parts plus H1/H2. 38 footprints flipped to B.Cu. R1–R3 on the island. Flat rings: P1 (5.90, 5.29), P2 (10.40, −5.81), P3 (8.50, 43.00), P4 (37.47, 2.80), P5 (30.05, 5.80). CHARGE rectangle centre (33.02, 4.30) 14.50 × 8.60 is in Edge.Cuts. J1/U5 absent. Holes (13.45, 17.70) and (17.95, 17.70). Tracks 0.
+Pinned from `hardware/board/packing_v2_flat.md` (`7efb19d` packing-v2.md §5d). Folded-site table ignored. Width 22 island u 2.25–19.75, s 16.00–37.60. 66 table parts plus H1/H2. 38 footprints flipped to B.Cu. R1–R3 on the island. Flat rings: P1 (5.90, 5.29), P2 (10.40, −5.81), P3 (8.50, 43.00), P4 (37.47, 2.80), P5 (30.05, 5.80). CHARGE rectangle centre (33.02, 4.30) 14.50 × 8.60 is in Edge.Cuts. J1/U5 absent. Holes (13.45, 17.70) and (17.95, 17.70). Tracks 0.
 
 Jar: `~/.local/opt/freerouting/freerouting-2.4.1.jar`. OpenJDK 25.0.4.1.
 
@@ -406,7 +406,7 @@ KiCad python for DSN/SES. Copy import copies `elicio-v2.kicad_pro` and `.kicad_d
 
 `tabs` is three 7 × 7 boxes around P1–P3. `tail_pads` is two 7 × 7 boxes around P4–P5. Strips carry one Contact 0.15/0.20 trace and a foreign-net keep-out. Island Contact stays 0.20.
 
-### Q87 / pin table v2.1 (`e4b857c`)
+### Q87 / pin table v2.1 (`e9fba35`)
 
 | Ref | Table v2 (u, s, rot) | v2.1 (u, s, rot) | On copper |
 |---|---|---|---|
@@ -488,7 +488,7 @@ The other rats in the 63 are F.Cu↔B.Cu stitches of the same nets (GND, +3V0, +
 
 ## 13. WP12i v3 routing attempt (2026-09-23)
 
-Merged `origin/lane/w2` 3a27ffd then `origin/lane/w3` ab9ce95; no conflicts. Initial committed board DRC 0 errors, 140 unconnected, 2 Contact dangling ends and 1 U2 library mismatch warning. Interrupted VBUS/nRESET tracks passed the DRC, so they stayed. No WP12g copper was transplanted from the old v2 pin positions. Pin table v3's Q98 channels and locked Contact paths stayed at their flat sites.
+Merged `origin/lane/w2` a8e5a94 then `origin/lane/w3` e0eef82; no conflicts. Initial committed board DRC 0 errors, 140 unconnected, 2 Contact dangling ends and 1 U2 library mismatch warning. Interrupted VBUS/nRESET tracks passed the DRC, so they stayed. No WP12g copper was transplanted from the old v2 pin positions. Pin table v3's Q98 channels and locked Contact paths stayed at their flat sites.
 
 `uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e .`. `scripts/board/route_v2.py --work /tmp/t0002-route1 --route` exported a checked DSN (Default 100/100 µm, Contact 150/200 µm, via 550:300 µm). Freerouting 2.4.1 with OpenJDK 25, `-Xmx4g`, `-mp 20`, `-mt 4`: 3m33s, 715.5 MB peak heap, 96 unrouted / 32 router violations. The router's '2223 GB allocated' counter is cumulative allocation, **not** peak RAM. KiCad import on the copy: 0 DRC errors, 96 airwires, 0 foreign-net tracks in strips (223 tracks / 25 vias). No router violations were accepted into the PCB; KiCad DRC is the gate.
 

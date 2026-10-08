@@ -3,12 +3,12 @@
 Status: design record for WP12f. Not for order, quote or upload.
 Date: 2026-09-18.
 KiCad: 10.0.6 (`kicad-cli`).
-Interface: **II** (plan v2 §5.3 fallback). Packing pin table v2 (flat coordinates, `408a476`), width 22, chord 47.90, two sides, SIG/REF/CHARGE tabs (Q81–Q86). LID_Y 8.0. Standoff 3.0 mm on a 0.31 ring: board underside y 4.81, top y 5.32. Cell 501012 pack in series. Board width 22 mm body, island u 2.25–19.75, s 16.00–37.60.
+Interface: **II** (plan v2 §5.3 fallback). Packing pin table v2 (flat coordinates, `7efb19d`), width 22, chord 47.90, two sides, SIG/REF/CHARGE tabs (Q81–Q86). LID_Y 8.0. Standoff 3.0 mm on a 0.31 ring: board underside y 4.81, top y 5.32. Cell 501012 pack in series. Board width 22 mm body, island u 2.25–19.75, s 16.00–37.60.
 
 Project: `hardware/board/elicio-v2.kicad_pro`.
 The schematic drops J1 (USB-C) and U5 (USBLC6). Two RING_PAD charge pads P4 (VBUS) and P5 (GND) sit on the CHARGE tab (Q86 rib-slot fold). D1 PESD5V0L1UL stays on VBUS. The land is a 2-layer flex with two FR4 0.4 stiffeners and five ring pads (three EMG, two charge).
 
-Packing (u, s) = PCB (x, y). Named centres follow `hardware/board/packing_v2_flat.md` (copied from packing-v2.md §5d at `408a476`). The folded-site table is the shell's and is not pinned. R1–R3 sit on the island at the tab roots (Q79). J4 TC2030 sits on the leftover (Q80). Island holes at (13.45, 17.70) and (17.95, 17.70) (Q82). SIG1/SIG2 strips leave the neck end to flat rings (5.90, 5.29) and (10.40, −5.81) (Q83, Q85). CHARGE rectangle centre (33.02, 4.30) 14.50 × 8.60 is part of the outline. Two-sided assembly: packing `side=bottom` rows are flipped to B.Cu.
+Packing (u, s) = PCB (x, y). Named centres follow `hardware/board/packing_v2_flat.md` (copied from packing-v2.md §5d at `7efb19d`). The folded-site table is the shell's and is not pinned. R1–R3 sit on the island at the tab roots (Q79). J4 TC2030 sits on the leftover (Q80). Island holes at (13.45, 17.70) and (17.95, 17.70) (Q82). SIG1/SIG2 strips leave the neck end to flat rings (5.90, 5.29) and (10.40, −5.81) (Q83, Q85). CHARGE rectangle centre (33.02, 4.30) 14.50 × 8.60 is part of the outline. Two-sided assembly: packing `side=bottom` rows are flipped to B.Cu.
 
 | Item | PCB centre (u, s) | pin table v2 | Size / note |
 |---|---|---|---|
@@ -311,7 +311,7 @@ G7 joint inputs (this board):
 
 ### 11a. Rejected candidate — interface I (8 × 8 pads)
 
-WP11 at `43a982a`, `docs/fab/packing-v2.md` §2 and §3: interface I (board on standoff tops, 8 × 8 ENIG pad per site) **closes in 0 of 720 runs** at the anatomical sites (review r5 matrix). Neither cell (DTP packed 3.7 mm, 501015 packed 5.7 mm with foam 0.5) fits under a 3.0 or 3.5 mm standoff with positive nominal clearance and no load after the 0.5 mm boss drop, and in every run the REF site (s 43) is past the rigid board's end and SIG1's 8 × 8 pad overhangs the board edge. Plan v2 §5.3 makes II the fallback when I fails.
+WP11 at `41c1e8d`, `docs/fab/packing-v2.md` §2 and §3: interface I (board on standoff tops, 8 × 8 ENIG pad per site) **closes in 0 of 720 runs** at the anatomical sites (review r5 matrix). Neither cell (DTP packed 3.7 mm, 501015 packed 5.7 mm with foam 0.5) fits under a 3.0 or 3.5 mm standoff with positive nominal clearance and no load after the 0.5 mm boss drop, and in every run the REF site (s 43) is past the rigid board's end and SIG1's 8 × 8 pad overhangs the board edge. Plan v2 §5.3 makes II the fallback when I fails.
 
 The first WP12 pass placed three 8 × 8 mm B.Cu pads on a provisional 17 × 33 mm 4-layer board: P1 (8.5, 6.0), P2 (8.5, 16.0), P3 (8.5, 26.0), each with a 10 × 10 mm keep-out. P3 overlapped the RF keep-out. Footprint `elicio:PAD_8x8_ENIG` remains in `hardware/board/lib/elicio.pretty` and the schematic still draws `elicio:PAD_8x8` (one passive pin per net). Those lands are **not** on this PCB. Do not stuff them. Do not order the 4-layer rigid outline.
 
@@ -467,7 +467,7 @@ Found 84 unconnected items
 | ERC errors / warnings | 0 / 0 |
 | Foreign-net strip tracks (SES import) | 0 |
 
-The interrupted VBUS/nRESET copper at `3a27ffd` passed DRC before routing: 0 errors, 140 unconnected, 2 dangling Contact ends plus 1 U2 library warning; it was not discarded. Locked Contact copper stayed. Freerouting 2.4.1 (Java 25, `-Xmx4g`, 0.55/0.30 vias) on a copy reached 96 unconnected and 0 DRC errors. Hand A* groups `j3`, `vbus`, `j4`, `u2`, `stitch` tried more links with DRC rollback on each failure; twelve closed, reaching 84. The remaining contacts and U2 escapes cannot be closed by this run; the Q98 channels alone did not solve them. `hardware/board/unrouted-v3.md` names **all 84 remaining KiCad airwires**, pads or isolated trace ends and millimetre endpoint distances; `hardware/board/route.md` §13 gives the run and examples of failed geometry. An airwire's straight-line gap is not a routable width. Trace 0.10 + 2 × 0.10 clearance = 0.30 mm (Default); Contact 0.15 + 2 × 0.20 = 0.55 mm.
+The interrupted VBUS/nRESET copper at `a8e5a94` passed DRC before routing: 0 errors, 140 unconnected, 2 dangling Contact ends plus 1 U2 library warning; it was not discarded. Locked Contact copper stayed. Freerouting 2.4.1 (Java 25, `-Xmx4g`, 0.55/0.30 vias) on a copy reached 96 unconnected and 0 DRC errors. Hand A* groups `j3`, `vbus`, `j4`, `u2`, `stitch` tried more links with DRC rollback on each failure; twelve closed, reaching 84. The remaining contacts and U2 escapes cannot be closed by this run; the Q98 channels alone did not solve them. `hardware/board/unrouted-v3.md` names **all 84 remaining KiCad airwires**, pads or isolated trace ends and millimetre endpoint distances; `hardware/board/route.md` §13 gives the run and examples of failed geometry. An airwire's straight-line gap is not a routable width. Trace 0.10 + 2 × 0.10 clearance = 0.30 mm (Default); Contact 0.15 + 2 × 0.20 = 0.55 mm.
 
 `scripts/board/release.py --routed --out hardware/board/release` exited 1 and wrote `routed: false`, `refused: {"unconnected_items": 84}`. Gerbers, BOM, CPL and STEP exist as **review artefacts only, not order files**. STEP `hardware/board/release/elicio-v2.step` omits models `SW_Push_1P1T_XKB_TS-1187A.step`, `Texas_DSBGA-6_0.95x1.488mm_Layout2x3_P0.4mm.step`, `Texas_RSM0032.step`. Do not order this board.
 

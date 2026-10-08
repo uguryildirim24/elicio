@@ -217,7 +217,7 @@ PLACE: dict[str, tuple[str, float, float, float]] = {
     # B pocket right of the stiffener: REF resistor, dividers, charge interlock.
     # Kept east of u 11.1 so a via column at u 10.72 fits beside U1's pads.
     "R3": ("bottom", 14.55, 25.60, 0),
-    # One row further east than 815ca29 (11.80 -> 12.40) so U1's east pads get a second via
+    # One row further east than df6ae3a (11.80 -> 12.40) so U1's east pads get a second via
     # column at u 11.3; U1-side pads face west; the VBAT_SENSE pair sits above the VBUS_DET
     # pair in U1's pad order; s 25.05-26.5 stays free for AFE_DRDY's hop to R27 on B.
     "R20": ("bottom", 12.40, 26.90, 0),  # VBAT east, VBAT_SENSE west

@@ -1527,7 +1527,7 @@ B and C do not close. There is no board-lane layout for them.
 
 ## 5b. Layout for the board lane, v2 (WP11c)
 
-Real F.CrtYd and pad extents from `git show 845bac7:hardware/board/elicio-v2.kicad_pcb` (WP12b after dropping the shorting copper). Round-5 packing envelopes stay in the 864-run table. Courtyard-to-courtyard uses a 0.05 mm solder-mask-to-copper margin (DRC; two expansions = 0.10 mm pad-to-pad). Contact netclass clearance is 1.0 mm (WP12b `elicio-v2.kicad_pro`, nets SIG1/SIG2/REF).
+Real F.CrtYd and pad extents from `git show 70adfa6:hardware/board/elicio-v2.kicad_pcb` (WP12b after dropping the shorting copper). Round-5 packing envelopes stay in the 864-run table. Courtyard-to-courtyard uses a 0.05 mm solder-mask-to-copper margin (DRC; two expansions = 0.10 mm pad-to-pad). Contact netclass clearance is 1.0 mm (WP12b `elicio-v2.kicad_pro`, nets SIG1/SIG2/REF).
 
 ### Part table — KiCad courtyard vs round 5
 
@@ -1654,7 +1654,7 @@ Spec `A_pack501012_series_w20_y8_iII_s3`. TOTAL_CHORD 47.90. Board u 2.25–17.7
 
 - Contact 1.0 mm (WP12b netclass Contact) cannot hold on a 2.5 mm tab with an 0402 across it (pad gap 0.48 mm). Variant A: R1/R2/R3 on the island at the tab root; each tab carries one Contact trace.
 - Variant B: widen each tab to 4.0 mm so an 0402 can sit on the tab with 1.0 mm to other copper. The 0402 pad gap 0.48 mm still violates Contact-to-Default 1.0 mm; that needs a larger package or a DRC exception.
-- Decision 70 (`tasks/reviews/code-r6.md`): USB-C J1 real body 10.64×9.42×3.2 (F.CrtYd from 845bac7; height from packing / plan v2 §5.4; the amendment names the J4 land, which is TC2030). Packing hang 4.80 mm past s=-1.00; real courtyard hang 5.86 mm. Opening u0=5.50 overlaps hook root u≤6.39 by 0.89 mm. A longer body that seats the body behind the face needs +7.32 mm of arc (cell moved back); chord 55.29, M1 ≥ 58.29 vs default 52. Hook-root shift 2.4 mm clears the opening and the 1.5 mm ligament; it does not pull the body inside. **What closes it: nothing.**
+- Decision 70 (`tasks/reviews/code-r6.md`): USB-C J1 real body 10.64×9.42×3.2 (F.CrtYd from 70adfa6; height from packing / plan v2 §5.4; the amendment names the J4 land, which is TC2030). Packing hang 4.80 mm past s=-1.00; real courtyard hang 5.86 mm. Opening u0=5.50 overlaps hook root u≤6.39 by 0.89 mm. A longer body that seats the body behind the face needs +7.32 mm of arc (cell moved back); chord 55.29, M1 ≥ 58.29 vs default 52. Hook-root shift 2.4 mm clears the opening and the 1.5 mm ligament; it does not pull the body inside. **What closes it: nothing.**
 - Decision 74 (`tasks/reviews/code-r6.md`): SIG1/SIG2 fold 180° at R 1.5 (arc 4.71 mm, stand-out 1.6 mm). Same numbers for the PCB, the packing table and the shell. Neck-end variant: SIG1 strip 10.71 mm, SIG2 strip 21.81 mm; fold pocket in the neck drop s 14.40–16.00, 3.50 × 3.00 (no side-wall cut). Side-wall variant: SIG1 strip 8.36 mm, SIG2 strip 12.06 mm; fold pocket 0.85 deep × 3.50 along s × 3.00 along y in each side wall (remaining wall 0.65 mm).
 
 Contact sites are unchanged: SIG1 (5.90, 22.00), SIG2 (10.40, 33.10), REF (8.50, 43.00). REF tab (8.50, 43.00) → (8.50, 36.80); `REF_end_wall_slot` is cut.
@@ -1747,7 +1747,7 @@ Spec `A_pack501015_series_w20_y8_iII_s3_a1.5`. TOTAL_CHORD 49.42. Board u 2.25�
 
 - Contact 1.0 mm (WP12b netclass Contact) cannot hold on a 2.5 mm tab with an 0402 across it (pad gap 0.48 mm). Variant A: R1/R2/R3 on the island at the tab root; each tab carries one Contact trace.
 - Variant B: widen each tab to 4.0 mm so an 0402 can sit on the tab with 1.0 mm to other copper. The 0402 pad gap 0.48 mm still violates Contact-to-Default 1.0 mm; that needs a larger package or a DRC exception.
-- Decision 70 (`tasks/reviews/code-r6.md`): USB-C J1 real body 10.64×9.42×3.2 (F.CrtYd from 845bac7; height from packing / plan v2 §5.4; the amendment names the J4 land, which is TC2030). Packing hang 4.80 mm past s=-1.00; real courtyard hang 5.86 mm. Opening u0=5.50 overlaps hook root u≤6.39 by 0.89 mm. A longer body that seats the body behind the face needs +7.32 mm of arc (cell moved back); chord 56.80, M1 ≥ 59.80 vs default 52. Hook-root shift 2.4 mm clears the opening and the 1.5 mm ligament; it does not pull the body inside. **What closes it: nothing.**
+- Decision 70 (`tasks/reviews/code-r6.md`): USB-C J1 real body 10.64×9.42×3.2 (F.CrtYd from 70adfa6; height from packing / plan v2 §5.4; the amendment names the J4 land, which is TC2030). Packing hang 4.80 mm past s=-1.00; real courtyard hang 5.86 mm. Opening u0=5.50 overlaps hook root u≤6.39 by 0.89 mm. A longer body that seats the body behind the face needs +7.32 mm of arc (cell moved back); chord 56.80, M1 ≥ 59.80 vs default 52. Hook-root shift 2.4 mm clears the opening and the 1.5 mm ligament; it does not pull the body inside. **What closes it: nothing.**
 - Decision 74 (`tasks/reviews/code-r6.md`): SIG1/SIG2 fold 180° at R 1.5 (arc 4.71 mm, stand-out 1.6 mm). Same numbers for the PCB, the packing table and the shell. Neck-end variant: SIG1 strip 6.71 mm, SIG2 strip 17.81 mm; fold pocket in the neck drop s 18.40–20.00, 3.50 × 3.00 (no side-wall cut). Side-wall variant: SIG1 strip 8.36 mm, SIG2 strip 12.06 mm; fold pocket 0.85 deep × 3.50 along s × 3.00 along y in each side wall (remaining wall 0.65 mm).
 
 Contact sites are unchanged: SIG1 (5.90, 22.00), SIG2 (10.40, 33.10), REF (8.50, 43.00). REF tab (8.50, 43.00) → (8.50, 36.80); `REF_end_wall_slot` is cut.
@@ -1817,7 +1817,7 @@ Tab exits (unchanged): SIG1 (5.90, 22.00) → (5.90, 29.00); SIG2 (10.40, 33.10)
 
 ### Round 6 decisions 70–74 (`tasks/reviews/code-r6.md`)
 
-These rules were added after the first WP11c close. The USB-C land on 845bac7 is J1 (`USB_C_Receptacle_HRO_TYPE-C-31-M-12`). J4 is TC2030. Height 3.2 mm is packing `USB` / plan v2 §5.4 (board-v2.md §12 is the stackup, not a 3D size).
+These rules were added after the first WP11c close. The USB-C land on 70adfa6 is J1 (`USB_C_Receptacle_HRO_TYPE-C-31-M-12`). J4 is TC2030. Height 3.2 mm is packing `USB` / plan v2 §5.4 (board-v2.md §12 is the stackup, not a 3D size).
 
 **Decision 70.** Real body 10.64 × 9.42 × 3.2. Packing hangs 4.80 mm past the outer face s=-1.00; the courtyard hangs 5.86 mm. The hook root occupies u up to 6.39 on that face; the opening starts at u=5.50 (overlap 0.89 mm) so the opening cannot sit there without a 2.4 mm posterior move of the hook root (overlap + 1.5 mm ligament). Seating the body behind the face needs +7.32 mm of arc with the cell moved back: chord 55.29, M1 ≥ 58.29 against default.toml M1=52. The hook-root move does not pull the body inside. **What closes it: nothing.**
 
@@ -2177,7 +2177,7 @@ Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner fl
 
 ### J4 NPTH keep-out both sides (Q85)
 
-Tag-Connect TC2030-IDC-NL from `git show 30ca79d:hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. KiCad canvas Y increases down; at the pinned (16.25, 24.60) rot 90 the map is (u + py, s − px). Pin table v2 used a Y-up map and swapped the pair and the single along s. No B.Cu pad may enter that zone (KiCad hole_clearance: circle radius drill/2 + clearance). Same-face courtyard keep-out on F.Cu stands.
+Tag-Connect TC2030-IDC-NL from `git show 6860a54:hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. KiCad canvas Y increases down; at the pinned (16.25, 24.60) rot 90 the map is (u + py, s − px). Pin table v2 used a Y-up map and swapped the pair and the single along s. No B.Cu pad may enter that zone (KiCad hole_clearance: circle radius drill/2 + clearance). Same-face courtyard keep-out on F.Cu stands.
 
 | hole | u | s | drill | keep | sides |
 |---|---:|---:|---:|---:|---|
@@ -2304,7 +2304,7 @@ P1–P3 floor sites are unchanged from §5. y is the ring seat on the inner floo
 
 ### J4 NPTH keep-out both sides (Q85)
 
-Tag-Connect TC2030-IDC-NL from `git show 30ca79d:hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. KiCad canvas Y increases down; at rot 90 the map is (u + py, s − px). No B.Cu pad may enter that zone. Same-face courtyard keep-out on F.Cu stands.
+Tag-Connect TC2030-IDC-NL from `git show 6860a54:hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. KiCad canvas Y increases down; at rot 90 the map is (u + py, s − px). No B.Cu pad may enter that zone. Same-face courtyard keep-out on F.Cu stands.
 
 | hole | u | s | drill | keep | sides |
 |---|---:|---:|---:|---:|---|

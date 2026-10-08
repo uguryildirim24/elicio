@@ -920,7 +920,7 @@
       "\u00a73.5 step 9 hook joint fillet 1.5 applied"
     ],
     "hook_stub_in_cavity_removed_mm3": 4.6261,
-    "q59": "packing-v2.md \u00a75 on lane/w3 at 284ec05 (git show 284ec05): no in-cavity REF tab route; REF_end_wall_slot u 7.25\u20139.75, s 38.20\u201339.25, y 1.50\u20131.81, width 2.50, through 1.05, height 0.31, 0.814 mm\u00b3, plus flex clearance 0.2 mm per side in u, 0.2 mm in s, 0.15 mm in y",
+    "q59": "packing-v2.md \u00a75 on lane/w3 at 71fa9ea (git show 71fa9ea): no in-cavity REF tab route; REF_end_wall_slot u 7.25\u20139.75, s 38.20\u201339.25, y 1.50\u20131.81, width 2.50, through 1.05, height 0.31, 0.814 mm\u00b3, plus flex clearance 0.2 mm per side in u, 0.2 mm in s, 0.15 mm in y",
     "q76": "circular root r=1.75 blended 1.5",
     "shell_measure": {
       "boss_top_y": 4.31,

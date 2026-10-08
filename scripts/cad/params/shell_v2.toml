@@ -2,7 +2,7 @@
 # docs/fab/cad/v2/ with --stage shell.
 #
 # Winner: A_pack501012_series_w22_y8_iII_s3 (packing-v2.md §5e pin table v3
-# at ab9ce9588d55aff5143828f6dd88f5d22ed8223c; §5d frozen v2.1). Width 22,
+# at e0eef82fcb4be6b013b01dd535ac53ca186f7fc6; §5d frozen v2.1). Width 22,
 # height 9.0, 501012 pack (Q69), island u 2.25–19.75 × s 16.00–37.60.
 # Standoff 3.0 mm
 # (Q43, Q58). The 4.0 mm Harwin R25-1000402 stays a listed alternate.
@@ -20,7 +20,7 @@
 # - Q76: circular hook root blending into the elliptical tube.
 # - M1 (default.toml 52): Q34.
 # - CONTACT_*: WP7a / Stage S2 contact sites.
-# - Q59: packing-v2.md §5 on lane/w3 at 284ec05: no in-cavity REF route.
+# - Q59: packing-v2.md §5 on lane/w3 at 71fa9ea: no in-cavity REF route.
 #   This shell cuts REF_end_wall_slot (u 7.25–9.75, s 38.20–39.25,
 #   y 1.50–1.81) plus 0.20 mm flex clearance per side in u.
 # - Q81: no USB receptacle at M1 52.

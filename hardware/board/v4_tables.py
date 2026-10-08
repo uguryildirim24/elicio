@@ -5,7 +5,7 @@ Plain python: reads elicio-v4.kicad_pcb as text, no pcbnew. The flat table
 is what the Gerber carries (PCB x, y = packing u, s). The folded table
 (docs/fab/board-v4-design.md §10.2) maps every courtyard, ring, strip root
 and tab root to the shell frame (u, s, y) and tests it against the v4
-target body: the r9 shell (branch t-0001, 252afbb) with the §7 changes on
+target body: the r9 shell (branch t-0001, 1f5c8e4) with the §7 changes on
 paper. The body numbers below mirror build_v4.py and the design note.
 
 Run: python3 hardware/board/v4_tables.py [--pads] [--folded] [--pcb PCB]

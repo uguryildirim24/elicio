@@ -542,7 +542,7 @@
       "passed": true
     },
     {
-      "detail": "Q83: neck-end strips SIG1 10.71 mm, SIG2 21.81 mm from packing \u00a75e sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c; floor channels in the neck hold no nylon; no side-wall pockets; REF uses REF_end_wall_slot; rib slot and drop channel left solid",
+      "detail": "Q83: neck-end strips SIG1 10.71 mm, SIG2 21.81 mm from packing \u00a75e sha e0eef82fcb4be6b013b01dd535ac53ca186f7fc6; floor channels in the neck hold no nylon; no side-wall pockets; REF uses REF_end_wall_slot; rib slot and drop channel left solid",
       "name": "V2_TAB_envelope",
       "numbers": {
         "REF_body_mm3": 0.0,
@@ -833,7 +833,7 @@
       "passed": true
     },
     {
-      "detail": "Q82/Q98: island bosses at packing \u00a75e H1/H2; keep-out gap 1.42 mm; P4/P5 from the \u00a75e wall-site table at docs/fab/packing-v2.md sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c; centre error \u2264 0.05; 3.30 keep box clear of every island courtyard",
+      "detail": "Q82/Q98: island bosses at packing \u00a75e H1/H2; keep-out gap 1.42 mm; P4/P5 from the \u00a75e wall-site table at docs/fab/packing-v2.md sha e0eef82fcb4be6b013b01dd535ac53ca186f7fc6; centre error \u2264 0.05; 3.30 keep box clear of every island courtyard",
       "name": "V2_BOSS_sites",
       "numbers": {
         "boss_1_courtyard_hits": 0.0,
@@ -855,7 +855,7 @@
       "passed": true
     },
     {
-      "detail": "Q90/Q93: two RING_PAD clamped button-heads at \u00a75e wall sites P4/P5 (sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c) in the posterior side wall (u 20.50\u201322.00), head axis +u; \u00d82.7 through the wall, outer face open, ring on the inner face, 3 standoff into the bay; nylon between \u2265 3; wall around each \u2265 1.5; clear of the cell pocket and the hinge lip",
+      "detail": "Q90/Q93: two RING_PAD clamped button-heads at \u00a75e wall sites P4/P5 (sha e0eef82fcb4be6b013b01dd535ac53ca186f7fc6) in the posterior side wall (u 20.50\u201322.00), head axis +u; \u00d82.7 through the wall, outer face open, ring on the inner face, 3 standoff into the bay; nylon between \u2265 3; wall around each \u2265 1.5; clear of the cell pocket and the hinge lip",
       "name": "V2_CHARGE_pads",
       "numbers": {
         "P4_cap": 0.0,
@@ -895,7 +895,7 @@
       "passed": true
     },
     {
-      "detail": "Q91: pin table v3 centres inside cavity u 1.50\u201320.50 or on a declared exterior (J3 break-off, SIG/CHARGE flats outside the cavity, P3 on the tail); J2 inside at (15.15, 11.35); sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c",
+      "detail": "Q91: pin table v3 centres inside cavity u 1.50\u201320.50 or on a declared exterior (J3 break-off, SIG/CHARGE flats outside the cavity, P3 on the tail); J2 inside at (15.15, 11.35); sha e0eef82fcb4be6b013b01dd535ac53ca186f7fc6",
       "name": "V2_CAVITY_v3",
       "numbers": {
         "cavity_u0": 1.5,
@@ -956,7 +956,7 @@
     "total_chord": 47.900523407445874
   },
   "closure_passed": false,
-  "commit": "f7675ec099ffa9e1b5bab14fad3920c5d666262e",
+  "commit": "534d2813067c69fd7ba40a9fd96d2d72aef4f86e",
   "contact_source": "interface II flex tabs under standoffs (WP11 turn 07)",
   "contact_stack": {
     "board_underside_y": 4.3,
@@ -1204,7 +1204,7 @@
         "\u00a73.5 step 9 hook joint fillet 1.5 applied"
       ],
       "hook_stub_in_cavity_removed_mm3": 4.6261,
-      "q59": "packing-v2.md \u00a75 on lane/w3 at 284ec05 (git show 284ec05): no in-cavity REF tab route; REF_end_wall_slot u 7.25\u20139.75, s 38.20\u201339.25, y 1.50\u20131.81, width 2.50, through 1.05, height 0.31, 0.814 mm\u00b3, plus flex clearance 0.2 mm per side in u, 0.2 mm in s, 0.15 mm in y",
+      "q59": "packing-v2.md \u00a75 on lane/w3 at 71fa9ea (git show 71fa9ea): no in-cavity REF tab route; REF_end_wall_slot u 7.25\u20139.75, s 38.20\u201339.25, y 1.50\u20131.81, width 2.50, through 1.05, height 0.31, 0.814 mm\u00b3, plus flex clearance 0.2 mm per side in u, 0.2 mm in s, 0.15 mm in y",
       "q76": "circular root r=1.75 blended 1.5",
       "shell_measure": {
         "P4_s": 4.35,
@@ -1737,7 +1737,7 @@
           "passed": true
         }
       },
-      "detail": "Q82/Q98: island bosses at packing \u00a75e H1/H2; keep-out gap 1.42 mm; P4/P5 from the \u00a75e wall-site table at docs/fab/packing-v2.md sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c; centre error \u2264 0.05; 3.30 keep box clear of every island courtyard",
+      "detail": "Q82/Q98: island bosses at packing \u00a75e H1/H2; keep-out gap 1.42 mm; P4/P5 from the \u00a75e wall-site table at docs/fab/packing-v2.md sha e0eef82fcb4be6b013b01dd535ac53ca186f7fc6; centre error \u2264 0.05; 3.30 keep box clear of every island courtyard",
       "numbers": {
         "boss_1_courtyard_hits": 0.0,
         "boss_1_err": 0.0,
@@ -1779,7 +1779,7 @@
           "passed": true
         }
       },
-      "detail": "Q91: pin table v3 centres inside cavity u 1.50\u201320.50 or on a declared exterior (J3 break-off, SIG/CHARGE flats outside the cavity, P3 on the tail); J2 inside at (15.15, 11.35); sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c",
+      "detail": "Q91: pin table v3 centres inside cavity u 1.50\u201320.50 or on a declared exterior (J3 break-off, SIG/CHARGE flats outside the cavity, P3 on the tail); J2 inside at (15.15, 11.35); sha e0eef82fcb4be6b013b01dd535ac53ca186f7fc6",
       "numbers": {
         "cavity_u0": 1.5,
         "cavity_u1": 20.5,
@@ -1883,7 +1883,7 @@
           "passed": true
         }
       },
-      "detail": "Q90/Q93: two RING_PAD clamped button-heads at \u00a75e wall sites P4/P5 (sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c) in the posterior side wall (u 20.50\u201322.00), head axis +u; \u00d82.7 through the wall, outer face open, ring on the inner face, 3 standoff into the bay; nylon between \u2265 3; wall around each \u2265 1.5; clear of the cell pocket and the hinge lip",
+      "detail": "Q90/Q93: two RING_PAD clamped button-heads at \u00a75e wall sites P4/P5 (sha e0eef82fcb4be6b013b01dd535ac53ca186f7fc6) in the posterior side wall (u 20.50\u201322.00), head axis +u; \u00d82.7 through the wall, outer face open, ring on the inner face, 3 standoff into the bay; nylon between \u2265 3; wall around each \u2265 1.5; clear of the cell pocket and the hinge lip",
       "numbers": {
         "P4_cap": 0.0,
         "P4_cell_gap": 3.1,
@@ -2287,7 +2287,7 @@
           "passed": true
         }
       },
-      "detail": "Q83: neck-end strips SIG1 10.71 mm, SIG2 21.81 mm from packing \u00a75e sha ab9ce9588d55aff5143828f6dd88f5d22ed8223c; floor channels in the neck hold no nylon; no side-wall pockets; REF uses REF_end_wall_slot; rib slot and drop channel left solid",
+      "detail": "Q83: neck-end strips SIG1 10.71 mm, SIG2 21.81 mm from packing \u00a75e sha e0eef82fcb4be6b013b01dd535ac53ca186f7fc6; floor channels in the neck hold no nylon; no side-wall pockets; REF uses REF_end_wall_slot; rib slot and drop channel left solid",
       "numbers": {
         "REF_body_mm3": 0.0,
         "SIG1_body_mm3": 0.0,
@@ -2455,7 +2455,7 @@
       "sha256": "3a0550096bc785626070d99c2380b1e5f21de5afb87b26f776fb962d557605b2"
     }
   },
-  "views_commit": "f7675ec099ffa9e1b5bab14fad3920c5d666262e",
+  "views_commit": "534d2813067c69fd7ba40a9fd96d2d72aef4f86e",
   "views_hash_rule": "SHA-256 of raw file bytes. PNG tIME/tEXt/zTXt/iTXt/eXIf rewritten; Creation Time text and PDF CreationDate/ModDate/ID pinned to 2026-09-16T00:00:00Z. Same pin as the solids hash_rule timestamp.",
   "walls": {
     "anterior side wall": 1.5,

@@ -527,7 +527,7 @@ The plan wins. These are not silent CAD changes.
 
 | Source | URL | Used for |
 |---|---|---|
-| Plan | `docs/fab/plan.md` at `0c5d0eb` | Contract numbers |
+| Plan | `docs/fab/plan.md` at `a2f6dc5` | Contract numbers |
 | Contacts | `docs/fab/contacts.md` | Historical contact interface study |
 | Current circuit | `docs/fab/board-v4-design.md` | Current circuit and unresolved fit/electrical limits |
 | ISO 7380-1 manufacturer table | https://www.westfieldfasteners.co.uk/Standards/ScrewBolt-SHBtn-M.html | M2.5 dk 4.5, k 1.5, s 1.5; standard itself starts at M3 |

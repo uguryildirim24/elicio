@@ -21,7 +21,7 @@ See [shell limits](../../docs/fab/shell-v4.md) for print and load questions.
 
 ## Reference fixtures
 
-`bte_fit_shell.py`, `placement.py`, `placement_v2.py` and `layout_v2c.py` retain the original construction, packing searches and document generator. The older PCB reader uses revision `845bac7` for board dimensions and project rules. J4 geometry prefers revision `30ca79d`. Shell readers prefer pinned packing revisions. These are read-only Git operations, but the inputs depend on history. A history rewrite can invalidate them. They must not be replaced by a later PCB without checking the changed geometry and rules.
+`bte_fit_shell.py`, `placement.py`, `placement_v2.py` and `layout_v2c.py` retain the original construction, packing searches and document generator. The older PCB reader uses revision `70adfa6` for board dimensions and project rules. J4 geometry prefers revision `6860a54`. Shell readers prefer pinned packing revisions. These are read-only Git operations, but the inputs depend on history. A history rewrite can invalidate them. They must not be replaced by a later PCB without checking the changed geometry and rules.
 
 The v1/v2 solids, matrix drawings, v2c grid drawings and packing tables remain reference inputs. The earlier shell reader combines section 5c courtyards and holes with section 5d folded pads and extras. Section 5e supplies the later wall-site geometry. The v4 generator reads `board-v4-design.md`, not either older placement table. Superseded fit-gauge ordering instructions do not define the current build. Historical technical source surveys L1 to L8 remain. `docs/fab/references.md` indexes key sources. Private task and review dialogue is not included.
 

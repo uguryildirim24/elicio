@@ -175,9 +175,9 @@ N_0402 = 25
 N_SWD = 5
 SWD = (1.0, 1.0)
 
-# WP11c: real F.CrtYd / pad extent from the WP12b board (commit 845bac7).
+# WP11c: real F.CrtYd / pad extent from the WP12b board (commit 70adfa6).
 # Round-5 packing sizes stay in VQFN/BQ/LDO/... and still drive the 864-run matrix.
-WP12B_REV = "845bac7"
+WP12B_REV = "70adfa6"
 WP12B_PCB = "hardware/board/elicio-v2.kicad_pcb"
 WP12B_PRO = "hardware/board/elicio-v2.kicad_pro"
 JLC_ASSEMBLY_EDGE = 2.5  # board-v2.md §12 / L6; JLC FPC assembly, body to edge
@@ -204,7 +204,7 @@ BOSS_HOLE_KEEP = BOSS_HOLE_DIA + 2 * COPPER_TO_EDGE  # courtyard-clear box
 FOLD_STAND_OUT = 1.6  # decision 74: 180° at R 1.5 stands ~1.6 outside the edge
 FOLD_ARC = math.pi * BOARD_BEND_R  # 4.712… mm of strip in the bend
 
-# Local F.CrtYd width × height (mm) per footprint name. Source: 845bac7 PCB.
+# Local F.CrtYd width × height (mm) per footprint name. Source: 70adfa6 PCB.
 KICAD_COURTYARD = {
     "C_0402_1005Metric": (1.820, 0.920),
     "C_0603_1608Metric": (2.960, 1.460),
@@ -3172,7 +3172,7 @@ def search_layout_v2(spec: V2Spec, *, table: dict[str, dict[str, Any]] | None = 
 
 
 def usb_c_body() -> tuple[float, float, float]:
-    """J1 HRO TYPE-C courtyard (845bac7) and the 3.2 mm height from packing / plan v2 §5.4.
+    """J1 HRO TYPE-C courtyard (70adfa6) and the 3.2 mm height from packing / plan v2 §5.4.
 
     The amendment names the J4 land; J4 on that board is TC2030. USB-C is J1.
     """
@@ -3275,7 +3275,7 @@ def _usb_close_variant(spec: V2Spec) -> str:
     o = usb_c_close_options(spec)
     return (
         f"Decision 70 (`tasks/reviews/code-r6.md`): USB-C J1 real body "
-        f"{o['wu']:.2f}×{o['ws']:.2f}×{o['h']:.1f} (F.CrtYd from 845bac7; height from packing / "
+        f"{o['wu']:.2f}×{o['ws']:.2f}×{o['h']:.1f} (F.CrtYd from 70adfa6; height from packing / "
         f"plan v2 §5.4; the amendment names the J4 land, which is TC2030). "
         f"Packing hang {o['packing_hang_mm']:.2f} mm past s={USB_OUTER_FACE_S:.2f}; "
         f"real courtyard hang {o['hang_mm']:.2f} mm. Opening u0={o['opening_u0']:.2f} overlaps "
@@ -3551,7 +3551,7 @@ def _r6_decisions_section(lay12: LayoutV2, lay15: LayoutV2) -> list[str]:
     lines.append("### Round 6 decisions 70–74 (`tasks/reviews/code-r6.md`)")
     lines.append("")
     lines.append(
-        "These rules were added after the first WP11c close. The USB-C land on 845bac7 is "
+        "These rules were added after the first WP11c close. The USB-C land on 70adfa6 is "
         "J1 (`USB_C_Receptacle_HRO_TYPE-C-31-M-12`). J4 is TC2030. Height 3.2 mm is packing "
         "`USB` / plan v2 §5.4 (board-v2.md §12 is the stackup, not a 3D size)."
     )
@@ -3622,7 +3622,7 @@ def _layout_v2_section() -> list[str]:
     lines.append("## 5b. Layout for the board lane, v2 (WP11c)")
     lines.append("")
     lines.append(
-        "Real F.CrtYd and pad extents from `git show 845bac7:hardware/board/elicio-v2.kicad_pcb` "
+        "Real F.CrtYd and pad extents from `git show 70adfa6:hardware/board/elicio-v2.kicad_pcb` "
         "(WP12b after dropping the shorting copper). Round-5 packing envelopes stay in the 864-run "
         "table. Courtyard-to-courtyard uses a 0.05 mm solder-mask-to-copper margin "
         f"(DRC; two expansions = {SOLDER_MASK_BRIDGE_MARGIN:.2f} mm pad-to-pad). "

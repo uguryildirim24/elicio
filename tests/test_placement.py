@@ -775,7 +775,7 @@ class PlacementWP11bTests(unittest.TestCase):
 
 
 class PlacementWP11cTests(unittest.TestCase):
-    """WP11c: real F.CrtYd from 845bac7 and a courtyard-true layout search."""
+    """WP11c: real F.CrtYd from 70adfa6 and a courtyard-true layout search."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -832,7 +832,7 @@ class PlacementWP11cTests(unittest.TestCase):
         self.assertIn("## 5b. Layout for the board lane, v2 (WP11c)", text)
         self.assertIn("Variant A:", text)
         self.assertIn("Variant B:", text)
-        self.assertIn("845bac7", text)
+        self.assertIn("70adfa6", text)
         rows = getattr(PlacementV2Tests, "rows", None)
         generated = self.v2.packing_markdown(
             rows if rows is not None else self.v2.run_matrix(include_arc=False)

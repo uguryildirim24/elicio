@@ -110,7 +110,7 @@ Contact sites P1–P3 are unchanged from §5. y is the ring seat on the inner fl
 
 ### J4 NPTH keep-out both sides (Q85)
 
-Tag-Connect TC2030-IDC-NL from `git show 30ca79d:hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. KiCad canvas Y increases down; at the pinned (16.25, 24.60) rot 90 the map is (u + py, s − px). Pin table v2 used a Y-up map and swapped the pair and the single along s. No B.Cu pad may enter that zone (KiCad hole_clearance: circle radius drill/2 + clearance). Same-face courtyard keep-out on F.Cu stands.
+Tag-Connect TC2030-IDC-NL from `git show 6860a54:hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. KiCad canvas Y increases down; at the pinned (16.25, 24.60) rot 90 the map is (u + py, s − px). Pin table v2 used a Y-up map and swapped the pair and the single along s. No B.Cu pad may enter that zone (KiCad hole_clearance: circle radius drill/2 + clearance). Same-face courtyard keep-out on F.Cu stands.
 
 | hole | u | s | drill | keep | sides |
 |---|---:|---:|---:|---:|---|

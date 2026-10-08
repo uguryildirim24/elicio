@@ -507,13 +507,13 @@ def _edge_gap(
 
 
 # Tag-Connect TC2030-IDC-NL NPTH pads. Locals come from the KiCad footprint
-# (`git show 30ca79d:hardware/board/elicio-v2.kicad_pcb` or the board file).
+# (`git show 6860a54:hardware/board/elicio-v2.kicad_pcb` or the board file).
 # Fallback matches that footprint: three NPTH, drill 0.9906. min_hole_clearance
 # 0.20 in elicio-v2.kicad_pro.
 J4_NPTH_LOCAL = ((-2.54, 0.0), (2.54, -1.016), (2.54, 1.016))
 J4_NPTH_DRILL = 0.9906
 J4_HOLE_CLEARANCE = 0.20
-J4_KICAD_COMMIT = "30ca79d"
+J4_KICAD_COMMIT = "6860a54"
 # Pin table v2 B.Cu cluster around J4 (WP11e). Restore, then fold the smallest hole move.
 J4_NPTH_FOLD_SEEDS = {
     "R23": (18.28, 21.17),

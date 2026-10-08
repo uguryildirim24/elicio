@@ -1,6 +1,6 @@
 # Pin table v3 — flat PCB coordinates (WP12i)
 
-Copied from packing-v2.md §5e at `ab9ce95`.
+Copied from packing-v2.md §5e at `e0eef82`.
 Board pins this table. The folded-site table is the shell's and is not copied.
 §5d in packing-v2.md is the frozen v2.1 table. §5e is live.
 
@@ -121,7 +121,7 @@ P1–P3 floor sites are unchanged from §5. y is the ring seat on the inner floo
 
 ### J4 NPTH keep-out both sides (Q85)
 
-Tag-Connect TC2030-IDC-NL from `git show 30ca79d:hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. KiCad canvas Y increases down; at rot 90 the map is (u + py, s − px). No B.Cu pad may enter that zone. Same-face courtyard keep-out on F.Cu stands.
+Tag-Connect TC2030-IDC-NL from `git show 6860a54:hardware/board/elicio-v2.kicad_pcb`: 3 NPTH, drill 0.9906 mm. `elicio-v2.kicad_pro` min_hole_clearance 0.20 mm. Keep-out diameter = drill + 2 × clearance = 1.39 mm. KiCad canvas Y increases down; at rot 90 the map is (u + py, s − px). No B.Cu pad may enter that zone. Same-face courtyard keep-out on F.Cu stands.
 
 | hole | u | s | drill | keep | sides |
 |---|---:|---:|---:|---:|---|
