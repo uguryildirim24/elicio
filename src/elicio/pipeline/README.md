@@ -1,123 +1,46 @@
-# emg_pipeline
+# sEMG research pipeline
 
-A reusable pipeline for the muscle-signal (sEMG) gesture-decoding
-project. This package prepares public training data, trains gesture
-decoders, and scores them the same honest way every time: train on
-one recording session, test on a later, different session.
+This package prepares public GRABMyo forearm recordings, trains gesture decoders and evaluates across different recording sessions. It does not decode auricular EMG or connect research predictions to the action gate.
 
-## Word list
+No result CSVs, model checkpoints or measured accuracy reports are included here. Earlier imported research summaries are not supported by tracked result artifacts. See [research provenance](../../../docs/RESEARCH_PROVENANCE.md).
 
-Read this list first. Every word below is used later in this file.
+## Run from the repository root
 
-| Word | Meaning |
-|---|---|
-| sEMG | Surface electromyography. A muscle signal picked up by electrodes placed on the skin, not inside the body. |
-| gesture | One hand or wrist movement the pipeline learns to recognize, for example "fist" or "rest" (arm relaxed). |
-| channel | One electrode. A device with 8 channels has 8 electrodes. |
-| window | A short, fixed-length slice of signal that one gesture decision is made from (200 ms in this pipeline). |
-| session | One recording sitting: one day, one time the sensor band was put on. |
-| cross-session accuracy | How well a decoder trained on one session performs on a LATER, different session. The only honest accuracy number for a wearable, because sensor placement shifts a little every time the band goes back on. |
-| subject | One person in the training dataset. |
-| CLI | Command-Line Interface. A program you run by typing a command, instead of clicking buttons. |
-| epoch | One full pass of a neural network over its training data during training. |
-
-## What this package contains
-
-```
-elicio/pipeline/
-  config.py          one file with every shared setting (window length, epoch count, file paths)
-  cli.py             the three commands: prepare, train, evaluate
-  load.py            Recording standard form + the GRABMyo public-dataset loader
-  features.py        windowing (200 ms / 50 ms step) + 5 standard sEMG features
-  splits.py          the ONLY split function; blocks any accidental same-session leakage
-  models.py           LDA, linear SVM, Gradient-Boosted-Trees baseline classifiers
-  net_models.py       Temporal_CNN, GRU, Transformer neural networks
-  prepare_subjects.py the "prepare" script (streams GRABMyo, windows, saves .npz per subject)
-  train_and_eval.py   the "train" script (16 vs 8 vs 3 channels, all six models)
-  six_best_rest.py    the "evaluate" script (six best gestures + rest, milestone check)
-  README.md           this file
-```
-
-## The three commands
-
-Run every command from the folder that CONTAINS `elicio/pipeline/` (one
-level above this file), with that folder on `PYTHONPATH`:
+Python >=3.11 is required. Research dependencies include WFDB, scikit-learn and PyTorch. These commands download data and run substantial training workloads. Check storage and compute capacity first.
 
 ```bash
-export PYTHONPATH=.
-
-# 1. prepare: download raw signal for chosen subjects, window it,
-#    compute features, save one file per subject to results/
-python -m elicio.pipeline.cli prepare --subjects 1 2 3 --out-dir results
-
-# 2. train: train and score the baseline models AND the neural
-#    networks, at 16, 8, and 3 channels, for chosen subjects
-python -m elicio.pipeline.cli train --data-dir results --subjects 1 2 3 \
+python3 -m venv .venv
+.venv/bin/python -m pip install -e '.[research]'
+.venv/bin/elicio-emg prepare --subjects 1 2 3 --out-dir results
+.venv/bin/elicio-emg train --data-dir results --subjects 1 2 3 \
     --epochs 20 --out results/train_results.csv
-
-# 3. evaluate: score the reduced "six best gestures + rest" set,
-#    the milestone-1 target set
-python -m elicio.pipeline.cli evaluate --data-dir results --subjects 1 2 3 \
+.venv/bin/elicio-emg evaluate --data-dir results --subjects 1 2 3 \
     --epochs 20 --out results/six_best_rest.csv
 ```
 
-Each command has its own `--help`, for example
-`python -m elicio.pipeline.cli prepare --help`.
+No `PYTHONPATH` setting is needed after installation. Use `elicio-emg prepare --help`, `train --help` or `evaluate --help` for options.
 
-The `train` and `evaluate` commands need the `torch` neural-network
-library. Install it before running them:
-`pip install torch` (or the matching `manage_packages` install on a
-Claude Science host). The `prepare` command does not need `torch`.
+`load.py` fetches PhysioNet/WFDB records from `grabmyo/1.1.0`. Preparation writes `subject_NN.npz` files. Training and evaluation read those files and write CSVs. `results/` is ignored. The dataset is not bundled or relicensed by Elicio. Synthetic test fixtures are the only committed sample data.
 
-Per project rule, do not run `train` or `evaluate` on this laptop —
-both loop neural-network training over many subjects and belong on
-remote compute (see the project's compute setup). `prepare` for a
-small number of subjects is light enough to run locally if needed.
+## Layout
 
-## One configuration file
+| Module | Purpose |
+| --- | --- |
+| `config.py` | Shared window, feature, channel and training defaults |
+| `load.py` | `Recording` contract and public WFDB loader |
+| `features.py` | Windowing and MAV, WL, ZC, SSC and RMS features |
+| `splits.py` | Cross-session split and leakage guard |
+| `models.py` | LDA, linear SVM and gradient-boosted tree baselines |
+| `net_models.py` | Temporal CNN, GRU and Transformer models |
+| `prepare_subjects.py` | Per-subject window and feature files |
+| `train_and_eval.py` | Full-gesture model comparison |
+| `six_best_rest.py` | Reduced gesture-set evaluation |
+| `cli.py` | `prepare`, `train` and `evaluate` commands |
 
-`config.py` holds every setting the three commands share: window
-length, step length, epoch count, default file paths, and the
-channel counts compared in `train`. Change a value there once; every
-command picks it up. Do not hard-code these numbers again in a new
-script.
+## New recordings
 
-## Adding your own recordings
+The preparation CLI accepts public GRABMyo records only. A device-data preparation path must supply the `Recording` fields defined in `load.py` and write the same NPZ fields as `prepare_subjects.py`: `windows`, `features`, `feature_names`, `labels`, `subjects`, `sessions`, `channel_names`, `sample_rate`. Receiver output is not an already trained decoder or a complete labeled training dataset.
 
-The `prepare` command above is wired to the public GRABMyo dataset
-only. To run this SAME pipeline on your own sensor recordings later,
-follow these steps. You will not touch `train_and_eval.py`,
-`six_best_rest.py`, `features.py`, or `splits.py` at all.
+Keep raw recordings and participant metadata in ignored `recordings/`. Use distinct session identifiers for different acquisition sessions. All evaluation must pass through `cross_session_split` and `assert_no_session_leakage`.
 
-1. Read the "STANDARD FORM" section at the top of `load.py`. It
-   defines the `Recording` object: a signal array, a label array, a
-   sample rate, channel names, a subject name, and a session name.
-2. Write one new loader function, in a new file (for example
-   `load_my_device.py`), that reads your device's raw recording
-   files and returns a list of `Recording` objects in that same
-   standard form. Give each recording session a DIFFERENT `session`
-   value (for example `"day1"`, `"day2"`) so the cross-session split
-   can tell them apart.
-3. Copy the structure of `prepare_subjects.py`, but call your new
-   loader instead of the GRABMyo loader. Keep the rest unchanged:
-   window with `features.window_recordings`, compute features with
-   `features.compute_features`, and save one `.npz` file per subject
-   with the exact same field names (`windows`, `features`,
-   `feature_names`, `labels`, `subjects`, `sessions`,
-   `channel_names`, `sample_rate`).
-4. Point `train` and `evaluate` at your new output folder with
-   `--data-dir`. No other change is needed; both commands read the
-   `.npz` files by field name, not by dataset.
-
-This is the "documented path for the user's own future recordings"
-promised in the project plan: one small loader file, everything
-else stays the same.
-
-## Honest testing, always
-
-`splits.py` is the only place this pipeline builds a train/test
-split. Every split it returns is checked for "session leakage" —
-the same session appearing on both the training side and the testing
-side. If your own loader reuses a session name by mistake, this
-check stops the run with an error instead of silently producing an
-inflated accuracy number.
+Training is not fully seeded, so exact repeated scores are not guaranteed. Software feature and split checks do not establish biological performance. Research download and training commands were not rerun during publication cleanup.
