@@ -5,8 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "elicio"
 version = "0.1.0"
-description = "A safety boundary between personal gesture events and local AI tools."
+description = "An unfinished ear-muscle EMG earpiece with a synthetic gesture-to-action gate."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
   "numpy>=2.0",

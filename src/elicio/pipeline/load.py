@@ -5,8 +5,8 @@ electrodes placed on the skin, not inside the body.
 
 STANDARD FORM
 -------------
-Every loader in this package, and every loader added later for the
-user's own hardware, must produce a list of ``Recording`` objects. A
+Every loader in this package, and every loader added later for
+Rolf's future hardware, must produce a list of ``Recording`` objects. A
 Recording holds:
 
   signal        : float32 array, shape [n_samples, n_channels].
@@ -30,7 +30,7 @@ Recording holds:
                   (kept for traceability, not used by later steps).
 
 This form is the only door into the rest of the pipeline. A future
-loader for the user's own armband must return the same
+loader for Rolf's earpiece must return the same
 ``Recording`` objects; the windowing, feature, and split modules do
 not know or care which sensor or dataset produced them.
 
